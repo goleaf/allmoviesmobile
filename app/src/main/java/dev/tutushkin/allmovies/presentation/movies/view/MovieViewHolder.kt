@@ -14,7 +14,9 @@ class MovieViewHolder(
         binding.apply {
             viewHolderMovieTitleText.text = item.title
             viewHolderMovieGenresText.text = item.genres
-            viewHolderMovieYearText.text = item.year
+            viewHolderMovieYearText.text = item.year.ifBlank {
+                root.context.getString(R.string.movies_list_year_unknown)
+            }
             viewHolderMovieReviewsText.text =
                 root.context.getString(R.string.movies_list_reviews, item.numberOfRatings)
             viewHolderMovieAgeText.text = item.minimumAge

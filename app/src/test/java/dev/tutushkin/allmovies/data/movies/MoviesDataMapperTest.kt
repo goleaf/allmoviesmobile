@@ -76,4 +76,40 @@ class MoviesDataMapperTest {
 
         assertEquals("", entity.photo)
     }
+
+    @Test
+    fun `movie list dto with blank release date creates entity with empty year`() {
+        val dto = MovieListDto(
+            id = 4,
+            title = "Title",
+            posterPath = null,
+            voteAverage = 6.5f,
+            voteCount = 100,
+            adult = false,
+            releaseDate = "",
+            genreIds = listOf(1)
+        )
+
+        val entity = dto.toEntity()
+
+        assertEquals("", entity.year)
+    }
+
+    @Test
+    fun `movie list dto with malformed release date creates entity with empty year`() {
+        val dto = MovieListDto(
+            id = 5,
+            title = "Title",
+            posterPath = null,
+            voteAverage = 6.5f,
+            voteCount = 100,
+            adult = false,
+            releaseDate = "2023/01/15",
+            genreIds = listOf(1)
+        )
+
+        val entity = dto.toEntity()
+
+        assertEquals("", entity.year)
+    }
 }

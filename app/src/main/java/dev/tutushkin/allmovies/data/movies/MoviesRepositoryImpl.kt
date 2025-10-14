@@ -1,6 +1,5 @@
 package dev.tutushkin.allmovies.data.movies
 
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
@@ -79,7 +78,7 @@ class MoviesRepositoryImpl(
             var localMovies = moviesLocalDataSource.getNowPlaying()
 
             if (localMovies.isEmpty()) {
-                getNowPlayingFromServer()
+                getNowPlayingFromServer(apiKey)
                     .onSuccess { moviesLocalDataSource.setNowPlaying(it) }
                     .onFailure {
                         return@withContext Result.failure(it)
@@ -95,10 +94,10 @@ class MoviesRepositoryImpl(
             }
         }
 
-    private suspend fun getNowPlayingFromServer(): Result<List<MovieListEntity>> =
+    private suspend fun getNowPlayingFromServer(apiKey: String): Result<List<MovieListEntity>> =
         withContext(ioDispatcher) {
             runCatching {
-                moviesRemoteDataSource.getNowPlaying(BuildConfig.API_KEY)
+                moviesRemoteDataSource.getNowPlaying(apiKey)
                     .getOrThrow()
                     .map { it.toEntity() }
             }
@@ -111,24 +110,36 @@ class MoviesRepositoryImpl(
             var localMovie = moviesLocalDataSource.getMovieDetails(movieId)
 
             if (localMovie == null) {
-                getMovieDetailsFromServer(movieId, apiKey)
-                    .onSuccess {
-                        it.actors = getActorsList(movieId, apiKey).getOrThrow()
-                        moviesLocalDataSource.setMovieDetails(it)
-                    }
-                    .onFailure {
-                        return@withContext Result.failure(it)
-                    }
+                val movieDetailsResult = getMovieDetailsFromServer(movieId, apiKey)
+                movieDetailsResult.onFailure {
+                    return@withContext Result.failure(it)
+                }
 
-                localMovie = moviesLocalDataSource.getMovieDetails(movieId)
+                val actorsResult = getActorsFromServer(movieId, apiKey)
+                actorsResult.onFailure {
+                    return@withContext Result.failure(it)
+                }
+
+                val movieDetails = movieDetailsResult.getOrThrow()
+                val actors = actorsResult.getOrThrow()
+                val movieToSave = movieDetails.copy(
+                    actors = actors.map { actor -> actor.id },
+                    isActorsLoaded = true
+                )
+
+                moviesLocalDataSource.setMovieDetails(movieToSave)
+                moviesLocalDataSource.setActors(actors)
+
+                localMovie = moviesLocalDataSource.getMovieDetails(movieId) ?: movieToSave
             }
 
-            if (localMovie != null) {
-                val actors = getActorsData(localMovie, apiKey).getOrThrow()
-                Result.success(localMovie.toModel(actors))
-            } else {
-                Result.failure(Exception("Movie details cashing error!"))
+            val movie = localMovie
+            if (movie == null) {
+                return@withContext Result.failure(Exception("Movie details cashing error!"))
             }
+
+            return@withContext getActorsData(movie, apiKey)
+                .mapCatching { actors -> movie.toModel(actors) }
         }
 
     private suspend fun getMovieDetailsFromServer(
@@ -138,15 +149,6 @@ class MoviesRepositoryImpl(
         withContext(ioDispatcher) {
             moviesRemoteDataSource.getMovieDetails(movieId, apiKey)
                 .mapCatching { it.toEntity() }
-        }
-
-    private suspend fun getActorsList(movieId: Int, apiKey: String): Result<List<Int>> =
-        withContext(ioDispatcher) {
-            getActorsFromServer(movieId, apiKey).mapCatching {
-                it.map { actor ->
-                    actor.id
-                }
-            }
         }
 
     private suspend fun getActorsData(

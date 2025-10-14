@@ -15,6 +15,7 @@ ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}"
 AVD_NAME="${AVD_NAME:-allmovies_pixel_5_api_34}"
 APK_PATH="$PROJECT_ROOT/app/build/outputs/apk/debug/app-debug.apk"
 PACKAGE_NAME="dev.tutushkin.allmovies"
+EMULATOR_SERIAL=""
 
 GRADLE_TASKS=(
   clean
@@ -79,6 +80,15 @@ ensure_android_tools() {
   require_file "$(emulator_path)"
 }
 
+cleanup_emulator() {
+  local adb
+  adb="$(adb_path)"
+  if [[ -z "$EMULATOR_SERIAL" ]]; then
+    EMULATOR_SERIAL="emulator-5554"
+  fi
+  "$adb" -s "$EMULATOR_SERIAL" emu kill >/dev/null 2>&1 || true
+}
+
 boot_emulator() {
   local emulator_bin
   emulator_bin="$(emulator_path)"
@@ -91,9 +101,9 @@ boot_emulator() {
   log "Booting emulator $AVD_NAME"
   "$emulator_bin" -avd "$AVD_NAME" -netdelay none -netspeed full \
     -no-boot-anim -no-snapshot-save \
-    >/tmp/$AVD_NAME.log 2>&1 &
+    >"/tmp/$AVD_NAME.log" 2>&1 &
 
-  trap 'log "Stopping emulator"; $(adb_path) -s emulator-5554 emu kill >/dev/null 2>&1 || true' EXIT
+  trap 'log "Stopping emulator"; cleanup_emulator' EXIT
 
   wait_for_emulator
 }
@@ -101,17 +111,30 @@ boot_emulator() {
 wait_for_emulator() {
   local adb
   adb="$(adb_path)"
+  "$adb" start-server >/dev/null 2>&1
   log "Waiting for emulator to report as online"
   "$adb" wait-for-device
   until "$adb" shell getprop sys.boot_completed 2>/dev/null | grep -q "1"; do
     sleep 2
   done
+  EMULATOR_SERIAL="$("$adb" devices | awk 'NR>1 && $2 == "device" {print $1; exit}')"
+  if [[ -z "$EMULATOR_SERIAL" ]]; then
+    log "Warning: could not automatically determine emulator serial; defaulting to emulator-5554"
+    EMULATOR_SERIAL="emulator-5554"
+  else
+    log "Detected emulator serial $EMULATOR_SERIAL"
+  fi
   log "Emulator booted"
 }
 
 install_and_run() {
-  local adb
+  local adb target_args
   adb="$(adb_path)"
+  if [[ -n "$EMULATOR_SERIAL" ]]; then
+    target_args=("-s" "$EMULATOR_SERIAL")
+  else
+    target_args=()
+  fi
 
   if [[ ! -f "$APK_PATH" ]]; then
     log "APK not found at $APK_PATH"
@@ -120,10 +143,10 @@ install_and_run() {
   fi
 
   log "Installing APK"
-  "$adb" install -r "$APK_PATH"
+  "$adb" "${target_args[@]}" install -r "$APK_PATH"
 
   log "Launching $PACKAGE_NAME"
-  "$adb" shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
+  "$adb" "${target_args[@]}" shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
   log "Application launch command dispatched"
 }
 

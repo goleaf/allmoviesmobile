@@ -15,7 +15,7 @@ This repository now includes a macOS-friendly automation script that lets you ru
 
 Before running the automation script or manual steps, make sure the following tools are available on your macOS machine:
 
-1. **Java Development Kit 11 or newer** (recommended: Temurin/OpenJDK).
+1. **Java Development Kit 17** (Gradle 7.3.3 does not support bytecode produced by newer JDKs such as 20 or 21).
 2. **Android command-line tools** installed under `~/Library/Android/sdk` (the default path used by the script).
 3. **Required Android packages** installed through `sdkmanager`, for example:
    ```bash
@@ -44,7 +44,7 @@ The `macos_cursor_runner.sh` script orchestrates the workflow for you: it runs t
 ./macos_cursor_runner.sh
 ```
 
-By default the script executes the following Gradle tasks in order: `clean`, `lint`, `testDebugUnitTest`, and `assembleDebug`. When these tasks complete, the script boots the AVD named `allmovies_pixel_5_api_34`, waits for Android to finish booting, installs `app-debug.apk`, and starts the `dev.tutushkin.allmovies` package via `adb`.
+By default the script executes the following Gradle tasks in order: `clean`, `lint`, `testDebugUnitTest`, and `assembleDebug`. When these tasks complete, the script boots the AVD named `allmovies_pixel_5_api_34`, waits for Android to finish booting, installs `app-debug.apk`, and starts the `dev.tutushkin.allmovies` package via `adb`. The script automatically detects the running emulator serial and tears it down on exit so repeated runs stay clean.
 
 ### Script options
 
@@ -96,7 +96,7 @@ If you prefer to execute the steps manually, follow this guide:
 ## Troubleshooting
 
 - **`adb` or `emulator` not found:** Ensure `ANDROID_SDK_ROOT` points to the directory containing `platform-tools` and `emulator`.
-- **Gradle build failures:** Verify that the JDK version is compatible and that you have an active internet connection to download dependencies during the first build.
+- **Gradle build failures:** Verify that you are using JDK 17 (newer JDKs lead to `Unsupported class file major version` errors with this Gradle version) and that you have an active internet connection to download dependencies during the first build.
 - **API key errors:** Double-check `local.properties` for typos and confirm that your TMDB API key is valid.
 
 ## Screenshots

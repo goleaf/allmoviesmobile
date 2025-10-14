@@ -49,8 +49,10 @@ internal fun ConfigurationDto.toEntity(): ConfigurationEntity = ConfigurationEnt
     profileSizes = this.profileSizes
 )
 
-private fun getImageUrl(posterPath: String?): String =
-    "${NetworkModule.configApi.imagesBaseUrl}w342${posterPath}"
+private fun getImageUrl(posterPath: String?): String {
+    if (posterPath.isNullOrBlank()) return ""
+    return "${NetworkModule.configApi.imagesBaseUrl}w342$posterPath"
+}
 
 private fun normalizeAge(isAdult: Boolean): String = if (isAdult) {
     AGE_ADULT

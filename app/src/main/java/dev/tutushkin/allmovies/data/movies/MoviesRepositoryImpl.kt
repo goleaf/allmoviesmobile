@@ -59,7 +59,7 @@ class MoviesRepositoryImpl(
             if (localGenres.isNotEmpty()) {
                 Result.success(localGenres.map { it.toModel() })
             } else {
-                Result.failure(Exception("Movies list cashing error!"))
+                Result.success(emptyList())
             }
         }
 
@@ -90,7 +90,7 @@ class MoviesRepositoryImpl(
             if (localMovies.isNotEmpty()) {
                 Result.success(localMovies.map { it.toModel() })
             } else {
-                Result.failure(Exception("Movies list cashing error!"))
+                Result.success(emptyList())
             }
         }
 
@@ -174,7 +174,7 @@ class MoviesRepositoryImpl(
             if (localActors.isNotEmpty()) {
                 Result.success(localActors.map { it.toModel() })
             } else {
-                Result.failure(Exception("Actors cashing error!"))
+                Result.success(emptyList())
             }
         }
 

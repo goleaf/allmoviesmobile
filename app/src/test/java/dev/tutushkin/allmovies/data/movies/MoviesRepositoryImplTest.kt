@@ -71,6 +71,28 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
+    fun `getNowPlaying returns success with empty list when remote data empty`() = runTest(dispatcher) {
+        remoteDataSource.nowPlayingResult = Result.success(emptyList())
+
+        val result = repository.getNowPlaying("provided-key")
+
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrThrow().isEmpty())
+        assertTrue(localDataSource.getNowPlaying().isEmpty())
+    }
+
+    @Test
+    fun `getGenres returns success with empty list when remote data empty`() = runTest(dispatcher) {
+        remoteDataSource.genresResult = Result.success(emptyList())
+
+        val result = repository.getGenres("provided-key")
+
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrThrow().isEmpty())
+        assertTrue(localDataSource.getGenres().isEmpty())
+    }
+
+    @Test
     fun `getMovieDetails caches actors after single remote request`() = runTest(dispatcher) {
         val movieId = 1
         remoteDataSource.movieDetailsResult = Result.success(
@@ -104,6 +126,35 @@ class MoviesRepositoryImplTest {
         assertEquals(listOf(10, 11), storedMovie!!.actors)
         assertTrue(storedMovie.isActorsLoaded)
         assertEquals(2, result.getOrThrow().actors.size)
+    }
+
+    @Test
+    fun `getMovieDetails returns success with empty actors when remote returns none`() = runTest(dispatcher) {
+        val movieId = 3
+        remoteDataSource.movieDetailsResult = Result.success(
+            MovieDetailsResponse(
+                id = movieId,
+                title = "Movie",
+                overview = "Overview",
+                backdropPath = "/backdrop.jpg",
+                voteAverage = 8.0f,
+                voteCount = 100,
+                adult = false,
+                releaseDate = "2020-01-01",
+                runtime = 120,
+                genres = listOf(GenreDto(1, "Action"))
+            )
+        )
+        remoteDataSource.actorsResult = Result.success(emptyList())
+
+        val result = repository.getMovieDetails(movieId, "api")
+
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrThrow().actors.isEmpty())
+        val storedMovie = localDataSource.getMovieDetails(movieId)
+        assertNotNull(storedMovie)
+        assertTrue(storedMovie!!.isActorsLoaded)
+        assertTrue(storedMovie.actors.isEmpty())
     }
 
     @Test

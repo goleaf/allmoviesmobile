@@ -89,10 +89,15 @@ class MoviesViewModel(
         }
     }
 
-    fun toggleFavorite(movieId: Int, isFavorite: Boolean) {
+    fun toggleFavorite(
+        movieId: Int,
+        isFavorite: Boolean,
+        onResult: ((Boolean) -> Unit)? = null
+    ) {
         viewModelScope.launch {
             val result = moviesRepository.setFavorite(movieId, isFavorite)
             if (result.isFailure) {
+                onResult?.invoke(false)
                 return@launch
             }
 
@@ -101,6 +106,7 @@ class MoviesViewModel(
             }
             cachedMovies = updated
             _movies.value = MoviesState.Result(updated)
+            onResult?.invoke(true)
         }
     }
 }

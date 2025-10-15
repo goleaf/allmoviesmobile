@@ -10,6 +10,9 @@ import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
+import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
+import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -121,6 +124,58 @@ class MoviesViewModelTest {
 
         viewModel.movies.removeObserver(observer)
     }
+
+    @Test
+    fun `toggling favorite in details updates movies list`() = runTest(dispatcher) {
+        val movieId = 7
+        val initialMovie = MovieList(id = movieId, title = "Movie", isFavorite = false)
+        repository.nowPlayingResult = Result.success(listOf(initialMovie))
+        repository.movieDetailsResult = Result.success(
+            MovieDetails(
+                id = movieId,
+                title = "Movie",
+                overview = "Overview",
+                ratings = 7.5f,
+                numberOfRatings = 50,
+                runtime = 120,
+                genres = "Drama",
+                isFavorite = false
+            )
+        )
+        repository.setFavoriteResult = Result.success(Unit)
+
+        val moviesViewModel = MoviesViewModel(repository, languagePreferences)
+        val emittedStates = mutableListOf<MoviesState>()
+        val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
+        moviesViewModel.movies.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val detailsViewModel = MovieDetailsViewModel(
+            repository,
+            movieId,
+            slug = null,
+            openedFromSharedLink = false,
+            analytics = FakeSharedLinkAnalytics,
+            language = languagePreferences.getSelectedLanguage(),
+            moviesViewModel = moviesViewModel
+        )
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        detailsViewModel.toggleFavorite()
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val listResult = emittedStates.filterIsInstance<MoviesState.Result>().last()
+        val updatedMovie = listResult.result.first { it.id == movieId }
+        assertTrue(updatedMovie.isFavorite)
+
+        val currentMovieState = detailsViewModel.currentMovie.value as MovieDetailsState.Result
+        assertTrue(currentMovieState.movie.isFavorite)
+        assertTrue(repository.setFavoriteCalledWith == (movieId to true))
+
+        moviesViewModel.movies.removeObserver(observer)
+    }
 }
 
 private class FakeMoviesRepository : MoviesRepository {
@@ -197,4 +252,8 @@ private class FakeMoviesRepository : MoviesRepository {
         language: String,
         onProgress: (current: Int, total: Int, title: String) -> Unit
     ): Result<Unit> = Result.success(Unit)
+}
+
+private object FakeSharedLinkAnalytics : SharedLinkAnalytics {
+    override fun logSharedLinkOpened(movieId: Int, slug: String?) = Unit
 }

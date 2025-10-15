@@ -6,6 +6,7 @@ import android.view.View
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +31,8 @@ import dev.tutushkin.allmovies.presentation.navigation.ARG_ACTOR_ID
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SHARED
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SLUG
+import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
+import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 
@@ -40,13 +43,11 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
     private val binding get() = _binding
     private var shareLink: String? = null
     private var shareTitle: String? = null
-    private lateinit var args: MovieDetailsArgs
+    private val args: MovieDetailsArgs by lazy { parseArgs(arguments) }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
+    private val moviesViewModel: MoviesViewModel by activityViewModels { provideMoviesViewModelFactory() }
 
-        args = parseArgs(arguments)
-
+    private val viewModel: MovieDetailsViewModel by viewModels {
         val db = MoviesDb.getDatabase(requireActivity().application)
         val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
         val localDataSource = MoviesLocalDataSourceImpl(
@@ -60,16 +61,20 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
         val languagePreferences = LanguagePreferences(requireContext().applicationContext)
-        val viewModel: MovieDetailsViewModel by viewModels {
-            MovieDetailsViewModelFactory(
-                repository,
-                args.movieId,
-                args.slug,
-                args.openedFromSharedLink,
-                SharedLinkAnalyticsLogger,
-                languagePreferences.getSelectedLanguage()
-            )
-        }
+
+        MovieDetailsViewModelFactory(
+            repository,
+            args.movieId,
+            args.slug,
+            args.openedFromSharedLink,
+            SharedLinkAnalyticsLogger,
+            languagePreferences.getSelectedLanguage(),
+            moviesViewModel
+        )
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
 
         _binding = FragmentMoviesDetailsBinding.bind(view)
 

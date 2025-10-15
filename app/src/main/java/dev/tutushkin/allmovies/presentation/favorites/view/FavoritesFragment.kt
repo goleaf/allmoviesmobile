@@ -1,6 +1,5 @@
 package dev.tutushkin.allmovies.presentation.favorites.view
 
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.VisibleForTesting
@@ -19,9 +18,12 @@ import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragme
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesAdapter
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesClickListener
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridCalculatorProvider
+import dev.tutushkin.allmovies.presentation.movies.view.SpacingItemDecoration
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import kotlinx.serialization.ExperimentalSerializationApi
+import androidx.window.layout.WindowMetricsCalculator
 
 @ExperimentalSerializationApi
 class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
@@ -49,12 +51,20 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentFavoritesListBinding.bind(view)
 
-        val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> 3
-            else -> 2
-        }
+        val windowMetrics = WindowMetricsCalculator.getOrCreate()
+            .computeCurrentWindowMetrics(requireActivity())
+        val density = resources.displayMetrics.density
+        val spacingDp = resources.getDimension(R.dimen.movies_grid_spacing) / density
+        val gridConfig = ResponsiveGridCalculatorProvider.calculator
+            .calculate(windowMetrics, density, spacingDp)
 
-        binding.favoritesListRecycler.layoutManager = GridLayoutManager(requireContext(), spanCount)
+        binding.favoritesListRecycler.layoutManager = GridLayoutManager(
+            requireContext(),
+            gridConfig.spanCount,
+        )
+        binding.favoritesListRecycler.addItemDecoration(
+            SpacingItemDecoration(gridConfig.spanCount, gridConfig.spacingPx),
+        )
 
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
@@ -71,7 +81,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
+        adapter = MoviesAdapter(listener, gridConfig.itemWidthPx)
         binding.favoritesListRecycler.adapter = adapter
 
         favoritesViewModel.favorites.observe(viewLifecycleOwner, ::renderState)

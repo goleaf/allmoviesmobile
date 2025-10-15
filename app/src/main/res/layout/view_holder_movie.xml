@@ -3,9 +3,8 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/movies_list_movie_card"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="14dp"
     app:cardBackgroundColor="@color/background_movie_item"
     app:cardCornerRadius="8dp"
     app:strokeColor="@color/border_movie_item"
@@ -17,20 +16,24 @@
 
         <ImageView
             android:id="@+id/view_holder_movie_poster_image"
-            android:layout_width="166dp"
-            android:layout_height="248dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@+id/view_holder_movie_mask_image"
+            app:layout_constraintDimensionRatio="166:248"
             tools:background="@drawable/movie_avengers_end_games_small" />
 
         <ImageView
             android:id="@+id/view_holder_movie_mask_image"
-            android:layout_width="166dp"
-            android:layout_height="248dp"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintDimensionRatio="166:248"
             app:srcCompat="@drawable/mask_list" />
 
         <TextView

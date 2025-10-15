@@ -2,7 +2,6 @@ package dev.tutushkin.allmovies.presentation.movies.view
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
@@ -37,6 +36,7 @@ import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
+import androidx.window.layout.WindowMetricsCalculator
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.LazyThreadSafetyMode
@@ -71,11 +71,20 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         setHasOptionsMenu(true)
         csvExporter = CsvExporter(requireContext())
 
-        val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> 3
-            else -> 2
-        }
-        binding.moviesListRecycler.layoutManager = GridLayoutManager(requireContext(), spanCount)
+        val windowMetrics = WindowMetricsCalculator.getOrCreate()
+            .computeCurrentWindowMetrics(requireActivity())
+        val density = resources.displayMetrics.density
+        val spacingDp = resources.getDimension(R.dimen.movies_grid_spacing) / density
+        val gridConfig = ResponsiveGridCalculatorProvider.calculator
+            .calculate(windowMetrics, density, spacingDp)
+
+        binding.moviesListRecycler.layoutManager = GridLayoutManager(
+            requireContext(),
+            gridConfig.spanCount,
+        )
+        binding.moviesListRecycler.addItemDecoration(
+            SpacingItemDecoration(gridConfig.spanCount, gridConfig.spacingPx),
+        )
 
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
@@ -94,7 +103,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
+        adapter = MoviesAdapter(listener, gridConfig.itemWidthPx)
         binding.moviesListRecycler.adapter = adapter
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)

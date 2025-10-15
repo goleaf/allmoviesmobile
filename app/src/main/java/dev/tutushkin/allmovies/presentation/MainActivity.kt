@@ -9,6 +9,7 @@ import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SHARED
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SLUG
+import dev.tutushkin.allmovies.presentation.navigation.MovieDeepLinkParser
 import kotlinx.serialization.ExperimentalSerializationApi
 
 /**
@@ -37,22 +38,16 @@ class MainActivity : AppCompatActivity() {
         handleDeepLink(intent)
     }
 
+    private val movieDeepLinkParser = MovieDeepLinkParser()
+
     private fun handleDeepLink(intent: Intent?): Boolean {
         val navController = findNavController(R.id.main_nav_host)
-        val data = intent?.data ?: return navController.handleDeepLink(intent)
-        if (data.scheme != "app" || data.host != "collection") {
-            return navController.handleDeepLink(intent)
-        }
-
-        val segments = data.pathSegments
-        if (segments.size < 2 || segments.first() != "movie") return false
-
-        val movieId = segments.getOrNull(1)?.toIntOrNull() ?: return false
-        val slug = segments.drop(2).takeIf { it.isNotEmpty() }?.joinToString("/")
+        val result = movieDeepLinkParser.parse(intent)
+            ?: return navController.handleDeepLink(intent)
 
         val args = bundleOf(
-            ARG_MOVIE_ID to movieId,
-            ARG_MOVIE_SLUG to slug,
+            ARG_MOVIE_ID to result.movieId,
+            ARG_MOVIE_SLUG to result.slug,
             ARG_MOVIE_SHARED to true
         )
 

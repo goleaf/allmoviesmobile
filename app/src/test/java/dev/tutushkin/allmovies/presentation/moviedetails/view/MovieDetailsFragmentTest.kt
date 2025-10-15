@@ -163,6 +163,15 @@ class MovieDetailsFragmentTest {
             return Result.success(emptyList())
         }
 
+        override suspend fun searchMovies(
+            apiKey: String,
+            language: String,
+            query: String,
+            includeAdult: Boolean
+        ): Result<List<MovieList>> {
+            return Result.success(emptyList())
+        }
+
         override suspend fun getMovieDetails(
             movieId: Int,
             apiKey: String,

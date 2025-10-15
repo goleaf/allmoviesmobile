@@ -73,6 +73,25 @@ class MoviesViewModelTest {
     }
 
     @Test
+    fun `emits error when repository fails to load now playing`() = runTest(dispatcher) {
+        val error = IllegalStateException("boom")
+        repository.nowPlayingResult = Result.failure(error)
+
+        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val emittedStates = mutableListOf<MoviesState>()
+        val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
+        viewModel.movies.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val lastState = emittedStates.last()
+        assertTrue(lastState is MoviesState.Error)
+        assertTrue((lastState as MoviesState.Error).e.message!!.contains("Error"))
+
+        viewModel.movies.removeObserver(observer)
+    }
+
+    @Test
     fun `toggleFavorite updates movie list`() = runTest(dispatcher) {
         val initialMovie = MovieList(id = 5, title = "Movie", isFavorite = false)
         repository.nowPlayingResult = Result.success(listOf(initialMovie))
@@ -123,6 +142,66 @@ class MoviesViewModelTest {
         assertTrue(refreshedMovie.isFavorite)
 
         viewModel.movies.removeObserver(observer)
+    }
+
+    @Test
+    fun `search triggers repository after debounce and reconciles favorites`() = runTest(dispatcher) {
+        val movieId = 33
+        val initialMovie = MovieList(id = movieId, title = "Star Journey", isFavorite = false)
+        repository.nowPlayingResult = Result.success(listOf(initialMovie))
+        repository.setFavoriteResult = Result.success(Unit)
+        repository.searchMoviesResult = Result.success(listOf(initialMovie.copy(isFavorite = false)))
+
+        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val searchStates = mutableListOf<MoviesSearchState>()
+        val observer = Observer<MoviesSearchState> { state -> searchStates.add(state) }
+        viewModel.searchState.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.toggleFavorite(movieId, true)
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.observeSearch("Star")
+
+        assertTrue(repository.searchMoviesCallCount == 0)
+
+        dispatcher.scheduler.advanceTimeBy(MoviesViewModel.SEARCH_DEBOUNCE_MILLIS - 1)
+        dispatcher.scheduler.runCurrent()
+        assertTrue(repository.searchMoviesCallCount == 0)
+
+        dispatcher.scheduler.advanceTimeBy(1)
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(repository.searchMoviesCallCount == 1)
+        val resultState = searchStates.last() as MoviesSearchState.Result
+        assertTrue(resultState.result.first().isFavorite)
+
+        viewModel.searchState.removeObserver(observer)
+    }
+
+    @Test
+    fun `search emits error when repository fails`() = runTest(dispatcher) {
+        repository.nowPlayingResult = Result.success(emptyList())
+        val failure = IllegalStateException("network")
+        repository.searchMoviesResult = Result.failure(failure)
+
+        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val searchStates = mutableListOf<MoviesSearchState>()
+        val observer = Observer<MoviesSearchState> { state -> searchStates.add(state) }
+        viewModel.searchState.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.observeSearch("Broken")
+        dispatcher.scheduler.advanceTimeBy(MoviesViewModel.SEARCH_DEBOUNCE_MILLIS)
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val errorState = searchStates.last() as MoviesSearchState.Error
+        assertTrue(errorState.query == "Broken")
+        assertTrue(errorState.cause === failure)
+
+        viewModel.searchState.removeObserver(observer)
     }
 
     @Test
@@ -186,6 +265,7 @@ private class FakeMoviesRepository : MoviesRepository {
     var movieDetailsResult: Result<MovieDetails> = Result.failure(UnsupportedOperationException())
     var favoritesResult: Result<List<MovieList>> = Result.success(emptyList())
     var setFavoriteResult: Result<Unit> = Result.success(Unit)
+    var searchMoviesResult: Result<List<MovieList>> = Result.success(emptyList())
 
     var clearAllCalled: Boolean = false
         private set
@@ -198,6 +278,8 @@ private class FakeMoviesRepository : MoviesRepository {
     var nowPlayingRequested: Boolean = false
         private set
     var setFavoriteCalledWith: Pair<Int, Boolean>? = null
+    var searchMoviesCallCount: Int = 0
+        private set
 
     private val favoriteMovieIds = mutableSetOf<Int>()
 
@@ -241,6 +323,16 @@ private class FakeMoviesRepository : MoviesRepository {
     }
 
     override suspend fun getFavorites(): Result<List<MovieList>> = favoritesResult
+
+    override suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String,
+        includeAdult: Boolean
+    ): Result<List<MovieList>> {
+        searchMoviesCallCount++
+        return searchMoviesResult
+    }
 
     override suspend fun clearAll() {
         clearAllCalled = true

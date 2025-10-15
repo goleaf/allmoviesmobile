@@ -126,6 +126,57 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
+    fun `searchMovies merges favorites from local cache`() = runTest(dispatcher) {
+        val favoriteId = 301
+        localDataSource.setMovie(
+            MovieListEntity(
+                id = favoriteId,
+                title = "Favorite",
+                poster = "poster",
+                ratings = 8.0f,
+                numberOfRatings = 80,
+                minimumAge = "13+",
+                year = "2024",
+                genres = "Sci-Fi",
+                isFavorite = true
+            )
+        )
+
+        remoteDataSource.searchResult = Result.success(
+            listOf(
+                MovieListDto(
+                    id = favoriteId,
+                    title = "Favorite",
+                    posterPath = "/poster.jpg",
+                    voteAverage = 8.0f,
+                    voteCount = 80,
+                    adult = false,
+                    releaseDate = "2024-01-01",
+                    genreIds = emptyList()
+                )
+            )
+        )
+
+        val result = repository.searchMovies("api", LANGUAGE, "Fav")
+
+        assertTrue(result.isSuccess)
+        val movies = result.getOrThrow()
+        assertEquals(1, movies.size)
+        assertTrue(movies.first().isFavorite)
+    }
+
+    @Test
+    fun `searchMovies propagates failures`() = runTest(dispatcher) {
+        val error = IllegalStateException("search failed")
+        remoteDataSource.searchResult = Result.failure(error)
+
+        val result = repository.searchMovies("api", LANGUAGE, "Oops")
+
+        assertTrue(result.isFailure)
+        assertTrue(result.exceptionOrNull() === error)
+    }
+
+    @Test
     fun `getGenres returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.genresResult = Result.success(emptyList())
 

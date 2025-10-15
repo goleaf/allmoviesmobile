@@ -10,6 +10,8 @@ import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MoviesViewModel(
@@ -25,7 +27,9 @@ class MoviesViewModel(
 
     private var currentLanguage: String = languagePreferences.getSelectedLanguage()
     private var cachedMovies: List<MovieList> = emptyList()
+    private var lastSearchResults: List<MovieList> = emptyList()
     private var currentSearchQuery: String = ""
+    private var searchJob: Job? = null
 
     init {
         refreshMovies(clearCache = true)
@@ -119,22 +123,15 @@ class MoviesViewModel(
     fun observeSearch(query: String) {
         val normalized = query.trim()
         currentSearchQuery = normalized
+        searchJob?.cancel()
 
         if (normalized.isEmpty()) {
             _searchState.value = MoviesSearchState.Idle
+            lastSearchResults = emptyList()
             return
         }
 
-        _searchState.value = MoviesSearchState.Loading
-        val nextState = try {
-            runSearch(normalized)
-        } catch (throwable: Throwable) {
-            MoviesSearchState.Error(normalized, throwable)
-        }
-
-        if (nextState !is MoviesSearchState.Loading) {
-            _searchState.value = nextState
-        }
+        launchSearch(normalized, debounce = true)
     }
 
     private fun requerySearch() {
@@ -143,32 +140,70 @@ class MoviesViewModel(
             return
         }
 
-        _searchState.value = try {
-            runSearch(query)
-        } catch (throwable: Throwable) {
-            MoviesSearchState.Error(query, throwable)
+        if (searchJob?.isActive == true) {
+            return
+        }
+
+        emitSearchResults(query)
+    }
+
+    private fun launchSearch(query: String, debounce: Boolean) {
+        _searchState.value = MoviesSearchState.Loading
+        searchJob = viewModelScope.launch {
+            if (debounce) {
+                delay(SEARCH_DEBOUNCE_MILLIS)
+            }
+
+            val language = currentLanguage
+            val result = moviesRepository.searchMovies(
+                BuildConfig.API_KEY,
+                language,
+                query
+            )
+
+            if (query != currentSearchQuery) {
+                return@launch
+            }
+
+            if (result.isSuccess) {
+                lastSearchResults = result.getOrThrow()
+                emitSearchResults(query)
+            } else {
+                lastSearchResults = emptyList()
+                _searchState.value = MoviesSearchState.Error(
+                    query,
+                    result.exceptionOrNull() ?: IllegalStateException("Search request failed")
+                )
+            }
         }
     }
 
-    private fun runSearch(query: String): MoviesSearchState {
-        val moviesState = _movies.value
-        if (cachedMovies.isEmpty()) {
-            return when (moviesState) {
-                null -> MoviesSearchState.Loading
-                is MoviesState.Loading -> MoviesSearchState.Loading
-                is MoviesState.Error -> throw moviesState.e
-                else -> MoviesSearchState.Empty(query)
-            }
-        }
-
-        val matches = cachedMovies.filter { movie ->
-            movie.title.contains(query, ignoreCase = true)
-        }
-
-        return if (matches.isEmpty()) {
+    private fun emitSearchResults(query: String) {
+        val reconciled = reconcileWithFavorites(lastSearchResults)
+        _searchState.value = if (reconciled.isEmpty()) {
             MoviesSearchState.Empty(query)
         } else {
-            MoviesSearchState.Result(query, matches)
+            MoviesSearchState.Result(query, reconciled)
         }
+    }
+
+    private fun reconcileWithFavorites(results: List<MovieList>): List<MovieList> {
+        if (results.isEmpty()) {
+            return results
+        }
+
+        val favoriteIds = cachedMovies.filter { it.isFavorite }.associateBy { it.id }
+        if (favoriteIds.isEmpty()) {
+            return results
+        }
+
+        return results.map { movie ->
+            val favorite = favoriteIds[movie.id] ?: return@map movie
+            if (movie.isFavorite) movie else movie.copy(isFavorite = true)
+        }
+    }
+
+    companion object {
+        internal const val SEARCH_DEBOUNCE_MILLIS = 300L
     }
 }

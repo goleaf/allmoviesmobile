@@ -129,7 +129,7 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
-    fun `getNowPlaying uses provided apiKey and caches remote response`() = runTest(dispatcher) {
+    fun `getNowPlaying caches remote response`() = runTest(dispatcher) {
         remoteDataSource.nowPlayingResult = Result.success(
             listOf(
                 MovieListDto(
@@ -149,7 +149,6 @@ class MoviesRepositoryImplTest {
 
         assertTrue(result.isSuccess)
         assertEquals(1, remoteDataSource.nowPlayingCallCount)
-        assertEquals("provided-key", remoteDataSource.lastNowPlayingApiKey)
         assertEquals(1, localDataSource.getNowPlaying().size)
 
         remoteDataSource.resetCallCounters()
@@ -544,7 +543,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
         private set
     var nowPlayingCallCount: Int = 0
         private set
-    var lastNowPlayingApiKey: String? = null
     var lastNowPlayingLanguage: String? = null
     var movieDetailsCallCount: Int = 0
         private set
@@ -553,22 +551,20 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var releaseDatesCallCount: Int = 0
         private set
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> {
+    override suspend fun getConfiguration(language: String): Result<ConfigurationDto> {
         configurationCallCount++
         return configurationResult
     }
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<GenreDto>> = genresResult
+    override suspend fun getGenres(language: String): Result<List<GenreDto>> = genresResult
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieListDto>> {
+    override suspend fun getNowPlaying(language: String): Result<List<MovieListDto>> {
         nowPlayingCallCount++
-        lastNowPlayingApiKey = apiKey
         lastNowPlayingLanguage = language
         return nowPlayingResult
     }
 
     override suspend fun searchMovies(
-        apiKey: String,
         language: String,
         query: String,
         includeAdult: Boolean,
@@ -576,7 +572,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<MovieDetailsResponse> {
         movieDetailsCallCount++
@@ -585,7 +580,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     override suspend fun getMovieReleaseDates(
         movieId: Int,
-        apiKey: String,
     ): Result<MovieReleaseDatesResponse> {
         releaseDatesCallCount++
         return releaseDatesResult
@@ -593,7 +587,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     override suspend fun getActors(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<List<MovieActorDto>> {
         actorsCallCount++
@@ -602,19 +595,16 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     override suspend fun getVideos(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<List<MovieVideoDto>> = Result.success(emptyList())
 
     override suspend fun getActorDetails(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<ActorDetailsResponse> = Result.failure(UnsupportedOperationException())
 
     override suspend fun getActorMovieCredits(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<ActorMovieCreditsResponse> = Result.success(
         ActorMovieCreditsResponse(id = actorId, cast = emptyList(), crew = emptyList())
@@ -623,7 +613,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     fun resetCallCounters() {
         configurationCallCount = 0
         nowPlayingCallCount = 0
-        lastNowPlayingApiKey = null
         lastNowPlayingLanguage = null
         movieDetailsCallCount = 0
         actorsCallCount = 0

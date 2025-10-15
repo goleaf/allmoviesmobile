@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Alla filmer</string>
+    <string name="movie_details_back">Tillbaka</string>
+    <string name="movie_details_reviews">%1$d recensioner</string>
+    <string name="movie_details_storyline">Handling</string>
+    <string name="movie_details_cast">Rollista</string>
+    <string name="movies_list_screen_title">Visas nu</string>
+    <string name="movies_list_reviews">%1$d recensioner</string>
+    <string name="movies_list_duration">%1$d min</string>
+    <string name="movies_list_age">%1$d+</string>
+    <string name="movies_list_year_unknown">Okänd</string>
+    <string name="menu_settings">Inställningar</string>
+    <string name="settings_title">Inställningar</string>
+    <string name="settings_language_label">Språk</string>
+    <string name="settings_language_hint">Välj språk</string>
+    <string name="settings_theme_label">Tema</string>
+    <string name="settings_theme_hint">Välj skin</string>
+    <string name="settings_theme_preview">Förhandsgranskning</string>
+    <string name="settings_restart_notice">Ändringar tillämpas direkt i appen.</string>
+    <string name="theme_default_name">Standard</string>
+    <string name="theme_dark_name">Mörk</string>
+    <string name="theme_ocean_name">Ocean</string>
+</resources>

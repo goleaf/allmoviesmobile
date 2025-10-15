@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background"
+    android:background="?attr/colorScreenBackground"
     tools:context=".presentation.MainActivity">
 
     <ImageView
@@ -15,7 +15,8 @@
         android:layout_marginTop="56dp"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/ic_target" />
+        app:srcCompat="@drawable/ic_target"
+        app:tint="?attr/colorAccentIcon" />
 
     <TextView
         android:id="@+id/movies_list_screen_title_text"
@@ -24,7 +25,7 @@
         android:layout_marginStart="8dp"
         android:gravity="start|center_vertical"
         android:text="@string/movies_list_screen_title"
-        android:textColor="@color/white"
+        android:textColor="?attr/colorHeaderText"
         android:textSize="14sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="@+id/movies_list_target_image"

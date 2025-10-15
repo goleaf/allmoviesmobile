@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <attr name="colorScreenBackground" format="color" />
+    <attr name="colorCardBackground" format="color" />
+    <attr name="colorCardStroke" format="color" />
+    <attr name="colorHeaderText" format="color" />
+    <attr name="colorBodyText" format="color" />
+    <attr name="colorSecondaryText" format="color" />
+    <attr name="colorTag" format="color" />
+    <attr name="colorRatingActive" format="color" />
+    <attr name="colorRatingInactive" format="color" />
+    <attr name="colorBadgeBackground" format="color" />
+    <attr name="colorAccentIcon" format="color" />
+</resources>

@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Todos os filmes</string>
+    <string name="movie_details_back">Voltar</string>
+    <string name="movie_details_reviews">%1$d avaliações</string>
+    <string name="movie_details_storyline">Sinopse</string>
+    <string name="movie_details_cast">Elenco</string>
+    <string name="movies_list_screen_title">Em cartaz</string>
+    <string name="movies_list_reviews">%1$d avaliações</string>
+    <string name="movies_list_duration">%1$d min</string>
+    <string name="movies_list_age">%1$d+</string>
+    <string name="movies_list_year_unknown">Desconhecido</string>
+    <string name="menu_settings">Configurações</string>
+    <string name="settings_title">Configurações</string>
+    <string name="settings_language_label">Idioma</string>
+    <string name="settings_language_hint">Selecionar idioma</string>
+    <string name="settings_theme_label">Tema</string>
+    <string name="settings_theme_hint">Escolher skin</string>
+    <string name="settings_theme_preview">Pré-visualização</string>
+    <string name="settings_restart_notice">As alterações são aplicadas imediatamente no app.</string>
+    <string name="theme_default_name">Padrão</string>
+    <string name="theme_dark_name">Escuro</string>
+    <string name="theme_ocean_name">Oceano</string>
+</resources>

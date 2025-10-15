@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Minden film</string>
+    <string name="movie_details_back">Vissza</string>
+    <string name="movie_details_reviews">%1$d értékelés</string>
+    <string name="movie_details_storyline">Történet</string>
+    <string name="movie_details_cast">Szereplők</string>
+    <string name="movies_list_screen_title">Most műsoron</string>
+    <string name="movies_list_reviews">%1$d értékelés</string>
+    <string name="movies_list_duration">%1$d perc</string>
+    <string name="movies_list_age">%1$d+</string>
+    <string name="movies_list_year_unknown">Ismeretlen</string>
+    <string name="menu_settings">Beállítások</string>
+    <string name="settings_title">Beállítások</string>
+    <string name="settings_language_label">Nyelv</string>
+    <string name="settings_language_hint">Válasszon nyelvet</string>
+    <string name="settings_theme_label">Téma</string>
+    <string name="settings_theme_hint">Válasszon skin-t</string>
+    <string name="settings_theme_preview">Előnézet</string>
+    <string name="settings_restart_notice">A módosítások azonnal érvénybe lépnek az alkalmazásban.</string>
+    <string name="theme_default_name">Alapértelmezett</string>
+    <string name="theme_dark_name">Sötét</string>
+    <string name="theme_ocean_name">Óceán</string>
+</resources>

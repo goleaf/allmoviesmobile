@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Všechny filmy</string>
+    <string name="movie_details_back">Zpět</string>
+    <string name="movie_details_reviews">%1$d recenzí</string>
+    <string name="movie_details_storyline">Děj</string>
+    <string name="movie_details_cast">Obsazení</string>
+    <string name="movies_list_screen_title">Právě v kinech</string>
+    <string name="movies_list_reviews">%1$d recenzí</string>
+    <string name="movies_list_duration">%1$d min</string>
+    <string name="movies_list_age">%1$d+</string>
+    <string name="movies_list_year_unknown">Neznámý</string>
+    <string name="menu_settings">Nastavení</string>
+    <string name="settings_title">Nastavení</string>
+    <string name="settings_language_label">Jazyk</string>
+    <string name="settings_language_hint">Vyberte jazyk</string>
+    <string name="settings_theme_label">Motiv</string>
+    <string name="settings_theme_hint">Vyberte skin</string>
+    <string name="settings_theme_preview">Náhled</string>
+    <string name="settings_restart_notice">Změny se v aplikaci projeví okamžitě.</string>
+    <string name="theme_default_name">Výchozí</string>
+    <string name="theme_dark_name">Tmavý</string>
+    <string name="theme_ocean_name">Oceán</string>
+</resources>

@@ -6,9 +6,9 @@
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
     android:layout_margin="14dp"
-    app:cardBackgroundColor="@color/background_movie_item"
+    app:cardBackgroundColor="?attr/colorCardBackground"
     app:cardCornerRadius="8dp"
-    app:strokeColor="@color/border_movie_item"
+    app:strokeColor="?attr/colorCardStroke"
     app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -42,7 +42,7 @@
             android:alpha="0.9"
             android:background="@drawable/bg_age"
             android:gravity="center"
-            android:textColor="@color/white"
+            android:textColor="?attr/colorOnPrimary"
             android:textSize="12sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="@id/view_holder_movie_poster_image"
@@ -58,7 +58,8 @@
             app:layout_constraintBottom_toBottomOf="@+id/view_holder_movie_age_text"
             app:layout_constraintEnd_toEndOf="@id/view_holder_movie_poster_image"
             app:layout_constraintTop_toTopOf="@+id/view_holder_movie_age_text"
-            app:srcCompat="@drawable/ic_notlike" />
+            app:srcCompat="@drawable/ic_notlike"
+            app:tint="?attr/colorAccentIcon" />
 
         <RatingBar
             android:id="@+id/view_holder_movie_rating"
@@ -69,8 +70,8 @@
             android:layout_marginBottom="10dp"
             android:isIndicator="true"
             android:numStars="5"
-            android:progressBackgroundTint="@color/rating_off"
-            android:progressTint="@color/rating_on"
+            android:progressBackgroundTint="?attr/colorRatingInactive"
+            android:progressTint="?attr/colorRatingActive"
             android:rating="4"
             android:stepSize="1"
             app:layout_constraintBottom_toBottomOf="@id/view_holder_movie_poster_image"
@@ -84,7 +85,7 @@
             android:layout_marginEnd="8dp"
             android:layout_marginBottom="4dp"
             android:gravity="start|center_vertical"
-            android:textColor="@color/tag"
+            android:textColor="?attr/colorTag"
             android:textSize="8sp"
             app:layout_constraintBottom_toTopOf="@+id/view_holder_movie_rating"
             app:layout_constraintEnd_toEndOf="@+id/view_holder_movie_poster_image"
@@ -97,7 +98,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="6dp"
             android:gravity="start|center_vertical"
-            android:textColor="@color/reviews"
+            android:textColor="?attr/colorSecondaryText"
             android:textSize="8sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="@+id/view_holder_movie_rating"
@@ -114,7 +115,7 @@
             android:layout_marginRight="8dp"
             android:layout_marginBottom="20dp"
             android:gravity="start|center_vertical"
-            android:textColor="@color/header"
+            android:textColor="?attr/colorHeaderText"
             android:textSize="14sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -129,7 +130,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:gravity="start|center_vertical"
-            android:textColor="@color/header"
+            android:textColor="?attr/colorSecondaryText"
             android:textSize="8sp"
             android:textStyle="bold"
             app:layout_constraintBottom_toBottomOf="parent"

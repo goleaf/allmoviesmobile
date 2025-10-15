@@ -2,13 +2,26 @@
     <string name="app_name">All Movies</string>
 
     <string name="movie_details_back">Back</string>
-    <string name="movie_details_reviews">%1$d REVIEWS</string>
+    <string name="movie_details_reviews">%1$d reviews</string>
     <string name="movie_details_storyline">Storyline</string>
     <string name="movie_details_cast">Cast</string>
 
     <string name="movies_list_screen_title">Now Playing</string>
-    <string name="movies_list_reviews">%1$d REVIEWS</string>
-    <string name="movies_list_duration">%1$d MIN</string>
+    <string name="movies_list_reviews">%1$d reviews</string>
+    <string name="movies_list_duration">%1$d min</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Unknown</string>
+
+    <string name="menu_settings">Settings</string>
+    <string name="settings_title">Settings</string>
+    <string name="settings_language_label">Language</string>
+    <string name="settings_language_hint">Select language</string>
+    <string name="settings_theme_label">Theme</string>
+    <string name="settings_theme_hint">Choose a skin</string>
+    <string name="settings_theme_preview">Preview</string>
+    <string name="settings_restart_notice">Changes apply immediately across the app.</string>
+
+    <string name="theme_default_name">Default</string>
+    <string name="theme_dark_name">Dark</string>
+    <string name="theme_ocean_name">Ocean</string>
 </resources>

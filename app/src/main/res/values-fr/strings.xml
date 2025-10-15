@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Tous les films</string>
+    <string name="movie_details_back">Retour</string>
+    <string name="movie_details_reviews">%1$d avis</string>
+    <string name="movie_details_storyline">Synopsis</string>
+    <string name="movie_details_cast">Distribution</string>
+    <string name="movies_list_screen_title">À l&#39;affiche</string>
+    <string name="movies_list_reviews">%1$d avis</string>
+    <string name="movies_list_duration">%1$d min</string>
+    <string name="movies_list_age">%1$d+</string>
+    <string name="movies_list_year_unknown">Inconnu</string>
+    <string name="menu_settings">Paramètres</string>
+    <string name="settings_title">Paramètres</string>
+    <string name="settings_language_label">Langue</string>
+    <string name="settings_language_hint">Sélectionner la langue</string>
+    <string name="settings_theme_label">Thème</string>
+    <string name="settings_theme_hint">Choisir un skin</string>
+    <string name="settings_theme_preview">Aperçu</string>
+    <string name="settings_restart_notice">Les modifications s&#39;appliquent immédiatement dans l&#39;application.</string>
+    <string name="theme_default_name">Par défaut</string>
+    <string name="theme_dark_name">Sombre</string>
+    <string name="theme_ocean_name">Océan</string>
+</resources>

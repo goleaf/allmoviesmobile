@@ -1,16 +1,27 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Theme.AllMovies" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_500</item>
-        <item name="colorPrimaryVariant">@color/background</item>
-        <item name="colorOnPrimary">@color/white</item>
-        <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_700</item>
-        <item name="colorOnSecondary">@color/black</item>
-        <!-- Status bar color. -->
+        <item name="colorPrimary">@color/php4dvd_default_primary</item>
+        <item name="colorOnPrimary">@color/php4dvd_default_on_primary</item>
+        <item name="colorPrimaryVariant">@color/php4dvd_default_secondary</item>
+        <item name="colorSecondary">@color/php4dvd_default_secondary</item>
+        <item name="colorSecondaryVariant">@color/php4dvd_default_secondary</item>
+        <item name="colorOnSecondary">@color/php4dvd_default_on_surface</item>
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
-        <!-- Customize your theme here. -->
+        <item name="android:colorBackground">@color/php4dvd_default_screen_background</item>
+        <item name="colorBackground">@color/php4dvd_default_screen_background</item>
+        <item name="colorSurface">@color/php4dvd_default_surface</item>
+        <item name="colorOnSurface">@color/php4dvd_default_on_surface</item>
+        <item name="colorScreenBackground">@color/php4dvd_default_screen_background</item>
+        <item name="colorCardBackground">@color/php4dvd_default_card</item>
+        <item name="colorCardStroke">@color/php4dvd_default_card_stroke</item>
+        <item name="colorHeaderText">@color/php4dvd_default_header_text</item>
+        <item name="colorBodyText">@color/php4dvd_default_body_text</item>
+        <item name="colorSecondaryText">@color/php4dvd_default_secondary_text</item>
+        <item name="colorTag">@color/php4dvd_default_tag</item>
+        <item name="colorRatingActive">@color/php4dvd_default_rating_active</item>
+        <item name="colorRatingInactive">@color/php4dvd_default_rating_inactive</item>
+        <item name="colorBadgeBackground">@color/php4dvd_default_badge</item>
+        <item name="colorAccentIcon">@color/php4dvd_default_accent_icon</item>
+        <item name="colorControlNormal">@color/php4dvd_default_accent_icon</item>
     </style>
 </resources>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="ThemeOverlay.AllMovies.Php4Dvd.Default">
+        <item name="colorPrimary">@color/php4dvd_default_primary</item>
+        <item name="colorOnPrimary">@color/php4dvd_default_on_primary</item>
+        <item name="colorPrimaryVariant">@color/php4dvd_default_secondary</item>
+        <item name="colorSecondary">@color/php4dvd_default_secondary</item>
+        <item name="colorSecondaryVariant">@color/php4dvd_default_secondary</item>
+        <item name="colorOnSecondary">@color/php4dvd_default_on_surface</item>
+        <item name="android:colorBackground">@color/php4dvd_default_screen_background</item>
+        <item name="colorBackground">@color/php4dvd_default_screen_background</item>
+        <item name="colorSurface">@color/php4dvd_default_surface</item>
+        <item name="colorOnSurface">@color/php4dvd_default_on_surface</item>
+        <item name="colorScreenBackground">@color/php4dvd_default_screen_background</item>
+        <item name="colorCardBackground">@color/php4dvd_default_card</item>
+        <item name="colorCardStroke">@color/php4dvd_default_card_stroke</item>
+        <item name="colorHeaderText">@color/php4dvd_default_header_text</item>
+        <item name="colorBodyText">@color/php4dvd_default_body_text</item>
+        <item name="colorSecondaryText">@color/php4dvd_default_secondary_text</item>
+        <item name="colorTag">@color/php4dvd_default_tag</item>
+        <item name="colorRatingActive">@color/php4dvd_default_rating_active</item>
+        <item name="colorRatingInactive">@color/php4dvd_default_rating_inactive</item>
+        <item name="colorBadgeBackground">@color/php4dvd_default_badge</item>
+        <item name="colorAccentIcon">@color/php4dvd_default_accent_icon</item>
+        <item name="colorControlNormal">@color/php4dvd_default_accent_icon</item>
+    </style>
+
+    <style name="ThemeOverlay.AllMovies.Php4Dvd.Dark">
+        <item name="colorPrimary">@color/php4dvd_dark_primary</item>
+        <item name="colorOnPrimary">@color/php4dvd_dark_on_primary</item>
+        <item name="colorPrimaryVariant">@color/php4dvd_dark_secondary</item>
+        <item name="colorSecondary">@color/php4dvd_dark_secondary</item>
+        <item name="colorSecondaryVariant">@color/php4dvd_dark_secondary</item>
+        <item name="colorOnSecondary">@color/php4dvd_dark_on_surface</item>
+        <item name="android:colorBackground">@color/php4dvd_dark_screen_background</item>
+        <item name="colorBackground">@color/php4dvd_dark_screen_background</item>
+        <item name="colorSurface">@color/php4dvd_dark_surface</item>
+        <item name="colorOnSurface">@color/php4dvd_dark_on_surface</item>
+        <item name="colorScreenBackground">@color/php4dvd_dark_screen_background</item>
+        <item name="colorCardBackground">@color/php4dvd_dark_card</item>
+        <item name="colorCardStroke">@color/php4dvd_dark_card_stroke</item>
+        <item name="colorHeaderText">@color/php4dvd_dark_header_text</item>
+        <item name="colorBodyText">@color/php4dvd_dark_body_text</item>
+        <item name="colorSecondaryText">@color/php4dvd_dark_secondary_text</item>
+        <item name="colorTag">@color/php4dvd_dark_tag</item>
+        <item name="colorRatingActive">@color/php4dvd_dark_rating_active</item>
+        <item name="colorRatingInactive">@color/php4dvd_dark_rating_inactive</item>
+        <item name="colorBadgeBackground">@color/php4dvd_dark_badge</item>
+        <item name="colorAccentIcon">@color/php4dvd_dark_accent_icon</item>
+        <item name="colorControlNormal">@color/php4dvd_dark_accent_icon</item>
+    </style>
+
+    <style name="ThemeOverlay.AllMovies.Php4Dvd.Ocean">
+        <item name="colorPrimary">@color/php4dvd_ocean_primary</item>
+        <item name="colorOnPrimary">@color/php4dvd_ocean_on_primary</item>
+        <item name="colorPrimaryVariant">@color/php4dvd_ocean_secondary</item>
+        <item name="colorSecondary">@color/php4dvd_ocean_secondary</item>
+        <item name="colorSecondaryVariant">@color/php4dvd_ocean_secondary</item>
+        <item name="colorOnSecondary">@color/php4dvd_ocean_on_surface</item>
+        <item name="android:colorBackground">@color/php4dvd_ocean_screen_background</item>
+        <item name="colorBackground">@color/php4dvd_ocean_screen_background</item>
+        <item name="colorSurface">@color/php4dvd_ocean_surface</item>
+        <item name="colorOnSurface">@color/php4dvd_ocean_on_surface</item>
+        <item name="colorScreenBackground">@color/php4dvd_ocean_screen_background</item>
+        <item name="colorCardBackground">@color/php4dvd_ocean_card</item>
+        <item name="colorCardStroke">@color/php4dvd_ocean_card_stroke</item>
+        <item name="colorHeaderText">@color/php4dvd_ocean_header_text</item>
+        <item name="colorBodyText">@color/php4dvd_ocean_body_text</item>
+        <item name="colorSecondaryText">@color/php4dvd_ocean_secondary_text</item>
+        <item name="colorTag">@color/php4dvd_ocean_tag</item>
+        <item name="colorRatingActive">@color/php4dvd_ocean_rating_active</item>
+        <item name="colorRatingInactive">@color/php4dvd_ocean_rating_inactive</item>
+        <item name="colorBadgeBackground">@color/php4dvd_ocean_badge</item>
+        <item name="colorAccentIcon">@color/php4dvd_ocean_accent_icon</item>
+        <item name="colorControlNormal">@color/php4dvd_ocean_accent_icon</item>
+    </style>
+</resources>

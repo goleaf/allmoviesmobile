@@ -1,0 +1,23 @@
+<resources>
+    <string name="app_name">Alle films</string>
+    <string name="movie_details_back">Terug</string>
+    <string name="movie_details_reviews">%1$d recensies</string>
+    <string name="movie_details_storyline">Verhaal</string>
+    <string name="movie_details_cast">Rolverdeling</string>
+    <string name="movies_list_screen_title">Nu te zien</string>
+    <string name="movies_list_reviews">%1$d recensies</string>
+    <string name="movies_list_duration">%1$d min</string>
+    <string name="movies_list_age">%1$d+</string>
+    <string name="movies_list_year_unknown">Onbekend</string>
+    <string name="menu_settings">Instellingen</string>
+    <string name="settings_title">Instellingen</string>
+    <string name="settings_language_label">Taal</string>
+    <string name="settings_language_hint">Selecteer taal</string>
+    <string name="settings_theme_label">Thema</string>
+    <string name="settings_theme_hint">Kies een skin</string>
+    <string name="settings_theme_preview">Voorbeeld</string>
+    <string name="settings_restart_notice">Wijzigingen worden direct toegepast in de app.</string>
+    <string name="theme_default_name">Standaard</string>
+    <string name="theme_dark_name">Donker</string>
+    <string name="theme_ocean_name">Oceaan</string>
+</resources>

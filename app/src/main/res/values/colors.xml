@@ -1,23 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Default (php4dvd classic) palette -->
+    <color name="php4dvd_default_primary">#FF3365</color>
+    <color name="php4dvd_default_on_primary">#FFFFFFFF</color>
+    <color name="php4dvd_default_secondary">#2F2F3F</color>
+    <color name="php4dvd_default_surface">#191926</color>
+    <color name="php4dvd_default_on_surface">#ECECEC</color>
+    <color name="php4dvd_default_screen_background">#191926</color>
+    <color name="php4dvd_default_card">#222232</color>
+    <color name="php4dvd_default_card_stroke">#3B3B4D</color>
+    <color name="php4dvd_default_header_text">#ECECEC</color>
+    <color name="php4dvd_default_body_text">#D8D8D8</color>
+    <color name="php4dvd_default_secondary_text">#6D6D80</color>
+    <color name="php4dvd_default_tag">#FF3466</color>
+    <color name="php4dvd_default_rating_active">#FF3365</color>
+    <color name="php4dvd_default_rating_inactive">#6D6D80</color>
+    <color name="php4dvd_default_badge">#2A2A3B</color>
+    <color name="php4dvd_default_accent_icon">#FF3365</color>
 
-    <color name="background">#191926</color>
-    <color name="header">#ECECEC</color>
-    <color name="rating_off">#6D6D80</color>
-    <color name="rating_on">#FF3365</color>
-    <color name="tag">#FF3466</color>
-    <color name="reviews">#6D6D80</color>
-    <color name="movie_length">#565665</color>
+    <!-- Dark skin palette -->
+    <color name="php4dvd_dark_primary">#FF9F1C</color>
+    <color name="php4dvd_dark_on_primary">#1A1A24</color>
+    <color name="php4dvd_dark_secondary">#262633</color>
+    <color name="php4dvd_dark_surface">#0F0F1A</color>
+    <color name="php4dvd_dark_on_surface">#F4F4F7</color>
+    <color name="php4dvd_dark_screen_background">#0F0F1A</color>
+    <color name="php4dvd_dark_card">#191926</color>
+    <color name="php4dvd_dark_card_stroke">#2E2E3F</color>
+    <color name="php4dvd_dark_header_text">#F4F4F7</color>
+    <color name="php4dvd_dark_body_text">#D3D3DD</color>
+    <color name="php4dvd_dark_secondary_text">#7A7A8D</color>
+    <color name="php4dvd_dark_tag">#FF9F1C</color>
+    <color name="php4dvd_dark_rating_active">#FF9F1C</color>
+    <color name="php4dvd_dark_rating_inactive">#4B4B5D</color>
+    <color name="php4dvd_dark_badge">#151523</color>
+    <color name="php4dvd_dark_accent_icon">#FF9F1C</color>
 
-    <color name="background_movie_item">#222232</color>
-    <color name="border_movie_item">#3B3B4D</color>
-
-    <color name="actor_name">#D8D8D8</color>
+    <!-- Ocean skin palette -->
+    <color name="php4dvd_ocean_primary">#2EC4B6</color>
+    <color name="php4dvd_ocean_on_primary">#0A1822</color>
+    <color name="php4dvd_ocean_secondary">#1F3A56</color>
+    <color name="php4dvd_ocean_surface">#0E1D2C</color>
+    <color name="php4dvd_ocean_on_surface">#F1F7FA</color>
+    <color name="php4dvd_ocean_screen_background">#0E1D2C</color>
+    <color name="php4dvd_ocean_card">#16324C</color>
+    <color name="php4dvd_ocean_card_stroke">#244A6B</color>
+    <color name="php4dvd_ocean_header_text">#F1F7FA</color>
+    <color name="php4dvd_ocean_body_text">#D0E4F2</color>
+    <color name="php4dvd_ocean_secondary_text">#7A8FA6</color>
+    <color name="php4dvd_ocean_tag">#2EC4B6</color>
+    <color name="php4dvd_ocean_rating_active">#2EC4B6</color>
+    <color name="php4dvd_ocean_rating_inactive">#506076</color>
+    <color name="php4dvd_ocean_badge">#12283B</color>
+    <color name="php4dvd_ocean_accent_icon">#2EC4B6</color>
 </resources>

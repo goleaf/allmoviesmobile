@@ -25,4 +25,16 @@ interface MoviesRemoteDataSource {
         apiKey: String,
         language: String
     ): Result<List<MovieVideoDto>>
+
+    suspend fun getActorDetails(
+        actorId: Int,
+        apiKey: String,
+        language: String,
+    ): Result<ActorDetailsResponse>
+
+    suspend fun getActorMovieCredits(
+        actorId: Int,
+        apiKey: String,
+        language: String,
+    ): Result<ActorMovieCreditsResponse>
 }

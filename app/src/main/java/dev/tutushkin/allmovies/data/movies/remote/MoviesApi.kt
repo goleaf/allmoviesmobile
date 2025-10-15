@@ -44,4 +44,18 @@ interface MoviesApi {
         @Query("api_key") apiKey: String,
         @Query("language") language: String
     ): MovieVideosResponse
+
+    @GET("person/{person_id}")
+    suspend fun getActorDetails(
+        @Path("person_id") actorId: Int,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String,
+    ): ActorDetailsResponse
+
+    @GET("person/{person_id}/movie_credits")
+    suspend fun getActorMovieCredits(
+        @Path("person_id") actorId: Int,
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String,
+    ): ActorMovieCreditsResponse
 }

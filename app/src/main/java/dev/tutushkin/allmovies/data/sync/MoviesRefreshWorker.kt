@@ -36,6 +36,7 @@ class MoviesRefreshWorker(
             db.moviesDao(),
             db.movieDetails(),
             db.actorsDao(),
+            db.actorDetailsDao(),
             db.configurationDao(),
             db.genresDao()
         )

@@ -26,6 +26,7 @@ class CsvExporter(private val context: Context) {
             db.moviesDao(),
             db.movieDetails(),
             db.actorsDao(),
+            db.actorDetailsDao(),
             db.configurationDao(),
             db.genresDao()
         )

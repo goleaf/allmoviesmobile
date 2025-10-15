@@ -16,4 +16,12 @@
         android:id="@+id/action_language"
         android:title="@string/menu_language"
         app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_search"
+        android:title="@string/menu_search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:contentDescription="@string/menu_search_content_description"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:tooltipText="@string/menu_search_talkback_hint" />
 </menu>

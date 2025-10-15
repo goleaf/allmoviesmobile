@@ -16,6 +16,7 @@ import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
+import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.databinding.FragmentMoviesDetailsBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalyticsLogger
@@ -54,13 +55,15 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         )
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+        val languagePreferences = LanguagePreferences(requireContext().applicationContext)
         val viewModel: MovieDetailsViewModel by viewModels {
             MovieDetailsViewModelFactory(
                 repository,
                 args.movieId,
                 args.slug,
                 args.openedFromSharedLink,
-                SharedLinkAnalyticsLogger
+                SharedLinkAnalyticsLogger,
+                languagePreferences.getSelectedLanguage()
             )
         }
 

@@ -8,34 +8,40 @@ interface MoviesApi {
 
     @GET("configuration")
     suspend fun getConfiguration(
-        @Query("api_key") apiKey: String
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): ConfigurationResponse
 
     @GET("genre/movie/list")
     suspend fun getGenres(
-        @Query("api_key") apiKey: String
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): GenresResponse
 
     @GET("movie/now_playing")
     suspend fun getNowPlaying(
-        @Query("api_key") apiKey: String
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): MovieListResponse
 
     @GET("movie/{movie_id}")
     suspend fun getMovieDetails(
         @Path("movie_id") movieId: Int,
-        @Query("api_key") apiKey: String
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): MovieDetailsResponse
 
     @GET("movie/{movie_id}/credits")
     suspend fun getActors(
         @Path("movie_id") movieId: Int,
-        @Query("api_key") apiKey: String
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): MovieActorsResponse
 
     @GET("movie/{movie_id}/videos")
     suspend fun getVideos(
         @Path("movie_id") movieId: Int,
-        @Query("api_key") apiKey: String
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String
     ): MovieVideosResponse
 }

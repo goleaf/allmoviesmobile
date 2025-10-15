@@ -14,7 +14,8 @@ class MovieDetailsViewModel(
     private val id: Int,
     private val slug: String?,
     private val openedFromSharedLink: Boolean,
-    private val analytics: SharedLinkAnalytics
+    private val analytics: SharedLinkAnalytics,
+    private val language: String
 ) : ViewModel() {
 
     private val _currentMovie = MutableLiveData<MovieDetailsState>()
@@ -37,7 +38,12 @@ class MovieDetailsViewModel(
     }
 
     private suspend fun handleMovieDetails(): MovieDetailsState {
-        val movieDetails = moviesRepository.getMovieDetails(id, BuildConfig.API_KEY, ensureCached = true)
+        val movieDetails = moviesRepository.getMovieDetails(
+            id,
+            BuildConfig.API_KEY,
+            language,
+            ensureCached = true
+        )
 
         return if (movieDetails.isSuccess)
             MovieDetailsState.Result(movieDetails.getOrThrow())

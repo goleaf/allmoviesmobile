@@ -22,7 +22,7 @@ fun Fragment.provideMoviesViewModelFactory(): MoviesViewModelFactory {
         db.genresDao()
     )
     val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
-    val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+    val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
     val languagePreferences = LanguagePreferences(requireContext().applicationContext)
     val favoritesNotifier = FavoritesUpdateNotifierProvider.notifier
     return MoviesViewModelFactory(repository, languagePreferences, favoritesNotifier)

@@ -7,7 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
-import dev.tutushkin.allmovies.data.settings.LanguagePreferences
+import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
@@ -17,7 +17,7 @@ import kotlinx.coroutines.launch
 
 class MoviesViewModel(
     private val moviesRepository: MoviesRepository,
-    private val languagePreferences: LanguagePreferences,
+    private val languagePreferences: LanguagePreferencesDataSource,
     private val favoritesUpdateNotifier: FavoritesUpdateNotifier
 ) : ViewModel() {
 

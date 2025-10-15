@@ -2,13 +2,13 @@ package dev.tutushkin.allmovies.presentation.movies.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import dev.tutushkin.allmovies.data.settings.LanguagePreferences
+import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
 
 class MoviesViewModelFactory(
     private val repository: MoviesRepository,
-    private val languagePreferences: LanguagePreferences,
+    private val languagePreferences: LanguagePreferencesDataSource,
     private val favoritesUpdateNotifier: FavoritesUpdateNotifier
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")

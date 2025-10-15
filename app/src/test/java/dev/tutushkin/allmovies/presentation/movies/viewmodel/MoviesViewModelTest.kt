@@ -282,17 +282,17 @@ private class FakeMoviesRepository : MoviesRepository {
 
     private val favoriteMovieIds = mutableSetOf<Int>()
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
+    override suspend fun getConfiguration(language: String): Result<Configuration> {
         configurationRequested = true
         return configurationResult
     }
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> {
+    override suspend fun getGenres(language: String): Result<List<Genre>> {
         genresRequested = true
         return genresResult
     }
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
+    override suspend fun getNowPlaying(language: String): Result<List<MovieList>> {
         nowPlayingRequested = true
         return nowPlayingResult.map { movies ->
             movies.map { movie ->
@@ -304,7 +304,6 @@ private class FakeMoviesRepository : MoviesRepository {
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String,
         language: String,
         ensureCached: Boolean
     ): Result<MovieDetails> {
@@ -313,7 +312,6 @@ private class FakeMoviesRepository : MoviesRepository {
 
     override suspend fun getActorDetails(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<dev.tutushkin.allmovies.domain.movies.models.ActorDetails> =
         Result.failure(UnsupportedOperationException())
@@ -331,7 +329,6 @@ private class FakeMoviesRepository : MoviesRepository {
     override suspend fun getFavorites(): Result<List<MovieList>> = favoritesResult
 
     override suspend fun searchMovies(
-        apiKey: String,
         language: String,
         query: String,
         includeAdult: Boolean
@@ -346,7 +343,6 @@ private class FakeMoviesRepository : MoviesRepository {
     }
 
     override suspend fun refreshLibrary(
-        apiKey: String,
         language: String,
         onProgress: (current: Int, total: Int, title: String) -> Unit
     ): Result<Unit> = Result.success(Unit)

@@ -13,13 +13,13 @@ class MoviesRepositoryImpl(
     private val ioDispatcher: CoroutineDispatcher
 ) : MoviesRepository {
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> =
+    override suspend fun getConfiguration(language: String): Result<Configuration> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearConfiguration()
             var localConfiguration = moviesLocalDataSource.getConfiguration()
 
             if (localConfiguration == null) {
-                getConfigurationFromServer(apiKey, language)
+                getConfigurationFromServer(language)
                     .onSuccess { moviesLocalDataSource.setConfiguration(it) }
                     .onFailure {
                         return@withContext Result.failure(it)
@@ -36,21 +36,20 @@ class MoviesRepositoryImpl(
         }
 
     private suspend fun getConfigurationFromServer(
-        apiKey: String,
         language: String
     ): Result<ConfigurationEntity> =
         withContext(ioDispatcher) {
-            moviesRemoteDataSource.getConfiguration(apiKey, language)
+            moviesRemoteDataSource.getConfiguration(language)
                 .mapCatching { it.toEntity() }
         }
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> =
+    override suspend fun getGenres(language: String): Result<List<Genre>> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearGenres()
             var localGenres = moviesLocalDataSource.getGenres()
 
             if (localGenres.isEmpty()) {
-                getGenresFromServer(apiKey, language)
+                getGenresFromServer(language)
                     .onSuccess { moviesLocalDataSource.setGenres(it) }
                     .onFailure {
                         return@withContext Result.failure(it)
@@ -67,24 +66,23 @@ class MoviesRepositoryImpl(
         }
 
     private suspend fun getGenresFromServer(
-        apiKey: String,
         language: String
     ): Result<List<GenreEntity>> =
         withContext(ioDispatcher) {
             runCatching {
-                moviesRemoteDataSource.getGenres(apiKey, language)
+                moviesRemoteDataSource.getGenres(language)
                     .getOrThrow()
                     .map { it.toEntity() }
             }
         }
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> =
+    override suspend fun getNowPlaying(language: String): Result<List<MovieList>> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearNowPlaying()
             var localMovies = moviesLocalDataSource.getNowPlaying()
 
             if (localMovies.isEmpty()) {
-                val remoteMovies = getNowPlayingFromServer(apiKey, language)
+                val remoteMovies = getNowPlayingFromServer(language)
                 val moviesToSave = remoteMovies.getOrElse { error ->
                     return@withContext Result.failure(error)
                 }
@@ -119,7 +117,6 @@ class MoviesRepositoryImpl(
         }
 
     override suspend fun searchMovies(
-        apiKey: String,
         language: String,
         query: String,
         includeAdult: Boolean,
@@ -127,7 +124,7 @@ class MoviesRepositoryImpl(
         val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds().toSet()
 
         // Search results are fetched on demand and remain remote-only to avoid polluting cached lists.
-        moviesRemoteDataSource.searchMovies(apiKey, language, query, includeAdult)
+        moviesRemoteDataSource.searchMovies(language, query, includeAdult)
             .mapCatching { dtos ->
                 dtos.map { dto ->
                     val entity = dto.toEntity()
@@ -142,12 +139,11 @@ class MoviesRepositoryImpl(
     }
 
     private suspend fun getNowPlayingFromServer(
-        apiKey: String,
         language: String
     ): Result<List<MovieListEntity>> =
         withContext(ioDispatcher) {
             runCatching {
-                moviesRemoteDataSource.getNowPlaying(apiKey, language)
+                moviesRemoteDataSource.getNowPlaying(language)
                     .getOrThrow()
                     .map { it.toEntity() }
             }
@@ -155,7 +151,6 @@ class MoviesRepositoryImpl(
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String,
         language: String,
         ensureCached: Boolean
     ): Result<MovieDetails> =
@@ -168,12 +163,12 @@ class MoviesRepositoryImpl(
                 localMovie == null || (ensureCached && localMovie.isActorsLoaded.not())
 
             if (shouldRefreshFromServer) {
-                val movieDetailsResult = getMovieDetailsFromServer(movieId, apiKey, language)
+                val movieDetailsResult = getMovieDetailsFromServer(movieId, language)
                 movieDetailsResult.onFailure {
                     return@withContext Result.failure(it)
                 }
 
-                val actorsResult = getActorsFromServer(movieId, apiKey, language)
+                val actorsResult = getActorsFromServer(movieId, language)
                 actorsResult.onFailure {
                     return@withContext Result.failure(it)
                 }
@@ -220,22 +215,21 @@ class MoviesRepositoryImpl(
                 return@withContext Result.failure(Exception("Movie details cashing error!"))
             }
 
-            return@withContext getActorsData(movie, apiKey, language)
+            return@withContext getActorsData(movie, language)
                 .mapCatching { actors -> movie.toModel(actors) }
         }
 
     override suspend fun getActorDetails(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<ActorDetails> = withContext(ioDispatcher) {
         var localDetails = moviesLocalDataSource.getActorDetails(actorId)
 
         if (localDetails == null) {
-            val detailsResult = moviesRemoteDataSource.getActorDetails(actorId, apiKey, language)
+            val detailsResult = moviesRemoteDataSource.getActorDetails(actorId, language)
             detailsResult.onFailure { return@withContext Result.failure(it) }
 
-            val knownFor = moviesRemoteDataSource.getActorMovieCredits(actorId, apiKey, language)
+            val knownFor = moviesRemoteDataSource.getActorMovieCredits(actorId, language)
                 .mapCatching { response -> response.toKnownForStrings() }
                 .getOrElse { emptyList() }
 
@@ -253,24 +247,22 @@ class MoviesRepositoryImpl(
 
     private suspend fun getMovieDetailsFromServer(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<MovieDetailsEntity> =
         withContext(ioDispatcher) {
-            moviesRemoteDataSource.getMovieDetails(movieId, apiKey, language)
+            moviesRemoteDataSource.getMovieDetails(movieId, language)
                 .mapCatching { it.toEntity() }
         }
 
     private suspend fun getActorsData(
         movie: MovieDetailsEntity,
-        apiKey: String,
         language: String
     ): Result<List<Actor>> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearActors()
 
             if (!movie.isActorsLoaded) {
-                getActorsFromServer(movie.id, apiKey, language)
+                getActorsFromServer(movie.id, language)
                     .onSuccess {
                         moviesLocalDataSource.setActors(it)
                         moviesLocalDataSource.setActorsLoaded(movie.id)
@@ -291,12 +283,11 @@ class MoviesRepositoryImpl(
 
     private suspend fun getActorsFromServer(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<List<ActorEntity>> =
         withContext(ioDispatcher) {
             runCatching {
-                moviesRemoteDataSource.getActors(movieId, apiKey, language)
+                moviesRemoteDataSource.getActors(movieId, language)
                     .getOrThrow()
                     .map { it.toEntity() }
             }
@@ -398,7 +389,6 @@ class MoviesRepositoryImpl(
     }
 
     override suspend fun refreshLibrary(
-        apiKey: String,
         language: String,
         onProgress: (current: Int, total: Int, title: String) -> Unit
     ): Result<Unit> = withContext(ioDispatcher) {
@@ -415,9 +405,9 @@ class MoviesRepositoryImpl(
                 val existingDetails = moviesLocalDataSource.getMovieDetails(movie.id)
                 val existingSummary = moviesLocalDataSource.getMovie(movie.id)
 
-                val movieDetails = getMovieDetailsFromServer(movie.id, apiKey, language).getOrThrow()
-                val actors = getActorsFromServer(movie.id, apiKey, language).getOrThrow()
-                val videos = moviesRemoteDataSource.getVideos(movie.id, apiKey, language)
+                val movieDetails = getMovieDetailsFromServer(movie.id, language).getOrThrow()
+                val actors = getActorsFromServer(movie.id, language).getOrThrow()
+                val videos = moviesRemoteDataSource.getVideos(movie.id, language)
                     .getOrDefault(emptyList())
                 val trailerUrl = videos.toPreferredTrailerUrl()
                 val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()

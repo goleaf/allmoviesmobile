@@ -10,7 +10,6 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
@@ -30,9 +29,6 @@ class MoviesRefreshWorker(
     private val notificationHelper = MoviesRefreshNotificationHelper(applicationContext)
 
     override suspend fun doWork(): Result {
-        val apiKey = inputData.getString(KEY_API_KEY).takeUnless { it.isNullOrBlank() }
-            ?: BuildConfig.API_KEY
-
         val db = MoviesDb.getDatabase(applicationContext)
         val localDataSource = MoviesLocalDataSourceImpl(
             db.moviesDao(),
@@ -54,7 +50,7 @@ class MoviesRefreshWorker(
             )
         )
 
-        val result = repository.refreshLibrary(apiKey, languageCode) { current, total, title ->
+        val result = repository.refreshLibrary(languageCode) { current, total, title ->
             val progressData = workDataOf(
                 PROGRESS_CURRENT to current,
                 PROGRESS_TOTAL to total,
@@ -79,7 +75,6 @@ class MoviesRefreshWorker(
     companion object {
         const val WORK_NAME = "movies-refresh-work"
         const val WORK_TAG = "movies-refresh-tag"
-        const val KEY_API_KEY = "api_key"
         const val PROGRESS_CURRENT = "progress_current"
         const val PROGRESS_TOTAL = "progress_total"
         const val PROGRESS_TITLE = "progress_title"

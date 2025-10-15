@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import kotlinx.coroutines.launch
 
@@ -41,7 +40,6 @@ class ActorDetailsViewModel(
     private suspend fun fetchActorDetails(): ActorDetailsState {
         val result = moviesRepository.getActorDetails(
             actorId,
-            BuildConfig.API_KEY,
             language,
         )
 

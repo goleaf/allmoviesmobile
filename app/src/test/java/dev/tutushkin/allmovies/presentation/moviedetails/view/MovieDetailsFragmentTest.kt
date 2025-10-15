@@ -160,20 +160,19 @@ class MovieDetailsFragmentTest {
     private class FakeMoviesRepository : MoviesRepository {
         private var movieDetailsDeferred = CompletableDeferred<Result<MovieDetails>>()
 
-        override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
+        override suspend fun getConfiguration(language: String): Result<Configuration> {
             return Result.success(Configuration())
         }
 
-        override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> {
+        override suspend fun getGenres(language: String): Result<List<Genre>> {
             return Result.success(emptyList())
         }
 
-        override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
+        override suspend fun getNowPlaying(language: String): Result<List<MovieList>> {
             return Result.success(emptyList())
         }
 
         override suspend fun searchMovies(
-            apiKey: String,
             language: String,
             query: String,
             includeAdult: Boolean
@@ -183,7 +182,6 @@ class MovieDetailsFragmentTest {
 
         override suspend fun getMovieDetails(
             movieId: Int,
-            apiKey: String,
             language: String,
             ensureCached: Boolean
         ): Result<MovieDetails> {
@@ -200,7 +198,6 @@ class MovieDetailsFragmentTest {
 
         override suspend fun getActorDetails(
             actorId: Int,
-            apiKey: String,
             language: String
         ): Result<ActorDetails> {
             return Result.failure(UnsupportedOperationException())
@@ -219,7 +216,6 @@ class MovieDetailsFragmentTest {
         }
 
         override suspend fun refreshLibrary(
-            apiKey: String,
             language: String,
             onProgress: (current: Int, total: Int, title: String) -> Unit
         ): Result<Unit> {

@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
@@ -68,7 +67,7 @@ class MoviesViewModel(
     }
 
     private suspend fun handleLoadApiConfiguration(language: String) {
-        val conf = moviesRepository.getConfiguration(BuildConfig.API_KEY, language)
+        val conf = moviesRepository.getConfiguration(language)
 
         if (conf.isSuccess) {
             configApi = conf.getOrThrow()
@@ -78,7 +77,7 @@ class MoviesViewModel(
     }
 
     private suspend fun handleGenres(language: String) {
-        val genres = moviesRepository.getGenres(BuildConfig.API_KEY, language)
+        val genres = moviesRepository.getGenres(language)
 
         if (genres.isSuccess) {
             allGenres = genres.getOrThrow()
@@ -88,7 +87,7 @@ class MoviesViewModel(
     }
 
     private suspend fun handleMoviesNowPlaying(language: String): MoviesState {
-        val moviesResult = moviesRepository.getNowPlaying(BuildConfig.API_KEY, language)
+        val moviesResult = moviesRepository.getNowPlaying(language)
 
         return if (moviesResult.isSuccess) {
             val movies = moviesResult.getOrThrow()
@@ -159,7 +158,6 @@ class MoviesViewModel(
 
             val language = currentLanguage
             val result = moviesRepository.searchMovies(
-                BuildConfig.API_KEY,
                 language,
                 query
             )

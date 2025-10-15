@@ -46,7 +46,7 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
-    fun `getNowPlaying uses provided apiKey and caches remote response`() = runTest(dispatcher) {
+    fun `getNowPlaying caches remote response`() = runTest(dispatcher) {
         remoteDataSource.nowPlayingResult = Result.success(
             listOf(
                 MovieListDto(
@@ -62,16 +62,15 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getNowPlaying("provided-key", LANGUAGE)
+        val result = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(1, remoteDataSource.nowPlayingCallCount)
-        assertEquals("provided-key", remoteDataSource.lastNowPlayingApiKey)
         assertEquals(1, localDataSource.getNowPlaying().size)
 
         remoteDataSource.resetCallCounters()
 
-        val cachedResult = repository.getNowPlaying("provided-key", LANGUAGE)
+        val cachedResult = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(cachedResult.isSuccess)
         assertEquals(0, remoteDataSource.nowPlayingCallCount)
@@ -82,7 +81,7 @@ class MoviesRepositoryImplTest {
     fun `getNowPlaying returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.nowPlayingResult = Result.success(emptyList())
 
-        val result = repository.getNowPlaying("provided-key", LANGUAGE)
+        val result = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().isEmpty())
@@ -123,7 +122,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getNowPlaying("provided-key", LANGUAGE)
+        val result = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().first().isFavorite)
@@ -161,7 +160,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.searchMovies("api", LANGUAGE, "Fav")
+        val result = repository.searchMovies(LANGUAGE, "Fav")
 
         assertTrue(result.isSuccess)
         val movies = result.getOrThrow()
@@ -174,7 +173,7 @@ class MoviesRepositoryImplTest {
         val error = IllegalStateException("search failed")
         remoteDataSource.searchResult = Result.failure(error)
 
-        val result = repository.searchMovies("api", LANGUAGE, "Oops")
+        val result = repository.searchMovies(LANGUAGE, "Oops")
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() === error)
@@ -184,7 +183,7 @@ class MoviesRepositoryImplTest {
     fun `getGenres returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.genresResult = Result.success(emptyList())
 
-        val result = repository.getGenres("provided-key", LANGUAGE)
+        val result = repository.getGenres(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().isEmpty())
@@ -215,7 +214,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+        val result = repository.getMovieDetails(movieId, LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(1, remoteDataSource.movieDetailsCallCount)
@@ -246,7 +245,7 @@ class MoviesRepositoryImplTest {
         )
         remoteDataSource.actorsResult = Result.success(emptyList())
 
-        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+        val result = repository.getMovieDetails(movieId, LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().actors.isEmpty())
@@ -283,7 +282,7 @@ class MoviesRepositoryImplTest {
 
         remoteDataSource.resetCallCounters()
 
-        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+        val result = repository.getMovieDetails(movieId, LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(0, remoteDataSource.movieDetailsCallCount)
@@ -381,27 +380,24 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     var nowPlayingCallCount: Int = 0
         private set
-    var lastNowPlayingApiKey: String? = null
     var lastNowPlayingLanguage: String? = null
     var movieDetailsCallCount: Int = 0
         private set
     var actorsCallCount: Int = 0
         private set
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> =
+    override suspend fun getConfiguration(language: String): Result<ConfigurationDto> =
         configurationResult
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<GenreDto>> = genresResult
+    override suspend fun getGenres(language: String): Result<List<GenreDto>> = genresResult
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieListDto>> {
+    override suspend fun getNowPlaying(language: String): Result<List<MovieListDto>> {
         nowPlayingCallCount++
-        lastNowPlayingApiKey = apiKey
         lastNowPlayingLanguage = language
         return nowPlayingResult
     }
 
     override suspend fun searchMovies(
-        apiKey: String,
         language: String,
         query: String,
         includeAdult: Boolean,
@@ -409,7 +405,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<MovieDetailsResponse> {
         movieDetailsCallCount++
@@ -418,7 +413,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     override suspend fun getActors(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<List<MovieActorDto>> {
         actorsCallCount++
@@ -427,19 +421,16 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     override suspend fun getVideos(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<List<MovieVideoDto>> = Result.success(emptyList())
 
     override suspend fun getActorDetails(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<ActorDetailsResponse> = Result.failure(UnsupportedOperationException())
 
     override suspend fun getActorMovieCredits(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<ActorMovieCreditsResponse> = Result.success(
         ActorMovieCreditsResponse(id = actorId, cast = emptyList(), crew = emptyList())
@@ -447,7 +438,6 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
 
     fun resetCallCounters() {
         nowPlayingCallCount = 0
-        lastNowPlayingApiKey = null
         lastNowPlayingLanguage = null
         movieDetailsCallCount = 0
         actorsCallCount = 0

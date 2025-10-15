@@ -44,7 +44,7 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
             db.configurationDao(),
             db.genresDao(),
         )
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
         val languagePreferences = LanguagePreferences(requireContext().applicationContext)
         ActorDetailsViewModelFactory(repository, args.actorId, languagePreferences.getSelectedLanguage())
     }

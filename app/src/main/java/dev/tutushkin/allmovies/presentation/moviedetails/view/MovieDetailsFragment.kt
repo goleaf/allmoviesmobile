@@ -166,7 +166,7 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             db.configurationDao(),
             db.genresDao()
         )
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
         val languagePreferences = LanguagePreferences(requireContext().applicationContext)
 
         return MovieDetailsViewModelFactory(

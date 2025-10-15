@@ -13,7 +13,6 @@ import retrofit2.Retrofit
 import retrofit2.create
 import java.util.concurrent.TimeUnit
 
-// TODO Implement Api Key through the interceptor
 // TODO Get off singleton
 object NetworkModule {
 
@@ -32,6 +31,7 @@ object NetworkModule {
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS)
+        .addInterceptor(ApiKeyInterceptor())
         .addInterceptor(loggingInterceptor)
         .addNetworkInterceptor(loggingInterceptor)
         .build()

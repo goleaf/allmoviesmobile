@@ -69,7 +69,7 @@ class MoviesViewModel(
     }
 
     private suspend fun handleLoadApiConfiguration(language: String) {
-        val result = moviesRepository.getConfiguration(BuildConfig.API_KEY, language)
+        val result = moviesRepository.getConfiguration(language)
         if (result.isFailure) {
             val throwable = result.exceptionOrNull()
             logger.e(TAG, "Failed to load configuration for language=$language", throwable)
@@ -77,7 +77,7 @@ class MoviesViewModel(
     }
 
     private suspend fun handleGenres(language: String) {
-        val genres = moviesRepository.getGenres(BuildConfig.API_KEY, language)
+        val genres = moviesRepository.getGenres(language)
 
         if (genres.isSuccess) {
             allGenres = genres.getOrThrow()
@@ -88,7 +88,7 @@ class MoviesViewModel(
     }
 
     private suspend fun handleMoviesNowPlaying(language: String): MoviesState {
-        val moviesResult = moviesRepository.getNowPlaying(BuildConfig.API_KEY, language)
+        val moviesResult = moviesRepository.getNowPlaying(language)
 
         return if (moviesResult.isSuccess) {
             val movies = moviesResult.getOrThrow()

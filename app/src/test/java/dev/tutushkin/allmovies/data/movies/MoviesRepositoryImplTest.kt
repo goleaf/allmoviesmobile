@@ -73,7 +73,7 @@ class MoviesRepositoryImplTest {
         remoteDataSource.configurationResult = Result.failure(IllegalStateException("not expected"))
         remoteDataSource.resetCallCounters()
 
-        val result = repository.getConfiguration("provided-key", LANGUAGE)
+        val result = repository.getConfiguration(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals("https://images.test/", result.getOrThrow().imagesBaseUrl)
@@ -93,7 +93,7 @@ class MoviesRepositoryImplTest {
         )
         remoteDataSource.resetCallCounters()
 
-        val result = repository.getConfiguration("provided-key", LANGUAGE)
+        val result = repository.getConfiguration(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals("https://remote/", result.getOrThrow().imagesBaseUrl)
@@ -108,7 +108,7 @@ class MoviesRepositoryImplTest {
         remoteDataSource.configurationResult = Result.failure(IllegalStateException("boom"))
         remoteDataSource.resetCallCounters()
 
-        val result = repository.getConfiguration("provided-key", LANGUAGE)
+        val result = repository.getConfiguration(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(Configuration().imagesBaseUrl, result.getOrThrow().imagesBaseUrl)
@@ -121,7 +121,7 @@ class MoviesRepositoryImplTest {
         remoteDataSource.configurationResult = Result.failure(IllegalStateException("boom"))
         remoteDataSource.resetCallCounters()
 
-        val result = repository.getConfiguration("provided-key", LANGUAGE)
+        val result = repository.getConfiguration(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(Configuration().imagesBaseUrl, result.getOrThrow().imagesBaseUrl)
@@ -145,7 +145,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getNowPlaying("provided-key", LANGUAGE)
+        val result = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(1, remoteDataSource.nowPlayingCallCount)
@@ -154,7 +154,7 @@ class MoviesRepositoryImplTest {
 
         remoteDataSource.resetCallCounters()
 
-        val cachedResult = repository.getNowPlaying("provided-key", LANGUAGE)
+        val cachedResult = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(cachedResult.isSuccess)
         assertEquals(0, remoteDataSource.nowPlayingCallCount)
@@ -165,7 +165,7 @@ class MoviesRepositoryImplTest {
     fun `getNowPlaying returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.nowPlayingResult = Result.success(emptyList())
 
-        val result = repository.getNowPlaying("provided-key", LANGUAGE)
+        val result = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().isEmpty())
@@ -207,7 +207,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getNowPlaying("provided-key", LANGUAGE)
+        val result = repository.getNowPlaying(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().first().isFavorite)
@@ -246,7 +246,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.searchMovies("api", LANGUAGE, "Fav")
+        val result = repository.searchMovies(LANGUAGE, "Fav")
 
         assertTrue(result.isSuccess)
         val movies = result.getOrThrow()
@@ -259,7 +259,7 @@ class MoviesRepositoryImplTest {
         val error = IllegalStateException("search failed")
         remoteDataSource.searchResult = Result.failure(error)
 
-        val result = repository.searchMovies("api", LANGUAGE, "Oops")
+        val result = repository.searchMovies(LANGUAGE, "Oops")
 
         assertTrue(result.isFailure)
         assertTrue(result.exceptionOrNull() === error)
@@ -269,7 +269,7 @@ class MoviesRepositoryImplTest {
     fun `getGenres returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.genresResult = Result.success(emptyList())
 
-        val result = repository.getGenres("provided-key", LANGUAGE)
+        val result = repository.getGenres(LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().isEmpty())
@@ -300,7 +300,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+        val result = repository.getMovieDetails(movieId, LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(1, remoteDataSource.movieDetailsCallCount)
@@ -331,7 +331,7 @@ class MoviesRepositoryImplTest {
         )
         remoteDataSource.actorsResult = Result.success(emptyList())
 
-        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+        val result = repository.getMovieDetails(movieId, LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().actors.isEmpty())
@@ -372,7 +372,7 @@ class MoviesRepositoryImplTest {
         )
         remoteDataSource.actorsResult = Result.success(emptyList())
 
-        val result = repository.getMovieDetails(movieId, "api", "en-US")
+        val result = repository.getMovieDetails(movieId, "en-US")
 
         assertTrue(result.isSuccess)
         val certification = result.getOrThrow().certification
@@ -401,7 +401,7 @@ class MoviesRepositoryImplTest {
         remoteDataSource.releaseDatesResult = Result.success(MovieReleaseDatesResponse(emptyList()))
         remoteDataSource.actorsResult = Result.success(emptyList())
 
-        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+        val result = repository.getMovieDetails(movieId, LANGUAGE)
 
         assertTrue(result.isSuccess)
         val certification = result.getOrThrow().certification
@@ -437,7 +437,7 @@ class MoviesRepositoryImplTest {
 
         remoteDataSource.resetCallCounters()
 
-        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+        val result = repository.getMovieDetails(movieId, LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(0, remoteDataSource.movieDetailsCallCount)

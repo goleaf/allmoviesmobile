@@ -16,7 +16,7 @@ class MoviesRepositoryImpl(
     private val ioDispatcher: CoroutineDispatcher
 ) : MoviesRepository {
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> =
+    override suspend fun getConfiguration(language: String): Result<Configuration> =
         withContext(ioDispatcher) {
             configurationDataStore.read()?.let { stored ->
                 return@withContext Result.success(stored)
@@ -55,7 +55,7 @@ class MoviesRepositoryImpl(
         return fetched.getOrElse { Configuration() }
     }
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> =
+    override suspend fun getGenres(language: String): Result<List<Genre>> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearGenres()
             var localGenres = moviesLocalDataSource.getGenres()
@@ -89,7 +89,7 @@ class MoviesRepositoryImpl(
             }
         }
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> =
+    override suspend fun getNowPlaying(language: String): Result<List<MovieList>> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearNowPlaying()
             val configuration = obtainConfiguration(apiKey, language)

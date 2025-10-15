@@ -183,23 +183,22 @@ private class CoroutineFakeMoviesRepository : MoviesRepository {
     val nowPlayingLanguages = mutableListOf<String>()
     val setFavoriteCalls = mutableListOf<Pair<Int, Boolean>>()
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
+    override suspend fun getConfiguration(language: String): Result<Configuration> {
         configurationLanguages += language
         return configurationResult
     }
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> {
+    override suspend fun getGenres(language: String): Result<List<Genre>> {
         genresLanguages += language
         return genresResult
     }
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
+    override suspend fun getNowPlaying(language: String): Result<List<MovieList>> {
         nowPlayingLanguages += language
         return nowPlayingResult
     }
 
     override suspend fun searchMovies(
-        apiKey: String,
         language: String,
         query: String,
         includeAdult: Boolean
@@ -207,14 +206,12 @@ private class CoroutineFakeMoviesRepository : MoviesRepository {
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String,
         language: String,
         ensureCached: Boolean
     ): Result<MovieDetails> = throw UnsupportedOperationException()
 
     override suspend fun getActorDetails(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<ActorDetails> = throw UnsupportedOperationException()
 
@@ -230,7 +227,6 @@ private class CoroutineFakeMoviesRepository : MoviesRepository {
     }
 
     override suspend fun refreshLibrary(
-        apiKey: String,
         language: String,
         onProgress: (current: Int, total: Int, title: String) -> Unit
     ): Result<Unit> = throw UnsupportedOperationException()

@@ -19,6 +19,16 @@ class MoviesRemoteDataSourceImpl(
             moviesApi.getNowPlaying(apiKey, language).results
         }
 
+    override suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String,
+        includeAdult: Boolean,
+    ): Result<List<MovieListDto>> =
+        runCatching {
+            moviesApi.searchMovies(apiKey, language, query, includeAdult).results
+        }
+
     override suspend fun getMovieDetails(
         movieId: Int,
         apiKey: String,

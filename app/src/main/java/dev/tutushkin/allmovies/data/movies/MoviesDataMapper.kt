@@ -8,19 +8,33 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal fun MovieListDto.toEntity(): MovieListEntity = MovieListEntity(
+internal data class CertificationValue(
+    val code: String,
+    val label: String
+) {
+    companion object {
+        val EMPTY = CertificationValue(code = "", label = "")
+    }
+}
+
+internal fun MovieListDto.toEntity(
+    certification: CertificationValue = fallbackCertification(this.adult)
+): MovieListEntity = MovieListEntity(
     id = this.id,
     title = this.title,
     poster = getImageUrl(this.posterPath),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
-    minimumAge = normalizeAge(this.adult),
+    certificationLabel = certification.label,
+    certificationCode = certification.code,
     year = dateToYear(this.releaseDate),
     genres = filterGenres(this.genreIds),
     isFavorite = false,
 )
 
-internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsEntity(
+internal fun MovieDetailsResponse.toEntity(
+    certification: CertificationValue = fallbackCertification(this.adult)
+): MovieDetailsEntity = MovieDetailsEntity(
     id = this.id,
     title = this.title,
     overview = this.overview,
@@ -28,7 +42,8 @@ internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsE
     backdrop = getImageUrl(this.backdropPath),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
-    minimumAge = normalizeAge(this.adult),
+    certificationLabel = certification.label,
+    certificationCode = certification.code,
     year = dateToYear(this.releaseDate),
     runtime = this.runtime,
     genres = this.genres.joinToString { it.name },
@@ -75,11 +90,12 @@ private fun getImageUrl(posterPath: String?): String {
     return "${NetworkModule.configApi.imagesBaseUrl}w342$posterPath"
 }
 
-private fun normalizeAge(isAdult: Boolean): String = if (isAdult) {
-    AGE_ADULT
-} else {
-    AGE_CHILD
-}
+internal fun fallbackCertification(isAdult: Boolean): CertificationValue =
+    if (isAdult) {
+        CertificationValue(code = FALLBACK_ADULT_CODE, label = FALLBACK_ADULT_LABEL)
+    } else {
+        CertificationValue(code = FALLBACK_GENERAL_CODE, label = FALLBACK_GENERAL_LABEL)
+    }
 
 private fun dateToYear(value: String): String {
     if (value.isBlank()) return UNKNOWN_YEAR
@@ -163,8 +179,10 @@ internal fun List<MovieVideoDto>.toPreferredTrailerUrl(): String {
     } ?: ""
 }
 
-private const val AGE_ADULT = "18+"
-private const val AGE_CHILD = "13+"
+private const val FALLBACK_ADULT_CODE = "ADULT"
+private const val FALLBACK_GENERAL_CODE = "GENERAL"
+private const val FALLBACK_ADULT_LABEL = "18+"
+private const val FALLBACK_GENERAL_LABEL = "13+"
 private const val SOURCE_DATE_PATTERN = "yyyy-MM-dd"
 private const val TARGET_YEAR_PATTERN = "yyyy"
 private const val YOUTUBE = "YouTube"

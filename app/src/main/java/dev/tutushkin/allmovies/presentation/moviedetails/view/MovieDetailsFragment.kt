@@ -115,7 +115,9 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
 
     private fun renderResult(movie: MovieDetails) {
         binding?.apply {
-            moviesDetailsAgeText.text = movie.minimumAge
+            val certificationText = movie.certification.label.ifBlank { movie.certification.code }
+            moviesDetailsAgeText.isVisible = certificationText.isNotBlank()
+            moviesDetailsAgeText.text = certificationText
             moviesDetailsTitleText.text = movie.title
             moviesDetailsGenresText.text = movie.genres
             moviesDetailsRating.rating = movie.ratings / 2

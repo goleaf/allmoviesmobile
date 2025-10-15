@@ -9,7 +9,7 @@ internal fun MovieListEntity.toModel(): MovieList = MovieList(
     poster = this.poster,
     ratings = this.ratings,
     numberOfRatings = this.numberOfRatings,
-    minimumAge = this.minimumAge,
+    certification = this.toCertification(),
     year = this.year,
     genres = this.genres,
     isFavorite = this.isFavorite,
@@ -23,7 +23,7 @@ internal fun MovieDetailsEntity.toModel(actors: List<Actor>): MovieDetails = Mov
     backdrop = this.backdrop,
     ratings = this.ratings,
     numberOfRatings = this.numberOfRatings,
-    minimumAge = this.minimumAge,
+    certification = this.toCertification(),
     year = this.year,
     runtime = this.runtime,
     genres = this.genres,
@@ -71,4 +71,14 @@ internal fun ConfigurationEntity.toModel(): Configuration = Configuration(
     posterSizes = this.posterSizes,
     backdropSizes = this.backdropSizes,
     profileSizes = this.profileSizes
+)
+
+private fun MovieListEntity.toCertification(): Certification = Certification(
+    code = this.certificationCode,
+    label = this.certificationLabel,
+)
+
+private fun MovieDetailsEntity.toCertification(): Certification = Certification(
+    code = this.certificationCode,
+    label = this.certificationLabel,
 )

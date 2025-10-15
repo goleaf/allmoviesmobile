@@ -1,11 +1,13 @@
 package dev.tutushkin.allmovies.data.movies
 
 import dev.tutushkin.allmovies.data.movies.local.*
+import dev.tutushkin.allmovies.data.movies.remote.MovieReleaseDatesResponse
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
+import java.util.Locale
 
 class MoviesRepositoryImpl(
     private val moviesRemoteDataSource: MoviesRemoteDataSource,
@@ -167,8 +169,10 @@ class MoviesRepositoryImpl(
             val shouldRefreshFromServer =
                 localMovie == null || (ensureCached && localMovie.isActorsLoaded.not())
 
+            val region = resolveRegion(language)
+
             if (shouldRefreshFromServer) {
-                val movieDetailsResult = getMovieDetailsFromServer(movieId, apiKey, language)
+                val movieDetailsResult = getMovieDetailsFromServer(movieId, apiKey, language, region)
                 movieDetailsResult.onFailure {
                     return@withContext Result.failure(it)
                 }
@@ -197,7 +201,8 @@ class MoviesRepositoryImpl(
                     poster = movieToSave.poster,
                     ratings = movieToSave.ratings,
                     numberOfRatings = movieToSave.numberOfRatings,
-                    minimumAge = movieToSave.minimumAge,
+                    certificationLabel = movieToSave.certificationLabel,
+                    certificationCode = movieToSave.certificationCode,
                     year = movieToSave.year,
                     genres = movieToSave.genres,
                     isFavorite = isFavorite || (existingMovie?.isFavorite ?: false)
@@ -254,11 +259,22 @@ class MoviesRepositoryImpl(
     private suspend fun getMovieDetailsFromServer(
         movieId: Int,
         apiKey: String,
-        language: String
+        language: String,
+        region: String
     ): Result<MovieDetailsEntity> =
         withContext(ioDispatcher) {
+            val releaseDatesResult = moviesRemoteDataSource.getMovieReleaseDates(movieId, apiKey)
+
             moviesRemoteDataSource.getMovieDetails(movieId, apiKey, language)
-                .mapCatching { it.toEntity() }
+                .mapCatching { response ->
+                    val certification = releaseDatesResult
+                        .mapCatching { it.toCertificationValue(region, language) }
+                        .getOrElse { null }
+                        ?.takeIf { it.code.isNotBlank() || it.label.isNotBlank() }
+                        ?: fallbackCertification(response.adult)
+
+                    response.toEntity(certification)
+                }
         }
 
     private suspend fun getActorsData(
@@ -317,7 +333,8 @@ class MoviesRepositoryImpl(
                         poster = details.poster,
                         ratings = details.ratings,
                         numberOfRatings = details.numberOfRatings,
-                        minimumAge = details.minimumAge,
+                        certificationLabel = details.certificationLabel,
+                        certificationCode = details.certificationCode,
                         year = details.year,
                         genres = details.genres,
                         isFavorite = isFavorite
@@ -341,7 +358,10 @@ class MoviesRepositoryImpl(
                             poster = details.poster,
                             ratings = details.ratings,
                             numberOfRatings = details.numberOfRatings,
-                            minimumAge = details.minimumAge,
+                            certification = Certification(
+                                code = details.certificationCode,
+                                label = details.certificationLabel
+                            ),
                             year = details.year,
                             genres = details.genres,
                             isFavorite = true
@@ -408,6 +428,7 @@ class MoviesRepositoryImpl(
                 return@runCatching
             }
 
+            val region = resolveRegion(language)
             val total = movies.size
             movies.forEachIndexed { index, movie ->
                 onProgress(index, total, movie.title)
@@ -415,7 +436,7 @@ class MoviesRepositoryImpl(
                 val existingDetails = moviesLocalDataSource.getMovieDetails(movie.id)
                 val existingSummary = moviesLocalDataSource.getMovie(movie.id)
 
-                val movieDetails = getMovieDetailsFromServer(movie.id, apiKey, language).getOrThrow()
+                val movieDetails = getMovieDetailsFromServer(movie.id, apiKey, language, region).getOrThrow()
                 val actors = getActorsFromServer(movie.id, apiKey, language).getOrThrow()
                 val videos = moviesRemoteDataSource.getVideos(movie.id, apiKey, language)
                     .getOrDefault(emptyList())
@@ -450,7 +471,8 @@ class MoviesRepositoryImpl(
                     poster = detailsToSave.poster.ifBlank { movie.poster },
                     ratings = detailsToSave.ratings,
                     numberOfRatings = detailsToSave.numberOfRatings,
-                    minimumAge = detailsToSave.minimumAge,
+                    certificationLabel = detailsToSave.certificationLabel,
+                    certificationCode = detailsToSave.certificationCode,
                     year = detailsToSave.year,
                     genres = detailsToSave.genres,
                     isFavorite = isFavorite
@@ -462,4 +484,59 @@ class MoviesRepositoryImpl(
         }
     }
 
+    private fun resolveRegion(language: String): String {
+        val normalized = language.replace('_', '-').trim()
+        val fromTag = runCatching { Locale.forLanguageTag(normalized) }.getOrNull()
+        val tagCountry = fromTag?.country?.takeIf { it.isNotBlank() }
+        if (!tagCountry.isNullOrBlank()) {
+            return tagCountry
+        }
+
+        val defaultCountry = Locale.getDefault().country
+        if (!defaultCountry.isNullOrBlank()) {
+            return defaultCountry
+        }
+
+        return DEFAULT_REGION
+    }
+
+    private fun MovieReleaseDatesResponse.toCertificationValue(
+        region: String,
+        language: String
+    ): CertificationValue? {
+        val normalizedRegion = region.uppercase(Locale.US)
+        val languageTag = language.replace('_', '-').lowercase(Locale.US)
+        val languageCode = languageTag.substringBefore('-')
+
+        val countryData = results.firstOrNull { result ->
+            result.countryCode.equals(normalizedRegion, ignoreCase = true)
+        } ?: return null
+
+        val prioritized = countryData.releaseDates
+            .mapNotNull { release ->
+                val certification = release.certification.trim()
+                if (certification.isBlank()) {
+                    null
+                } else {
+                    release to certification
+                }
+            }
+
+        if (prioritized.isEmpty()) {
+            return null
+        }
+
+        val preferred = prioritized.firstOrNull { (release, _) ->
+            val releaseLanguage = release.languageCode?.trim()
+            !releaseLanguage.isNullOrBlank() &&
+                releaseLanguage.equals(languageCode, ignoreCase = true)
+        } ?: prioritized.first()
+
+        val value = preferred.second
+        return CertificationValue(code = value, label = value)
+    }
+
+    companion object {
+        private const val DEFAULT_REGION = "US"
+    }
 }

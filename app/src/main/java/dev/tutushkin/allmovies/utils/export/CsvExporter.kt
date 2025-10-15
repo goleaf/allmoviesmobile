@@ -88,7 +88,7 @@ class CsvExporter(private val context: Context) {
             movie.year,
             runtime,
             rating,
-            movie.minimumAge,
+            movie.certificationLabel,
             movie.genres,
             loaned,
             loanedTo,

@@ -18,7 +18,7 @@ import dev.tutushkin.allmovies.data.movies.local.*
         ConfigurationEntity::class,
         ActorDetailsEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -44,7 +44,7 @@ abstract class MoviesDb : RoomDatabase() {
                     "Movies.db"
                 )
 //                    .allowMainThreadQueries()   // TODO Delete!!!
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                 INSTANCE = instance
                 instance
@@ -83,6 +83,17 @@ abstract class MoviesDb : RoomDatabase() {
                             PRIMARY KEY(id)
                         )
                     """.trimIndent()
+                )
+            }
+        }
+
+        internal val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    "ALTER TABLE movies ADD COLUMN certificationCode TEXT NOT NULL DEFAULT ''"
+                )
+                database.execSQL(
+                    "ALTER TABLE movie_details ADD COLUMN certificationCode TEXT NOT NULL DEFAULT ''"
                 )
             }
         }

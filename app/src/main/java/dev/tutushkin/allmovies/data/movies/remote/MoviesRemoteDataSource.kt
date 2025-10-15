@@ -21,6 +21,11 @@ interface MoviesRemoteDataSource {
         language: String
     ): Result<MovieDetailsResponse>
 
+    suspend fun getMovieReleaseDates(
+        movieId: Int,
+        apiKey: String,
+    ): Result<MovieReleaseDatesResponse>
+
     suspend fun getActors(
         movieId: Int,
         apiKey: String,

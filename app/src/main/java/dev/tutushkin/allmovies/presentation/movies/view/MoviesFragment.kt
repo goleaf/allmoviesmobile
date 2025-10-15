@@ -8,6 +8,7 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.widget.SearchView
 import androidx.annotation.VisibleForTesting
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
@@ -29,6 +30,7 @@ import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
+import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesSearchState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
@@ -50,6 +52,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private val languagePreferences: LanguagePreferences by lazy(LazyThreadSafetyMode.NONE) {
         LanguagePreferences(requireContext().applicationContext)
     }
+    private var isSearchActive: Boolean = false
     @VisibleForTesting
     internal var viewModelFactoryOverride: ViewModelProvider.Factory? = null
     private val viewModel: MoviesViewModel by activityViewModels {
@@ -94,12 +97,42 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         binding.moviesListRecycler.adapter = adapter
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)
+        viewModel.searchState.observe(viewLifecycleOwner, ::handleSearchState)
         observeRefreshWork()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_movies_collection, menu)
+
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView ?: return
+
+        searchView.queryHint = getString(R.string.movies_search_query_hint)
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                viewModel.observeSearch(query.orEmpty())
+                searchView.clearFocus()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                viewModel.observeSearch(newText.orEmpty())
+                return true
+            }
+        })
+
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                return true
+            }
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                searchView.setQuery("", false)
+                viewModel.observeSearch("")
+                return true
+            }
+        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -151,10 +184,15 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     }
 
     private fun handleMoviesList(state: MoviesState) {
+        if (isSearchActive && state !is MoviesState.Loading) {
+            return
+        }
+
         when (state) {
             is MoviesState.Result -> {
                 hideLoading()
                 adapter.submitList(state.result)
+                hideEmptyState()
             }
             is MoviesState.Error -> {
                 hideLoading()
@@ -164,9 +202,54 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                     message,
                     Snackbar.LENGTH_SHORT
                 ).show()
+                hideEmptyState()
             }
             is MoviesState.Loading -> {
                 showLoading()
+            }
+        }
+    }
+
+    private fun handleSearchState(state: MoviesSearchState) {
+        isSearchActive = state !is MoviesSearchState.Idle
+
+        when (state) {
+            MoviesSearchState.Idle -> {
+                hideLoading()
+                hideEmptyState()
+                binding.moviesListRecycler.isVisible = true
+                viewModel.movies.value?.let(::handleMoviesList)
+            }
+            MoviesSearchState.Loading -> {
+                showLoading()
+                hideEmptyState()
+            }
+            is MoviesSearchState.Result -> {
+                hideLoading()
+                hideEmptyState()
+                binding.moviesListRecycler.isVisible = true
+                adapter.submitList(state.result)
+            }
+            is MoviesSearchState.Empty -> {
+                hideLoading()
+                adapter.submitList(emptyList())
+                showEmptyState(getString(R.string.movies_search_empty_state, state.query))
+            }
+            is MoviesSearchState.Error -> {
+                hideLoading()
+                adapter.submitList(emptyList())
+                hideEmptyState()
+                val reason = state.cause.localizedMessage
+                val message = if (!reason.isNullOrBlank()) {
+                    getString(R.string.movies_search_error_with_reason, state.query, reason)
+                } else {
+                    getString(R.string.movies_search_error, state.query)
+                }
+                Snackbar.make(
+                    binding.root,
+                    message,
+                    Snackbar.LENGTH_SHORT
+                ).show()
             }
         }
     }
@@ -309,6 +392,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             isClickable = false
             suppressLayout(true)
         }
+        hideEmptyState()
     }
 
     private fun hideLoading() {
@@ -317,7 +401,21 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             isEnabled = true
             isClickable = true
             suppressLayout(false)
+            isVisible = true
         }
+    }
+
+    private fun showEmptyState(message: String) {
+        binding.moviesListRecycler.isVisible = false
+        binding.moviesListEmptyMessage.apply {
+            text = message
+            isVisible = true
+        }
+    }
+
+    private fun hideEmptyState() {
+        binding.moviesListEmptyMessage.isVisible = false
+        binding.moviesListRecycler.isVisible = true
     }
 
     override fun onDestroyView() {

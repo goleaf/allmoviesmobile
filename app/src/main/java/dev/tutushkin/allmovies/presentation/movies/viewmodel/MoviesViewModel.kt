@@ -20,8 +20,12 @@ class MoviesViewModel(
     private val _movies = MutableLiveData<MoviesState>()
     val movies: LiveData<MoviesState> = _movies
 
+    private val _searchState = MutableLiveData<MoviesSearchState>(MoviesSearchState.Idle)
+    val searchState: LiveData<MoviesSearchState> = _searchState
+
     private var currentLanguage: String = languagePreferences.getSelectedLanguage()
     private var cachedMovies: List<MovieList> = emptyList()
+    private var currentSearchQuery: String = ""
 
     init {
         refreshMovies(clearCache = true)
@@ -49,6 +53,7 @@ class MoviesViewModel(
             handleGenres(language)
 
             _movies.value = handleMoviesNowPlaying(language)
+            requerySearch()
         }
     }
 
@@ -106,7 +111,64 @@ class MoviesViewModel(
             }
             cachedMovies = updated
             _movies.value = MoviesState.Result(updated)
+            requerySearch()
             onResult?.invoke(true)
+        }
+    }
+
+    fun observeSearch(query: String) {
+        val normalized = query.trim()
+        currentSearchQuery = normalized
+
+        if (normalized.isEmpty()) {
+            _searchState.value = MoviesSearchState.Idle
+            return
+        }
+
+        _searchState.value = MoviesSearchState.Loading
+        val nextState = try {
+            runSearch(normalized)
+        } catch (throwable: Throwable) {
+            MoviesSearchState.Error(normalized, throwable)
+        }
+
+        if (nextState !is MoviesSearchState.Loading) {
+            _searchState.value = nextState
+        }
+    }
+
+    private fun requerySearch() {
+        val query = currentSearchQuery
+        if (query.isBlank()) {
+            return
+        }
+
+        _searchState.value = try {
+            runSearch(query)
+        } catch (throwable: Throwable) {
+            MoviesSearchState.Error(query, throwable)
+        }
+    }
+
+    private fun runSearch(query: String): MoviesSearchState {
+        val moviesState = _movies.value
+        if (cachedMovies.isEmpty()) {
+            return when (moviesState) {
+                null -> MoviesSearchState.Loading
+                is MoviesState.Loading -> MoviesSearchState.Loading
+                is MoviesState.Error -> throw moviesState.e
+                else -> MoviesSearchState.Empty(query)
+            }
+        }
+
+        val matches = cachedMovies.filter { movie ->
+            movie.title.contains(query, ignoreCase = true)
+        }
+
+        return if (matches.isEmpty()) {
+            MoviesSearchState.Empty(query)
+        } else {
+            MoviesSearchState.Result(query, matches)
         }
     }
 }

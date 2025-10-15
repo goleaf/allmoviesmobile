@@ -37,6 +37,13 @@
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>
     <string name="menu_language">Language</string>
+    <string name="menu_search">Search</string>
+    <string name="menu_search_content_description">Search movies</string>
+    <string name="menu_search_talkback_hint">Double tap to search your library</string>
+    <string name="movies_search_query_hint">Search movies</string>
+    <string name="movies_search_empty_state">No movies found for “%1$s”.</string>
+    <string name="movies_search_error">Unable to show results for “%1$s”.</string>
+    <string name="movies_search_error_with_reason">Unable to show results for “%1$s”: %2$s</string>
 
     <string name="language_dialog_title">Choose language</string>
     <string name="language_english">English</string>

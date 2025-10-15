@@ -5,11 +5,13 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
+import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
 import dev.tutushkin.allmovies.utils.logging.Logger
 import kotlinx.coroutines.Job
@@ -100,7 +102,7 @@ class MoviesViewModel(
             MoviesState.Result(movies)
         } else {
             cachedMovies = emptyList()
-            MoviesState.Error(IllegalArgumentException("Error loading movies from the server!"))
+            MoviesState.Error(UiText.Resource(R.string.movies_list_error_generic))
         }
     }
 
@@ -177,10 +179,17 @@ class MoviesViewModel(
                 emitSearchResults(query)
             } else {
                 lastSearchResults = emptyList()
-                _searchState.value = MoviesSearchState.Error(
-                    query,
-                    result.exceptionOrNull() ?: IllegalStateException("Search request failed")
-                )
+                val throwable = result.exceptionOrNull()
+                val reason = throwable?.localizedMessage
+                val message = if (!reason.isNullOrBlank()) {
+                    UiText.Resource(
+                        R.string.movies_search_error_with_reason,
+                        listOf(query, reason)
+                    )
+                } else {
+                    UiText.Resource(R.string.movies_search_error, listOf(query))
+                }
+                _searchState.value = MoviesSearchState.Error(query, message)
             }
         }
     }

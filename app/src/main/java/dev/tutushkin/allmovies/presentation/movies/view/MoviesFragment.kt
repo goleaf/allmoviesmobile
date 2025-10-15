@@ -224,7 +224,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             }
             is MoviesState.Error -> {
                 hideLoading()
-                val message = state.e.message ?: getString(R.string.library_update_failed_generic)
+                val message = state.message.asString(requireContext())
                 Snackbar.make(
                     binding.root,
                     message,
@@ -267,12 +267,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                 hideLoading()
                 adapter.submitList(emptyList())
                 hideEmptyState()
-                val reason = state.cause.localizedMessage
-                val message = if (!reason.isNullOrBlank()) {
-                    getString(R.string.movies_search_error_with_reason, state.query, reason)
-                } else {
-                    getString(R.string.movies_search_error, state.query)
-                }
+                val message = state.message.asString(requireContext())
                 Snackbar.make(
                     binding.root,
                     message,
@@ -310,8 +305,15 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                     }
                     WorkInfo.State.FAILED -> {
                         hideLibraryStatus()
-                        val error = info.outputData.getString(MoviesRefreshWorker.KEY_ERROR_MESSAGE)
-                            ?: getString(R.string.library_update_failed_generic)
+                        val errorResId = info.outputData.getInt(
+                            MoviesRefreshWorker.KEY_ERROR_MESSAGE_RES_ID,
+                            0
+                        )
+                        val error = if (errorResId != 0) {
+                            getString(errorResId)
+                        } else {
+                            getString(R.string.library_update_failed_generic)
+                        }
                         Snackbar.make(
                             binding.root,
                             getString(R.string.library_update_failed_toast, error),

@@ -4,6 +4,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
+import androidx.annotation.StringRes
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.CoroutineWorker
@@ -68,11 +69,10 @@ class MoviesRefreshWorker(
             notificationHelper.showCompleted()
             Result.success()
         } else {
-            val message = result.exceptionOrNull()?.localizedMessage
-                ?: applicationContext.getString(R.string.library_update_failed_generic)
-            setProgress(workDataOf(KEY_ERROR_MESSAGE to message))
-            notificationHelper.showFailed(message)
-            Result.failure(workDataOf(KEY_ERROR_MESSAGE to message))
+            val messageResId = R.string.library_update_failed_generic
+            setProgress(workDataOf(KEY_ERROR_MESSAGE_RES_ID to messageResId))
+            notificationHelper.showFailed(messageResId)
+            Result.failure(workDataOf(KEY_ERROR_MESSAGE_RES_ID to messageResId))
         }
     }
 
@@ -83,7 +83,7 @@ class MoviesRefreshWorker(
         const val PROGRESS_CURRENT = "progress_current"
         const val PROGRESS_TOTAL = "progress_total"
         const val PROGRESS_TITLE = "progress_title"
-        const val KEY_ERROR_MESSAGE = "error_message"
+        const val KEY_ERROR_MESSAGE_RES_ID = "error_message_res_id"
     }
 }
 
@@ -128,8 +128,9 @@ private class MoviesRefreshNotificationHelper(private val context: Context) {
         notificationManager.notify(NOTIFICATION_COMPLETE_ID, notification)
     }
 
-    fun showFailed(message: String) {
+    fun showFailed(@StringRes messageResId: Int) {
         createChannel()
+        val message = context.getString(messageResId)
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.library_update_title))

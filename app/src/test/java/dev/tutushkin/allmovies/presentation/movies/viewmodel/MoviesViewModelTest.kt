@@ -2,6 +2,7 @@ package dev.tutushkin.allmovies.presentation.movies.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
@@ -11,6 +12,7 @@ import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
 import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
+import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
@@ -89,7 +91,9 @@ class MoviesViewModelTest {
 
         val lastState = emittedStates.last()
         assertTrue(lastState is MoviesState.Error)
-        assertTrue((lastState as MoviesState.Error).e.message!!.contains("Error"))
+        val uiText = (lastState as MoviesState.Error).message
+        assertTrue(uiText is UiText.Resource)
+        assertTrue((uiText as UiText.Resource).resId == R.string.movies_list_error_generic)
 
         viewModel.movies.removeObserver(observer)
     }
@@ -202,7 +206,12 @@ class MoviesViewModelTest {
 
         val errorState = searchStates.last() as MoviesSearchState.Error
         assertTrue(errorState.query == "Broken")
-        assertTrue(errorState.cause === failure)
+        val message = errorState.message
+        assertTrue(message is UiText.Resource)
+        val resource = message as UiText.Resource
+        assertTrue(resource.resId == R.string.movies_search_error_with_reason)
+        assertTrue(resource.args.contains("Broken"))
+        assertTrue(resource.args.contains("network"))
 
         viewModel.searchState.removeObserver(observer)
     }

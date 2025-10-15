@@ -104,7 +104,7 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             }
             is MovieDetailsState.Error -> {
                 hideLoading()
-                val message = state.e.message ?: getString(R.string.library_update_failed_generic)
+                val message = state.message.asString(requireContext())
                 binding?.root?.let {
                     Snackbar.make(
                         it,

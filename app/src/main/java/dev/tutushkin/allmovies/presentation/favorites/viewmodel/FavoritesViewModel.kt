@@ -4,8 +4,10 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
@@ -15,7 +17,7 @@ sealed class FavoritesState {
     object Loading : FavoritesState()
     data class Result(val movies: List<MovieList>) : FavoritesState()
     object Empty : FavoritesState()
-    data class Error(val throwable: Throwable) : FavoritesState()
+    data class Error(val message: UiText) : FavoritesState()
 }
 
 class FavoritesViewModel(
@@ -49,7 +51,7 @@ class FavoritesViewModel(
                     FavoritesState.Result(movies)
                 }
             } else {
-                FavoritesState.Error(result.exceptionOrNull() ?: IllegalStateException("Failed to load favorites"))
+                FavoritesState.Error(UiText.Resource(R.string.favorites_list_error_generic))
             }
         }
     }

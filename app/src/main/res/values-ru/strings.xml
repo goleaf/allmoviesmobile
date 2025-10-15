@@ -10,12 +10,23 @@
     <string name="movie_details_share_chooser_title">Поделиться фильмом</string>
     <string name="movie_details_share_error">Пока нечем поделиться</string>
     <string name="movie_details_runtime_year_accessibility">Длительность %1$d минут, год выхода %2$s</string>
+    <string name="movie_details_error_missing_id">Не указан идентификатор фильма.</string>
+    <string name="movie_details_error_generic">Не удалось загрузить информацию о фильме.</string>
+
+    <string name="actor_details_error">Не удалось загрузить информацию об актёре.</string>
+    <string name="actor_details_retry">Повторить</string>
+    <string name="actor_details_error_missing_id">Не указан идентификатор актёра.</string>
 
     <string name="movies_list_screen_title">Сейчас в прокате</string>
     <string name="movies_list_reviews">%1$d ОТЗЫВОВ</string>
     <string name="movies_list_duration">%1$d МИН</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Неизвестно</string>
+    <string name="movies_list_error_generic">Не удалось загрузить фильмы.</string>
+
+    <string name="movies_search_empty_state">Фильмы по запросу «%1$s» не найдены.</string>
+    <string name="movies_search_error">Не удалось показать результаты по запросу «%1$s».</string>
+    <string name="movies_search_error_with_reason">Не удалось показать результаты по запросу «%1$s»: %2$s</string>
 
     <string name="menu_update_all">Обновить все</string>
     <string name="menu_export">Экспорт</string>

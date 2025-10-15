@@ -11,6 +11,8 @@
     <string name="movie_details_share_chooser_title">Share movie</string>
     <string name="movie_details_share_error">Nothing to share yet</string>
     <string name="movie_details_runtime_year_accessibility">Runtime %1$d minutes, release year %2$s</string>
+    <string name="movie_details_error_missing_id">Missing movie identifier.</string>
+    <string name="movie_details_error_generic">Unable to load movie details.</string>
 
     <string name="actor_details_title">Actor details</string>
     <string name="actor_details_biography">Biography</string>
@@ -27,6 +29,7 @@
     <string name="actor_details_retry">Retry</string>
     <string name="actor_details_photo_content_description">Actor photo</string>
     <string name="actor_details_back_content_description">Navigate back</string>
+    <string name="actor_details_error_missing_id">Missing actor identifier.</string>
 
     <string name="movies_list_screen_title">Now Playing</string>
     <string name="movies_list_reviews">%1$d REVIEWS</string>
@@ -36,6 +39,7 @@
     <string name="movies_list_favorite_add">Add to favorites</string>
     <string name="movies_list_favorite_remove">Remove from favorites</string>
     <string name="movies_list_loading_message">Loading movies…</string>
+    <string name="movies_list_error_generic">Unable to load movies.</string>
 
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>

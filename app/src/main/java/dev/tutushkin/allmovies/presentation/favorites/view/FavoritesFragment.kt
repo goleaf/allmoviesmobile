@@ -127,7 +127,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
                 binding.favoritesListEmpty.visibility = View.GONE
                 binding.favoritesListError.visibility = View.VISIBLE
                 binding.favoritesListError.text =
-                    state.throwable.message ?: getString(R.string.favorites_list_error_generic)
+                    state.message.asString(requireContext())
                 adapter.submitList(emptyList())
             }
         }

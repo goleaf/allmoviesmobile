@@ -4,18 +4,23 @@ import android.content.Context
 import android.content.SharedPreferences
 import java.util.Locale
 
-class LanguagePreferences(context: Context) {
+interface LanguagePreferencesDataSource {
+    fun getSelectedLanguage(): String
+    fun setSelectedLanguage(code: String)
+}
+
+class LanguagePreferences(context: Context) : LanguagePreferencesDataSource {
 
     private val preferences: SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-    fun getSelectedLanguage(): String {
+    override fun getSelectedLanguage(): String {
         return preferences.getString(KEY_SELECTED_LANGUAGE, null)
             ?.takeIf { it.isNotBlank() }
             ?: Locale.getDefault().language
     }
 
-    fun setSelectedLanguage(code: String) {
+    override fun setSelectedLanguage(code: String) {
         preferences.edit().putString(KEY_SELECTED_LANGUAGE, code).apply()
     }
 

@@ -20,7 +20,9 @@ class MovieViewHolder(
             }
             viewHolderMovieReviewsText.text =
                 root.context.getString(R.string.movies_list_reviews, item.numberOfRatings)
-            viewHolderMovieAgeText.text = item.minimumAge
+            val certificationText = item.certification.label.ifBlank { item.certification.code }
+            viewHolderMovieAgeText.isVisible = certificationText.isNotBlank()
+            viewHolderMovieAgeText.text = certificationText
             viewHolderMovieRating.rating = item.ratings / 2
             Glide.with(root.context)
                 .load(item.poster)

@@ -3,6 +3,7 @@ package dev.tutushkin.allmovies.presentation.movies.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
+import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
@@ -217,6 +218,7 @@ class MoviesViewModelTest {
                 numberOfRatings = 50,
                 runtime = 120,
                 genres = "Drama",
+                certification = Certification(code = "GENERAL", label = "13+"),
                 isFavorite = false
             )
         )

@@ -1,5 +1,7 @@
 package dev.tutushkin.allmovies.data.movies
 
+import dev.tutushkin.allmovies.data.movies.CertificationValue
+import dev.tutushkin.allmovies.data.movies.fallbackCertification
 import dev.tutushkin.allmovies.data.movies.local.ActorEntity
 import dev.tutushkin.allmovies.data.movies.local.ActorDetailsEntity
 import dev.tutushkin.allmovies.data.movies.local.ConfigurationEntity
@@ -7,15 +9,19 @@ import dev.tutushkin.allmovies.data.movies.local.GenreEntity
 import dev.tutushkin.allmovies.data.movies.local.MovieDetailsEntity
 import dev.tutushkin.allmovies.data.movies.local.MovieListEntity
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSource
+import dev.tutushkin.allmovies.data.movies.remote.ActorDetailsResponse
+import dev.tutushkin.allmovies.data.movies.remote.ActorMovieCreditsResponse
 import dev.tutushkin.allmovies.data.movies.remote.ConfigurationDto
 import dev.tutushkin.allmovies.data.movies.remote.GenreDto
 import dev.tutushkin.allmovies.data.movies.remote.MovieActorDto
 import dev.tutushkin.allmovies.data.movies.remote.MovieDetailsResponse
 import dev.tutushkin.allmovies.data.movies.remote.MovieListDto
-import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
+import dev.tutushkin.allmovies.data.movies.remote.MovieReleaseDatesResponse
 import dev.tutushkin.allmovies.data.movies.remote.MovieVideoDto
-import dev.tutushkin.allmovies.data.movies.remote.ActorDetailsResponse
-import dev.tutushkin.allmovies.data.movies.remote.ActorMovieCreditsResponse
+import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
+import dev.tutushkin.allmovies.data.movies.remote.ReleaseDateDto
+import dev.tutushkin.allmovies.data.movies.remote.ReleaseDatesCountryDto
+import dev.tutushkin.allmovies.domain.movies.models.Certification
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -37,6 +43,9 @@ class MoviesRepositoryImplTest {
     private companion object {
         private const val LANGUAGE = "en"
     }
+
+    private val generalCertification = fallbackCertification(false)
+    private val adultCertification = fallbackCertification(true)
 
     @Before
     fun setUp() {
@@ -101,7 +110,8 @@ class MoviesRepositoryImplTest {
                 backdrop = "backdrop",
                 ratings = 7.5f,
                 numberOfRatings = 99,
-                minimumAge = "13+",
+                certificationLabel = generalCertification.label,
+                certificationCode = generalCertification.code,
                 year = "2023",
                 runtime = 120,
                 genres = "Action",
@@ -139,7 +149,8 @@ class MoviesRepositoryImplTest {
                 poster = "poster",
                 ratings = 8.0f,
                 numberOfRatings = 80,
-                minimumAge = "13+",
+                certificationLabel = generalCertification.label,
+                certificationCode = generalCertification.code,
                 year = "2024",
                 genres = "Sci-Fi",
                 isFavorite = true
@@ -257,6 +268,74 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
+    fun `getMovieDetails uses release dates certification when available`() = runTest(dispatcher) {
+        val movieId = 12
+        remoteDataSource.movieDetailsResult = Result.success(
+            MovieDetailsResponse(
+                id = movieId,
+                title = "Movie",
+                overview = "Overview",
+                backdropPath = "/backdrop.jpg",
+                voteAverage = 7.0f,
+                voteCount = 50,
+                adult = false,
+                releaseDate = "2021-06-01",
+                runtime = 110,
+                genres = listOf(GenreDto(1, "Action"))
+            )
+        )
+        remoteDataSource.releaseDatesResult = Result.success(
+            MovieReleaseDatesResponse(
+                results = listOf(
+                    ReleaseDatesCountryDto(
+                        countryCode = "US",
+                        releaseDates = listOf(
+                            ReleaseDateDto(certification = "PG-13", languageCode = "en")
+                        )
+                    )
+                )
+            )
+        )
+        remoteDataSource.actorsResult = Result.success(emptyList())
+
+        val result = repository.getMovieDetails(movieId, "api", "en-US")
+
+        assertTrue(result.isSuccess)
+        val certification = result.getOrThrow().certification
+        assertEquals("PG-13", certification.code)
+        assertEquals("PG-13", certification.label)
+        assertEquals(1, remoteDataSource.releaseDatesCallCount)
+    }
+
+    @Test
+    fun `getMovieDetails falls back to adult certification when release dates missing`() = runTest(dispatcher) {
+        val movieId = 13
+        remoteDataSource.movieDetailsResult = Result.success(
+            MovieDetailsResponse(
+                id = movieId,
+                title = "Movie",
+                overview = "Overview",
+                backdropPath = "/backdrop.jpg",
+                voteAverage = 7.0f,
+                voteCount = 50,
+                adult = true,
+                releaseDate = "2021-06-01",
+                runtime = 110,
+                genres = listOf(GenreDto(1, "Action"))
+            )
+        )
+        remoteDataSource.releaseDatesResult = Result.success(MovieReleaseDatesResponse(emptyList()))
+        remoteDataSource.actorsResult = Result.success(emptyList())
+
+        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
+
+        assertTrue(result.isSuccess)
+        val certification = result.getOrThrow().certification
+        assertEquals(adultCertification.code, certification.code)
+        assertEquals(adultCertification.label, certification.label)
+    }
+
+    @Test
     fun `getMovieDetails returns cached actors without additional remote call`() = runTest(dispatcher) {
         val movieId = 2
         val movieEntity = MovieDetailsEntity(
@@ -266,7 +345,8 @@ class MoviesRepositoryImplTest {
             backdrop = "backdrop",
             ratings = 7.5f,
             numberOfRatings = 50,
-            minimumAge = "13+",
+            certificationLabel = generalCertification.label,
+            certificationCode = generalCertification.code,
             year = "2020",
             runtime = 100,
             genres = "Action",
@@ -300,7 +380,8 @@ class MoviesRepositoryImplTest {
             poster = "poster",
             ratings = 6.0f,
             numberOfRatings = 10,
-            minimumAge = "13+",
+            certificationLabel = generalCertification.label,
+            certificationCode = generalCertification.code,
             year = "2022",
             genres = "Drama",
             isFavorite = false
@@ -313,7 +394,8 @@ class MoviesRepositoryImplTest {
             backdrop = "backdrop",
             ratings = 6.0f,
             numberOfRatings = 10,
-            minimumAge = "13+",
+            certificationLabel = generalCertification.label,
+            certificationCode = generalCertification.code,
             year = "2022",
             runtime = 100,
             genres = "Drama",
@@ -337,7 +419,8 @@ class MoviesRepositoryImplTest {
             poster = "poster",
             ratings = 8.0f,
             numberOfRatings = 80,
-            minimumAge = "13+",
+            certificationLabel = generalCertification.label,
+            certificationCode = generalCertification.code,
             year = "2021",
             genres = "Action",
             isFavorite = true
@@ -350,7 +433,8 @@ class MoviesRepositoryImplTest {
             backdrop = "backdrop",
             ratings = 7.0f,
             numberOfRatings = 70,
-            minimumAge = "13+",
+            certificationLabel = generalCertification.label,
+            certificationCode = generalCertification.code,
             year = "2020",
             runtime = 110,
             genres = "Comedy",
@@ -378,6 +462,9 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var searchResult: Result<List<MovieListDto>> = Result.failure(UnsupportedOperationException())
     var movieDetailsResult: Result<MovieDetailsResponse> = Result.failure(UnsupportedOperationException())
     var actorsResult: Result<List<MovieActorDto>> = Result.failure(UnsupportedOperationException())
+    var releaseDatesResult: Result<MovieReleaseDatesResponse> = Result.success(
+        MovieReleaseDatesResponse(emptyList())
+    )
 
     var nowPlayingCallCount: Int = 0
         private set
@@ -386,6 +473,8 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var movieDetailsCallCount: Int = 0
         private set
     var actorsCallCount: Int = 0
+        private set
+    var releaseDatesCallCount: Int = 0
         private set
 
     override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> =
@@ -414,6 +503,14 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     ): Result<MovieDetailsResponse> {
         movieDetailsCallCount++
         return movieDetailsResult
+    }
+
+    override suspend fun getMovieReleaseDates(
+        movieId: Int,
+        apiKey: String,
+    ): Result<MovieReleaseDatesResponse> {
+        releaseDatesCallCount++
+        return releaseDatesResult
     }
 
     override suspend fun getActors(
@@ -451,6 +548,7 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
         lastNowPlayingLanguage = null
         movieDetailsCallCount = 0
         actorsCallCount = 0
+        releaseDatesCallCount = 0
     }
 }
 
@@ -556,7 +654,8 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
                     poster = details.poster,
                     ratings = details.ratings,
                     numberOfRatings = details.numberOfRatings,
-                    minimumAge = details.minimumAge,
+                    certificationLabel = details.certificationLabel,
+                    certificationCode = details.certificationCode,
                     year = details.year,
                     genres = details.genres,
                     isFavorite = isFavorite

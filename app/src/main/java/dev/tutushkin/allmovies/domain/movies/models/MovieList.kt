@@ -7,7 +7,7 @@ data class MovieList(
     val poster: String = "",
     val ratings: Float = 0.0f,
     val numberOfRatings: Int = 0,
-    val minimumAge: String = "",    // TODO Correct values
+    val certification: Certification = Certification.EMPTY,
     val year: String = "",
     val genres: String = "",
     val isFavorite: Boolean = false,

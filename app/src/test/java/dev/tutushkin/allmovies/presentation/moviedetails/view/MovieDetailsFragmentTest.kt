@@ -10,6 +10,7 @@ import androidx.lifecycle.ViewModelProvider
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.ActorDetails
+import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
@@ -107,7 +108,7 @@ class MovieDetailsFragmentTest {
                 backdrop = "",
                 ratings = 8f,
                 numberOfRatings = 25,
-                minimumAge = "13+",
+                certification = Certification(code = "GENERAL", label = "13+"),
                 runtime = 120,
                 genres = "Action"
             )

@@ -8,6 +8,7 @@ import android.widget.FrameLayout
 import androidx.test.core.app.ApplicationProvider
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
+import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
@@ -44,7 +45,7 @@ class MovieViewHolderTest {
             poster = "",
             ratings = 7.0f,
             numberOfRatings = 10,
-            minimumAge = "13+",
+            certification = Certification(code = "GENERAL", label = "13+"),
             year = "2023",
             genres = "Action",
             isFavorite = true

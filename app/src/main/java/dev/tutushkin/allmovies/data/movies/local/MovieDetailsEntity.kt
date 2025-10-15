@@ -30,7 +30,10 @@ data class MovieDetailsEntity(
     val numberOfRatings: Int,
 
     @ColumnInfo(name = "minimumAge")
-    val minimumAge: String,
+    val certificationLabel: String,
+
+    @ColumnInfo(name = "certificationCode")
+    val certificationCode: String = "",
 
     @ColumnInfo(name = "year")
     val year: String,

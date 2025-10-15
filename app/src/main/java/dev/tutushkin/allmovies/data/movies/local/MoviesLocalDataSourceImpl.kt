@@ -41,6 +41,16 @@ class MoviesLocalDataSourceImpl(
         moviesDao.clear()
     }
 
+    override suspend fun upsertMovie(movie: MovieListEntity) {
+        moviesDao.insert(movie)
+    }
+
+    override suspend fun searchLibrary(query: androidx.sqlite.db.SupportSQLiteQuery): List<MovieListEntity> =
+        moviesDao.search(query)
+
+    override suspend fun countLibrary(query: androidx.sqlite.db.SupportSQLiteQuery): Int =
+        moviesDao.count(query).toInt()
+
     override suspend fun getMovieDetails(id: Int): MovieDetailsEntity? =
         movieDetailsDao.getMovieDetails(id)
 

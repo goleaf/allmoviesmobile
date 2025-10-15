@@ -11,7 +11,16 @@ internal fun MovieListEntity.toModel(): MovieList = MovieList(
     numberOfRatings = this.numberOfRatings,
     minimumAge = this.minimumAge,
     year = this.year,
-    genres = this.genres
+    genres = this.genres,
+    isTvShow = this.isTvShow,
+    isSeen = this.isSeen,
+    isOwned = this.isOwned,
+    isFavourite = this.isFavourite,
+    format = this.format,
+    ageRating = this.ageRating,
+    addedDate = this.addedDate,
+    loanedDate = this.loanedDate,
+    plot = this.plot
 )
 
 internal fun MovieDetailsEntity.toModel(actors: List<Actor>): MovieDetails = MovieDetails(

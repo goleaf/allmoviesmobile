@@ -20,6 +20,12 @@ interface MoviesLocalDataSource {
 
     suspend fun clearNowPlaying()
 
+    suspend fun upsertMovie(movie: MovieListEntity)
+
+    suspend fun searchLibrary(query: androidx.sqlite.db.SupportSQLiteQuery): List<MovieListEntity>
+
+    suspend fun countLibrary(query: androidx.sqlite.db.SupportSQLiteQuery): Int
+
     suspend fun getMovieDetails(id: Int): MovieDetailsEntity?
 
     suspend fun setMovieDetails(movie: MovieDetailsEntity): Long

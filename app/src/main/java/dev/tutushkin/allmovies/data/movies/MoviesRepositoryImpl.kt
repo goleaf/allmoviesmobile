@@ -1,5 +1,6 @@
 package dev.tutushkin.allmovies.data.movies
 
+import androidx.sqlite.db.SimpleSQLiteQuery
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
@@ -129,6 +130,8 @@ class MoviesRepositoryImpl(
 
                 moviesLocalDataSource.setMovieDetails(movieToSave)
                 moviesLocalDataSource.setActors(actors)
+                val existingSummary = moviesLocalDataSource.getNowPlaying().find { it.id == movieId }
+                moviesLocalDataSource.upsertMovie(movieToSave.toListEntity(existingSummary))
 
                 localMovie = moviesLocalDataSource.getMovieDetails(movieId) ?: movieToSave
             }
@@ -187,6 +190,19 @@ class MoviesRepositoryImpl(
                 moviesRemoteDataSource.getActors(movieId, apiKey)
                     .getOrThrow()
                     .map { it.toEntity() }
+            }
+        }
+
+    override suspend fun searchLibrary(request: SearchRequest): Result<SearchResult> =
+        withContext(ioDispatcher) {
+            runCatching {
+                val sql = SearchSqlBuilder.build(request)
+                val query = SimpleSQLiteQuery(sql.query, sql.queryArgs.toTypedArray())
+                val items = moviesLocalDataSource.searchLibrary(query).map { it.toModel() }
+                val total = moviesLocalDataSource.countLibrary(
+                    SimpleSQLiteQuery(sql.countQuery, sql.countArgs.toTypedArray())
+                )
+                SearchResult(items, total)
             }
         }
 

@@ -1,6 +1,7 @@
 package dev.tutushkin.allmovies.data.movies.local
 
 import androidx.room.*
+import androidx.sqlite.db.SupportSQLiteQuery
 
 @Dao
 interface MoviesDao {
@@ -20,4 +21,10 @@ interface MoviesDao {
 
     @Query("DELETE FROM movies")
     fun clear()
+
+    @RawQuery(observedEntities = [MovieListEntity::class, MovieDetailsEntity::class])
+    suspend fun search(query: SupportSQLiteQuery): List<MovieListEntity>
+
+    @RawQuery(observedEntities = [MovieListEntity::class, MovieDetailsEntity::class])
+    suspend fun count(query: SupportSQLiteQuery): Long
 }

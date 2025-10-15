@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/filters"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_categories"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/genres_chip_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleLine="false"
+                app:selectionRequired="false"
+                app:singleSelection="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_formats"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/format_chip_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleSelection="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_age_ratings"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/age_chip_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:singleSelection="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_type"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/type_toggle_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/type_movies"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_movies" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/type_tv"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_tv" />
+
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_seen"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/seen_toggle_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/seen_any"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_any" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/seen_yes"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_yes" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/seen_no"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_no" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_owned"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/owned_toggle_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/owned_any"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_any" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/owned_yes"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_yes" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/owned_no"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_no" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/filter_favourite"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle2" />
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/favourite_toggle_group"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/favourite_any"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_any" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/favourite_yes"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_yes" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/favourite_no"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:text="@string/filter_option_no" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="end"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/reset_button"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:text="@string/filter_reset" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/apply_button"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:text="@string/filter_apply" />
+            </LinearLayout>
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

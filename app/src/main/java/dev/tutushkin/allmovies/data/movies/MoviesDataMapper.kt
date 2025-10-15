@@ -3,6 +3,7 @@ package dev.tutushkin.allmovies.data.movies
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.*
+import dev.tutushkin.allmovies.domain.movies.models.DEFAULT_FORMAT
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -16,7 +17,10 @@ internal fun MovieListDto.toEntity(): MovieListEntity = MovieListEntity(
     numberOfRatings = this.voteCount,
     minimumAge = normalizeAge(this.adult),
     year = dateToYear(this.releaseDate),
-    genres = filterGenres(this.genreIds)
+    genres = filterGenres(this.genreIds),
+    genreIds = this.genreIds.joinToString(separator = ",", prefix = ",", postfix = ","),
+    ageRating = normalizeAge(this.adult),
+    addedDate = System.currentTimeMillis()
 )
 
 internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsEntity(
@@ -31,6 +35,29 @@ internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsE
     runtime = this.runtime,
     genres = this.genres.joinToString { it.name }
 )
+
+internal fun MovieDetailsEntity.toListEntity(existing: MovieListEntity?): MovieListEntity {
+    return MovieListEntity(
+        id = id,
+        title = title,
+        poster = existing?.poster ?: backdrop,
+        ratings = ratings,
+        numberOfRatings = numberOfRatings,
+        minimumAge = minimumAge,
+        year = year,
+        genres = genres,
+        genreIds = existing?.genreIds ?: "",
+        isTvShow = existing?.isTvShow ?: false,
+        isSeen = existing?.isSeen ?: false,
+        isOwned = existing?.isOwned ?: false,
+        isFavourite = existing?.isFavourite ?: false,
+        format = existing?.format ?: DEFAULT_FORMAT,
+        ageRating = existing?.ageRating ?: minimumAge,
+        addedDate = existing?.addedDate ?: System.currentTimeMillis(),
+        loanedDate = existing?.loanedDate ?: 0L,
+        plot = overview
+    )
+}
 
 internal fun MovieActorDto.toEntity(): ActorEntity = ActorEntity(
     id = this.id,

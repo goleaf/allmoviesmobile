@@ -6,11 +6,15 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
+import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import kotlinx.coroutines.launch
 
 class MovieDetailsViewModel(
     private val moviesRepository: MoviesRepository,
-    private val id: Int
+    private val id: Int,
+    private val slug: String?,
+    private val openedFromSharedLink: Boolean,
+    private val analytics: SharedLinkAnalytics
 ) : ViewModel() {
 
     private val _currentMovie = MutableLiveData<MovieDetailsState>()
@@ -18,12 +22,22 @@ class MovieDetailsViewModel(
 
     init {
         viewModelScope.launch {
+            if (id <= 0) {
+                _currentMovie.value = MovieDetailsState.Error(IllegalArgumentException("Missing movie id"))
+                return@launch
+            }
+
+            if (openedFromSharedLink) {
+                analytics.logSharedLinkOpened(id, slug)
+            }
+
+            _currentMovie.value = MovieDetailsState.Loading
             _currentMovie.value = handleMovieDetails()
         }
     }
 
     private suspend fun handleMovieDetails(): MovieDetailsState {
-        val movieDetails = moviesRepository.getMovieDetails(id, BuildConfig.API_KEY)
+        val movieDetails = moviesRepository.getMovieDetails(id, BuildConfig.API_KEY, ensureCached = true)
 
         return if (movieDetails.isSuccess)
             MovieDetailsState.Result(movieDetails.getOrThrow())

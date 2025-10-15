@@ -15,13 +15,12 @@ import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
+import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
-
-const val MOVIES_KEY = "MOVIES"
 
 @ExperimentalSerializationApi
 class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
@@ -62,7 +61,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
                 val bundle = Bundle()
-                bundle.putInt(MOVIES_KEY, movieId)
+                bundle.putInt(ARG_MOVIE_ID, movieId)
                 val detailsFragment = MovieDetailsFragment()
                 detailsFragment.arguments = bundle
                 requireActivity().supportFragmentManager.beginTransaction()

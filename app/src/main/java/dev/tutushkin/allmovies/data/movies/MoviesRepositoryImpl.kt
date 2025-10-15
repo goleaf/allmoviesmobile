@@ -103,13 +103,20 @@ class MoviesRepositoryImpl(
             }
         }
 
-    override suspend fun getMovieDetails(movieId: Int, apiKey: String): Result<MovieDetails> =
+    override suspend fun getMovieDetails(
+        movieId: Int,
+        apiKey: String,
+        ensureCached: Boolean
+    ): Result<MovieDetails> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearMovieDetails()
 
             var localMovie = moviesLocalDataSource.getMovieDetails(movieId)
 
-            if (localMovie == null) {
+            val shouldRefreshFromServer =
+                localMovie == null || (ensureCached && localMovie.isActorsLoaded.not())
+
+            if (shouldRefreshFromServer) {
                 val movieDetailsResult = getMovieDetailsFromServer(movieId, apiKey)
                 movieDetailsResult.onFailure {
                     return@withContext Result.failure(it)

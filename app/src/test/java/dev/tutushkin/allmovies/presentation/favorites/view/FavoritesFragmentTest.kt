@@ -19,6 +19,9 @@ import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
 import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesViewModel
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridCalculator
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridCalculatorProvider
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridConfig
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.util.launchFragment
 import dev.tutushkin.allmovies.presentation.util.withFragment
@@ -51,17 +54,29 @@ class FavoritesFragmentTest {
     private val dispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeMoviesRepository
     private lateinit var favoritesNotifier: TestFavoritesUpdateNotifier
+    private lateinit var originalCalculator: ResponsiveGridCalculator
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
         repository = FakeMoviesRepository()
         favoritesNotifier = TestFavoritesUpdateNotifier()
+        originalCalculator = ResponsiveGridCalculatorProvider.calculator
+        ResponsiveGridCalculatorProvider.calculator = object : ResponsiveGridCalculator {
+            override fun calculate(
+                windowMetrics: androidx.window.layout.WindowMetrics,
+                density: Float,
+                spacingDp: Float,
+            ): ResponsiveGridConfig {
+                return ResponsiveGridConfig(spanCount = 2, itemWidthPx = 400, spacingPx = 24)
+            }
+        }
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        ResponsiveGridCalculatorProvider.calculator = originalCalculator
     }
 
     @Test

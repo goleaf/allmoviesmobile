@@ -9,6 +9,7 @@ import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
+import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import kotlinx.coroutines.launch
 
 class MoviesViewModel(
@@ -20,6 +21,7 @@ class MoviesViewModel(
     val movies: LiveData<MoviesState> = _movies
 
     private var currentLanguage: String = languagePreferences.getSelectedLanguage()
+    private var cachedMovies: List<MovieList> = emptyList()
 
     init {
         refreshMovies(clearCache = true)
@@ -73,10 +75,28 @@ class MoviesViewModel(
     private suspend fun handleMoviesNowPlaying(language: String): MoviesState {
         val moviesResult = moviesRepository.getNowPlaying(BuildConfig.API_KEY, language)
 
-        return if (moviesResult.isSuccess)
-            MoviesState.Result(moviesResult.getOrThrow())
-        else
+        return if (moviesResult.isSuccess) {
+            val movies = moviesResult.getOrThrow()
+            cachedMovies = movies
+            MoviesState.Result(movies)
+        } else {
+            cachedMovies = emptyList()
             MoviesState.Error(IllegalArgumentException("Error loading movies from the server!"))
+        }
     }
 
+    fun toggleFavorite(movieId: Int, isFavorite: Boolean) {
+        viewModelScope.launch {
+            val result = moviesRepository.setFavorite(movieId, isFavorite)
+            if (result.isFailure) {
+                return@launch
+            }
+
+            val updated = cachedMovies.map { movie ->
+                if (movie.id == movieId) movie.copy(isFavorite = isFavorite) else movie
+            }
+            cachedMovies = updated
+            _movies.value = MoviesState.Result(updated)
+        }
+    }
 }

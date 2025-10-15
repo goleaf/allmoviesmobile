@@ -31,4 +31,7 @@ data class MovieListEntity(
 
     @ColumnInfo(name = "genres")
     val genres: String,
+
+    @ColumnInfo(name = "isFavorite")
+    val isFavorite: Boolean = false,
 )

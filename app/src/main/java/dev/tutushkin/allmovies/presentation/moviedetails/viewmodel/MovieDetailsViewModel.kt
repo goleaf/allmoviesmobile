@@ -51,4 +51,17 @@ class MovieDetailsViewModel(
             MovieDetailsState.Error(Exception("Error loading movie details from the server!"))
     }
 
+    fun toggleFavorite() {
+        val currentState = _currentMovie.value as? MovieDetailsState.Result ?: return
+        val movie = currentState.movie
+        val newState = !movie.isFavorite
+
+        viewModelScope.launch {
+            val result = moviesRepository.setFavorite(movie.id, newState)
+            if (result.isSuccess) {
+                _currentMovie.value = MovieDetailsState.Result(movie.copy(isFavorite = newState))
+            }
+        }
+    }
+
 }

@@ -15,6 +15,8 @@
     <string name="movies_list_duration">%1$d MIN</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Unknown</string>
+    <string name="movies_list_favorite_add">Add to favorites</string>
+    <string name="movies_list_favorite_remove">Remove from favorites</string>
 
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>
@@ -45,6 +47,10 @@
     <string name="library_export_in_progress">Preparing export…</string>
     <string name="library_export_failed">Export failed: %1$s</string>
     <string name="library_export_share_title">Share your collection</string>
+
+    <string name="movie_details_favorite_add">Mark as favorite</string>
+    <string name="movie_details_favorite_remove">Remove from favorites</string>
+    <string name="movie_details_favorite_content_description">Toggle favorite</string>
 
     <string name="export_csv_yes">Yes</string>
     <string name="export_csv_no">No</string>

@@ -1,0 +1,59 @@
+package dev.tutushkin.allmovies.presentation.movies.view
+
+import android.view.LayoutInflater
+import android.widget.FrameLayout
+import androidx.test.core.app.ApplicationProvider
+import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
+import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows
+
+@RunWith(RobolectricTestRunner::class)
+class MovieViewHolderTest {
+
+    @Test
+    fun `bind updates favorite icon and propagates clicks`() {
+        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
+        val parent = FrameLayout(context)
+        val binding = ViewHolderMovieBinding.inflate(LayoutInflater.from(context), parent, false)
+        val viewHolder = MovieViewHolder(binding)
+
+        var toggleRequest: Pair<Int, Boolean>? = null
+        val listener = object : MoviesClickListener {
+            override fun onItemClick(movieId: Int) = Unit
+
+            override fun onToggleFavorite(movieId: Int, isFavorite: Boolean) {
+                toggleRequest = movieId to isFavorite
+            }
+        }
+
+        val movie = MovieList(
+            id = 1,
+            title = "Movie",
+            poster = "",
+            ratings = 7.0f,
+            numberOfRatings = 10,
+            minimumAge = "13+",
+            year = "2023",
+            genres = "Action",
+            isFavorite = true
+        )
+
+        viewHolder.bind(movie, listener)
+
+        assertEquals(android.view.View.VISIBLE, binding.viewHolderMovieLikeImage.visibility)
+        val drawable = binding.viewHolderMovieLikeImage.drawable
+        assertNotNull(drawable)
+        val resId = Shadows.shadowOf(drawable).createdFromResId
+        assertEquals(R.drawable.ic_like, resId)
+
+        binding.viewHolderMovieLikeImage.performClick()
+
+        assertEquals(1 to false, toggleRequest)
+    }
+}

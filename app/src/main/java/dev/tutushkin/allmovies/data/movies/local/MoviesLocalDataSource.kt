@@ -24,6 +24,8 @@ interface MoviesLocalDataSource {
 
     suspend fun setMovieDetails(movie: MovieDetailsEntity): Long
 
+    suspend fun getFavoriteMovieDetails(): List<MovieDetailsEntity>
+
     suspend fun getAllMovieDetails(): List<MovieDetailsEntity>
 
     suspend fun clearMovieDetails()
@@ -37,4 +39,12 @@ interface MoviesLocalDataSource {
     suspend fun clearActors()
 
     suspend fun setMovie(movie: MovieListEntity)
+
+    suspend fun getMovie(movieId: Int): MovieListEntity?
+
+    suspend fun getFavoriteMovies(): List<MovieListEntity>
+
+    suspend fun getFavoriteMovieIds(): Set<Int>
+
+    suspend fun setFavorite(movieId: Int, isFavorite: Boolean)
 }

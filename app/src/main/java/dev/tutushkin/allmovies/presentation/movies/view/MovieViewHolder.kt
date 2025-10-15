@@ -1,5 +1,6 @@
 package dev.tutushkin.allmovies.presentation.movies.view
 
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import dev.tutushkin.allmovies.R
@@ -28,6 +29,18 @@ class MovieViewHolder(
                 .into(viewHolderMoviePosterImage)
 
             root.setOnClickListener { clickListener.onItemClick(item.id) }
+            viewHolderMovieLikeImage.isVisible = true
+            val favoriteIcon = if (item.isFavorite) R.drawable.ic_like else R.drawable.ic_notlike
+            viewHolderMovieLikeImage.setImageResource(favoriteIcon)
+            val favoriteDescription = if (item.isFavorite) {
+                root.context.getString(R.string.movies_list_favorite_remove)
+            } else {
+                root.context.getString(R.string.movies_list_favorite_add)
+            }
+            viewHolderMovieLikeImage.contentDescription = favoriteDescription
+            viewHolderMovieLikeImage.setOnClickListener {
+                clickListener.onToggleFavorite(item.id, !item.isFavorite)
+            }
         }
     }
 }

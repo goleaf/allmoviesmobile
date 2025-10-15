@@ -78,6 +78,10 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         binding?.moviesDetailsShareImage?.setOnClickListener {
             shareCurrentMovie()
         }
+
+        binding?.moviesDetailsFavoriteImage?.setOnClickListener {
+            viewModel.toggleFavorite()
+        }
     }
 
     private fun render(state: MovieDetailsState) {
@@ -99,6 +103,7 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
                     ).show()
                 }
                 binding?.moviesDetailsShareImage?.isVisible = false
+                binding?.moviesDetailsFavoriteImage?.isVisible = false
                 shareLink = null
                 shareTitle = null
             }
@@ -106,6 +111,7 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
 //                showLoading()
 //                Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
                 binding?.moviesDetailsShareImage?.isVisible = false
+                binding?.moviesDetailsFavoriteImage?.isVisible = false
                 shareLink = null
                 shareTitle = null
             }
@@ -130,6 +136,15 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
                 LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
             movieDetailsActorsRecycler.adapter = ActorsAdapter(movie.actors)
             moviesDetailsShareImage.isVisible = true
+            val favoriteIcon = if (movie.isFavorite) R.drawable.ic_like else R.drawable.ic_notlike
+            moviesDetailsFavoriteImage.setImageResource(favoriteIcon)
+            val description = if (movie.isFavorite) {
+                getString(R.string.movie_details_favorite_remove)
+            } else {
+                getString(R.string.movie_details_favorite_add)
+            }
+            moviesDetailsFavoriteImage.contentDescription = description
+            moviesDetailsFavoriteImage.isVisible = true
         }
 
         shareLink = buildShareLink(movie)

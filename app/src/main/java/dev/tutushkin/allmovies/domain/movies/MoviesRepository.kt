@@ -11,7 +11,7 @@ interface MoviesRepository {
 
     suspend fun getGenres(apiKey: String): Result<List<Genre>>
 
-    suspend fun getNowPlaying(apiKey: String): Result<List<MovieList>>
+    suspend fun getNowPlaying(apiKey: String, page: Int): Result<List<MovieList>>
 
     suspend fun getMovieDetails(movieId: Int, apiKey: String): Result<MovieDetails>
 

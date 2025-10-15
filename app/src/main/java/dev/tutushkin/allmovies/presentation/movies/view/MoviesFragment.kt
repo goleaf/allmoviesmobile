@@ -2,18 +2,24 @@ package dev.tutushkin.allmovies.presentation.movies.view
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
-import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
+import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
+import dev.tutushkin.allmovies.data.settings.SettingsRepositoryImpl
+import dev.tutushkin.allmovies.data.settings.local.settingsDataStore
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
+import dev.tutushkin.allmovies.presentation.settings.view.SettingsFragment
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
@@ -31,6 +37,11 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
 
     private lateinit var adapter: MoviesAdapter
 
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -38,7 +49,13 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
 //        val displayMetrics = DisplayMetrics()
 //            ...
 
-        val db = MoviesDb.getDatabase(requireActivity().application)
+        val application = requireActivity().application
+        val db = MoviesDb.getDatabase(application)
+        val settingsRepository = SettingsRepositoryImpl(
+            application.settingsDataStore,
+            Dispatchers.IO
+        )
+        val moviesApi = NetworkModule.createMoviesApi(settingsRepository)
         val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
         val localDataSource = MoviesLocalDataSourceImpl(
             db.moviesDao(),
@@ -49,7 +66,10 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         )
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        val viewModel: MoviesViewModel by viewModels { MoviesViewModelFactory(repository) }
+        val viewModel = ViewModelProvider(
+            this,
+            MoviesViewModelFactory(repository, settingsRepository)
+        )[MoviesViewModel::class.java]
 
         _binding = FragmentMoviesListBinding.bind(view)
 
@@ -76,6 +96,24 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         binding.moviesListRecycler.adapter = adapter
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)
+    }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        inflater.inflate(R.menu.menu_movies, menu)
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when (item.itemId) {
+            R.id.action_settings -> {
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .addToBackStack(null)
+                    .replace(R.id.main_container, SettingsFragment())
+                    .commit()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
     }
 
     private fun handleMoviesList(state: MoviesState) {

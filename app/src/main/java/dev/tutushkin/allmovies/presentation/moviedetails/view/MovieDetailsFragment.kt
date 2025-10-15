@@ -4,7 +4,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -14,6 +14,8 @@ import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
+import dev.tutushkin.allmovies.data.settings.SettingsRepositoryImpl
+import dev.tutushkin.allmovies.data.settings.local.settingsDataStore
 import dev.tutushkin.allmovies.databinding.FragmentMoviesDetailsBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
@@ -32,8 +34,14 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val db = MoviesDb.getDatabase(requireActivity().application)
-        val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
+        val application = requireActivity().application
+        val db = MoviesDb.getDatabase(application)
+        val settingsRepository = SettingsRepositoryImpl(
+            application.settingsDataStore,
+            Dispatchers.IO
+        )
+        val moviesApi = NetworkModule.createMoviesApi(settingsRepository)
+        val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
         val localDataSource = MoviesLocalDataSourceImpl(
             db.moviesDao(),
             db.movieDetails(),
@@ -44,12 +52,14 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
         val arg = arguments?.getInt(MOVIES_KEY, 0) ?: 0
-        val viewModel: MovieDetailsViewModel by viewModels {
+        val viewModel = ViewModelProvider(
+            this,
             MovieDetailsViewModelFactory(
                 repository,
-                arg
+                arg,
+                settingsRepository
             )
-        }
+        )[MovieDetailsViewModel::class.java]
 
         _binding = FragmentMoviesDetailsBinding.bind(view)
 
@@ -112,3 +122,4 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         super.onDestroyView()
     }
 }
+

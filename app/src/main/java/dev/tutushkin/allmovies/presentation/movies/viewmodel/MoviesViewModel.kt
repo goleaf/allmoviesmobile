@@ -8,10 +8,14 @@ import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
+import dev.tutushkin.allmovies.domain.settings.SettingsRepository
+import dev.tutushkin.allmovies.domain.settings.models.AppSettings
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class MoviesViewModel(
-    private val moviesRepository: MoviesRepository
+    private val moviesRepository: MoviesRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _movies = MutableLiveData<MoviesState>()
@@ -19,12 +23,15 @@ class MoviesViewModel(
 
     init {
         viewModelScope.launch {
-            moviesRepository.clearAll()
+            settingsRepository.settings.collectLatest { settings ->
+                _movies.value = MoviesState.Loading
+                moviesRepository.clearAll()
 
-            handleLoadApiConfiguration()
-            handleGenres()
+                handleLoadApiConfiguration()
+                handleGenres()
 
-            _movies.value = handleMoviesNowPlaying()
+                _movies.value = handleMoviesNowPlaying(settings)
+            }
         }
     }
 
@@ -48,13 +55,17 @@ class MoviesViewModel(
         }
     }
 
-    private suspend fun handleMoviesNowPlaying(): MoviesState {
-        val moviesResult = moviesRepository.getNowPlaying(BuildConfig.API_KEY)
+    private suspend fun handleMoviesNowPlaying(settings: AppSettings): MoviesState {
+        val page = settings.defaultPage.coerceAtLeast(1)
+        val moviesResult = moviesRepository.getNowPlaying(BuildConfig.API_KEY, page)
 
-        return if (moviesResult.isSuccess)
-            MoviesState.Result(moviesResult.getOrThrow())
-        else
+        return if (moviesResult.isSuccess) {
+            val pageSize = settings.resultsPerPage.coerceAtLeast(1)
+            val movies = moviesResult.getOrThrow().take(pageSize)
+            MoviesState.Result(movies)
+        } else {
             MoviesState.Error(IllegalArgumentException("Error loading movies from the server!"))
+        }
     }
 
 }

@@ -72,13 +72,13 @@ class MoviesRepositoryImpl(
             }
         }
 
-    override suspend fun getNowPlaying(apiKey: String): Result<List<MovieList>> =
+    override suspend fun getNowPlaying(apiKey: String, page: Int): Result<List<MovieList>> =
         withContext(ioDispatcher) {
 //            moviesLocalDataSource.clearNowPlaying()
             var localMovies = moviesLocalDataSource.getNowPlaying()
 
             if (localMovies.isEmpty()) {
-                getNowPlayingFromServer(apiKey)
+                getNowPlayingFromServer(apiKey, page)
                     .onSuccess { moviesLocalDataSource.setNowPlaying(it) }
                     .onFailure {
                         return@withContext Result.failure(it)
@@ -92,12 +92,12 @@ class MoviesRepositoryImpl(
             } else {
                 Result.success(emptyList())
             }
-        }
+    }
 
-    private suspend fun getNowPlayingFromServer(apiKey: String): Result<List<MovieListEntity>> =
+    private suspend fun getNowPlayingFromServer(apiKey: String, page: Int): Result<List<MovieListEntity>> =
         withContext(ioDispatcher) {
             runCatching {
-                moviesRemoteDataSource.getNowPlaying(apiKey)
+                moviesRemoteDataSource.getNowPlaying(apiKey, page)
                     .getOrThrow()
                     .map { it.toEntity() }
             }

@@ -14,9 +14,9 @@ class MoviesRemoteDataSourceImpl(
             moviesApi.getGenres(apiKey).genres
         }
 
-    override suspend fun getNowPlaying(apiKey: String): Result<List<MovieListDto>> =
+    override suspend fun getNowPlaying(apiKey: String, page: Int): Result<List<MovieListDto>> =
         runCatching {
-            moviesApi.getNowPlaying(apiKey).results
+            moviesApi.getNowPlaying(apiKey, page).results
         }
 
     override suspend fun getMovieDetails(

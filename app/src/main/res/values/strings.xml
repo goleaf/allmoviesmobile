@@ -11,4 +11,20 @@
     <string name="movies_list_duration">%1$d MIN</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Unknown</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="settings_default_page_label">Default page</string>
+    <string name="settings_results_per_page_label">Results per page</string>
+    <string name="settings_cast_limit_label">Cast items limit</string>
+    <string name="settings_force_https_tmdb">Enforce HTTPS for TMDB</string>
+    <string name="settings_force_https_imdb">Enforce HTTPS for IMDb</string>
+    <string name="settings_imdb_language_label">IMDb Accept-Language</string>
+    <string name="settings_imdb_ip_label">IMDb IP override</string>
+    <string name="settings_youtube_key_label">YouTube API key</string>
+    <string name="settings_save">Save</string>
+    <string name="settings_saved_message">Settings updated</string>
+    <string name="settings_error_invalid_integer">Please enter a value greater than zero.</string>
+    <string name="settings_error_invalid_language">Invalid language tag.</string>
+    <string name="settings_error_invalid_ip">Invalid IP address.</string>
+    <string name="settings_error_invalid_youtube_key">Invalid YouTube API key.</string>
 </resources>

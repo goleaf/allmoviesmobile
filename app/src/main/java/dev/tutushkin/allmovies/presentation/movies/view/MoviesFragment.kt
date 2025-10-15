@@ -10,6 +10,7 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.SearchView
 import androidx.annotation.VisibleForTesting
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -28,8 +29,6 @@ import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
-import dev.tutushkin.allmovies.presentation.favorites.view.FavoritesFragment
-import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesSearchState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
@@ -37,6 +36,7 @@ import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
+import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.LazyThreadSafetyMode
@@ -54,10 +54,19 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         LanguagePreferences(requireContext().applicationContext)
     }
     private var isSearchActive: Boolean = false
+    private var searchMenuItem: MenuItem? = null
+    private var searchView: SearchView? = null
     @VisibleForTesting
     internal var viewModelFactoryOverride: ViewModelProvider.Factory? = null
     private val viewModel: MoviesViewModel by activityViewModels {
-        viewModelFactoryOverride ?: provideMoviesViewModelFactory()
+        viewModelFactoryOverride
+            ?: defaultViewModelFactoryOverride
+            ?: provideMoviesViewModelFactory()
+    }
+
+    companion object {
+        @VisibleForTesting
+        var defaultViewModelFactoryOverride: ViewModelProvider.Factory? = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -79,14 +88,10 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
 
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
-                val bundle = Bundle()
-                bundle.putInt(ARG_MOVIE_ID, movieId)
-                val detailsFragment = MovieDetailsFragment()
-                detailsFragment.arguments = bundle
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .addToBackStack(null)
-                    .replace(R.id.main_container, detailsFragment)
-                    .commit()
+                val args = bundleOf(ARG_MOVIE_ID to movieId)
+                if (findNavController().currentDestination?.id == R.id.moviesFragment) {
+                    findNavController().navigate(R.id.action_moviesFragment_to_movieDetailsFragment, args)
+                }
             }
 
             override fun onToggleFavorite(movieId: Int, isFavorite: Boolean) {
@@ -108,6 +113,8 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
 
         val searchItem = menu.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as? SearchView ?: return
+        this.searchMenuItem = searchItem
+        this.searchView = searchView
 
         searchView.queryHint = getString(R.string.movies_search_query_hint)
         searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -151,10 +158,10 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                 true
             }
             R.id.action_favorites -> {
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .addToBackStack(null)
-                    .replace(R.id.main_container, FavoritesFragment())
-                    .commit()
+                resetSearch()
+                if (findNavController().currentDestination?.id == R.id.moviesFragment) {
+                    findNavController().navigate(R.id.action_moviesFragment_to_favoritesFragment)
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -362,6 +369,15 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         startActivity(Intent.createChooser(shareIntent, getString(R.string.library_export_share_title)))
     }
 
+    private fun resetSearch() {
+        searchView?.apply {
+            setQuery("", false)
+            clearFocus()
+        }
+        viewModel.observeSearch("")
+        searchMenuItem?.collapseActionView()
+    }
+
     private fun updateLibraryStatus(current: Int, total: Int, title: String) {
         binding.libraryStatusContainer.isVisible = true
         if (total <= 0) {
@@ -427,6 +443,8 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     }
 
     override fun onDestroyView() {
+        searchView = null
+        searchMenuItem = null
         _binding = null
         super.onDestroyView()
     }

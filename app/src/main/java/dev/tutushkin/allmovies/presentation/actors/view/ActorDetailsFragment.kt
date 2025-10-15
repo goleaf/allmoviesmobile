@@ -3,9 +3,11 @@ package dev.tutushkin.allmovies.presentation.actors.view
 import android.os.Bundle
 import android.view.View
 import android.widget.TextView
+import androidx.annotation.VisibleForTesting
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.MultiTransformation
 import com.bumptech.glide.load.resource.bitmap.CenterCrop
@@ -25,6 +27,7 @@ import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsViewMod
 import dev.tutushkin.allmovies.presentation.navigation.ARG_ACTOR_ID
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
+import androidx.navigation.fragment.findNavController
 
 @OptIn(ExperimentalSerializationApi::class)
 class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
@@ -34,7 +37,38 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
 
     private val args: ActorDetailsArgs by lazy { parseArgs(arguments) }
 
+    @VisibleForTesting
+    internal var viewModelFactoryOverride: ViewModelProvider.Factory? = null
+
     private val viewModel: ActorDetailsViewModel by viewModels {
+        viewModelFactoryOverride
+            ?: defaultViewModelFactoryProvider?.invoke(this)
+            ?: createActorDetailsViewModelFactory()
+    }
+
+    companion object {
+        @VisibleForTesting
+        var defaultViewModelFactoryProvider: ((ActorDetailsFragment) -> ViewModelProvider.Factory)? = null
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        _binding = FragmentActorDetailsBinding.bind(view)
+
+        binding?.actorDetailsBackText?.setOnClickListener {
+            findNavController().popBackStack()
+        }
+        binding?.actorDetailsBackImage?.setOnClickListener {
+            findNavController().popBackStack()
+        }
+        binding?.actorDetailsRetryButton?.setOnClickListener {
+            viewModel.retry()
+        }
+
+        viewModel.actorDetails.observe(viewLifecycleOwner, ::render)
+    }
+
+    private fun createActorDetailsViewModelFactory(): ActorDetailsViewModelFactory {
         val application = requireActivity().application
         val db = MoviesDb.getDatabase(application)
         val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
@@ -48,24 +82,7 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
         )
         val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
         val languagePreferences = LanguagePreferences(requireContext().applicationContext)
-        ActorDetailsViewModelFactory(repository, args.actorId, languagePreferences.getSelectedLanguage())
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        _binding = FragmentActorDetailsBinding.bind(view)
-
-        binding?.actorDetailsBackText?.setOnClickListener {
-            requireActivity().supportFragmentManager.popBackStack()
-        }
-        binding?.actorDetailsBackImage?.setOnClickListener {
-            requireActivity().supportFragmentManager.popBackStack()
-        }
-        binding?.actorDetailsRetryButton?.setOnClickListener {
-            viewModel.retry()
-        }
-
-        viewModel.actorDetails.observe(viewLifecycleOwner, ::render)
+        return ActorDetailsViewModelFactory(repository, args.actorId, languagePreferences.getSelectedLanguage())
     }
 
     override fun onDestroyView() {

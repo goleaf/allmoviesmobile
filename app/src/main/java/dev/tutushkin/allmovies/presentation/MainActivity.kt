@@ -4,12 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.os.bundleOf
+import androidx.navigation.findNavController
 import dev.tutushkin.allmovies.R
-import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SHARED
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SLUG
-import dev.tutushkin.allmovies.presentation.movies.view.MoviesFragment
 import kotlinx.serialization.ExperimentalSerializationApi
 
 /**
@@ -27,10 +26,6 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .add(R.id.main_container, MoviesFragment())
-                .commit()
-
             handleDeepLink(intent)
         }
     }
@@ -43,8 +38,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleDeepLink(intent: Intent?): Boolean {
-        val data = intent?.data ?: return false
-        if (data.scheme != "app" || data.host != "collection") return false
+        val navController = findNavController(R.id.main_nav_host)
+        val data = intent?.data ?: return navController.handleDeepLink(intent)
+        if (data.scheme != "app" || data.host != "collection") {
+            return navController.handleDeepLink(intent)
+        }
 
         val segments = data.pathSegments
         if (segments.size < 2 || segments.first() != "movie") return false
@@ -58,15 +56,10 @@ class MainActivity : AppCompatActivity() {
             ARG_MOVIE_SHARED to true
         )
 
-        val fragment = MovieDetailsFragment().apply {
-            arguments = args
+        val deepLinkIntent = Intent(intent).apply {
+            putExtras(args)
         }
 
-        supportFragmentManager.beginTransaction()
-            .addToBackStack(null)
-            .replace(R.id.main_container, fragment)
-            .commit()
-
-        return true
+        return navController.handleDeepLink(deepLinkIntent)
     }
 }

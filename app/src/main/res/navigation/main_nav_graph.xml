@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_nav_graph"
+    app:startDestination="@id/moviesFragment">
+
+    <fragment
+        android:id="@+id/moviesFragment"
+        android:name="dev.tutushkin.allmovies.presentation.movies.view.MoviesFragment"
+        android:label="@string/app_name"
+        tools:layout="@layout/fragment_movies_list">
+        <action
+            android:id="@+id/action_moviesFragment_to_favoritesFragment"
+            app:destination="@id/favoritesFragment" />
+        <action
+            android:id="@+id/action_moviesFragment_to_movieDetailsFragment"
+            app:destination="@id/movieDetailsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/favoritesFragment"
+        android:name="dev.tutushkin.allmovies.presentation.favorites.view.FavoritesFragment"
+        android:label="@string/menu_favorites"
+        tools:layout="@layout/fragment_favorites_list">
+        <action
+            android:id="@+id/action_favoritesFragment_to_movieDetailsFragment"
+            app:destination="@id/movieDetailsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/movieDetailsFragment"
+        android:name="dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment"
+        android:label="@string/movie_details_title"
+        tools:layout="@layout/fragment_movies_details">
+        <argument
+            android:name="arg_movie_id"
+            android:argType="integer" />
+        <argument
+            android:name="arg_movie_slug"
+            android:argType="string"
+            android:nullable="true" />
+        <argument
+            android:name="arg_movie_shared"
+            android:argType="boolean"
+            android:defaultValue="false" />
+        <action
+            android:id="@+id/action_movieDetailsFragment_to_actorDetailsFragment"
+            app:destination="@id/actorDetailsFragment" />
+        <deepLink
+            app:uri="app://collection/movie/{arg_movie_id}/{arg_movie_slug}" />
+        <deepLink
+            app:uri="app://collection/movie/{arg_movie_id}" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/actorDetailsFragment"
+        android:name="dev.tutushkin.allmovies.presentation.actors.view.ActorDetailsFragment"
+        android:label="@string/actor_details_title"
+        tools:layout="@layout/fragment_actor_details">
+        <argument
+            android:name="arg_actor_id"
+            android:argType="integer" />
+    </fragment>
+</navigation>

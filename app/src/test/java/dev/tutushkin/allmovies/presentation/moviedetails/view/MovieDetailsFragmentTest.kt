@@ -18,6 +18,7 @@ import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
+import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
@@ -44,11 +45,13 @@ class MovieDetailsFragmentTest {
 
     private val dispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeMoviesRepository
+    private lateinit var favoritesNotifier: TestFavoritesUpdateNotifier
 
     @Before
     fun setup() {
         Dispatchers.setMain(dispatcher)
         repository = FakeMoviesRepository()
+        favoritesNotifier = TestFavoritesUpdateNotifier()
     }
 
     @After
@@ -60,7 +63,7 @@ class MovieDetailsFragmentTest {
     fun progressOverlayReflectsLoadingState() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val languagePreferences = LanguagePreferences(context)
-        val moviesViewModel = MoviesViewModel(repository, languagePreferences)
+        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
         val language = languagePreferences.getSelectedLanguage()
         val movieId = 42
         val args = bundleOf(ARG_MOVIE_ID to movieId)

@@ -17,6 +17,7 @@ import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
@@ -43,11 +44,13 @@ class MoviesFragmentTest {
 
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeMoviesRepository
+    private lateinit var favoritesNotifier: TestFavoritesUpdateNotifier
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeMoviesRepository()
+        favoritesNotifier = TestFavoritesUpdateNotifier()
     }
 
     @After
@@ -59,7 +62,7 @@ class MoviesFragmentTest {
     fun loadingVisibilityReflectsViewModelState() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val languagePreferences = LanguagePreferences(context)
-        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
         val factory = FakeMoviesViewModelFactory(viewModel)
 
         val scenario = launchFragmentInContainer(themeResId = R.style.Theme_AppCompat) {

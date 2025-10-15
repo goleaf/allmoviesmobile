@@ -10,13 +10,15 @@ import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MoviesViewModel(
     private val moviesRepository: MoviesRepository,
-    private val languagePreferences: LanguagePreferences
+    private val languagePreferences: LanguagePreferences,
+    private val favoritesUpdateNotifier: FavoritesUpdateNotifier
 ) : ViewModel() {
 
     private val _movies = MutableLiveData<MoviesState>()
@@ -116,6 +118,7 @@ class MoviesViewModel(
             cachedMovies = updated
             _movies.value = MoviesState.Result(updated)
             requerySearch()
+            favoritesUpdateNotifier.notifyFavoritesChanged()
             onResult?.invoke(true)
         }
     }

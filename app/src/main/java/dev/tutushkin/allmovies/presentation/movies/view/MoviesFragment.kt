@@ -28,6 +28,7 @@ import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
+import dev.tutushkin.allmovies.presentation.favorites.view.FavoritesFragment
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesSearchState
@@ -147,6 +148,13 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             }
             R.id.action_language -> {
                 showLanguageSelectionDialog()
+                true
+            }
+            R.id.action_favorites -> {
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .addToBackStack(null)
+                    .replace(R.id.main_container, FavoritesFragment())
+                    .commit()
                 true
             }
             else -> super.onOptionsItemSelected(item)

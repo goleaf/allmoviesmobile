@@ -37,6 +37,7 @@
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>
     <string name="menu_language">Language</string>
+    <string name="menu_favorites">Favorites</string>
     <string name="menu_search">Search</string>
     <string name="menu_search_content_description">Search movies</string>
     <string name="menu_search_talkback_hint">Double tap to search your library</string>
@@ -74,6 +75,10 @@
     <string name="movie_details_favorite_add">Mark as favorite</string>
     <string name="movie_details_favorite_remove">Remove from favorites</string>
     <string name="movie_details_favorite_content_description">Toggle favorite</string>
+
+    <string name="favorites_list_title">Favorites</string>
+    <string name="favorites_list_empty">No favorite movies yet.</string>
+    <string name="favorites_list_error_generic">Unable to load favorites.</string>
 
     <string name="export_csv_yes">Yes</string>
     <string name="export_csv_no">No</string>

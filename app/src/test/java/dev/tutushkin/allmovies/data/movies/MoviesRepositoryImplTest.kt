@@ -1,5 +1,8 @@
 package dev.tutushkin.allmovies.data.movies
 
+import dev.tutushkin.allmovies.data.imdb.remote.ImdbMovieDetailDto
+import dev.tutushkin.allmovies.data.imdb.remote.ImdbRemoteDataSource
+import dev.tutushkin.allmovies.data.imdb.remote.ImdbSearchItemDto
 import dev.tutushkin.allmovies.data.movies.local.ActorEntity
 import dev.tutushkin.allmovies.data.movies.local.ConfigurationEntity
 import dev.tutushkin.allmovies.data.movies.local.GenreEntity
@@ -28,13 +31,15 @@ class MoviesRepositoryImplTest {
     private val dispatcher: CoroutineDispatcher = StandardTestDispatcher()
     private lateinit var remoteDataSource: FakeMoviesRemoteDataSource
     private lateinit var localDataSource: FakeMoviesLocalDataSource
+    private lateinit var imdbRemoteDataSource: FakeImdbRemoteDataSource
     private lateinit var repository: MoviesRepositoryImpl
 
     @Before
     fun setUp() {
         remoteDataSource = FakeMoviesRemoteDataSource()
         localDataSource = FakeMoviesLocalDataSource()
-        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, dispatcher)
+        imdbRemoteDataSource = FakeImdbRemoteDataSource()
+        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, imdbRemoteDataSource, dispatcher)
     }
 
     @Test
@@ -191,6 +196,18 @@ class MoviesRepositoryImplTest {
         assertEquals(0, remoteDataSource.actorsCallCount)
         assertEquals(2, result.getOrThrow().actors.size)
     }
+}
+
+private class FakeImdbRemoteDataSource : ImdbRemoteDataSource {
+
+    var searchResult: Result<List<ImdbSearchItemDto>> = Result.success(emptyList())
+    var detailsResult: Result<ImdbMovieDetailDto> = Result.failure(UnsupportedOperationException())
+
+    override suspend fun searchMovies(query: String, apiKey: String): Result<List<ImdbSearchItemDto>> =
+        searchResult
+
+    override suspend fun getMovieDetails(imdbId: String, apiKey: String): Result<ImdbMovieDetailDto> =
+        detailsResult
 }
 
 private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {

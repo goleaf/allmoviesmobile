@@ -10,7 +10,7 @@ class Converters {
             return emptyList()
         }
 
-        return flatStringList.split(",")
+        return flatStringList.split(",").map { it.trim() }.filter { it.isNotEmpty() }
     }
 
     @TypeConverter

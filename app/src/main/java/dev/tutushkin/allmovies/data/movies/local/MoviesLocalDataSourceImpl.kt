@@ -37,6 +37,9 @@ class MoviesLocalDataSourceImpl(
         moviesDao.insertAll(movies)
     }
 
+    override suspend fun setMovie(movie: MovieListEntity): Long =
+        moviesDao.insert(movie)
+
     override suspend fun clearNowPlaying() {
         moviesDao.clear()
     }

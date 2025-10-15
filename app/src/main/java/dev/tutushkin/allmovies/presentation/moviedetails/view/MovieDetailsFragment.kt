@@ -11,6 +11,7 @@ import com.bumptech.glide.Glide
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
+import dev.tutushkin.allmovies.data.imdb.remote.ImdbRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
@@ -34,6 +35,7 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
 
         val db = MoviesDb.getDatabase(requireActivity().application)
         val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
+        val imdbRemoteDataSource = ImdbRemoteDataSourceImpl(NetworkModule.imdbApi)
         val localDataSource = MoviesLocalDataSourceImpl(
             db.moviesDao(),
             db.movieDetails(),
@@ -42,7 +44,7 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             db.genresDao()
         )
         val repository =
-            MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+            MoviesRepositoryImpl(remoteDataSource, localDataSource, imdbRemoteDataSource, Dispatchers.Default)
         val arg = arguments?.getInt(MOVIES_KEY, 0) ?: 0
         val viewModel: MovieDetailsViewModel by viewModels {
             MovieDetailsViewModelFactory(

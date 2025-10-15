@@ -2,6 +2,7 @@ package dev.tutushkin.allmovies.data.core.network
 
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dev.tutushkin.allmovies.BuildConfig
+import dev.tutushkin.allmovies.data.imdb.remote.ImdbApi
 import dev.tutushkin.allmovies.data.movies.remote.MoviesApi
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
@@ -51,4 +52,14 @@ object NetworkModule {
 
     @ExperimentalSerializationApi
     val moviesApi: MoviesApi = retrofit.create()
+
+    @ExperimentalSerializationApi
+    private val imdbRetrofit = Retrofit.Builder()
+        .baseUrl(BuildConfig.IMDB_BASE_URL)
+        .client(client)
+        .addConverterFactory(json.asConverterFactory(contentType))
+        .build()
+
+    @ExperimentalSerializationApi
+    val imdbApi: ImdbApi = imdbRetrofit.create()
 }

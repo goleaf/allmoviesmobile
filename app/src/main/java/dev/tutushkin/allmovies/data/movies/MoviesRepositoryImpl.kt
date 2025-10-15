@@ -1,5 +1,10 @@
 package dev.tutushkin.allmovies.data.movies
 
+import dev.tutushkin.allmovies.data.imdb.ImdbDataMapper.toActorEntities
+import dev.tutushkin.allmovies.data.imdb.ImdbDataMapper.toDomain
+import dev.tutushkin.allmovies.data.imdb.ImdbDataMapper.toMovieDetailsEntity
+import dev.tutushkin.allmovies.data.imdb.ImdbDataMapper.toMovieListEntity
+import dev.tutushkin.allmovies.data.imdb.remote.ImdbRemoteDataSource
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
@@ -10,6 +15,7 @@ import kotlinx.coroutines.withContext
 class MoviesRepositoryImpl(
     private val moviesRemoteDataSource: MoviesRemoteDataSource,
     private val moviesLocalDataSource: MoviesLocalDataSource,
+    private val imdbRemoteDataSource: ImdbRemoteDataSource,
     private val ioDispatcher: CoroutineDispatcher
 ) : MoviesRepository {
 
@@ -188,6 +194,53 @@ class MoviesRepositoryImpl(
                     .getOrThrow()
                     .map { it.toEntity() }
             }
+        }
+
+    override suspend fun searchImdb(query: String, apiKey: String): Result<List<ImdbSearchResult>> =
+        withContext(ioDispatcher) {
+            if (query.isBlank()) {
+                return@withContext Result.success(emptyList())
+            }
+
+            imdbRemoteDataSource.searchMovies(query, apiKey)
+                .mapCatching { results ->
+                    results.map { it.toDomain() }
+                }
+        }
+
+    override suspend fun getImdbMovieDetails(
+        imdbId: String,
+        apiKey: String
+    ): Result<MovieDetails> =
+        withContext(ioDispatcher) {
+            imdbRemoteDataSource.getMovieDetails(imdbId, apiKey)
+                .mapCatching { dto ->
+                    val actorEntities = dto.toActorEntities()
+                    val movieDetailsEntity = dto.toMovieDetailsEntity(actorEntities.map(ActorEntity::id))
+                    movieDetailsEntity.toModel(actorEntities.map { it.toModel() })
+                }
+        }
+
+    override suspend fun importImdbMovie(
+        imdbId: String,
+        apiKey: String
+    ): Result<MovieDetails> =
+        withContext(ioDispatcher) {
+            imdbRemoteDataSource.getMovieDetails(imdbId, apiKey)
+                .mapCatching { dto ->
+                    val actorEntities = dto.toActorEntities()
+                    val movieDetailsEntity = dto.toMovieDetailsEntity(actorEntities.map(ActorEntity::id))
+                    val movieListEntity = dto.toMovieListEntity()
+
+                    moviesLocalDataSource.setMovie(movieListEntity)
+                    moviesLocalDataSource.setMovieDetails(movieDetailsEntity)
+                    if (actorEntities.isNotEmpty()) {
+                        moviesLocalDataSource.setActors(actorEntities)
+                        moviesLocalDataSource.setActorsLoaded(movieDetailsEntity.id)
+                    }
+
+                    movieDetailsEntity.toModel(actorEntities.map { it.toModel() })
+                }
         }
 
     override suspend fun clearAll() {

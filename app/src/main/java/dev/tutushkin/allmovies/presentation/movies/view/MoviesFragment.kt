@@ -9,11 +9,14 @@ import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.GridLayoutManager
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
+import dev.tutushkin.allmovies.data.core.network.NetworkModule.imdbApi
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
+import dev.tutushkin.allmovies.data.imdb.remote.ImdbRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
+import dev.tutushkin.allmovies.presentation.imdb.view.ImdbSearchFragment
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
@@ -30,6 +33,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private val binding get() = _binding!!
 
     private lateinit var adapter: MoviesAdapter
+    private lateinit var viewModel: MoviesViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -40,6 +44,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
 
         val db = MoviesDb.getDatabase(requireActivity().application)
         val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
+        val imdbRemoteDataSource = ImdbRemoteDataSourceImpl(imdbApi)
         val localDataSource = MoviesLocalDataSourceImpl(
             db.moviesDao(),
             db.movieDetails(),
@@ -48,8 +53,9 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             db.genresDao()
         )
         val repository =
-            MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        val viewModel: MoviesViewModel by viewModels { MoviesViewModelFactory(repository) }
+            MoviesRepositoryImpl(remoteDataSource, localDataSource, imdbRemoteDataSource, Dispatchers.Default)
+        val moviesViewModel: MoviesViewModel by viewModels { MoviesViewModelFactory(repository) }
+        viewModel = moviesViewModel
 
         _binding = FragmentMoviesListBinding.bind(view)
 
@@ -75,7 +81,21 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         adapter = MoviesAdapter(listener)
         binding.moviesListRecycler.adapter = adapter
 
+        binding.moviesSearchButton.setOnClickListener {
+            requireActivity().supportFragmentManager.beginTransaction()
+                .addToBackStack(null)
+                .replace(R.id.main_container, ImdbSearchFragment())
+                .commit()
+        }
+
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (this::viewModel.isInitialized) {
+            viewModel.refreshNowPlaying()
+        }
     }
 
     private fun handleMoviesList(state: MoviesState) {

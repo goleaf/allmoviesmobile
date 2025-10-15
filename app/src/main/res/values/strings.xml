@@ -11,4 +11,28 @@
     <string name="movies_list_duration">%1$d MIN</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Unknown</string>
+    <string name="movies_search_button">Import from IMDb</string>
+
+    <string name="imdb_search_title">Import from IMDb</string>
+    <string name="imdb_search_hint">Search IMDb…</string>
+    <string name="imdb_search_cta">Search</string>
+    <string name="imdb_search_empty">Start typing to search the IMDb catalog.</string>
+    <string name="imdb_search_error">Unable to load search results</string>
+    <string name="imdb_search_no_results">No titles found</string>
+
+    <string name="imdb_import_title">Add movie from IMDb</string>
+    <string name="imdb_import_import_button">Import movie</string>
+    <string name="imdb_import_success">Movie imported successfully</string>
+    <string name="imdb_import_failure">Unable to import movie</string>
+    <string name="imdb_import_directors_label">Directors</string>
+    <string name="imdb_import_writers_label">Writers</string>
+    <string name="imdb_import_languages_label">Languages</string>
+    <string name="imdb_import_subtitles_label">Subtitles</string>
+    <string name="imdb_import_audio_label">Audio tracks</string>
+    <string name="imdb_import_video_label">Video formats</string>
+    <string name="imdb_import_trailers_label">Trailers</string>
+    <string name="imdb_import_runtime_format">Runtime: %1$d min</string>
+    <string name="imdb_import_year_format">Year: %1$s</string>
+    <string name="imdb_import_rating_format">Rating: %1$s</string>
+    <string name="imdb_import_genres_format">Genres: %1$s</string>
 </resources>

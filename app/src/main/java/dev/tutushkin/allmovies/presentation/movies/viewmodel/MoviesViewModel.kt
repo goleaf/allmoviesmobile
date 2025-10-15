@@ -28,6 +28,13 @@ class MoviesViewModel(
         }
     }
 
+    fun refreshNowPlaying() {
+        viewModelScope.launch {
+            _movies.value = MoviesState.Loading
+            _movies.value = handleMoviesNowPlaying()
+        }
+    }
+
     private suspend fun handleLoadApiConfiguration() {
         val conf = moviesRepository.getConfiguration(BuildConfig.API_KEY)
 

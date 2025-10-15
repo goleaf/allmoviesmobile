@@ -42,5 +42,26 @@ data class MovieDetailsEntity(
     var actors: List<Int> = listOf(),
 
     @ColumnInfo(name = "isActorsLoaded")
-    val isActorsLoaded: Boolean = false
+    val isActorsLoaded: Boolean = false,
+
+    @ColumnInfo(name = "directors")
+    val directors: List<String> = emptyList(),
+
+    @ColumnInfo(name = "writers")
+    val writers: List<String> = emptyList(),
+
+    @ColumnInfo(name = "languages")
+    val languages: List<String> = emptyList(),
+
+    @ColumnInfo(name = "subtitles")
+    val subtitles: List<String> = emptyList(),
+
+    @ColumnInfo(name = "audio_tracks")
+    val audioTracks: List<String> = emptyList(),
+
+    @ColumnInfo(name = "video_formats")
+    val videoFormats: List<String> = emptyList(),
+
+    @ColumnInfo(name = "trailers")
+    val trailerUrls: List<String> = emptyList()
 )

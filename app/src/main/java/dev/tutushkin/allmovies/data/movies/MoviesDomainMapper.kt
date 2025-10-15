@@ -25,7 +25,14 @@ internal fun MovieDetailsEntity.toModel(actors: List<Actor>): MovieDetails = Mov
     year = this.year,
     runtime = this.runtime,
     genres = this.genres,
-    actors = actors
+    actors = actors,
+    directors = this.directors,
+    writers = this.writers,
+    languages = this.languages,
+    subtitles = this.subtitles,
+    audioTracks = this.audioTracks,
+    videoFormats = this.videoFormats,
+    trailerUrls = this.trailerUrls
 )
 
 internal fun ActorEntity.toModel(): Actor = Actor(

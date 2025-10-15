@@ -18,6 +18,8 @@ interface MoviesLocalDataSource {
 
     suspend fun setNowPlaying(movies: List<MovieListEntity>)
 
+    suspend fun setMovie(movie: MovieListEntity): Long
+
     suspend fun clearNowPlaying()
 
     suspend fun getMovieDetails(id: Int): MovieDetailsEntity?

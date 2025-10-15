@@ -12,6 +12,8 @@ if (localPropertiesFile.exists()) {
 }
 def apiKey = (localProperties['apiKey'] ?: "64b046ff6c8ba1672ae93b398857b4e1").toString()
 def escapedApiKey = apiKey.replace('"', '\\"')
+def imdbApiKey = (localProperties['imdbApiKey'] ?: "").toString()
+def escapedImdbApiKey = imdbApiKey.replace('"', '\\"')
 
 android {
     compileSdkVersion 32
@@ -26,6 +28,8 @@ android {
 
         buildConfigField "String", "BASE_URL", "\"https://api.themoviedb.org/3/\""
         buildConfigField "String", "API_KEY", "\"${escapedApiKey}\""
+        buildConfigField "String", "IMDB_BASE_URL", "\"https://www.omdbapi.com/\""
+        buildConfigField "String", "IMDB_API_KEY", "\"${escapedImdbApiKey}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

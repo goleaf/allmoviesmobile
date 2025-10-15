@@ -11,5 +11,12 @@ data class MovieDetails(
     val year: String = "",   // TODO Add to screen
     val runtime: Int = 0,
     val genres: String = "",
-    val actors: List<Actor> = listOf()
+    val actors: List<Actor> = listOf(),
+    val directors: List<String> = emptyList(),
+    val writers: List<String> = emptyList(),
+    val languages: List<String> = emptyList(),
+    val subtitles: List<String> = emptyList(),
+    val audioTracks: List<String> = emptyList(),
+    val videoFormats: List<String> = emptyList(),
+    val trailerUrls: List<String> = emptyList()
 )

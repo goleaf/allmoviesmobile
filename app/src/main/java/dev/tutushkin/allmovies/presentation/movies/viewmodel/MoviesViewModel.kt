@@ -6,7 +6,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
-import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
@@ -68,12 +67,9 @@ class MoviesViewModel(
     }
 
     private suspend fun handleLoadApiConfiguration(language: String) {
-        val conf = moviesRepository.getConfiguration(BuildConfig.API_KEY, language)
-
-        if (conf.isSuccess) {
-            configApi = conf.getOrThrow()
-        } else {
-            println(conf.exceptionOrNull())
+        val result = moviesRepository.getConfiguration(BuildConfig.API_KEY, language)
+        if (result.isFailure) {
+            println(result.exceptionOrNull())
         }
     }
 

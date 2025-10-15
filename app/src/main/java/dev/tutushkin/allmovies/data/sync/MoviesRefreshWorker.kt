@@ -15,7 +15,9 @@ import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
+import dev.tutushkin.allmovies.data.movies.local.ConfigurationDataStore
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
+import dev.tutushkin.allmovies.data.movies.local.configurationPreferencesDataStore
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +45,15 @@ class MoviesRefreshWorker(
             db.genresDao()
         )
         val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
+        val configurationDataStore = ConfigurationDataStore(
+            applicationContext.configurationPreferencesDataStore
+        )
+        val repository = MoviesRepositoryImpl(
+            remoteDataSource,
+            localDataSource,
+            configurationDataStore,
+            Dispatchers.IO
+        )
         val languageCode = LanguagePreferences(applicationContext).getSelectedLanguage()
 
         setForegroundAsync(

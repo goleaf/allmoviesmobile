@@ -1,7 +1,13 @@
 package dev.tutushkin.allmovies.data.movies
 
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
+import androidx.datastore.preferences.core.mutablePreferencesOf
+import androidx.datastore.preferences.core.stringPreferencesKey
 import dev.tutushkin.allmovies.data.movies.local.ActorEntity
 import dev.tutushkin.allmovies.data.movies.local.ActorDetailsEntity
+import dev.tutushkin.allmovies.data.movies.local.ConfigurationDataStore
 import dev.tutushkin.allmovies.data.movies.local.ConfigurationEntity
 import dev.tutushkin.allmovies.data.movies.local.GenreEntity
 import dev.tutushkin.allmovies.data.movies.local.MovieDetailsEntity
@@ -16,10 +22,13 @@ import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
 import dev.tutushkin.allmovies.data.movies.remote.MovieVideoDto
 import dev.tutushkin.allmovies.data.movies.remote.ActorDetailsResponse
 import dev.tutushkin.allmovies.data.movies.remote.ActorMovieCreditsResponse
+import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
@@ -32,6 +41,8 @@ class MoviesRepositoryImplTest {
     private val dispatcher: CoroutineDispatcher = StandardTestDispatcher()
     private lateinit var remoteDataSource: FakeMoviesRemoteDataSource
     private lateinit var localDataSource: FakeMoviesLocalDataSource
+    private lateinit var configurationDataStore: ConfigurationDataStore
+    private lateinit var inMemoryDataStore: InMemoryPreferencesDataStore
     private lateinit var repository: MoviesRepositoryImpl
 
     private companion object {
@@ -39,10 +50,73 @@ class MoviesRepositoryImplTest {
     }
 
     @Before
-    fun setUp() {
+    fun setUp() = runTest {
         remoteDataSource = FakeMoviesRemoteDataSource()
         localDataSource = FakeMoviesLocalDataSource()
-        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, dispatcher)
+        inMemoryDataStore = InMemoryPreferencesDataStore()
+        configurationDataStore = ConfigurationDataStore(inMemoryDataStore)
+        configurationDataStore.write(Configuration(imagesBaseUrl = "https://images.test/"))
+        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, configurationDataStore, dispatcher)
+    }
+
+    @Test
+    fun `getConfiguration returns stored configuration without hitting remote`() = runTest(dispatcher) {
+        remoteDataSource.configurationResult = Result.failure(IllegalStateException("not expected"))
+        remoteDataSource.resetCallCounters()
+
+        val result = repository.getConfiguration("provided-key", LANGUAGE)
+
+        assertTrue(result.isSuccess)
+        assertEquals("https://images.test/", result.getOrThrow().imagesBaseUrl)
+        assertEquals(0, remoteDataSource.configurationCallCount)
+    }
+
+    @Test
+    fun `getConfiguration fetches remote when cache empty and saves it`() = runTest(dispatcher) {
+        inMemoryDataStore.updateData { emptyPreferences() }
+        remoteDataSource.configurationResult = Result.success(
+            ConfigurationDto(
+                imagesBaseUrl = "https://remote/",
+                posterSizes = listOf("w500"),
+                backdropSizes = listOf("w1280"),
+                profileSizes = listOf("w300")
+            )
+        )
+        remoteDataSource.resetCallCounters()
+
+        val result = repository.getConfiguration("provided-key", LANGUAGE)
+
+        assertTrue(result.isSuccess)
+        assertEquals("https://remote/", result.getOrThrow().imagesBaseUrl)
+        assertEquals(1, remoteDataSource.configurationCallCount)
+        assertEquals("https://remote/", configurationDataStore.read()?.imagesBaseUrl)
+    }
+
+    @Test
+    fun `getConfiguration falls back to defaults when cache corrupt and remote fails`() = runTest(dispatcher) {
+        val key = stringPreferencesKey("configuration_json")
+        inMemoryDataStore.updateData { mutablePreferencesOf(key to "{not-json}") }
+        remoteDataSource.configurationResult = Result.failure(IllegalStateException("boom"))
+        remoteDataSource.resetCallCounters()
+
+        val result = repository.getConfiguration("provided-key", LANGUAGE)
+
+        assertTrue(result.isSuccess)
+        assertEquals(Configuration().imagesBaseUrl, result.getOrThrow().imagesBaseUrl)
+        assertEquals(1, remoteDataSource.configurationCallCount)
+    }
+
+    @Test
+    fun `getConfiguration falls back to defaults when cache empty and remote fails`() = runTest(dispatcher) {
+        inMemoryDataStore.updateData { emptyPreferences() }
+        remoteDataSource.configurationResult = Result.failure(IllegalStateException("boom"))
+        remoteDataSource.resetCallCounters()
+
+        val result = repository.getConfiguration("provided-key", LANGUAGE)
+
+        assertTrue(result.isSuccess)
+        assertEquals(Configuration().imagesBaseUrl, result.getOrThrow().imagesBaseUrl)
+        assertEquals(1, remoteDataSource.configurationCallCount)
     }
 
     @Test
@@ -379,6 +453,8 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var movieDetailsResult: Result<MovieDetailsResponse> = Result.failure(UnsupportedOperationException())
     var actorsResult: Result<List<MovieActorDto>> = Result.failure(UnsupportedOperationException())
 
+    var configurationCallCount: Int = 0
+        private set
     var nowPlayingCallCount: Int = 0
         private set
     var lastNowPlayingApiKey: String? = null
@@ -388,8 +464,10 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var actorsCallCount: Int = 0
         private set
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> =
-        configurationResult
+    override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> {
+        configurationCallCount++
+        return configurationResult
+    }
 
     override suspend fun getGenres(apiKey: String, language: String): Result<List<GenreDto>> = genresResult
 
@@ -446,6 +524,7 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     )
 
     fun resetCallCounters() {
+        configurationCallCount = 0
         nowPlayingCallCount = 0
         lastNowPlayingApiKey = null
         lastNowPlayingLanguage = null
@@ -563,5 +642,20 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
                 )
             }
         }
+    }
+}
+
+private class InMemoryPreferencesDataStore(
+    initialPreferences: Preferences = emptyPreferences()
+) : DataStore<Preferences> {
+
+    private val state = MutableStateFlow(initialPreferences)
+
+    override val data: Flow<Preferences> = state
+
+    override suspend fun updateData(transform: suspend (t: Preferences) -> Preferences): Preferences {
+        val updated = transform(state.value)
+        state.value = updated
+        return updated
     }
 }

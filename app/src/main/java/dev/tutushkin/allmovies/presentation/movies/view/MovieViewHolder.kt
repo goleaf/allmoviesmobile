@@ -2,13 +2,14 @@ package dev.tutushkin.allmovies.presentation.movies.view
 
 import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.images.PosterImageLoader
 
 class MovieViewHolder(
     private val binding: ViewHolderMovieBinding,
+    private val posterImageLoader: PosterImageLoader,
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun bind(item: MovieList, clickListener: MoviesClickListener) {
@@ -24,11 +25,7 @@ class MovieViewHolder(
             viewHolderMovieAgeText.isVisible = certificationText.isNotBlank()
             viewHolderMovieAgeText.text = certificationText
             viewHolderMovieRating.rating = item.ratings / 2
-            Glide.with(root.context)
-                .load(item.poster)
-                .placeholder(R.drawable.ic_baseline_image_24)
-                .error(R.drawable.ic_baseline_image_24)
-                .into(viewHolderMoviePosterImage)
+            posterImageLoader.loadPoster(viewHolderMoviePosterImage, item.poster)
 
             root.setOnClickListener { clickListener.onItemClick(item.id) }
             viewHolderMovieLikeImage.isVisible = true
@@ -44,5 +41,9 @@ class MovieViewHolder(
                 clickListener.onToggleFavorite(item.id, !item.isFavorite)
             }
         }
+    }
+
+    fun clearPoster() {
+        posterImageLoader.clear(binding.viewHolderMoviePosterImage)
     }
 }

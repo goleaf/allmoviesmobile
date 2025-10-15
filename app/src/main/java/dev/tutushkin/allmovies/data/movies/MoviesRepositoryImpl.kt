@@ -118,6 +118,29 @@ class MoviesRepositoryImpl(
             }
         }
 
+    override suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String,
+        includeAdult: Boolean,
+    ): Result<List<MovieList>> = withContext(ioDispatcher) {
+        val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds().toSet()
+
+        // Search results are fetched on demand and remain remote-only to avoid polluting cached lists.
+        moviesRemoteDataSource.searchMovies(apiKey, language, query, includeAdult)
+            .mapCatching { dtos ->
+                dtos.map { dto ->
+                    val entity = dto.toEntity()
+                    val merged = if (favoriteIds.contains(entity.id)) {
+                        entity.copy(isFavorite = true)
+                    } else {
+                        entity
+                    }
+                    merged.toModel()
+                }
+            }
+    }
+
     private suspend fun getNowPlayingFromServer(
         apiKey: String,
         language: String

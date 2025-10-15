@@ -8,6 +8,13 @@ interface MoviesRemoteDataSource {
 
     suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieListDto>>
 
+    suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String,
+        includeAdult: Boolean,
+    ): Result<List<MovieListDto>>
+
     suspend fun getMovieDetails(
         movieId: Int,
         apiKey: String,

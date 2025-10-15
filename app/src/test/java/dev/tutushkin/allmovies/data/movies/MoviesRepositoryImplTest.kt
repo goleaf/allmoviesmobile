@@ -320,6 +320,7 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var configurationResult: Result<ConfigurationDto> = Result.failure(UnsupportedOperationException())
     var genresResult: Result<List<GenreDto>> = Result.failure(UnsupportedOperationException())
     var nowPlayingResult: Result<List<MovieListDto>> = Result.failure(UnsupportedOperationException())
+    var searchResult: Result<List<MovieListDto>> = Result.failure(UnsupportedOperationException())
     var movieDetailsResult: Result<MovieDetailsResponse> = Result.failure(UnsupportedOperationException())
     var actorsResult: Result<List<MovieActorDto>> = Result.failure(UnsupportedOperationException())
 
@@ -343,6 +344,13 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
         lastNowPlayingLanguage = language
         return nowPlayingResult
     }
+
+    override suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String,
+        includeAdult: Boolean,
+    ): Result<List<MovieListDto>> = searchResult
 
     override suspend fun getMovieDetails(
         movieId: Int,

@@ -15,6 +15,7 @@ import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
+import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
@@ -68,7 +69,12 @@ class MovieDetailsFragmentTest {
     @Test
     fun progressOverlayReflectsLoadingState() = runTest(dispatcher) {
         val languagePreferences = TestLanguagePreferences()
-        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val moviesViewModel = MoviesViewModel(
+            repository,
+            languagePreferences,
+            favoritesNotifier,
+            TestLogger()
+        )
         val language = languagePreferences.getSelectedLanguage()
         val movieId = 42
         val args = bundleOf(ARG_MOVIE_ID to movieId)

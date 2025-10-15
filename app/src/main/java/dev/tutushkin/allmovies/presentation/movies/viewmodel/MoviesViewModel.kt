@@ -11,6 +11,7 @@ import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
+import dev.tutushkin.allmovies.utils.logging.Logger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -18,7 +19,8 @@ import kotlinx.coroutines.launch
 class MoviesViewModel(
     private val moviesRepository: MoviesRepository,
     private val languagePreferences: LanguagePreferencesDataSource,
-    private val favoritesUpdateNotifier: FavoritesUpdateNotifier
+    private val favoritesUpdateNotifier: FavoritesUpdateNotifier,
+    private val logger: Logger
 ) : ViewModel() {
 
     private val _movies = MutableLiveData<MoviesState>()
@@ -73,7 +75,8 @@ class MoviesViewModel(
         if (conf.isSuccess) {
             configApi = conf.getOrThrow()
         } else {
-            println(conf.exceptionOrNull())
+            val throwable = conf.exceptionOrNull()
+            logger.e(TAG, "Failed to load configuration for language=$language", throwable)
         }
     }
 
@@ -83,7 +86,8 @@ class MoviesViewModel(
         if (genres.isSuccess) {
             allGenres = genres.getOrThrow()
         } else {
-            println(genres.exceptionOrNull())
+            val throwable = genres.exceptionOrNull()
+            logger.e(TAG, "Failed to load genres for language=$language", throwable)
         }
     }
 
@@ -211,5 +215,6 @@ class MoviesViewModel(
 
     companion object {
         internal const val SEARCH_DEBOUNCE_MILLIS = 300L
+        private const val TAG = "MoviesViewModel"
     }
 }

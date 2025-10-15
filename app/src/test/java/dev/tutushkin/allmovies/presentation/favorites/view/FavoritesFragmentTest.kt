@@ -16,6 +16,7 @@ import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
+import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
@@ -70,7 +71,12 @@ class FavoritesFragmentTest {
         repository.seedMovies(listOf(movie))
         repository.seedFavorites(listOf(movie))
 
-        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val moviesViewModel = MoviesViewModel(
+            repository,
+            languagePreferences,
+            favoritesNotifier,
+            TestLogger()
+        )
         val favoritesViewModel = FavoritesViewModel(repository, favoritesNotifier)
         val moviesFactory = FakeMoviesViewModelFactory(moviesViewModel)
         val favoritesFactory = FakeFavoritesViewModelFactory(favoritesViewModel)
@@ -100,7 +106,12 @@ class FavoritesFragmentTest {
         repository.seedMovies(listOf(movie))
         repository.seedFavorites(listOf(movie))
 
-        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val moviesViewModel = MoviesViewModel(
+            repository,
+            languagePreferences,
+            favoritesNotifier,
+            TestLogger()
+        )
         val favoritesViewModel = FavoritesViewModel(repository, favoritesNotifier)
         val moviesFactory = FakeMoviesViewModelFactory(moviesViewModel)
         val favoritesFactory = FakeFavoritesViewModelFactory(favoritesViewModel)

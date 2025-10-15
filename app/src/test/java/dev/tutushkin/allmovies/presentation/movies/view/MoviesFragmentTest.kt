@@ -16,6 +16,7 @@ import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
+import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.util.launchFragment
@@ -72,7 +73,12 @@ class MoviesFragmentTest {
         val appContext = ApplicationProvider.getApplicationContext<Context>()
         WorkManagerTestInitHelper.initializeTestWorkManager(appContext)
         val languagePreferences = TestLanguagePreferences()
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(
+            repository,
+            languagePreferences,
+            favoritesNotifier,
+            TestLogger()
+        )
         val factory = FakeMoviesViewModelFactory(viewModel)
 
         launchFragment(

@@ -8,10 +8,12 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import androidx.annotation.VisibleForTesting
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -48,7 +50,11 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private val languagePreferences: LanguagePreferences by lazy(LazyThreadSafetyMode.NONE) {
         LanguagePreferences(requireContext().applicationContext)
     }
-    private val viewModel: MoviesViewModel by activityViewModels { provideMoviesViewModelFactory() }
+    @VisibleForTesting
+    internal var viewModelFactoryOverride: ViewModelProvider.Factory? = null
+    private val viewModel: MoviesViewModel by activityViewModels {
+        viewModelFactoryOverride ?: provideMoviesViewModelFactory()
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -147,12 +153,11 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private fun handleMoviesList(state: MoviesState) {
         when (state) {
             is MoviesState.Result -> {
-//                hideLoading()
-//                Toast.makeText(requireContext(), "Success", Toast.LENGTH_SHORT).show()
+                hideLoading()
                 adapter.submitList(state.result)
             }
             is MoviesState.Error -> {
-//                hideLoading()
+                hideLoading()
                 val message = state.e.message ?: getString(R.string.library_update_failed_generic)
                 Snackbar.make(
                     binding.root,
@@ -160,10 +165,8 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                     Snackbar.LENGTH_SHORT
                 ).show()
             }
-            is MoviesState.Loading -> //showLoading()
-            {
-//                showLoading()
-//                Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
+            is MoviesState.Loading -> {
+                showLoading()
             }
         }
     }
@@ -300,11 +303,21 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     }
 
     private fun showLoading() {
-        TODO("Not yet implemented")
+        binding.moviesListLoadingContainer.isVisible = true
+        binding.moviesListRecycler.apply {
+            isEnabled = false
+            isClickable = false
+            suppressLayout(true)
+        }
     }
 
     private fun hideLoading() {
-        TODO("Not yet implemented")
+        binding.moviesListLoadingContainer.isVisible = false
+        binding.moviesListRecycler.apply {
+            isEnabled = true
+            isClickable = true
+            suppressLayout(false)
+        }
     }
 
     override fun onDestroyView() {

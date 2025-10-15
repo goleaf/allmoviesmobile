@@ -447,6 +447,7 @@ class MoviesRepositoryImpl(
             }
 
             val region = resolveRegion(language)
+            val configuration = obtainConfiguration(apiKey, language)
             val total = movies.size
             movies.forEachIndexed { index, movie ->
                 onProgress(index, total, movie.title)
@@ -454,8 +455,8 @@ class MoviesRepositoryImpl(
                 val existingDetails = moviesLocalDataSource.getMovieDetails(movie.id)
                 val existingSummary = moviesLocalDataSource.getMovie(movie.id)
 
-                val movieDetails = getMovieDetailsFromServer(movie.id, apiKey, language, region).getOrThrow()
-                val actors = getActorsFromServer(movie.id, apiKey, language).getOrThrow()
+                val movieDetails = getMovieDetailsFromServer(movie.id, apiKey, language, configuration, region).getOrThrow()
+                val actors = getActorsFromServer(movie.id, apiKey, language, configuration).getOrThrow()
                 val videos = moviesRemoteDataSource.getVideos(movie.id, apiKey, language)
                     .getOrDefault(emptyList())
                 val trailerUrl = videos.toPreferredTrailerUrl()

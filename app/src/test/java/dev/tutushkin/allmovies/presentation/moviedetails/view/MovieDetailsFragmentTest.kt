@@ -133,7 +133,8 @@ class MovieDetailsFragmentTest {
     @Test
     fun yearTextReflectsMovieYear() = runTest(dispatcher) {
         val languagePreferences = TestLanguagePreferences()
-        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val logger = TestLogger()
+        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val language = languagePreferences.getSelectedLanguage()
         val movieId = 7
         val args = bundleOf(ARG_MOVIE_ID to movieId)
@@ -163,7 +164,7 @@ class MovieDetailsFragmentTest {
                 backdrop = "",
                 ratings = 9f,
                 numberOfRatings = 10,
-                minimumAge = "13+",
+                certification = Certification(code = "PG-13", label = "13+"),
                 year = "1995",
                 runtime = 110,
                 genres = "Action"

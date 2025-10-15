@@ -1,32 +1,36 @@
 package dev.tutushkin.allmovies.presentation.moviedetails.view
 
-import android.content.Context
 import android.os.Build
+import android.os.Looper
 import android.view.View
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.core.os.bundleOf
-import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.test.core.app.ApplicationProvider
 import dev.tutushkin.allmovies.R
-import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.ActorDetails
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
+import dev.tutushkin.allmovies.presentation.util.launchFragment
+import dev.tutushkin.allmovies.presentation.util.withFragment
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
+import kotlin.io.use
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -34,10 +38,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [Build.VERSION_CODES.P])
+@OptIn(ExperimentalCoroutinesApi::class, ExperimentalSerializationApi::class)
 class MovieDetailsFragmentTest {
 
     @get:Rule
@@ -60,9 +66,8 @@ class MovieDetailsFragmentTest {
     }
 
     @Test
-    fun progressOverlayReflectsLoadingState() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        val languagePreferences = LanguagePreferences(context)
+    fun progressOverlayReflectsLoadingState() = runTest(dispatcher) {
+        val languagePreferences = TestLanguagePreferences()
         val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
         val language = languagePreferences.getSelectedLanguage()
         val movieId = 42
@@ -75,45 +80,46 @@ class MovieDetailsFragmentTest {
         )
         val moviesFactory = FakeMoviesViewModelFactory(moviesViewModel)
 
-        val scenario = launchFragmentInContainer(themeResId = R.style.Theme_AppCompat, fragmentArgs = args) {
+        launchFragment(
             MovieDetailsFragment().apply {
+                arguments = args
                 moviesViewModelFactoryOverride = moviesFactory
                 viewModelFactoryOverride = detailsFactory
             }
+        ).use { host ->
+            dispatcher.scheduler.runCurrent()
+            shadowOf(Looper.getMainLooper()).idle()
+
+            host.withFragment { fragment ->
+                val overlay = fragment.requireView().findViewById<View>(R.id.movies_details_loading_overlay)
+                val share = fragment.requireView().findViewById<View>(R.id.movies_details_share_image)
+                val favorite = fragment.requireView().findViewById<View>(R.id.movies_details_favorite_image)
+                assertEquals(View.VISIBLE, overlay.visibility)
+                assertEquals(View.GONE, share.visibility)
+                assertEquals(View.GONE, favorite.visibility)
+            }
+
+            val movieDetails = MovieDetails(
+                id = movieId,
+                title = "Title",
+                overview = "Overview",
+                poster = "",
+                backdrop = "",
+                ratings = 8f,
+                numberOfRatings = 25,
+                minimumAge = "13+",
+                runtime = 120,
+                genres = "Action"
+            )
+            repository.emitMovieDetails(Result.success(movieDetails))
+            dispatcher.scheduler.runCurrent()
+            shadowOf(Looper.getMainLooper()).idle()
+
+            host.withFragment { fragment ->
+                val overlay = fragment.requireView().findViewById<View>(R.id.movies_details_loading_overlay)
+                assertEquals(View.GONE, overlay.visibility)
+            }
         }
-
-        dispatcher.scheduler.runCurrent()
-
-        scenario.onFragment { fragment ->
-            val overlay = fragment.requireView().findViewById<View>(R.id.movies_details_loading_overlay)
-            val share = fragment.requireView().findViewById<View>(R.id.movies_details_share_image)
-            val favorite = fragment.requireView().findViewById<View>(R.id.movies_details_favorite_image)
-            assertEquals(View.VISIBLE, overlay.visibility)
-            assertEquals(View.GONE, share.visibility)
-            assertEquals(View.GONE, favorite.visibility)
-        }
-
-        val movieDetails = MovieDetails(
-            id = movieId,
-            title = "Title",
-            overview = "Overview",
-            poster = "",
-            backdrop = "",
-            ratings = 8f,
-            numberOfRatings = 25,
-            minimumAge = "13+",
-            runtime = 120,
-            genres = "Action"
-        )
-        repository.emitMovieDetails(Result.success(movieDetails))
-        dispatcher.scheduler.runCurrent()
-
-        scenario.onFragment { fragment ->
-            val overlay = fragment.requireView().findViewById<View>(R.id.movies_details_loading_overlay)
-            assertEquals(View.GONE, overlay.visibility)
-        }
-
-        scenario.close()
     }
 
     private class FakeMoviesViewModelFactory(

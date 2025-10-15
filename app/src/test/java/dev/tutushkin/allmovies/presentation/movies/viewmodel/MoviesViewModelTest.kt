@@ -1,15 +1,13 @@
 package dev.tutushkin.allmovies.presentation.movies.viewmodel
 
-import android.content.Context
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
-import androidx.test.core.app.ApplicationProvider
-import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
@@ -34,16 +32,14 @@ class MoviesViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeMoviesRepository
-    private lateinit var languagePreferences: LanguagePreferences
+    private lateinit var languagePreferences: TestLanguagePreferences
     private lateinit var favoritesNotifier: TestFavoritesUpdateNotifier
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
         repository = FakeMoviesRepository()
-        val context = ApplicationProvider.getApplicationContext<Context>()
-        languagePreferences = LanguagePreferences(context)
-        languagePreferences.setSelectedLanguage("en")
+        languagePreferences = TestLanguagePreferences("en")
         favoritesNotifier = TestFavoritesUpdateNotifier()
     }
 
@@ -359,3 +355,4 @@ private class FakeMoviesRepository : MoviesRepository {
 private object FakeSharedLinkAnalytics : SharedLinkAnalytics {
     override fun logSharedLinkOpened(movieId: Int, slug: String?) = Unit
 }
+

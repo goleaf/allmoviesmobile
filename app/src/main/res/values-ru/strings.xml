@@ -1,0 +1,86 @@
+<resources>
+    <string name="app_name">Все фильмы</string>
+
+    <string name="movie_details_back">Назад</string>
+    <string name="movie_details_reviews">%1$d ОТЗЫВОВ</string>
+    <string name="movie_details_storyline">Сюжет</string>
+    <string name="movie_details_cast">Актёры</string>
+    <string name="movie_details_share_content_description">Поделиться фильмом</string>
+    <string name="movie_details_share_message">Посмотри %1$s: %2$s</string>
+    <string name="movie_details_share_chooser_title">Поделиться фильмом</string>
+    <string name="movie_details_share_error">Пока нечем поделиться</string>
+
+    <string name="movies_list_screen_title">Сейчас в прокате</string>
+    <string name="movies_list_reviews">%1$d ОТЗЫВОВ</string>
+    <string name="movies_list_duration">%1$d МИН</string>
+    <string name="movies_list_age">%1$d+</string>
+    <string name="movies_list_year_unknown">Неизвестно</string>
+
+    <string name="menu_update_all">Обновить все</string>
+    <string name="menu_export">Экспорт</string>
+    <string name="menu_language">Язык</string>
+
+    <string name="language_dialog_title">Выберите язык</string>
+    <string name="language_english">Английский</string>
+    <string name="language_russian">Русский</string>
+    <string-array name="language_entries">
+        <item>@string/language_english</item>
+        <item>@string/language_russian</item>
+    </string-array>
+    <string-array name="language_values">
+        <item>en</item>
+        <item>ru</item>
+    </string-array>
+
+    <string name="library_update_title">Обновление коллекции</string>
+    <string name="library_update_channel_name">Обслуживание коллекции</string>
+    <string name="library_update_preparing">Подготовка обновления коллекции…</string>
+    <string name="library_update_progress">%1$d%% • %2$s</string>
+    <string name="library_update_unknown_title">Неизвестный фильм</string>
+    <string name="library_update_success">Коллекция обновлена</string>
+    <string name="library_update_failed_generic">Не удалось обновить фильмы.</string>
+    <string name="library_update_complete_toast">Обновление коллекции завершено</string>
+    <string name="library_update_failed_toast">Не удалось обновить коллекцию: %1$s</string>
+
+    <string name="library_export_in_progress">Подготовка экспорта…</string>
+    <string name="library_export_failed">Ошибка экспорта: %1$s</string>
+    <string name="library_export_share_title">Поделитесь своей коллекцией</string>
+
+    <string name="export_csv_yes">Да</string>
+    <string name="export_csv_no">Нет</string>
+    <string name="export_csv_header_number">Номер</string>
+    <string name="export_csv_header_imdb">IMDB</string>
+    <string name="export_csv_header_title">Название</string>
+    <string name="export_csv_header_year">Год</string>
+    <string name="export_csv_header_runtime">Длительность</string>
+    <string name="export_csv_header_rating">Рейтинг</string>
+    <string name="export_csv_header_certification">Возрастной рейтинг</string>
+    <string name="export_csv_header_genres">Жанры</string>
+    <string name="export_csv_header_loaned">Выдан</string>
+    <string name="export_csv_header_loaned_to">Кому выдан</string>
+    <string name="export_csv_header_loaned_on">Дата выдачи</string>
+    <string name="export_csv_header_loan_due">Вернуть до</string>
+    <string name="export_csv_header_loan_status">Статус выдачи</string>
+    <string name="export_csv_header_loan_notes">Заметки по выдаче</string>
+    <string name="export_csv_header_notes">Заметки</string>
+    <string name="export_csv_header_trailer">Трейлер</string>
+
+    <string-array name="export_csv_headers">
+        <item>@string/export_csv_header_number</item>
+        <item>@string/export_csv_header_imdb</item>
+        <item>@string/export_csv_header_title</item>
+        <item>@string/export_csv_header_year</item>
+        <item>@string/export_csv_header_runtime</item>
+        <item>@string/export_csv_header_rating</item>
+        <item>@string/export_csv_header_certification</item>
+        <item>@string/export_csv_header_genres</item>
+        <item>@string/export_csv_header_loaned</item>
+        <item>@string/export_csv_header_loaned_to</item>
+        <item>@string/export_csv_header_loaned_on</item>
+        <item>@string/export_csv_header_loan_due</item>
+        <item>@string/export_csv_header_loan_status</item>
+        <item>@string/export_csv_header_loan_notes</item>
+        <item>@string/export_csv_header_notes</item>
+        <item>@string/export_csv_header_trailer</item>
+    </string-array>
+</resources>

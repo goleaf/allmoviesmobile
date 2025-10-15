@@ -11,6 +11,7 @@ import dev.tutushkin.allmovies.domain.movies.models.Actor
 
 class ActorViewHolder(
     private val binding: ViewHolderActorBinding,
+    private val onActorClicked: (Int) -> Unit,
 ) : RecyclerView.ViewHolder(binding.root) {
 
     fun onBind(actor: Actor) {
@@ -27,6 +28,8 @@ class ActorViewHolder(
                     )
                 )
                 .into(viewHolderActorPhotoImage)
+
+            root.setOnClickListener { onActorClicked(actor.id) }
         }
     }
 }

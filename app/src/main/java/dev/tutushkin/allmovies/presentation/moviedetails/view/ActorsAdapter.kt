@@ -7,13 +7,14 @@ import dev.tutushkin.allmovies.databinding.ViewHolderActorBinding
 import dev.tutushkin.allmovies.domain.movies.models.Actor
 
 class ActorsAdapter(
-    private val actors: List<Actor>
+    private val actors: List<Actor>,
+    private val onActorClicked: (Int) -> Unit,
 ) : RecyclerView.Adapter<ActorViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ActorViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = ViewHolderActorBinding.inflate(layoutInflater, parent, false)
-        return ActorViewHolder(binding)
+        return ActorViewHolder(binding, onActorClicked)
     }
 
     override fun onBindViewHolder(holder: ActorViewHolder, position: Int) {

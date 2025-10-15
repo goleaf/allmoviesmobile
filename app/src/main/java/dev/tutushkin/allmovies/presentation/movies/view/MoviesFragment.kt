@@ -3,8 +3,6 @@ package dev.tutushkin.allmovies.presentation.movies.view
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.SearchView
@@ -78,8 +76,9 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
 //            ...
 
         _binding = FragmentMoviesListBinding.bind(view)
-        setHasOptionsMenu(true)
         csvExporter = CsvExporter(requireContext())
+
+        setupToolbarMenu()
 
         val windowMetrics = WindowMetricsCalculator.getOrCreate()
             .computeCurrentWindowMetrics(requireActivity())
@@ -118,39 +117,69 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         observeRefreshWork()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_movies_collection, menu)
+    private fun setupToolbarMenu() {
+        val toolbar = binding.moviesListToolbar
+        toolbar.inflateMenu(R.menu.menu_movies_collection)
 
-        val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem?.actionView as? SearchView ?: return
-        this.searchMenuItem = searchItem
-        this.searchView = searchView
+<<<<<<< HEAD
+        val searchItem = toolbar.menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView
+        if (searchView != null) {
+            this.searchMenuItem = searchItem
+            this.searchView = searchView
+            searchView.queryHint = getString(R.string.movies_search_query_hint)
+            searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    viewModel.observeSearch(query.orEmpty())
+                    searchView.clearFocus()
+                    return true
+                }
 
-        searchView.queryHint = getString(R.string.movies_search_query_hint)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                viewModel.observeSearch(query.orEmpty())
-                searchView.clearFocus()
-                return true
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    viewModel.observeSearch(newText.orEmpty())
+                    return true
+                }
+            })
+
+            searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+                override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                    isSearchActive = true
+                    return true
+                }
+
+                override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                    isSearchActive = false
+                    searchView.setQuery("", false)
+                    viewModel.observeSearch("")
+                    return true
+                }
+            })
+        }
+
+        toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_update_all -> {
+                    enqueueLibraryRefresh()
+                    true
+                }
+                R.id.action_export -> {
+                    exportLibrary()
+                    true
+                }
+                R.id.action_language -> {
+                    showLanguageSelectionDialog()
+                    true
+                }
+                R.id.action_favorites -> {
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .addToBackStack(null)
+                        .replace(R.id.main_container, FavoritesFragment())
+                        .commit()
+                    true
+                }
+                else -> false
             }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.observeSearch(newText.orEmpty())
-                return true
-            }
-        })
-
-        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
-                return true
-            }
-
-            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
-                searchView.setQuery("", false)
-                viewModel.observeSearch("")
-                return true
-            }
+<<<<<<< HEAD
         })
     }
 

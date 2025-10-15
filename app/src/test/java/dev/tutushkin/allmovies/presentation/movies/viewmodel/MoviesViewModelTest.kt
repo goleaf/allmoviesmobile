@@ -315,6 +315,13 @@ private class FakeMoviesRepository : MoviesRepository {
         return movieDetailsResult
     }
 
+    override suspend fun getActorDetails(
+        actorId: Int,
+        apiKey: String,
+        language: String
+    ): Result<dev.tutushkin.allmovies.domain.movies.models.ActorDetails> =
+        Result.failure(UnsupportedOperationException())
+
     override suspend fun setFavorite(movieId: Int, isFavorite: Boolean): Result<Unit> {
         setFavoriteCalledWith = movieId to isFavorite
         if (isFavorite) {

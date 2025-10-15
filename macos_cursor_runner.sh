@@ -16,6 +16,7 @@ AVD_NAME="${AVD_NAME:-allmovies_pixel_5_api_34}"
 APK_PATH="$PROJECT_ROOT/app/build/outputs/apk/debug/app-debug.apk"
 PACKAGE_NAME="dev.tutushkin.allmovies"
 EMULATOR_SERIAL=""
+LOCAL_PROPERTIES="$PROJECT_ROOT/local.properties"
 
 GRADLE_TASKS=(
   clean
@@ -78,6 +79,55 @@ emulator_path() {
 ensure_android_tools() {
   require_file "$(adb_path)"
   require_file "$(emulator_path)"
+}
+
+# Ensure Gradle knows where the Android SDK is.
+# - Exports ANDROID_SDK_ROOT and ANDROID_HOME for compatibility
+# - Creates/updates local.properties with sdk.dir when missing
+ensure_android_sdk_config() {
+  local sdk_dir
+  sdk_dir="$ANDROID_SDK_ROOT"
+
+  if [[ -z "$sdk_dir" || ! -d "$sdk_dir" ]]; then
+    log "Android SDK not found at '$sdk_dir'"
+    log "Set ANDROID_SDK_ROOT or install the SDK to $HOME/Library/Android/sdk"
+    exit 1
+  fi
+
+  export ANDROID_SDK_ROOT="$sdk_dir"
+  export ANDROID_HOME="$sdk_dir"
+
+  if [[ -f "$LOCAL_PROPERTIES" ]]; then
+    if grep -q '^sdk\.dir=' "$LOCAL_PROPERTIES"; then
+      : # already configured
+    else
+      log "Adding sdk.dir to existing local.properties"
+      printf "\nsdk.dir=%s\n" "$sdk_dir" >>"$LOCAL_PROPERTIES"
+    fi
+  else
+    log "Creating local.properties with sdk.dir=$sdk_dir"
+    printf "sdk.dir=%s\n" "$sdk_dir" >"$LOCAL_PROPERTIES"
+  fi
+}
+
+# Prefer JDK 17 for AGP/Kotlin compatibility to avoid KAPT issues on newer JDKs
+ensure_java_home() {
+  if command -v /usr/libexec/java_home >/dev/null 2>&1; then
+    if /usr/libexec/java_home -v 17 >/dev/null 2>&1; then
+      export JAVA_HOME="$([ -z "${JAVA_HOME:-}" ] && /usr/libexec/java_home -v 17 || echo "$JAVA_HOME")"
+      # If JAVA_HOME was empty, the command above set it; ensure it's 17
+      if [[ ! -x "$JAVA_HOME/bin/java" ]]; then
+        export JAVA_HOME="$(! /usr/libexec/java_home -v 17 2>/dev/null || true)"
+      fi
+      if /usr/libexec/java_home -v 17 >/dev/null 2>&1; then
+        export JAVA_HOME="$(/usr/libexec/java_home -v 17)"
+      fi
+      export PATH="$JAVA_HOME/bin:$PATH"
+      log "Using JAVA_HOME=$JAVA_HOME"
+    else
+      log "JDK 17 not found; using system default JAVA_HOME"
+    fi
+  fi
 }
 
 cleanup_emulator() {
@@ -185,6 +235,8 @@ main() {
   done
 
   if [[ "$skip_build" != true ]]; then
+    ensure_android_sdk_config
+    ensure_java_home
     run_gradle_tasks
   else
     log "Skipping Gradle tasks by request"

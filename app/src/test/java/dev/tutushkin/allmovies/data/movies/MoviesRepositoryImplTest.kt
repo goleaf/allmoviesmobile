@@ -1,6 +1,7 @@
 package dev.tutushkin.allmovies.data.movies
 
 import dev.tutushkin.allmovies.data.movies.local.ActorEntity
+import dev.tutushkin.allmovies.data.movies.local.ActorDetailsEntity
 import dev.tutushkin.allmovies.data.movies.local.ConfigurationEntity
 import dev.tutushkin.allmovies.data.movies.local.GenreEntity
 import dev.tutushkin.allmovies.data.movies.local.MovieDetailsEntity
@@ -12,6 +13,9 @@ import dev.tutushkin.allmovies.data.movies.remote.MovieActorDto
 import dev.tutushkin.allmovies.data.movies.remote.MovieDetailsResponse
 import dev.tutushkin.allmovies.data.movies.remote.MovieListDto
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
+import dev.tutushkin.allmovies.data.movies.remote.MovieVideoDto
+import dev.tutushkin.allmovies.data.movies.remote.ActorDetailsResponse
+import dev.tutushkin.allmovies.data.movies.remote.ActorMovieCreditsResponse
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -421,6 +425,26 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
         return actorsResult
     }
 
+    override suspend fun getVideos(
+        movieId: Int,
+        apiKey: String,
+        language: String
+    ): Result<List<MovieVideoDto>> = Result.success(emptyList())
+
+    override suspend fun getActorDetails(
+        actorId: Int,
+        apiKey: String,
+        language: String
+    ): Result<ActorDetailsResponse> = Result.failure(UnsupportedOperationException())
+
+    override suspend fun getActorMovieCredits(
+        actorId: Int,
+        apiKey: String,
+        language: String
+    ): Result<ActorMovieCreditsResponse> = Result.success(
+        ActorMovieCreditsResponse(id = actorId, cast = emptyList(), crew = emptyList())
+    )
+
     fun resetCallCounters() {
         nowPlayingCallCount = 0
         lastNowPlayingApiKey = null
@@ -478,6 +502,9 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
     override suspend fun getFavoriteMovieDetails(): List<MovieDetailsEntity> =
         movieDetails.values.filter { it.isFavorite }
 
+    override suspend fun getAllMovieDetails(): List<MovieDetailsEntity> =
+        movieDetails.values.toList()
+
     override suspend fun clearMovieDetails() {
         movieDetails.clear()
     }
@@ -498,6 +525,12 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
     override suspend fun clearActors() {
         actors.clear()
     }
+
+    override suspend fun getActorDetails(actorId: Int): ActorDetailsEntity? = null
+
+    override suspend fun setActorDetails(actorDetails: ActorDetailsEntity) { /* no-op for tests */ }
+
+    override suspend fun clearActorDetails() { /* no-op for tests */ }
 
     override suspend fun setMovie(movie: MovieListEntity) {
         movies[movie.id] = movie

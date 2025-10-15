@@ -3,6 +3,7 @@ package dev.tutushkin.allmovies.presentation.movies.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
+import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.ActorDetails
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
@@ -31,13 +32,13 @@ class MoviesViewModelCoroutineTest {
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private val dispatcher = StandardTestDispatcher()
-    private lateinit var repository: FakeMoviesRepository
+    private lateinit var repository: CoroutineFakeMoviesRepository
     private lateinit var languagePreferences: FakeLanguagePreferences
 
     @Before
     fun setUp() {
         Dispatchers.setMain(dispatcher)
-        repository = FakeMoviesRepository()
+        repository = CoroutineFakeMoviesRepository()
         languagePreferences = FakeLanguagePreferences(initial = "en")
     }
 
@@ -135,7 +136,11 @@ class MoviesViewModelCoroutineTest {
         viewModel.movies.removeObserver(observer)
     }
 
-    private fun createViewModel() = MoviesViewModel(repository, languagePreferences)
+    private fun createViewModel() = MoviesViewModel(
+        repository,
+        languagePreferences,
+        TestFavoritesUpdateNotifier()
+    )
 }
 
 private class RecordingObserver<T> : Observer<T> {
@@ -163,7 +168,7 @@ private class FakeLanguagePreferences(initial: String) : LanguagePreferencesData
     }
 }
 
-private class FakeMoviesRepository : MoviesRepository {
+private class CoroutineFakeMoviesRepository : MoviesRepository {
     var configurationResult: Result<Configuration> = Result.success(Configuration())
     var genresResult: Result<List<Genre>> = Result.success(emptyList())
     var nowPlayingResult: Result<List<MovieList>> = Result.success(emptyList())

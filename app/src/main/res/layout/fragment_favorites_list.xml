@@ -36,7 +36,7 @@
 
     <ProgressBar
         android:id="@+id/favorites_list_loading"
-        style="?attr/progressBarStyleLarge"
+        style="?android:attr/progressBarStyleLarge"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"

@@ -58,7 +58,7 @@ class MoviesRefreshWorker(
                 PROGRESS_TOTAL to total,
                 PROGRESS_TITLE to title
             )
-            setProgress(progressData)
+            setProgressAsync(progressData)
             setForegroundAsync(notificationHelper.createForegroundInfo(current, total, title))
         }
 

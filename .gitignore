@@ -1,0 +1,28 @@
+# OS artifacts
+.DS_Store
+Thumbs.db
+
+# Gradle
+.gradle/
+build/
+**/build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+captures/
+.cxx/
+.externalNativeBuild/
+
+# Local configuration
+local.properties
+**/local.properties
+
+# Misc generated outputs
+*.log
+outputs/
+*.hprof
+

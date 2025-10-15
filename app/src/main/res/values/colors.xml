@@ -9,6 +9,7 @@
     <color name="white">#FFFFFFFF</color>
 
     <color name="background">#191926</color>
+    <color name="background_overlay">#E6191926</color>
     <color name="header">#ECECEC</color>
     <color name="rating_off">#6D6D80</color>
     <color name="rating_on">#FF3365</color>

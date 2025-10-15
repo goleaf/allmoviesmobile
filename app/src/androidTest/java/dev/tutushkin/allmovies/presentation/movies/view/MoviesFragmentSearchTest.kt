@@ -1,14 +1,20 @@
 package dev.tutushkin.allmovies.presentation.movies.view
 
 import android.content.Context
-import android.os.Build
-import android.view.View
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.fragment.app.testing.launchFragmentInContainer
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import androidx.recyclerview.widget.RecyclerView
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso.onView
+import androidx.test.espresso.action.ViewActions.click
+import androidx.test.espresso.action.ViewActions.typeText
+import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.ViewMatchers.hasDescendant
+import androidx.test.espresso.matcher.ViewMatchers.withContentDescription
+import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.withText
+import androidx.test.ext.junit.runners.AndroidJUnit4
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
@@ -18,36 +24,31 @@ import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.robolectric.RobolectricTestRunner
-import org.robolectric.annotation.Config
 
-@RunWith(RobolectricTestRunner::class)
-@Config(sdk = [Build.VERSION_CODES.P])
-class MoviesFragmentTest {
+@RunWith(AndroidJUnit4::class)
+@OptIn(ExperimentalCoroutinesApi::class)
+class MoviesFragmentSearchTest {
 
     @get:Rule
     val instantTaskExecutorRule = InstantTaskExecutorRule()
 
-    private val testDispatcher = StandardTestDispatcher()
-    private lateinit var repository: FakeMoviesRepository
+    private val dispatcher = StandardTestDispatcher()
+    private lateinit var repository: SearchFakeMoviesRepository
 
     @Before
-    fun setup() {
-        Dispatchers.setMain(testDispatcher)
-        repository = FakeMoviesRepository()
+    fun setUp() {
+        Dispatchers.setMain(dispatcher)
+        repository = SearchFakeMoviesRepository()
     }
 
     @After
@@ -56,36 +57,41 @@ class MoviesFragmentTest {
     }
 
     @Test
-    fun loadingVisibilityReflectsViewModelState() {
+    fun searchDisplaysRemoteResults() {
+        repository.nowPlaying = listOf(
+            MovieList(id = 1, title = "Intro", isFavorite = false)
+        )
+        repository.searchResults["Star"] = Result.success(
+            listOf(
+                MovieList(id = 10, title = "Star Journey", isFavorite = false),
+                MovieList(id = 11, title = "Star Knights", isFavorite = false)
+            )
+        )
+
         val context = ApplicationProvider.getApplicationContext<Context>()
         val languagePreferences = LanguagePreferences(context)
+        languagePreferences.setSelectedLanguage("en")
         val viewModel = MoviesViewModel(repository, languagePreferences)
         val factory = FakeMoviesViewModelFactory(viewModel)
 
-        val scenario = launchFragmentInContainer(themeResId = R.style.Theme_AppCompat) {
+        launchFragmentInContainer<MoviesFragment>(themeResId = R.style.Theme_AppCompat) {
             MoviesFragment().apply {
                 viewModelFactoryOverride = factory
             }
         }
 
-        testDispatcher.scheduler.runCurrent()
+        dispatcher.scheduler.advanceUntilIdle()
 
-        scenario.onFragment { fragment ->
-            val loadingView = fragment.requireView().findViewById<View>(R.id.movies_list_loading_container)
-            val recycler = fragment.requireView().findViewById<RecyclerView>(R.id.movies_list_recycler)
-            assertEquals(View.VISIBLE, loadingView.visibility)
-            assertFalse(recycler.isEnabled)
-        }
+        onView(withContentDescription(R.string.menu_search_content_description)).perform(click())
+        onView(withId(androidx.appcompat.R.id.search_src_text)).perform(typeText("Star"))
 
-        repository.emitNowPlaying(Result.success(emptyList()))
-        testDispatcher.scheduler.runCurrent()
+        dispatcher.scheduler.advanceTimeBy(MoviesViewModel.SEARCH_DEBOUNCE_MILLIS)
+        dispatcher.scheduler.advanceUntilIdle()
 
-        scenario.onFragment { fragment ->
-            val loadingView = fragment.requireView().findViewById<View>(R.id.movies_list_loading_container)
-            val recycler = fragment.requireView().findViewById<RecyclerView>(R.id.movies_list_recycler)
-            assertEquals(View.GONE, loadingView.visibility)
-            assertTrue(recycler.isEnabled)
-        }
+        onView(withId(R.id.movies_list_recycler))
+            .check(matches(hasDescendant(withText("Star Journey"))))
+        onView(withId(R.id.movies_list_recycler))
+            .check(matches(hasDescendant(withText("Star Knights"))))
     }
 
     private class FakeMoviesViewModelFactory(
@@ -100,8 +106,9 @@ class MoviesFragmentTest {
         }
     }
 
-    private class FakeMoviesRepository : MoviesRepository {
-        private var nowPlayingDeferred = CompletableDeferred<Result<List<MovieList>>>()
+    private class SearchFakeMoviesRepository : MoviesRepository {
+        var nowPlaying: List<MovieList> = emptyList()
+        val searchResults: MutableMap<String, Result<List<MovieList>>> = mutableMapOf()
 
         override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
             return Result.success(Configuration())
@@ -112,15 +119,7 @@ class MoviesFragmentTest {
         }
 
         override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
-            val result = nowPlayingDeferred.await()
-            nowPlayingDeferred = CompletableDeferred()
-            return result
-        }
-
-        fun emitNowPlaying(result: Result<List<MovieList>>) {
-            if (!nowPlayingDeferred.isCompleted) {
-                nowPlayingDeferred.complete(result)
-            }
+            return Result.success(nowPlaying)
         }
 
         override suspend fun searchMovies(
@@ -129,7 +128,7 @@ class MoviesFragmentTest {
             query: String,
             includeAdult: Boolean
         ): Result<List<MovieList>> {
-            return Result.success(emptyList())
+            return searchResults[query] ?: Result.success(emptyList())
         }
 
         override suspend fun getMovieDetails(
@@ -150,6 +149,9 @@ class MoviesFragmentTest {
         }
 
         override suspend fun setFavorite(movieId: Int, isFavorite: Boolean): Result<Unit> {
+            nowPlaying = nowPlaying.map { movie ->
+                if (movie.id == movieId) movie.copy(isFavorite = isFavorite) else movie
+            }
             return Result.success(Unit)
         }
 

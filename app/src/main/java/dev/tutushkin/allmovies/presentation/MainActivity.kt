@@ -20,6 +20,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 @ExperimentalSerializationApi
 class MainActivity : AppCompatActivity() {
 
+    private val deepLinkParser = MovieDeepLinkParser()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        NewNode.init()
@@ -39,20 +41,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun handleDeepLink(intent: Intent?): Boolean {
         val navController = findNavController(R.id.main_nav_host)
-        val data = intent?.data ?: return navController.handleDeepLink(intent)
-        if (data.scheme != "app" || data.host != "collection") {
-            return navController.handleDeepLink(intent)
-        }
-
-        val segments = data.pathSegments
-        if (segments.size < 2 || segments.first() != "movie") return false
-
-        val movieId = segments.getOrNull(1)?.toIntOrNull() ?: return false
-        val slug = segments.drop(2).takeIf { it.isNotEmpty() }?.joinToString("/")
+        val deepLink = deepLinkParser.parse(intent?.data) ?: return navController.handleDeepLink(intent)
 
         val args = bundleOf(
-            ARG_MOVIE_ID to movieId,
-            ARG_MOVIE_SLUG to slug,
+            ARG_MOVIE_ID to deepLink.movieId,
+            ARG_MOVIE_SLUG to deepLink.slug,
             ARG_MOVIE_SHARED to true
         )
 

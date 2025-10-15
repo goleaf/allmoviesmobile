@@ -75,10 +75,9 @@ class MoviesRepositoryImplTest {
         configurationDataStore.write(Configuration(imagesBaseUrl = "https://images.test/"))
         val context = ApplicationProvider.getApplicationContext<Context>()
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        NetworkModule.configApi = Configuration()
         imageSizeSelector = ImageSizeSelector(
             connectivityManager = connectivityManager,
-            configurationProvider = { NetworkModule.configApi },
+            configurationProvider = { Configuration() },
             deviceWidthProvider = { 500 },
             bandwidthProvider = { 5_000 }
         )

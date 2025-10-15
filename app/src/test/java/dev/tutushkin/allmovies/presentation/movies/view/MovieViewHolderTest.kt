@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.test.core.app.ApplicationProvider
 import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
 import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
@@ -28,7 +29,8 @@ class MovieViewHolderTest {
         val themedContext = ContextThemeWrapper(baseContext, R.style.Theme_AllMovies)
         val parent = FrameLayout(themedContext)
         val binding = ViewHolderMovieBinding.inflate(LayoutInflater.from(themedContext), parent, false)
-        val viewHolder = MovieViewHolder(binding)
+        val imageSizeSelector = baseContext.createImageSizeSelector()
+        val viewHolder = MovieViewHolder(binding, imageSizeSelector)
 
         var toggleRequest: Pair<Int, Boolean>? = null
         val listener = object : MoviesClickListener {

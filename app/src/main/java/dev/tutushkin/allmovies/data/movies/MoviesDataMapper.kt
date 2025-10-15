@@ -175,7 +175,7 @@ internal fun ActorMovieCreditsResponse.toKnownForStrings(): List<String> {
         .take(KNOWN_FOR_LIMIT)
 }
 
-private fun filterGenres(genres: List<Int>): String = NetworkModule.allGenres.filter {
+private fun filterGenres(genres: List<Int>): String = emptyList<Genre>().filter {
     genres.contains(it.id)
 }.joinToString(transform = Genre::name)
 

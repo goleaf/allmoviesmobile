@@ -9,18 +9,9 @@ import kotlin.math.abs
 
 class ImageSizeSelector(
     private val connectivityManager: ConnectivityManager,
-    private val configurationProvider: () -> Configuration = { NetworkModule.configApi },
+    private val configurationProvider: () -> Configuration = { Configuration() },
     private val deviceWidthProvider: () -> Int,
-    private val bandwidthProvider: (ConnectivityManager) -> Int? = { cm ->
-        val network = cm.activeNetwork ?: return@bandwidthProvider null
-        val capabilities = cm.getNetworkCapabilities(network) ?: return@bandwidthProvider null
-        val downstream = capabilities.linkDownstreamBandwidthKbps
-        if (downstream == NetworkCapabilities.LINK_BANDWIDTH_UNSPECIFIED || downstream <= 0) {
-            null
-        } else {
-            downstream
-        }
-    }
+    private val bandwidthProvider: (ConnectivityManager) -> Int? = ::getBandwidth
 ) {
 
     fun posterSpec(): PosterSpec = selectPosterSpec()
@@ -116,6 +107,13 @@ class ImageSizeSelector(
         private const val FAST_BANDWIDTH_THRESHOLD_KBPS = 1_500
         private const val SLOW_THUMBNAIL_MULTIPLIER = 0.5f
         private val DEFAULT_SIZE_PAIR = DEFAULT_POSTER_SIZE to DEFAULT_WIDTH
+        
+        private fun getBandwidth(cm: ConnectivityManager): Int? {
+            val network = cm.activeNetwork ?: return null
+            val capabilities = cm.getNetworkCapabilities(network) ?: return null
+            val downstream = capabilities.linkDownstreamBandwidthKbps
+            return if (downstream <= 0) null else downstream
+        }
     }
 }
 

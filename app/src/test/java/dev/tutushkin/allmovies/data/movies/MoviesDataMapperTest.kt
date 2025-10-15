@@ -29,7 +29,7 @@ class MoviesDataMapperTest {
         val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
         imageSizeSelector = ImageSizeSelector(
             connectivityManager = connectivityManager,
-            configurationProvider = { NetworkModule.configApi },
+            configurationProvider = { Configuration() },
             deviceWidthProvider = { 400 },
             bandwidthProvider = { 5_000 }
         )
@@ -56,9 +56,6 @@ class MoviesDataMapperTest {
 
         val entity = dto.toEntity(imageSizeSelector)
 
-        val entity = dto.toEntity(imageSizeSelector)
-
-
         assertEquals("", entity.poster)
     }
 
@@ -80,9 +77,6 @@ class MoviesDataMapperTest {
 
         val entity = dto.toEntity(imageSizeSelector)
 
-        val entity = dto.toEntity(imageSizeSelector)
-
-
         assertEquals("", entity.backdrop)
     }
 
@@ -96,9 +90,6 @@ class MoviesDataMapperTest {
 
 
         val entity = dto.toEntity(imageSizeSelector)
-
-        val entity = dto.toEntity(imageSizeSelector)
-
 
         assertEquals("", entity.photo)
     }
@@ -116,11 +107,7 @@ class MoviesDataMapperTest {
             genreIds = listOf(1)
         )
 
-
         val entity = dto.toEntity(imageSizeSelector)
-
-        val entity = dto.toEntity(imageSizeSelector)
-
 
         assertEquals("", entity.year)
     }
@@ -140,9 +127,6 @@ class MoviesDataMapperTest {
 
 
         val entity = dto.toEntity(imageSizeSelector)
-
-        val entity = dto.toEntity(imageSizeSelector)
-
 
         assertEquals("", entity.year)
     }

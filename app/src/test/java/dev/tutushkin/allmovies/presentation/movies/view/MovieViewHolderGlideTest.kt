@@ -8,6 +8,7 @@ import androidx.test.core.app.ApplicationProvider
 import com.bumptech.glide.request.target.Target
 import dev.tutushkin.allmovies.data.movies.ImageSizeSelector
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
+import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import org.junit.Assert.assertEquals
@@ -46,7 +47,7 @@ class MovieViewHolderGlideTest {
             poster = posterUrl,
             ratings = 8.0f,
             numberOfRatings = 10,
-            minimumAge = "13+",
+            certification = Certification(code = "PG-13", label = "13+"),
             year = "2023",
             genres = "Action",
             isFavorite = false
@@ -73,7 +74,7 @@ class MovieViewHolderGlideTest {
             poster = posterUrl,
             ratings = 7.0f,
             numberOfRatings = 5,
-            minimumAge = "13+",
+            certification = Certification(code = "PG-13", label = "13+"),
             year = "2022",
             genres = "Drama",
             isFavorite = true

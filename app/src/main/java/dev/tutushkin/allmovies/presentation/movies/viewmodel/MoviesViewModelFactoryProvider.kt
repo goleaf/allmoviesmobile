@@ -4,6 +4,7 @@ import androidx.fragment.app.Fragment
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
@@ -24,7 +25,8 @@ fun Fragment.provideMoviesViewModelFactory(): MoviesViewModelFactory {
         db.genresDao()
     )
     val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
-    val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
+    val imageSizeSelector = application.createImageSizeSelector()
+    val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO, imageSizeSelector)
     val languagePreferences = LanguagePreferences(requireContext().applicationContext)
     val favoritesNotifier = FavoritesUpdateNotifierProvider.notifier
     return MoviesViewModelFactory(repository, languagePreferences, favoritesNotifier)

@@ -1,5 +1,9 @@
 package dev.tutushkin.allmovies.data.movies
 
+import android.content.Context
+import android.net.ConnectivityManager
+import androidx.test.core.app.ApplicationProvider
+import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.local.ActorEntity
 import dev.tutushkin.allmovies.data.movies.local.ActorDetailsEntity
 import dev.tutushkin.allmovies.data.movies.local.ConfigurationEntity
@@ -7,15 +11,16 @@ import dev.tutushkin.allmovies.data.movies.local.GenreEntity
 import dev.tutushkin.allmovies.data.movies.local.MovieDetailsEntity
 import dev.tutushkin.allmovies.data.movies.local.MovieListEntity
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSource
+import dev.tutushkin.allmovies.data.movies.remote.ActorDetailsResponse
+import dev.tutushkin.allmovies.data.movies.remote.ActorMovieCreditsResponse
 import dev.tutushkin.allmovies.data.movies.remote.ConfigurationDto
 import dev.tutushkin.allmovies.data.movies.remote.GenreDto
 import dev.tutushkin.allmovies.data.movies.remote.MovieActorDto
 import dev.tutushkin.allmovies.data.movies.remote.MovieDetailsResponse
 import dev.tutushkin.allmovies.data.movies.remote.MovieListDto
-import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
 import dev.tutushkin.allmovies.data.movies.remote.MovieVideoDto
-import dev.tutushkin.allmovies.data.movies.remote.ActorDetailsResponse
-import dev.tutushkin.allmovies.data.movies.remote.ActorMovieCreditsResponse
+import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
+import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -25,7 +30,10 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class MoviesRepositoryImplTest {
 
@@ -33,6 +41,7 @@ class MoviesRepositoryImplTest {
     private lateinit var remoteDataSource: FakeMoviesRemoteDataSource
     private lateinit var localDataSource: FakeMoviesLocalDataSource
     private lateinit var repository: MoviesRepositoryImpl
+    private lateinit var imageSizeSelector: ImageSizeSelector
 
     private companion object {
         private const val LANGUAGE = "en"
@@ -42,7 +51,16 @@ class MoviesRepositoryImplTest {
     fun setUp() {
         remoteDataSource = FakeMoviesRemoteDataSource()
         localDataSource = FakeMoviesLocalDataSource()
-        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, dispatcher)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        NetworkModule.configApi = Configuration()
+        imageSizeSelector = ImageSizeSelector(
+            connectivityManager = connectivityManager,
+            configurationProvider = { NetworkModule.configApi },
+            deviceWidthProvider = { 500 },
+            bandwidthProvider = { 5_000 }
+        )
+        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, dispatcher, imageSizeSelector)
     }
 
     @Test

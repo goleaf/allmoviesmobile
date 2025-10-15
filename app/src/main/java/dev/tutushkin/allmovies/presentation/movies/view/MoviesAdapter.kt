@@ -4,11 +4,14 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
+import dev.tutushkin.allmovies.data.movies.ImageSizeSelector
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 
 class MoviesAdapter(
-    private val clickListener: MoviesClickListener
+    private val clickListener: MoviesClickListener,
+    private val imageSizeSelector: ImageSizeSelector,
+    private val requestManagerFactory: PosterRequestManagerFactory = DefaultPosterRequestManagerFactory
 ) : ListAdapter<MovieList, MovieViewHolder>(
     MoviesListDiffCallback()
 ) {
@@ -16,7 +19,7 @@ class MoviesAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = ViewHolderMovieBinding.inflate(layoutInflater, parent, false)
-        return MovieViewHolder(binding)
+        return MovieViewHolder(binding, imageSizeSelector, requestManagerFactory)
     }
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {

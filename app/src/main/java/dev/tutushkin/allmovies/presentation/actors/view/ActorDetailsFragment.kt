@@ -14,6 +14,7 @@ import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
@@ -46,7 +47,8 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
             db.configurationDao(),
             db.genresDao(),
         )
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
+        val imageSizeSelector = requireContext().createImageSizeSelector()
+        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO, imageSizeSelector)
         val languagePreferences = LanguagePreferences(requireContext().applicationContext)
         ActorDetailsViewModelFactory(repository, args.actorId, languagePreferences.getSelectedLanguage())
     }

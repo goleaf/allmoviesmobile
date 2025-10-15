@@ -10,7 +10,8 @@ import kotlinx.coroutines.withContext
 class MoviesRepositoryImpl(
     private val moviesRemoteDataSource: MoviesRemoteDataSource,
     private val moviesLocalDataSource: MoviesLocalDataSource,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher,
+    private val imageSizeSelector: ImageSizeSelector
 ) : MoviesRepository {
 
     override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> =
@@ -130,7 +131,7 @@ class MoviesRepositoryImpl(
         moviesRemoteDataSource.searchMovies(apiKey, language, query, includeAdult)
             .mapCatching { dtos ->
                 dtos.map { dto ->
-                    val entity = dto.toEntity()
+                    val entity = dto.toEntity(imageSizeSelector)
                     val merged = if (favoriteIds.contains(entity.id)) {
                         entity.copy(isFavorite = true)
                     } else {
@@ -149,7 +150,7 @@ class MoviesRepositoryImpl(
             runCatching {
                 moviesRemoteDataSource.getNowPlaying(apiKey, language)
                     .getOrThrow()
-                    .map { it.toEntity() }
+                    .map { it.toEntity(imageSizeSelector) }
             }
         }
 
@@ -239,7 +240,7 @@ class MoviesRepositoryImpl(
                 .mapCatching { response -> response.toKnownForStrings() }
                 .getOrElse { emptyList() }
 
-            val entity = detailsResult.getOrThrow().toEntity(knownFor)
+            val entity = detailsResult.getOrThrow().toEntity(knownFor, imageSizeSelector)
             moviesLocalDataSource.setActorDetails(entity)
             localDetails = entity
         }
@@ -258,7 +259,7 @@ class MoviesRepositoryImpl(
     ): Result<MovieDetailsEntity> =
         withContext(ioDispatcher) {
             moviesRemoteDataSource.getMovieDetails(movieId, apiKey, language)
-                .mapCatching { it.toEntity() }
+                .mapCatching { it.toEntity(imageSizeSelector) }
         }
 
     private suspend fun getActorsData(
@@ -298,7 +299,7 @@ class MoviesRepositoryImpl(
             runCatching {
                 moviesRemoteDataSource.getActors(movieId, apiKey, language)
                     .getOrThrow()
-                    .map { it.toEntity() }
+                    .map { it.toEntity(imageSizeSelector) }
             }
         }
 

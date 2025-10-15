@@ -1,5 +1,8 @@
 package dev.tutushkin.allmovies.data.movies
 
+import android.content.Context
+import android.net.ConnectivityManager
+import androidx.test.core.app.ApplicationProvider
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.remote.GenreDto
 import dev.tutushkin.allmovies.data.movies.remote.MovieActorDto
@@ -11,13 +14,26 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 class MoviesDataMapperTest {
+
+    private lateinit var imageSizeSelector: ImageSizeSelector
 
     @Before
     fun setUp() {
         NetworkModule.configApi = Configuration(imagesBaseUrl = "https://example.com/")
         NetworkModule.allGenres = listOf(Genre(id = 1, name = "Action"))
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        imageSizeSelector = ImageSizeSelector(
+            connectivityManager = connectivityManager,
+            configurationProvider = { NetworkModule.configApi },
+            deviceWidthProvider = { 400 },
+            bandwidthProvider = { 5_000 }
+        )
     }
 
     @After
@@ -39,7 +55,7 @@ class MoviesDataMapperTest {
             genreIds = listOf(1)
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(imageSizeSelector)
 
         assertEquals("", entity.poster)
     }
@@ -59,7 +75,7 @@ class MoviesDataMapperTest {
             genres = listOf(GenreDto(id = 1, name = "Action"))
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(imageSizeSelector)
 
         assertEquals("", entity.backdrop)
     }
@@ -72,7 +88,7 @@ class MoviesDataMapperTest {
             profilePath = null
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(imageSizeSelector)
 
         assertEquals("", entity.photo)
     }
@@ -90,7 +106,7 @@ class MoviesDataMapperTest {
             genreIds = listOf(1)
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(imageSizeSelector)
 
         assertEquals("", entity.year)
     }
@@ -108,7 +124,7 @@ class MoviesDataMapperTest {
             genreIds = listOf(1)
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(imageSizeSelector)
 
         assertEquals("", entity.year)
     }

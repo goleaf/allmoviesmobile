@@ -1,6 +1,5 @@
 package dev.tutushkin.allmovies.data.movies
 
-import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.*
 import dev.tutushkin.allmovies.domain.movies.models.Genre
@@ -8,10 +7,10 @@ import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal fun MovieListDto.toEntity(): MovieListEntity = MovieListEntity(
+internal fun MovieListDto.toEntity(imageSizeSelector: ImageSizeSelector): MovieListEntity = MovieListEntity(
     id = this.id,
     title = this.title,
-    poster = getImageUrl(this.posterPath),
+    poster = getImageUrl(this.posterPath, imageSizeSelector),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
     minimumAge = normalizeAge(this.adult),
@@ -20,12 +19,12 @@ internal fun MovieListDto.toEntity(): MovieListEntity = MovieListEntity(
     isFavorite = false,
 )
 
-internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsEntity(
+internal fun MovieDetailsResponse.toEntity(imageSizeSelector: ImageSizeSelector): MovieDetailsEntity = MovieDetailsEntity(
     id = this.id,
     title = this.title,
     overview = this.overview,
-    poster = getImageUrl(this.posterPath),
-    backdrop = getImageUrl(this.backdropPath),
+    poster = getImageUrl(this.posterPath, imageSizeSelector),
+    backdrop = getImageUrl(this.backdropPath, imageSizeSelector),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
     minimumAge = normalizeAge(this.adult),
@@ -36,20 +35,23 @@ internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsE
     isFavorite = false,
 )
 
-internal fun MovieActorDto.toEntity(): ActorEntity = ActorEntity(
+internal fun MovieActorDto.toEntity(imageSizeSelector: ImageSizeSelector): ActorEntity = ActorEntity(
     id = this.id,
     name = this.name,
-    photo = getImageUrl(this.profilePath)
+    photo = getImageUrl(this.profilePath, imageSizeSelector)
 )
 
-internal fun ActorDetailsResponse.toEntity(knownFor: List<String>): ActorDetailsEntity = ActorDetailsEntity(
+internal fun ActorDetailsResponse.toEntity(
+    knownFor: List<String>,
+    imageSizeSelector: ImageSizeSelector
+): ActorDetailsEntity = ActorDetailsEntity(
     id = this.id,
     name = this.name,
     biography = this.biography.orEmpty(),
     birthday = this.birthday,
     deathday = this.deathday,
     birthplace = this.placeOfBirth,
-    profileImage = getImageUrl(this.profilePath).ifBlank { null },
+    profileImage = getImageUrl(this.profilePath, imageSizeSelector).ifBlank { null },
     knownForDepartment = this.knownForDepartment,
     alsoKnownAs = this.alsoKnownAs ?: emptyList(),
     imdbId = this.imdbId,
@@ -70,9 +72,12 @@ internal fun ConfigurationDto.toEntity(): ConfigurationEntity = ConfigurationEnt
     profileSizes = this.profileSizes
 )
 
-private fun getImageUrl(posterPath: String?): String {
+private fun getImageUrl(
+    posterPath: String?,
+    imageSizeSelector: ImageSizeSelector
+): String {
     if (posterPath.isNullOrBlank()) return ""
-    return "${NetworkModule.configApi.imagesBaseUrl}w342$posterPath"
+    return imageSizeSelector.buildPosterUrl(posterPath)
 }
 
 private fun normalizeAge(isAdult: Boolean): String = if (isAdult) {

@@ -17,6 +17,7 @@ import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesViewMod
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.provideFavoritesViewModelFactory
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesAdapter
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesClickListener
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
@@ -71,7 +72,8 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
+        val imageSizeSelector = requireContext().createImageSizeSelector()
+        adapter = MoviesAdapter(listener, imageSizeSelector)
         binding.favoritesListRecycler.adapter = adapter
 
         favoritesViewModel.favorites.observe(viewLifecycleOwner, ::renderState)

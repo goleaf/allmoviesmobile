@@ -5,7 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
+import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.launch
 
 class ActorDetailsViewModel(
@@ -29,7 +31,7 @@ class ActorDetailsViewModel(
         viewModelScope.launch {
             if (actorId <= 0) {
                 _actorDetails.value =
-                    ActorDetailsState.Error(IllegalArgumentException("Missing actor id"))
+                    ActorDetailsState.Error(UiText.stringResource(R.string.actor_details_error))
                 return@launch
             }
 
@@ -48,9 +50,7 @@ class ActorDetailsViewModel(
         return if (result.isSuccess) {
             ActorDetailsState.Result(result.getOrThrow())
         } else {
-            ActorDetailsState.Error(
-                result.exceptionOrNull() ?: Exception("Error loading actor details from the server!"),
-            )
+            ActorDetailsState.Error(UiText.stringResource(R.string.actor_details_error))
         }
     }
 }

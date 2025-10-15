@@ -5,12 +5,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
+import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
+import dev.tutushkin.allmovies.utils.UiText
 import dev.tutushkin.allmovies.utils.logging.Logger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -100,7 +102,7 @@ class MoviesViewModel(
             MoviesState.Result(movies)
         } else {
             cachedMovies = emptyList()
-            MoviesState.Error(IllegalArgumentException("Error loading movies from the server!"))
+            MoviesState.Error(UiText.stringResource(R.string.movies_list_error_generic))
         }
     }
 
@@ -178,8 +180,7 @@ class MoviesViewModel(
             } else {
                 lastSearchResults = emptyList()
                 _searchState.value = MoviesSearchState.Error(
-                    query,
-                    result.exceptionOrNull() ?: IllegalStateException("Search request failed")
+                    UiText.stringResource(R.string.movies_search_error, query)
                 )
             }
         }

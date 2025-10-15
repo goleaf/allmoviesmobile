@@ -5,9 +5,11 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
+import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.launch
 
 class MovieDetailsViewModel(
@@ -26,7 +28,9 @@ class MovieDetailsViewModel(
     init {
         viewModelScope.launch {
             if (id <= 0) {
-                _currentMovie.value = MovieDetailsState.Error(IllegalArgumentException("Missing movie id"))
+                _currentMovie.value = MovieDetailsState.Error(
+                    UiText.stringResource(R.string.movie_details_error_generic)
+                )
                 return@launch
             }
 
@@ -47,10 +51,11 @@ class MovieDetailsViewModel(
             ensureCached = true
         )
 
-        return if (movieDetails.isSuccess)
+        return if (movieDetails.isSuccess) {
             MovieDetailsState.Result(movieDetails.getOrThrow())
-        else
-            MovieDetailsState.Error(Exception("Error loading movie details from the server!"))
+        } else {
+            MovieDetailsState.Error(UiText.stringResource(R.string.movie_details_error_generic))
+        }
     }
 
     fun toggleFavorite() {

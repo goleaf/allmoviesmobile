@@ -36,6 +36,7 @@
     <string name="movies_list_favorite_add">Add to favorites</string>
     <string name="movies_list_favorite_remove">Remove from favorites</string>
     <string name="movies_list_loading_message">Loading movies…</string>
+    <string name="movies_list_error_generic">Unable to load movies right now.</string>
 
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>
@@ -78,6 +79,7 @@
     <string name="movie_details_favorite_add">Mark as favorite</string>
     <string name="movie_details_favorite_remove">Remove from favorites</string>
     <string name="movie_details_favorite_content_description">Toggle favorite</string>
+    <string name="movie_details_error_generic">Unable to load movie details.</string>
 
     <string name="favorites_list_title">Favorites</string>
     <string name="favorites_list_empty">No favorite movies yet.</string>

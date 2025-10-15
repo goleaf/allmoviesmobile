@@ -32,6 +32,7 @@
     <string name="movies_list_year_unknown">Unknown</string>
     <string name="movies_list_favorite_add">Add to favorites</string>
     <string name="movies_list_favorite_remove">Remove from favorites</string>
+    <string name="movies_list_loading_message">Loading movies…</string>
 
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>

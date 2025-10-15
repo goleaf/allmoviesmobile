@@ -10,6 +10,7 @@
     <string name="movie_details_share_message">Check out %1$s: %2$s</string>
     <string name="movie_details_share_chooser_title">Share movie</string>
     <string name="movie_details_share_error">Nothing to share yet</string>
+    <string name="movie_details_runtime_year_accessibility">Runtime %1$d minutes, release year %2$s</string>
 
     <string name="actor_details_title">Actor details</string>
     <string name="actor_details_biography">Biography</string>

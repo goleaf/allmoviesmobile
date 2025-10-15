@@ -167,7 +167,7 @@
 
         <TextView
             android:id="@+id/movies_details_duration_text"
-            android:layout_width="0dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
             android:gravity="start|center_vertical"
@@ -176,6 +176,18 @@
             app:layout_constraintStart_toStartOf="@+id/left_guideline"
             app:layout_constraintTop_toBottomOf="@+id/movies_details_rating"
             tools:text="137 MIN" />
+
+        <TextView
+            android:id="@+id/movies_details_year_text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:gravity="start|center_vertical"
+            android:textColor="@color/movie_length"
+            android:textSize="14sp"
+            app:layout_constraintStart_toEndOf="@+id/movies_details_duration_text"
+            app:layout_constraintBaseline_toBaselineOf="@+id/movies_details_duration_text"
+            tools:text="2020" />
 
         <TextView
             android:id="@+id/movies_details_storyline_header_text"

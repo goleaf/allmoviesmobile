@@ -13,9 +13,10 @@ import dev.tutushkin.allmovies.data.movies.local.*
         MovieDetailsEntity::class,
         GenreEntity::class,
         ActorEntity::class,
-        ConfigurationEntity::class
+        ConfigurationEntity::class,
+        DraftMovieEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -26,6 +27,8 @@ abstract class MoviesDb : RoomDatabase() {
     abstract fun genresDao(): GenresDao
     abstract fun actorsDao(): ActorsDao
     abstract fun configurationDao(): ConfigurationDao
+
+    abstract fun draftMoviesDao(): DraftMovieDao
 
     companion object {
 

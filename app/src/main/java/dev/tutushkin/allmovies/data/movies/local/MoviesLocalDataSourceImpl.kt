@@ -5,7 +5,8 @@ class MoviesLocalDataSourceImpl(
     private val movieDetailsDao: MovieDetailsDao,
     private val actorsDao: ActorsDao,
     private val configurationDao: ConfigurationDao,
-    private val genresDao: GenresDao
+    private val genresDao: GenresDao,
+    private val draftMovieDao: DraftMovieDao
 ) : MoviesLocalDataSource {
 
     override suspend fun getConfiguration(): ConfigurationEntity? =
@@ -64,5 +65,32 @@ class MoviesLocalDataSourceImpl(
 
     override suspend fun clearActors() {
         actorsDao.deleteAll()
+    }
+
+    override suspend fun upsertDraftMovie(movie: DraftMovieEntity): Long {
+        return if (movie.id == 0L) {
+            draftMovieDao.insert(movie)
+        } else {
+            draftMovieDao.update(movie)
+            movie.id
+        }
+    }
+
+    override suspend fun updateDraftMovie(movie: DraftMovieEntity) {
+        draftMovieDao.update(movie)
+    }
+
+    override suspend fun getDraftMovie(id: Long): DraftMovieEntity? =
+        draftMovieDao.getById(id)
+
+    override suspend fun getDraftMovies(): List<DraftMovieEntity> =
+        draftMovieDao.getAll()
+
+    override suspend fun deleteDraftMovie(id: Long) {
+        draftMovieDao.delete(id)
+    }
+
+    override suspend fun clearDraftMovies() {
+        draftMovieDao.clear()
     }
 }

@@ -12,6 +12,8 @@ if (localPropertiesFile.exists()) {
 }
 def apiKey = (localProperties['apiKey'] ?: "64b046ff6c8ba1672ae93b398857b4e1").toString()
 def escapedApiKey = apiKey.replace('"', '\\"')
+def youtubeKey = (localProperties['youtubeKey'] ?: "").toString()
+def escapedYoutubeKey = youtubeKey.replace('"', '\\"')
 
 android {
     compileSdkVersion 32
@@ -26,6 +28,7 @@ android {
 
         buildConfigField "String", "BASE_URL", "\"https://api.themoviedb.org/3/\""
         buildConfigField "String", "API_KEY", "\"${escapedApiKey}\""
+        buildConfigField "String", "YOUTUBE_API_KEY", "\"${escapedYoutubeKey}\""
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }

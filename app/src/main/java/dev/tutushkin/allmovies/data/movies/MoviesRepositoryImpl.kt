@@ -1,9 +1,14 @@
 package dev.tutushkin.allmovies.data.movies
 
+import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
-import dev.tutushkin.allmovies.domain.movies.models.*
+import dev.tutushkin.allmovies.domain.movies.models.Configuration
+import dev.tutushkin.allmovies.domain.movies.models.DraftMovie
+import dev.tutushkin.allmovies.domain.movies.models.Genre
+import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
+import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 
@@ -200,4 +205,109 @@ class MoviesRepositoryImpl(
         }
     }
 
+    override suspend fun saveDraft(movie: DraftMovie): Result<Long> = withContext(ioDispatcher) {
+        runCatching {
+            val timestamp = System.currentTimeMillis()
+            moviesLocalDataSource.upsertDraftMovie(movie.toEntity(timestamp))
+        }
+    }
+
+    override suspend fun updateDraft(movie: DraftMovie): Result<Unit> = withContext(ioDispatcher) {
+        runCatching {
+            val timestamp = System.currentTimeMillis()
+            moviesLocalDataSource.updateDraftMovie(movie.toEntity(timestamp))
+        }
+    }
+
+    override suspend fun getDraft(id: Long): Result<DraftMovie?> = withContext(ioDispatcher) {
+        runCatching {
+            moviesLocalDataSource.getDraftMovie(id)?.toModel()
+        }
+    }
+
+    override suspend fun getDrafts(): Result<List<DraftMovie>> = withContext(ioDispatcher) {
+        runCatching {
+            moviesLocalDataSource.getDraftMovies().map { it.toModel() }
+        }
+    }
+
+    override suspend fun deleteDraft(id: Long): Result<Unit> = withContext(ioDispatcher) {
+        runCatching {
+            moviesLocalDataSource.deleteDraftMovie(id)
+        }
+    }
+
+    override suspend fun downloadDraftFromImdb(
+        imdbId: String,
+        apiKey: String
+    ): Result<DraftMovie> = withContext(ioDispatcher) {
+        runCatching {
+            val findResponse = moviesRemoteDataSource.findByImdb(imdbId, apiKey).getOrThrow()
+            val findResult = findResponse.movieResults.firstOrNull()
+            val movieId = findResult?.id
+                ?: throw NoSuchElementException("Movie not found")
+            val details = moviesRemoteDataSource.getMovieDetails(movieId, apiKey).getOrThrow()
+            val actors = moviesRemoteDataSource.getActors(movieId, apiKey)
+                .getOrDefault(emptyList())
+
+            val akaTitles = mutableListOf<String>()
+            if (!findResult?.title.isNullOrBlank()) {
+                akaTitles += findResult!!.title
+            }
+            if (details.title.isNotBlank() && !akaTitles.contains(details.title)) {
+                akaTitles += details.title
+            }
+
+            val releaseDate = when {
+                details.releaseDate.isNotBlank() -> details.releaseDate
+                !findResult?.releaseDate.isNullOrBlank() -> findResult!!.releaseDate
+                else -> ""
+            }
+
+            val notes = if (details.overview.isNotBlank()) {
+                details.overview
+            } else {
+                findResult?.overview.orEmpty()
+            }
+
+            DraftMovie(
+                id = 0L,
+                title = details.title,
+                titleOrder = details.title,
+                akaTitles = akaTitles,
+                durationMinutes = details.runtime.takeIf { it > 0 },
+                formats = emptyList(),
+                mpaaRating = if (details.adult) DEFAULT_ADULT_MPAA else DEFAULT_GENERAL_MPAA,
+                cast = actors.take(MAX_CAST_RESULTS).map { it.name },
+                crew = emptyList(),
+                trailerUrl = "",
+                releaseDate = releaseDate,
+                personalNotes = notes,
+                imdbId = imdbId,
+                coverUri = buildRemotePosterUrl(details.backdropPath ?: findResult?.posterPath),
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
+            )
+        }
+    }
+
+    private fun buildRemotePosterUrl(path: String?): String? {
+        if (path.isNullOrBlank()) return null
+        val baseUrl = NetworkModule.configApi.imagesBaseUrl
+        if (baseUrl.isBlank()) {
+            return path
+        }
+        return if (path.startsWith("http")) {
+            path
+        } else {
+            "$baseUrl${DEFAULT_POSTER_SIZE}$path"
+        }
+    }
+
+    companion object {
+        private const val DEFAULT_POSTER_SIZE = "w500"
+        private const val DEFAULT_ADULT_MPAA = "NC-17"
+        private const val DEFAULT_GENERAL_MPAA = "PG-13"
+        private const val MAX_CAST_RESULTS = 10
+    }
 }

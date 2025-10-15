@@ -45,7 +45,8 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             db.movieDetails(),
             db.actorsDao(),
             db.configurationDao(),
-            db.genresDao()
+            db.genresDao(),
+            db.draftMoviesDao()
         )
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)

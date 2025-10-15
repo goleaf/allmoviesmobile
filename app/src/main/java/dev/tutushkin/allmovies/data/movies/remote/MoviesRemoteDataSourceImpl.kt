@@ -32,4 +32,9 @@ class MoviesRemoteDataSourceImpl(
             moviesApi.getActors(movieId, apiKey).cast
         }
 
+    override suspend fun findByImdb(imdbId: String, apiKey: String): Result<FindResponse> =
+        runCatching {
+            moviesApi.findByImdb(imdbId, apiKey)
+        }
+
 }

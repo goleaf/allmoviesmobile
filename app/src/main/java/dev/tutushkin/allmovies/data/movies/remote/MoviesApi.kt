@@ -32,4 +32,11 @@ interface MoviesApi {
         @Path("movie_id") movieId: Int,
         @Query("api_key") apiKey: String
     ): MovieActorsResponse
+
+    @GET("find/{external_id}")
+    suspend fun findByImdb(
+        @Path("external_id") externalId: String,
+        @Query("api_key") apiKey: String,
+        @Query("external_source") externalSource: String = "imdb_id"
+    ): FindResponse
 }

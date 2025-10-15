@@ -32,7 +32,7 @@ object NetworkModule {
         level = HttpLoggingInterceptor.Level.BODY
     }
 
-    private val client = OkHttpClient().newBuilder()
+    val httpClient: OkHttpClient = OkHttpClient().newBuilder()
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS)
@@ -45,7 +45,7 @@ object NetworkModule {
     @ExperimentalSerializationApi
     private val retrofit = Retrofit.Builder()
         .baseUrl(BuildConfig.BASE_URL)
-        .client(client)
+        .client(httpClient)
         .addConverterFactory(json.asConverterFactory(contentType))
         .build()
 

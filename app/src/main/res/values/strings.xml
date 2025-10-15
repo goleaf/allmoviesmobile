@@ -11,4 +11,35 @@
     <string name="movies_list_duration">%1$d MIN</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Unknown</string>
+
+    <string name="movie_form_cover_content_description">Movie cover</string>
+    <string name="movie_form_pick_cover">Pick cover</string>
+    <string name="movie_form_remove_cover">Remove cover</string>
+    <string name="movie_form_title">Title</string>
+    <string name="movie_form_title_order">Title order</string>
+    <string name="movie_form_aka_titles">AKA titles</string>
+    <string name="movie_form_duration">Duration (min)</string>
+    <string name="movie_form_release_date">Release date (yyyy-MM-dd)</string>
+    <string name="movie_form_formats">Formats</string>
+    <string name="movie_form_mpaa">MPAA rating</string>
+    <string name="movie_form_cast">Cast</string>
+    <string name="movie_form_crew">Crew</string>
+    <string name="movie_form_trailer">Trailer URL</string>
+    <string name="movie_form_search_trailer">Search YouTube trailer</string>
+    <string name="movie_form_personal_notes">Personal notes</string>
+    <string name="movie_form_imdb_id">IMDb ID</string>
+    <string name="movie_form_download_imdb">Download from IMDb</string>
+    <string name="movie_form_save">Save</string>
+    <string name="movie_form_save_add_another">Save and add another</string>
+    <string name="movie_form_validation_title">Title is required</string>
+    <string name="movie_form_validation_duration">Duration must be numeric</string>
+    <string name="movie_form_validation_release_date">Invalid date (use yyyy-MM-dd)</string>
+    <string name="movie_form_validation_trailer">Invalid trailer URL</string>
+    <string name="movie_form_saved_message">Movie saved</string>
+    <string name="movie_form_saved_add_another">Movie saved. Add another.</string>
+    <string name="movie_form_cover_removed">Cover removed</string>
+    <string name="movie_form_download_failed">Unable to download details</string>
+    <string name="movie_form_trailer_not_found">No trailer found</string>
+    <string name="movie_form_trailer_error">Unable to fetch trailer</string>
+    <string name="movie_form_imdb_required">IMDb ID is required</string>
 </resources>

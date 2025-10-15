@@ -33,4 +33,16 @@ interface MoviesLocalDataSource {
     suspend fun setActorsLoaded(movieId: Int)
 
     suspend fun clearActors()
+
+    suspend fun upsertDraftMovie(movie: DraftMovieEntity): Long
+
+    suspend fun updateDraftMovie(movie: DraftMovieEntity)
+
+    suspend fun getDraftMovie(id: Long): DraftMovieEntity?
+
+    suspend fun getDraftMovies(): List<DraftMovieEntity>
+
+    suspend fun deleteDraftMovie(id: Long)
+
+    suspend fun clearDraftMovies()
 }

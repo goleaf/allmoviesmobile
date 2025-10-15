@@ -45,4 +45,42 @@
     <string name="library_export_in_progress">Preparing export…</string>
     <string name="library_export_failed">Export failed: %1$s</string>
     <string name="library_export_share_title">Share your collection</string>
+
+    <string name="export_csv_yes">Yes</string>
+    <string name="export_csv_no">No</string>
+    <string name="export_csv_header_number">Number</string>
+    <string name="export_csv_header_imdb">IMDB</string>
+    <string name="export_csv_header_title">Title</string>
+    <string name="export_csv_header_year">Year</string>
+    <string name="export_csv_header_runtime">Runtime</string>
+    <string name="export_csv_header_rating">Rating</string>
+    <string name="export_csv_header_certification">Certification</string>
+    <string name="export_csv_header_genres">Genres</string>
+    <string name="export_csv_header_loaned">Loaned</string>
+    <string name="export_csv_header_loaned_to">Loaned To</string>
+    <string name="export_csv_header_loaned_on">Loaned On</string>
+    <string name="export_csv_header_loan_due">Loan Due</string>
+    <string name="export_csv_header_loan_status">Loan Status</string>
+    <string name="export_csv_header_loan_notes">Loan Notes</string>
+    <string name="export_csv_header_notes">Notes</string>
+    <string name="export_csv_header_trailer">Trailer</string>
+
+    <string-array name="export_csv_headers">
+        <item>@string/export_csv_header_number</item>
+        <item>@string/export_csv_header_imdb</item>
+        <item>@string/export_csv_header_title</item>
+        <item>@string/export_csv_header_year</item>
+        <item>@string/export_csv_header_runtime</item>
+        <item>@string/export_csv_header_rating</item>
+        <item>@string/export_csv_header_certification</item>
+        <item>@string/export_csv_header_genres</item>
+        <item>@string/export_csv_header_loaned</item>
+        <item>@string/export_csv_header_loaned_to</item>
+        <item>@string/export_csv_header_loaned_on</item>
+        <item>@string/export_csv_header_loan_due</item>
+        <item>@string/export_csv_header_loan_status</item>
+        <item>@string/export_csv_header_loan_notes</item>
+        <item>@string/export_csv_header_notes</item>
+        <item>@string/export_csv_header_trailer</item>
+    </string-array>
 </resources>

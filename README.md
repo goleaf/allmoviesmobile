@@ -99,6 +99,17 @@ If you prefer to execute the steps manually, follow this guide:
 - **Gradle build failures:** Verify that you are using JDK 17 (newer JDKs lead to `Unsupported class file major version` errors with this Gradle version) and that you have an active internet connection to download dependencies during the first build.
 - **API key errors:** Double-check `local.properties` for typos and confirm that your TMDB API key is valid.
 
+## Localization verification
+
+The language picker now relies entirely on localized string resources. To confirm the behaviour manually on a device or emulator:
+
+1. Launch the app and open the overflow menu.
+2. Tap **Language** and choose **Русский**; the dialog title and menu entry should immediately render in Russian.
+3. Dismiss and reopen the menu to verify every action title uses the selected locale.
+4. Repeat the steps selecting **English** to switch back.
+
+An instrumentation test suite (`LanguageResourcesInstrumentedTest`) also exercises the localized resources for the dialog labels. Run it with `./gradlew connectedAndroidTest` when an emulator is attached.
+
 ## Screenshots
 
 ![Movie list screenshot](https://github.com/sergeytutushkin/AllMovies/blob/master/app/src/main/res/drawable/screenshot_list.webp?raw=true)

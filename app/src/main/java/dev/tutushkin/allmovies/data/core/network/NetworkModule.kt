@@ -3,7 +3,6 @@ package dev.tutushkin.allmovies.data.core.network
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.data.movies.remote.MoviesApi
-import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -19,9 +18,6 @@ import java.util.concurrent.TimeUnit
 object NetworkModule {
 
     var allGenres: List<Genre> = listOf()
-
-    // TODO Move to DataStore(?)
-    var configApi: Configuration = Configuration()
 
     private val json = Json {
         prettyPrint = true

@@ -3,6 +3,7 @@ package dev.tutushkin.allmovies.data.movies
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.*
+import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import java.text.ParseException
 import java.text.SimpleDateFormat
@@ -18,11 +19,12 @@ internal data class CertificationValue(
 }
 
 internal fun MovieListDto.toEntity(
+    configuration: Configuration,
     certification: CertificationValue = fallbackCertification(this.adult)
 ): MovieListEntity = MovieListEntity(
     id = this.id,
     title = this.title,
-    poster = getImageUrl(this.posterPath),
+    poster = configuration.posterUrl(this.posterPath),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
     certificationLabel = certification.label,
@@ -33,13 +35,14 @@ internal fun MovieListDto.toEntity(
 )
 
 internal fun MovieDetailsResponse.toEntity(
+    configuration: Configuration,
     certification: CertificationValue = fallbackCertification(this.adult)
 ): MovieDetailsEntity = MovieDetailsEntity(
     id = this.id,
     title = this.title,
     overview = this.overview,
-    poster = getImageUrl(this.posterPath),
-    backdrop = getImageUrl(this.backdropPath),
+    poster = configuration.posterUrl(this.posterPath),
+    backdrop = configuration.backdropUrl(this.backdropPath),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
     certificationLabel = certification.label,
@@ -51,20 +54,23 @@ internal fun MovieDetailsResponse.toEntity(
     isFavorite = false,
 )
 
-internal fun MovieActorDto.toEntity(): ActorEntity = ActorEntity(
+internal fun MovieActorDto.toEntity(configuration: Configuration): ActorEntity = ActorEntity(
     id = this.id,
     name = this.name,
-    photo = getImageUrl(this.profilePath)
+    photo = configuration.profileUrl(this.profilePath)
 )
 
-internal fun ActorDetailsResponse.toEntity(knownFor: List<String>): ActorDetailsEntity = ActorDetailsEntity(
+internal fun ActorDetailsResponse.toEntity(
+    configuration: Configuration,
+    knownFor: List<String>
+): ActorDetailsEntity = ActorDetailsEntity(
     id = this.id,
     name = this.name,
     biography = this.biography.orEmpty(),
     birthday = this.birthday,
     deathday = this.deathday,
     birthplace = this.placeOfBirth,
-    profileImage = getImageUrl(this.profilePath).ifBlank { null },
+    profileImage = configuration.profileUrl(this.profilePath).ifBlank { null },
     knownForDepartment = this.knownForDepartment,
     alsoKnownAs = this.alsoKnownAs ?: emptyList(),
     imdbId = this.imdbId,
@@ -85,9 +91,24 @@ internal fun ConfigurationDto.toEntity(): ConfigurationEntity = ConfigurationEnt
     profileSizes = this.profileSizes
 )
 
-private fun getImageUrl(posterPath: String?): String {
-    if (posterPath.isNullOrBlank()) return ""
-    return "${NetworkModule.configApi.imagesBaseUrl}w342$posterPath"
+private fun Configuration.posterUrl(path: String?): String = buildImageUrl(
+    path,
+    posterSizes.preferredSize(DEFAULT_POSTER_SIZE)
+)
+
+private fun Configuration.backdropUrl(path: String?): String = buildImageUrl(
+    path,
+    backdropSizes.preferredSize(DEFAULT_BACKDROP_SIZE)
+)
+
+private fun Configuration.profileUrl(path: String?): String = buildImageUrl(
+    path,
+    profileSizes.preferredSize(DEFAULT_PROFILE_SIZE)
+)
+
+private fun Configuration.buildImageUrl(path: String?, size: String): String {
+    if (path.isNullOrBlank()) return ""
+    return "$imagesBaseUrl$size$path"
 }
 
 internal fun fallbackCertification(isAdult: Boolean): CertificationValue =
@@ -96,6 +117,15 @@ internal fun fallbackCertification(isAdult: Boolean): CertificationValue =
     } else {
         CertificationValue(code = FALLBACK_GENERAL_CODE, label = FALLBACK_GENERAL_LABEL)
     }
+
+private fun List<String>.preferredSize(default: String): String =
+    firstOrNull { it != ORIGINAL_SIZE } ?: firstOrNull() ?: default
+
+private fun normalizeAge(isAdult: Boolean): String = if (isAdult) {
+    AGE_ADULT
+} else {
+    AGE_CHILD
+}
 
 private fun dateToYear(value: String): String {
     if (value.isBlank()) return UNKNOWN_YEAR
@@ -183,6 +213,12 @@ private const val FALLBACK_ADULT_CODE = "ADULT"
 private const val FALLBACK_GENERAL_CODE = "GENERAL"
 private const val FALLBACK_ADULT_LABEL = "18+"
 private const val FALLBACK_GENERAL_LABEL = "13+"
+private const val DEFAULT_POSTER_SIZE = "w342"
+private const val DEFAULT_BACKDROP_SIZE = "w780"
+private const val DEFAULT_PROFILE_SIZE = "w185"
+private const val ORIGINAL_SIZE = "original"
+private const val AGE_ADULT = "18+"
+private const val AGE_CHILD = "13+"
 private const val SOURCE_DATE_PATTERN = "yyyy-MM-dd"
 private const val TARGET_YEAR_PATTERN = "yyyy"
 private const val YOUTUBE = "YouTube"

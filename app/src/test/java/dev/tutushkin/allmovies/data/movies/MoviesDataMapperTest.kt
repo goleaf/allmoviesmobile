@@ -14,15 +14,15 @@ import org.junit.Test
 
 class MoviesDataMapperTest {
 
+    private val configuration = Configuration(imagesBaseUrl = "https://example.com/")
+
     @Before
     fun setUp() {
-        NetworkModule.configApi = Configuration(imagesBaseUrl = "https://example.com/")
         NetworkModule.allGenres = listOf(Genre(id = 1, name = "Action"))
     }
 
     @After
     fun tearDown() {
-        NetworkModule.configApi = Configuration()
         NetworkModule.allGenres = emptyList()
     }
 
@@ -39,7 +39,7 @@ class MoviesDataMapperTest {
             genreIds = listOf(1)
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(configuration)
 
         assertEquals("", entity.poster)
     }
@@ -59,7 +59,7 @@ class MoviesDataMapperTest {
             genres = listOf(GenreDto(id = 1, name = "Action"))
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(configuration)
 
         assertEquals("", entity.backdrop)
     }
@@ -72,7 +72,7 @@ class MoviesDataMapperTest {
             profilePath = null
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(configuration)
 
         assertEquals("", entity.photo)
     }
@@ -90,7 +90,7 @@ class MoviesDataMapperTest {
             genreIds = listOf(1)
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(configuration)
 
         assertEquals("", entity.year)
     }
@@ -108,7 +108,7 @@ class MoviesDataMapperTest {
             genreIds = listOf(1)
         )
 
-        val entity = dto.toEntity()
+        val entity = dto.toEntity(configuration)
 
         assertEquals("", entity.year)
     }

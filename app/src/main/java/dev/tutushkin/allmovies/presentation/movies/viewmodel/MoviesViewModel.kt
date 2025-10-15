@@ -42,7 +42,7 @@ class MoviesViewModel(
             _movies.value = MoviesState.Loading
 
             if (clearCache) {
-                moviesRepository.clearAll()
+                clearCachesPreservingFavorites()
             }
 
             handleLoadApiConfiguration(language)
@@ -50,6 +50,10 @@ class MoviesViewModel(
 
             _movies.value = handleMoviesNowPlaying(language)
         }
+    }
+
+    private suspend fun clearCachesPreservingFavorites() {
+        moviesRepository.clearAll()
     }
 
     private suspend fun handleLoadApiConfiguration(language: String) {

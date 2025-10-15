@@ -11,5 +11,12 @@ data class MovieDetails(
     val year: String = "",   // TODO Add to screen
     val runtime: Int = 0,
     val genres: String = "",
-    val actors: List<Actor> = listOf()
+    val actors: List<Actor> = listOf(),
+    val isFavorite: Boolean = false,
+    val isWatched: Boolean = false,
+    val isInWatchlist: Boolean = false,
+    val personalNote: PersonalNote? = null,
+    val format: Format? = null,
+    val category: Category? = null,
+    val loanHistory: List<LoanRecord> = emptyList()
 )

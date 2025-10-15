@@ -39,7 +39,12 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             db.movieDetails(),
             db.actorsDao(),
             db.configurationDao(),
-            db.genresDao()
+            db.genresDao(),
+            db.userMoviesDao(),
+            db.personalNotesDao(),
+            db.formatsDao(),
+            db.categoriesDao(),
+            db.loanRecordsDao()
         )
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)

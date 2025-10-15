@@ -88,7 +88,26 @@ class MoviesRepositoryImpl(
             }
 
             if (localMovies.isNotEmpty()) {
-                Result.success(localMovies.map { it.toModel() })
+                val movieIds = localMovies.map { it.id }
+                val userMovies = moviesLocalDataSource.getUserMovies(movieIds).associateBy { it.movieId }
+                val personalNotes = moviesLocalDataSource.getPersonalNotes(movieIds).associateBy { it.movieId }
+                val formatsById = moviesLocalDataSource.getFormats().associateBy { it.id }
+                val categoriesById = moviesLocalDataSource.getCategories().associateBy { it.id }
+
+                Result.success(
+                    localMovies.map { entity ->
+                        val userMovie = userMovies[entity.id]
+                        val format = userMovie?.formatId?.let(formatsById::get)
+                        val category = userMovie?.categoryId?.let(categoriesById::get)
+
+                        entity.toModel(
+                            userMovie = userMovie,
+                            personalNote = personalNotes[entity.id],
+                            format = format,
+                            category = category
+                        )
+                    }
+                )
             } else {
                 Result.success(emptyList())
             }
@@ -139,7 +158,22 @@ class MoviesRepositoryImpl(
             }
 
             return@withContext getActorsData(movie, apiKey)
-                .mapCatching { actors -> movie.toModel(actors) }
+                .mapCatching { actors ->
+                    val userMovie = moviesLocalDataSource.getUserMovie(movie.id)
+                    val note = moviesLocalDataSource.getPersonalNote(movie.id)
+                    val format = userMovie?.formatId?.let { moviesLocalDataSource.getFormatById(it) }
+                    val category = userMovie?.categoryId?.let { moviesLocalDataSource.getCategoryById(it) }
+                    val loanRecords = moviesLocalDataSource.getLoanHistory(movie.id)
+
+                    movie.toModel(
+                        actors = actors,
+                        userMovie = userMovie,
+                        personalNote = note,
+                        format = format,
+                        category = category,
+                        loanRecords = loanRecords
+                    )
+                }
         }
 
     private suspend fun getMovieDetailsFromServer(
@@ -200,4 +234,118 @@ class MoviesRepositoryImpl(
         }
     }
 
+    override suspend fun updateFavorite(movieId: Int, isFavorite: Boolean): Result<Unit> =
+        updateUserMovie(movieId) { current ->
+            current.copy(isFavorite = isFavorite)
+        }
+
+    override suspend fun updateWatched(movieId: Int, isWatched: Boolean): Result<Unit> =
+        updateUserMovie(movieId) { current ->
+            current.copy(isWatched = isWatched)
+        }
+
+    override suspend fun updateWatchlist(movieId: Int, isInWatchlist: Boolean): Result<Unit> =
+        updateUserMovie(movieId) { current ->
+            current.copy(isInWatchlist = isInWatchlist)
+        }
+
+    override suspend fun updatePersonalNote(movieId: Int, note: String?): Result<Unit> =
+        withContext(ioDispatcher) {
+            runCatching {
+                if (note.isNullOrBlank()) {
+                    moviesLocalDataSource.deletePersonalNote(movieId)
+                } else {
+                    moviesLocalDataSource.upsertPersonalNote(
+                        PersonalNoteEntity(
+                            movieId = movieId,
+                            note = note,
+                            updatedAt = System.currentTimeMillis()
+                        )
+                    )
+                }
+            }
+        }
+
+    override suspend fun assignFormat(movieId: Int, formatId: Int?): Result<Unit> =
+        withContext(ioDispatcher) {
+            runCatching {
+                if (formatId != null && moviesLocalDataSource.getFormatById(formatId) == null) {
+                    throw IllegalArgumentException("Format with id $formatId does not exist")
+                }
+
+                val updated = ensureUserMovie(movieId).copy(formatId = formatId)
+                moviesLocalDataSource.upsertUserMovie(updated)
+            }
+        }
+
+    override suspend fun assignCategory(movieId: Int, categoryId: Int?): Result<Unit> =
+        withContext(ioDispatcher) {
+            runCatching {
+                if (categoryId != null && moviesLocalDataSource.getCategoryById(categoryId) == null) {
+                    throw IllegalArgumentException("Category with id $categoryId does not exist")
+                }
+
+                val updated = ensureUserMovie(movieId).copy(categoryId = categoryId)
+                moviesLocalDataSource.upsertUserMovie(updated)
+            }
+        }
+
+    override suspend fun recordLoan(
+        movieId: Int,
+        borrowerName: String,
+        loanDate: Long,
+        returnDate: Long?
+    ): Result<Unit> = withContext(ioDispatcher) {
+        runCatching {
+            if (borrowerName.isBlank()) {
+                throw IllegalArgumentException("Borrower name must not be blank")
+            }
+
+            moviesLocalDataSource.insertLoanRecord(
+                LoanRecordEntity(
+                    movieId = movieId,
+                    borrowerName = borrowerName,
+                    loanDate = loanDate,
+                    returnDate = returnDate
+                )
+            )
+        }
+    }
+
+    override suspend fun getLoanHistory(movieId: Int): Result<List<LoanRecord>> =
+        withContext(ioDispatcher) {
+            runCatching {
+                moviesLocalDataSource.getLoanHistory(movieId)
+                    .map { it.toModel() }
+            }
+        }
+
+    override suspend fun getFormats(): Result<List<Format>> =
+        withContext(ioDispatcher) {
+            runCatching {
+                moviesLocalDataSource.getFormats().map { it.toModel() }
+            }
+        }
+
+    override suspend fun getCategories(): Result<List<Category>> =
+        withContext(ioDispatcher) {
+            runCatching {
+                moviesLocalDataSource.getCategories().map { it.toModel() }
+            }
+        }
+
+    private suspend fun updateUserMovie(
+        movieId: Int,
+        reducer: (UserMovieEntity) -> UserMovieEntity
+    ): Result<Unit> = withContext(ioDispatcher) {
+        runCatching {
+            val current = ensureUserMovie(movieId)
+            val updated = reducer(current)
+            moviesLocalDataSource.upsertUserMovie(updated)
+        }
+    }
+
+    private suspend fun ensureUserMovie(movieId: Int): UserMovieEntity {
+        return moviesLocalDataSource.getUserMovie(movieId) ?: UserMovieEntity(movieId = movieId)
+    }
 }

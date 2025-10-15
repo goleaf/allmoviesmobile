@@ -28,6 +28,48 @@ class MoviesViewModel(
         }
     }
 
+    fun toggleFavorite(movieId: Int, isFavorite: Boolean) {
+        viewModelScope.launch {
+            moviesRepository.updateFavorite(movieId, isFavorite)
+            _movies.value = handleMoviesNowPlaying()
+        }
+    }
+
+    fun toggleWatched(movieId: Int, isWatched: Boolean) {
+        viewModelScope.launch {
+            moviesRepository.updateWatched(movieId, isWatched)
+            _movies.value = handleMoviesNowPlaying()
+        }
+    }
+
+    fun toggleWatchlist(movieId: Int, isInWatchlist: Boolean) {
+        viewModelScope.launch {
+            moviesRepository.updateWatchlist(movieId, isInWatchlist)
+            _movies.value = handleMoviesNowPlaying()
+        }
+    }
+
+    fun updatePersonalNote(movieId: Int, note: String?) {
+        viewModelScope.launch {
+            moviesRepository.updatePersonalNote(movieId, note)
+            _movies.value = handleMoviesNowPlaying()
+        }
+    }
+
+    fun assignFormat(movieId: Int, formatId: Int?) {
+        viewModelScope.launch {
+            moviesRepository.assignFormat(movieId, formatId)
+            _movies.value = handleMoviesNowPlaying()
+        }
+    }
+
+    fun assignCategory(movieId: Int, categoryId: Int?) {
+        viewModelScope.launch {
+            moviesRepository.assignCategory(movieId, categoryId)
+            _movies.value = handleMoviesNowPlaying()
+        }
+    }
+
     private suspend fun handleLoadApiConfiguration() {
         val conf = moviesRepository.getConfiguration(BuildConfig.API_KEY)
 

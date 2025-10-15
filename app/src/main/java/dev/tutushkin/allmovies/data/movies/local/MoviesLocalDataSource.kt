@@ -33,4 +33,48 @@ interface MoviesLocalDataSource {
     suspend fun setActorsLoaded(movieId: Int)
 
     suspend fun clearActors()
+
+    suspend fun getUserMovies(movieIds: List<Int>): List<UserMovieEntity>
+
+    suspend fun getUserMovie(movieId: Int): UserMovieEntity?
+
+    suspend fun upsertUserMovie(userMovieEntity: UserMovieEntity)
+
+    suspend fun deleteUserMovie(movieId: Int)
+
+    suspend fun getPersonalNotes(movieIds: List<Int>): List<PersonalNoteEntity>
+
+    suspend fun getPersonalNote(movieId: Int): PersonalNoteEntity?
+
+    suspend fun upsertPersonalNote(personalNoteEntity: PersonalNoteEntity)
+
+    suspend fun deletePersonalNote(movieId: Int)
+
+    suspend fun getFormats(): List<FormatEntity>
+
+    suspend fun getFormatById(id: Int): FormatEntity?
+
+    suspend fun insertFormat(formatEntity: FormatEntity): Long
+
+    suspend fun updateFormat(formatEntity: FormatEntity)
+
+    suspend fun deleteFormat(formatEntity: FormatEntity)
+
+    suspend fun getCategories(): List<CategoryEntity>
+
+    suspend fun getCategoryById(id: Int): CategoryEntity?
+
+    suspend fun insertCategory(categoryEntity: CategoryEntity): Long
+
+    suspend fun updateCategory(categoryEntity: CategoryEntity)
+
+    suspend fun deleteCategory(categoryEntity: CategoryEntity)
+
+    suspend fun getLoanHistory(movieId: Int): List<LoanRecordEntity>
+
+    suspend fun insertLoanRecord(loanRecordEntity: LoanRecordEntity): Long
+
+    suspend fun updateLoanRecord(loanRecordEntity: LoanRecordEntity)
+
+    suspend fun deleteLoanRecord(id: Long)
 }

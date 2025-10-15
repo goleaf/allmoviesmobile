@@ -81,6 +81,18 @@
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_share" />
 
+        <ImageView
+            android:id="@+id/movies_details_favorite_image"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="52dp"
+            android:layout_marginEnd="16dp"
+            android:contentDescription="@string/movie_details_favorite_content_description"
+            android:visibility="gone"
+            app:layout_constraintEnd_toStartOf="@+id/movies_details_share_image"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_notlike" />
+
         <TextView
             android:id="@+id/movies_details_age_text"
             android:layout_width="24dp"

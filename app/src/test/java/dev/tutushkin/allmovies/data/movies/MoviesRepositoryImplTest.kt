@@ -30,6 +30,10 @@ class MoviesRepositoryImplTest {
     private lateinit var localDataSource: FakeMoviesLocalDataSource
     private lateinit var repository: MoviesRepositoryImpl
 
+    private companion object {
+        private const val LANGUAGE = "en"
+    }
+
     @Before
     fun setUp() {
         remoteDataSource = FakeMoviesRemoteDataSource()
@@ -54,7 +58,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getNowPlaying("provided-key")
+        val result = repository.getNowPlaying("provided-key", LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(1, remoteDataSource.nowPlayingCallCount)
@@ -63,7 +67,7 @@ class MoviesRepositoryImplTest {
 
         remoteDataSource.resetCallCounters()
 
-        val cachedResult = repository.getNowPlaying("provided-key")
+        val cachedResult = repository.getNowPlaying("provided-key", LANGUAGE)
 
         assertTrue(cachedResult.isSuccess)
         assertEquals(0, remoteDataSource.nowPlayingCallCount)
@@ -74,7 +78,7 @@ class MoviesRepositoryImplTest {
     fun `getNowPlaying returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.nowPlayingResult = Result.success(emptyList())
 
-        val result = repository.getNowPlaying("provided-key")
+        val result = repository.getNowPlaying("provided-key", LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().isEmpty())
@@ -82,10 +86,50 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
+    fun `getNowPlaying preserves favorite flags from cached details`() = runTest(dispatcher) {
+        val movieId = 200
+        localDataSource.setMovieDetails(
+            MovieDetailsEntity(
+                id = movieId,
+                title = "Favorite Movie",
+                overview = "Overview",
+                poster = "poster",
+                backdrop = "backdrop",
+                ratings = 7.5f,
+                numberOfRatings = 99,
+                minimumAge = "13+",
+                year = "2023",
+                runtime = 120,
+                genres = "Action",
+                isFavorite = true
+            )
+        )
+        remoteDataSource.nowPlayingResult = Result.success(
+            listOf(
+                MovieListDto(
+                    id = movieId,
+                    title = "Favorite Movie",
+                    posterPath = "/poster.jpg",
+                    voteAverage = 7.5f,
+                    voteCount = 99,
+                    adult = false,
+                    releaseDate = "2023-01-01",
+                    genreIds = emptyList()
+                )
+            )
+        )
+
+        val result = repository.getNowPlaying("provided-key", LANGUAGE)
+
+        assertTrue(result.isSuccess)
+        assertTrue(result.getOrThrow().first().isFavorite)
+    }
+
+    @Test
     fun `getGenres returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.genresResult = Result.success(emptyList())
 
-        val result = repository.getGenres("provided-key")
+        val result = repository.getGenres("provided-key", LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().isEmpty())
@@ -116,7 +160,7 @@ class MoviesRepositoryImplTest {
             )
         )
 
-        val result = repository.getMovieDetails(movieId, "api")
+        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(1, remoteDataSource.movieDetailsCallCount)
@@ -147,7 +191,7 @@ class MoviesRepositoryImplTest {
         )
         remoteDataSource.actorsResult = Result.success(emptyList())
 
-        val result = repository.getMovieDetails(movieId, "api")
+        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertTrue(result.getOrThrow().actors.isEmpty())
@@ -184,12 +228,90 @@ class MoviesRepositoryImplTest {
 
         remoteDataSource.resetCallCounters()
 
-        val result = repository.getMovieDetails(movieId, "api")
+        val result = repository.getMovieDetails(movieId, "api", LANGUAGE)
 
         assertTrue(result.isSuccess)
         assertEquals(0, remoteDataSource.movieDetailsCallCount)
         assertEquals(0, remoteDataSource.actorsCallCount)
         assertEquals(2, result.getOrThrow().actors.size)
+    }
+
+    @Test
+    fun `setFavorite updates local caches`() = runTest(dispatcher) {
+        val movieId = 42
+        val summary = MovieListEntity(
+            id = movieId,
+            title = "Summary",
+            poster = "poster",
+            ratings = 6.0f,
+            numberOfRatings = 10,
+            minimumAge = "13+",
+            year = "2022",
+            genres = "Drama",
+            isFavorite = false
+        )
+        val details = MovieDetailsEntity(
+            id = movieId,
+            title = "Details",
+            overview = "Overview",
+            poster = "poster",
+            backdrop = "backdrop",
+            ratings = 6.0f,
+            numberOfRatings = 10,
+            minimumAge = "13+",
+            year = "2022",
+            runtime = 100,
+            genres = "Drama",
+            isFavorite = false
+        )
+        localDataSource.setMovie(summary)
+        localDataSource.setMovieDetails(details)
+
+        val result = repository.setFavorite(movieId, true)
+
+        assertTrue(result.isSuccess)
+        assertTrue(localDataSource.getMovie(movieId)?.isFavorite == true)
+        assertTrue(localDataSource.getMovieDetails(movieId)?.isFavorite == true)
+    }
+
+    @Test
+    fun `getFavorites returns favorites from summaries and details`() = runTest(dispatcher) {
+        val summaryFavorite = MovieListEntity(
+            id = 1,
+            title = "Summary Favorite",
+            poster = "poster",
+            ratings = 8.0f,
+            numberOfRatings = 80,
+            minimumAge = "13+",
+            year = "2021",
+            genres = "Action",
+            isFavorite = true
+        )
+        val detailOnlyFavorite = MovieDetailsEntity(
+            id = 2,
+            title = "Detail Favorite",
+            overview = "Overview",
+            poster = "poster",
+            backdrop = "backdrop",
+            ratings = 7.0f,
+            numberOfRatings = 70,
+            minimumAge = "13+",
+            year = "2020",
+            runtime = 110,
+            genres = "Comedy",
+            isFavorite = true
+        )
+
+        localDataSource.setMovie(summaryFavorite)
+        localDataSource.setMovieDetails(detailOnlyFavorite)
+
+        val result = repository.getFavorites()
+
+        assertTrue(result.isSuccess)
+        val favorites = result.getOrThrow()
+        assertEquals(2, favorites.size)
+        assertTrue(favorites.any { it.id == summaryFavorite.id })
+        assertTrue(favorites.any { it.id == detailOnlyFavorite.id })
     }
 }
 
@@ -204,27 +326,38 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var nowPlayingCallCount: Int = 0
         private set
     var lastNowPlayingApiKey: String? = null
+    var lastNowPlayingLanguage: String? = null
     var movieDetailsCallCount: Int = 0
         private set
     var actorsCallCount: Int = 0
         private set
 
-    override suspend fun getConfiguration(apiKey: String): Result<ConfigurationDto> = configurationResult
+    override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> =
+        configurationResult
 
-    override suspend fun getGenres(apiKey: String): Result<List<GenreDto>> = genresResult
+    override suspend fun getGenres(apiKey: String, language: String): Result<List<GenreDto>> = genresResult
 
-    override suspend fun getNowPlaying(apiKey: String): Result<List<MovieListDto>> {
+    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieListDto>> {
         nowPlayingCallCount++
         lastNowPlayingApiKey = apiKey
+        lastNowPlayingLanguage = language
         return nowPlayingResult
     }
 
-    override suspend fun getMovieDetails(movieId: Int, apiKey: String): Result<MovieDetailsResponse> {
+    override suspend fun getMovieDetails(
+        movieId: Int,
+        apiKey: String,
+        language: String
+    ): Result<MovieDetailsResponse> {
         movieDetailsCallCount++
         return movieDetailsResult
     }
 
-    override suspend fun getActors(movieId: Int, apiKey: String): Result<List<MovieActorDto>> {
+    override suspend fun getActors(
+        movieId: Int,
+        apiKey: String,
+        language: String
+    ): Result<List<MovieActorDto>> {
         actorsCallCount++
         return actorsResult
     }
@@ -232,6 +365,7 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     fun resetCallCounters() {
         nowPlayingCallCount = 0
         lastNowPlayingApiKey = null
+        lastNowPlayingLanguage = null
         movieDetailsCallCount = 0
         actorsCallCount = 0
     }
@@ -241,7 +375,7 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
 
     private var configuration: ConfigurationEntity? = null
     private var genres: List<GenreEntity> = emptyList()
-    private var nowPlaying: List<MovieListEntity> = emptyList()
+    private val movies = mutableMapOf<Int, MovieListEntity>()
     private val movieDetails = mutableMapOf<Int, MovieDetailsEntity>()
     private val actors = mutableMapOf<Int, ActorEntity>()
 
@@ -265,14 +399,14 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
         genres = emptyList()
     }
 
-    override suspend fun getNowPlaying(): List<MovieListEntity> = nowPlaying
+    override suspend fun getNowPlaying(): List<MovieListEntity> = movies.values.toList()
 
     override suspend fun setNowPlaying(movies: List<MovieListEntity>) {
-        nowPlaying = movies
+        movies.forEach { this.movies[it.id] = it }
     }
 
     override suspend fun clearNowPlaying() {
-        nowPlaying = emptyList()
+        movies.clear()
     }
 
     override suspend fun getMovieDetails(id: Int): MovieDetailsEntity? = movieDetails[id]
@@ -281,6 +415,9 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
         movieDetails[movie.id] = movie
         return movie.id.toLong()
     }
+
+    override suspend fun getFavoriteMovieDetails(): List<MovieDetailsEntity> =
+        movieDetails.values.filter { it.isFavorite }
 
     override suspend fun clearMovieDetails() {
         movieDetails.clear()
@@ -301,5 +438,38 @@ private class FakeMoviesLocalDataSource : MoviesLocalDataSource {
 
     override suspend fun clearActors() {
         actors.clear()
+    }
+
+    override suspend fun setMovie(movie: MovieListEntity) {
+        movies[movie.id] = movie
+    }
+
+    override suspend fun getMovie(movieId: Int): MovieListEntity? = movies[movieId]
+
+    override suspend fun getFavoriteMovies(): List<MovieListEntity> =
+        movies.values.filter { it.isFavorite }
+
+    override suspend fun getFavoriteMovieIds(): Set<Int> =
+        (getFavoriteMovies().map { it.id } + getFavoriteMovieDetails().map { it.id }).toSet()
+
+    override suspend fun setFavorite(movieId: Int, isFavorite: Boolean) {
+        movies[movieId]?.let { movies[movieId] = it.copy(isFavorite = isFavorite) }
+        movieDetails[movieId]?.let { movieDetails[movieId] = it.copy(isFavorite = isFavorite) }
+
+        if (!movies.containsKey(movieId)) {
+            movieDetails[movieId]?.let { details ->
+                movies[movieId] = MovieListEntity(
+                    id = details.id,
+                    title = details.title,
+                    poster = details.poster,
+                    ratings = details.ratings,
+                    numberOfRatings = details.numberOfRatings,
+                    minimumAge = details.minimumAge,
+                    year = details.year,
+                    genres = details.genres,
+                    isFavorite = isFavorite
+                )
+            }
+        }
     }
 }

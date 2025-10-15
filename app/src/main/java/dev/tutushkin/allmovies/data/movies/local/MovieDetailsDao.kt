@@ -11,6 +11,12 @@ interface MovieDetailsDao {
     @Query("SELECT * FROM movie_details WHERE id = :id")
     fun getMovieDetails(id: Int): MovieDetailsEntity?
 
+    @Query("SELECT * FROM movie_details WHERE isFavorite = 1")
+    fun getFavorites(): List<MovieDetailsEntity>
+
+    @Query("UPDATE movie_details SET isFavorite = :isFavorite WHERE id = :movieId")
+    fun updateFavorite(movieId: Int, isFavorite: Boolean)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(movie: MovieDetailsEntity): Long
 

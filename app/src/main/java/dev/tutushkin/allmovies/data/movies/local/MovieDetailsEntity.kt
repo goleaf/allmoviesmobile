@@ -69,5 +69,8 @@ data class MovieDetailsEntity(
     var actors: List<Int> = listOf(),
 
     @ColumnInfo(name = "isActorsLoaded")
-    val isActorsLoaded: Boolean = false
+    val isActorsLoaded: Boolean = false,
+
+    @ColumnInfo(name = "isFavorite")
+    val isFavorite: Boolean = false,
 )

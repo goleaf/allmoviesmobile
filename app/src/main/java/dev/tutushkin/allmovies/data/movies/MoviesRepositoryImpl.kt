@@ -84,13 +84,31 @@ class MoviesRepositoryImpl(
             var localMovies = moviesLocalDataSource.getNowPlaying()
 
             if (localMovies.isEmpty()) {
-                getNowPlayingFromServer(apiKey, language)
-                    .onSuccess { moviesLocalDataSource.setNowPlaying(it) }
-                    .onFailure {
-                        return@withContext Result.failure(it)
-                    }
+                val remoteMovies = getNowPlayingFromServer(apiKey, language)
+                val moviesToSave = remoteMovies.getOrElse { error ->
+                    return@withContext Result.failure(error)
+                }
 
+                val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()
+                val merged = moviesToSave.map { entity ->
+                    val isFavorite = favoriteIds.contains(entity.id)
+                    entity.copy(isFavorite = isFavorite)
+                }
+
+                moviesLocalDataSource.setNowPlaying(merged)
                 localMovies = moviesLocalDataSource.getNowPlaying()
+            } else {
+                val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()
+                if (favoriteIds.isNotEmpty()) {
+                    val updated = localMovies.map { entity ->
+                        val isFavorite = favoriteIds.contains(entity.id)
+                        if (entity.isFavorite == isFavorite) entity else entity.copy(isFavorite = isFavorite)
+                    }
+                    if (updated != localMovies) {
+                        moviesLocalDataSource.setNowPlaying(updated)
+                        localMovies = moviesLocalDataSource.getNowPlaying()
+                    }
+                }
             }
 
             if (localMovies.isNotEmpty()) {
@@ -139,13 +157,17 @@ class MoviesRepositoryImpl(
 
                 val movieDetails = movieDetailsResult.getOrThrow()
                 val actors = actorsResult.getOrThrow()
+                val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()
+                val isFavorite = favoriteIds.contains(movieDetails.id)
                 val movieToSave = movieDetails.copy(
                     actors = actors.map { actor -> actor.id },
-                    isActorsLoaded = true
+                    isActorsLoaded = true,
+                    isFavorite = isFavorite
                 )
 
                 moviesLocalDataSource.setMovieDetails(movieToSave)
                 moviesLocalDataSource.setActors(actors)
+                val existingMovie = moviesLocalDataSource.getMovie(movieId)
                 val summaryEntity = MovieListEntity(
                     id = movieToSave.id,
                     title = movieToSave.title,
@@ -154,11 +176,20 @@ class MoviesRepositoryImpl(
                     numberOfRatings = movieToSave.numberOfRatings,
                     minimumAge = movieToSave.minimumAge,
                     year = movieToSave.year,
-                    genres = movieToSave.genres
+                    genres = movieToSave.genres,
+                    isFavorite = isFavorite || (existingMovie?.isFavorite ?: false)
                 )
                 moviesLocalDataSource.setMovie(summaryEntity)
 
                 localMovie = moviesLocalDataSource.getMovieDetails(movieId) ?: movieToSave
+            } else if (localMovie != null) {
+                val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()
+                val isFavorite = favoriteIds.contains(localMovie.id)
+                if (localMovie.isFavorite != isFavorite) {
+                    val updated = localMovie.copy(isFavorite = isFavorite)
+                    moviesLocalDataSource.setMovieDetails(updated)
+                    localMovie = updated
+                }
             }
 
             val movie = localMovie
@@ -221,6 +252,56 @@ class MoviesRepositoryImpl(
             }
         }
 
+    override suspend fun setFavorite(movieId: Int, isFavorite: Boolean): Result<Unit> =
+        withContext(ioDispatcher) {
+            runCatching {
+                moviesLocalDataSource.setFavorite(movieId, isFavorite)
+
+                val details = moviesLocalDataSource.getMovieDetails(movieId)
+                val summary = moviesLocalDataSource.getMovie(movieId)
+
+                if (summary == null && details != null) {
+                    val summaryEntity = MovieListEntity(
+                        id = details.id,
+                        title = details.title,
+                        poster = details.poster,
+                        ratings = details.ratings,
+                        numberOfRatings = details.numberOfRatings,
+                        minimumAge = details.minimumAge,
+                        year = details.year,
+                        genres = details.genres,
+                        isFavorite = isFavorite
+                    )
+                    moviesLocalDataSource.setMovie(summaryEntity)
+                }
+            }
+        }
+
+    override suspend fun getFavorites(): Result<List<MovieList>> =
+        withContext(ioDispatcher) {
+            runCatching {
+                val favoriteMovies = moviesLocalDataSource.getFavoriteMovies()
+                val favoriteIds = favoriteMovies.map { it.id }.toSet()
+                val detailOnlyFavorites = moviesLocalDataSource.getFavoriteMovieDetails()
+                    .filterNot { favoriteIds.contains(it.id) }
+                    .map { details ->
+                        MovieList(
+                            id = details.id,
+                            title = details.title,
+                            poster = details.poster,
+                            ratings = details.ratings,
+                            numberOfRatings = details.numberOfRatings,
+                            minimumAge = details.minimumAge,
+                            year = details.year,
+                            genres = details.genres,
+                            isFavorite = true
+                        )
+                    }
+
+                favoriteMovies.map { it.toModel() } + detailOnlyFavorites
+            }
+        }
+
     override suspend fun clearAll() {
         withContext(ioDispatcher) {
             moviesLocalDataSource.clearConfiguration()
@@ -247,12 +328,17 @@ class MoviesRepositoryImpl(
                 onProgress(index, total, movie.title)
 
                 val existingDetails = moviesLocalDataSource.getMovieDetails(movie.id)
+                val existingSummary = moviesLocalDataSource.getMovie(movie.id)
 
                 val movieDetails = getMovieDetailsFromServer(movie.id, apiKey, language).getOrThrow()
                 val actors = getActorsFromServer(movie.id, apiKey, language).getOrThrow()
                 val videos = moviesRemoteDataSource.getVideos(movie.id, apiKey, language)
                     .getOrDefault(emptyList())
                 val trailerUrl = videos.toPreferredTrailerUrl()
+                val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()
+                val isFavorite = favoriteIds.contains(movie.id) ||
+                    existingDetails?.isFavorite == true ||
+                    existingSummary?.isFavorite == true
 
                 val detailsToSave = movieDetails.copy(
                     poster = movieDetails.poster.ifBlank { existingDetails?.poster ?: movie.poster },
@@ -265,7 +351,8 @@ class MoviesRepositoryImpl(
                     loanDue = existingDetails?.loanDue.orEmpty(),
                     loanStatus = existingDetails?.loanStatus.orEmpty(),
                     loanNotes = existingDetails?.loanNotes.orEmpty(),
-                    notes = existingDetails?.notes.orEmpty()
+                    notes = existingDetails?.notes.orEmpty(),
+                    isFavorite = isFavorite
                 )
 
                 moviesLocalDataSource.setMovieDetails(detailsToSave)
@@ -280,7 +367,8 @@ class MoviesRepositoryImpl(
                     numberOfRatings = detailsToSave.numberOfRatings,
                     minimumAge = detailsToSave.minimumAge,
                     year = detailsToSave.year,
-                    genres = detailsToSave.genres
+                    genres = detailsToSave.genres,
+                    isFavorite = isFavorite
                 )
                 moviesLocalDataSource.setMovie(summaryEntity)
 

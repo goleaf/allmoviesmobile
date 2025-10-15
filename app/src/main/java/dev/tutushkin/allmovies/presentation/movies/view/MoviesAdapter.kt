@@ -37,4 +37,5 @@ class MoviesListDiffCallback : DiffUtil.ItemCallback<MovieList>() {
 
 interface MoviesClickListener {
     fun onItemClick(movieId: Int)
+    fun onToggleFavorite(movieId: Int, isFavorite: Boolean)
 }

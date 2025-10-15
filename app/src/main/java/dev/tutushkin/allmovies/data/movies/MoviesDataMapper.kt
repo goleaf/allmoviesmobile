@@ -16,7 +16,8 @@ internal fun MovieListDto.toEntity(): MovieListEntity = MovieListEntity(
     numberOfRatings = this.voteCount,
     minimumAge = normalizeAge(this.adult),
     year = dateToYear(this.releaseDate),
-    genres = filterGenres(this.genreIds)
+    genres = filterGenres(this.genreIds),
+    isFavorite = false,
 )
 
 internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsEntity(
@@ -31,7 +32,8 @@ internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsE
     year = dateToYear(this.releaseDate),
     runtime = this.runtime,
     genres = this.genres.joinToString { it.name },
-    imdbId = this.imdbId.orEmpty()
+    imdbId = this.imdbId.orEmpty(),
+    isFavorite = false,
 )
 
 internal fun MovieActorDto.toEntity(): ActorEntity = ActorEntity(

@@ -47,6 +47,9 @@ class MoviesLocalDataSourceImpl(
     override suspend fun setMovieDetails(movie: MovieDetailsEntity): Long =
         movieDetailsDao.insert(movie)
 
+    override suspend fun getFavoriteMovieDetails(): List<MovieDetailsEntity> =
+        movieDetailsDao.getFavorites()
+
     override suspend fun getAllMovieDetails(): List<MovieDetailsEntity> =
         movieDetailsDao.getAll()
 
@@ -71,5 +74,22 @@ class MoviesLocalDataSourceImpl(
 
     override suspend fun setMovie(movie: MovieListEntity) {
         moviesDao.insert(movie)
+    }
+
+    override suspend fun getMovie(movieId: Int): MovieListEntity? =
+        moviesDao.getMovie(movieId)
+
+    override suspend fun getFavoriteMovies(): List<MovieListEntity> =
+        moviesDao.getFavorites()
+
+    override suspend fun getFavoriteMovieIds(): Set<Int> {
+        val summaryFavorites = moviesDao.getFavorites().map { it.id }
+        val detailsFavorites = movieDetailsDao.getFavorites().map { it.id }
+        return (summaryFavorites + detailsFavorites).toSet()
+    }
+
+    override suspend fun setFavorite(movieId: Int, isFavorite: Boolean) {
+        moviesDao.updateFavorite(movieId, isFavorite)
+        movieDetailsDao.updateFavorite(movieId, isFavorite)
     }
 }

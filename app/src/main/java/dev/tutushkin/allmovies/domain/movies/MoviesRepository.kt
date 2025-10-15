@@ -20,6 +20,10 @@ interface MoviesRepository {
         ensureCached: Boolean = false
     ): Result<MovieDetails>
 
+    suspend fun setFavorite(movieId: Int, isFavorite: Boolean): Result<Unit>
+
+    suspend fun getFavorites(): Result<List<MovieList>>
+
     suspend fun clearAll()
 
     suspend fun refreshLibrary(

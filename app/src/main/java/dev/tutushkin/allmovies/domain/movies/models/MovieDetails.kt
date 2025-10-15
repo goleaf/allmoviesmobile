@@ -20,5 +20,6 @@ data class MovieDetails(
     val loanStatus: String = "",
     val loanNotes: String = "",
     val notes: String = "",
-    val actors: List<Actor> = listOf()
+    val actors: List<Actor> = listOf(),
+    val isFavorite: Boolean = false,
 )

@@ -97,6 +97,10 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                     .replace(R.id.main_container, detailsFragment)
                     .commit()
             }
+
+            override fun onToggleFavorite(movieId: Int, isFavorite: Boolean) {
+                viewModel.toggleFavorite(movieId, isFavorite)
+            }
         }
 
         adapter = MoviesAdapter(listener)

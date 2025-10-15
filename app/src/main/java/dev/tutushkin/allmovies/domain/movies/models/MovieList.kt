@@ -9,5 +9,6 @@ data class MovieList(
     val numberOfRatings: Int = 0,
     val minimumAge: String = "",    // TODO Correct values
     val year: String = "",
-    val genres: String = ""
+    val genres: String = "",
+    val isFavorite: Boolean = false,
 )

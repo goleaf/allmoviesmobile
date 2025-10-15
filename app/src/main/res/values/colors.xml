@@ -20,4 +20,5 @@
     <color name="border_movie_item">#3B3B4D</color>
 
     <color name="actor_name">#D8D8D8</color>
+    <color name="error_color">#FF6B6B</color>
 </resources>

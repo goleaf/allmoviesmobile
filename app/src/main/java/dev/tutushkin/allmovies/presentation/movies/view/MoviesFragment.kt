@@ -5,9 +5,10 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.data.auth.AuthServiceLocator
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
@@ -15,6 +16,7 @@ import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
+import dev.tutushkin.allmovies.presentation.movies.viewmodel.CollectionAccessState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModelFactory
@@ -30,6 +32,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private val binding get() = _binding!!
 
     private lateinit var adapter: MoviesAdapter
+    private lateinit var viewModel: MoviesViewModel
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -49,7 +52,11 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         )
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        val viewModel: MoviesViewModel by viewModels { MoviesViewModelFactory(repository) }
+        val authRepository = AuthServiceLocator.provideRepository(requireContext())
+        viewModel = ViewModelProvider(
+            this,
+            MoviesViewModelFactory(repository, authRepository)
+        )[MoviesViewModel::class.java]
 
         _binding = FragmentMoviesListBinding.bind(view)
 
@@ -76,6 +83,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         binding.moviesListRecycler.adapter = adapter
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)
+        viewModel.collectionState.observe(viewLifecycleOwner, ::handleCollectionState)
     }
 
     private fun handleMoviesList(state: MoviesState) {
@@ -97,16 +105,32 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         }
     }
 
-    private fun showLoading() {
-        TODO("Not yet implemented")
-    }
-
-    private fun hideLoading() {
-        TODO("Not yet implemented")
+    private fun handleCollectionState(state: CollectionAccessState) {
+        when (state) {
+            CollectionAccessState.Visible -> {
+                binding.moviesListRecycler.visibility = View.VISIBLE
+                binding.moviesGuestMessage.visibility = View.GONE
+            }
+            CollectionAccessState.Hidden -> {
+                binding.moviesListRecycler.visibility = View.GONE
+                binding.moviesGuestMessage.visibility = View.VISIBLE
+                adapter.submitList(emptyList())
+            }
+        }
     }
 
     override fun onDestroyView() {
         _binding = null
         super.onDestroyView()
+    }
+
+    companion object {
+        private const val ARG_GUEST_MODE = "arg_guest_mode"
+
+        fun newInstance(isGuest: Boolean): MoviesFragment {
+            return MoviesFragment().apply {
+                arguments = Bundle().apply { putBoolean(ARG_GUEST_MODE, isGuest) }
+            }
+        }
     }
 }

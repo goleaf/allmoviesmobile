@@ -1,18 +1,16 @@
-package dev.tutushkin.allmovies.presentation.movies.viewmodel
+package dev.tutushkin.allmovies.presentation.auth.profile
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import dev.tutushkin.allmovies.domain.auth.AuthRepository
-import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 
-class MoviesViewModelFactory(
-    private val moviesRepository: MoviesRepository,
+class ProfileViewModelFactory(
     private val authRepository: AuthRepository
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(MoviesViewModel::class.java)) {
-            return MoviesViewModel(moviesRepository, authRepository) as T
+        if (modelClass.isAssignableFrom(ProfileViewModel::class.java)) {
+            return ProfileViewModel(authRepository) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

@@ -26,6 +26,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
@@ -34,8 +35,11 @@ import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesSearchState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
+import dev.tutushkin.allmovies.presentation.images.GlidePosterImageLoaderFactory
 import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
+import dev.tutushkin.allmovies.utils.images.AndroidConnectivityMonitor
+import dev.tutushkin.allmovies.utils.images.ImageSizeSelector
 import androidx.navigation.fragment.findNavController
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -99,7 +103,16 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
+        val connectivityMonitor = AndroidConnectivityMonitor(requireContext())
+        val deviceWidthProvider = { resources.displayMetrics.widthPixels }
+        val imageSizeSelector = ImageSizeSelector(
+            configurationProvider = { NetworkModule.configApi },
+            deviceWidthProvider = deviceWidthProvider,
+            connectivityMonitor = connectivityMonitor
+        )
+        val posterLoaderFactory = GlidePosterImageLoaderFactory(imageSizeSelector)
+
+        adapter = MoviesAdapter(listener, posterLoaderFactory)
         binding.moviesListRecycler.adapter = adapter
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)

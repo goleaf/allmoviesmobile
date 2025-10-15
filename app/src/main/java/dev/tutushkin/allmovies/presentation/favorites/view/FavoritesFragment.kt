@@ -12,15 +12,19 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.databinding.FragmentFavoritesListBinding
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesState
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesViewModel
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.provideFavoritesViewModelFactory
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
+import dev.tutushkin.allmovies.presentation.images.GlidePosterImageLoaderFactory
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesAdapter
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesClickListener
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
+import dev.tutushkin.allmovies.utils.images.AndroidConnectivityMonitor
+import dev.tutushkin.allmovies.utils.images.ImageSizeSelector
 import kotlinx.serialization.ExperimentalSerializationApi
 import androidx.navigation.fragment.findNavController
 
@@ -84,7 +88,16 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
+        val connectivityMonitor = AndroidConnectivityMonitor(requireContext())
+        val deviceWidthProvider = { resources.displayMetrics.widthPixels }
+        val imageSizeSelector = ImageSizeSelector(
+            configurationProvider = { NetworkModule.configApi },
+            deviceWidthProvider = deviceWidthProvider,
+            connectivityMonitor = connectivityMonitor
+        )
+        val posterLoaderFactory = GlidePosterImageLoaderFactory(imageSizeSelector)
+
+        adapter = MoviesAdapter(listener, posterLoaderFactory)
         binding.favoritesListRecycler.adapter = adapter
 
         favoritesViewModel.favorites.observe(viewLifecycleOwner, ::renderState)

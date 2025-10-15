@@ -47,6 +47,9 @@ class MoviesLocalDataSourceImpl(
     override suspend fun setMovieDetails(movie: MovieDetailsEntity): Long =
         movieDetailsDao.insert(movie)
 
+    override suspend fun getAllMovieDetails(): List<MovieDetailsEntity> =
+        movieDetailsDao.getAll()
+
     override suspend fun clearMovieDetails() {
         movieDetailsDao.clear()
     }
@@ -64,5 +67,9 @@ class MoviesLocalDataSourceImpl(
 
     override suspend fun clearActors() {
         actorsDao.deleteAll()
+    }
+
+    override suspend fun setMovie(movie: MovieListEntity) {
+        moviesDao.insert(movie)
     }
 }

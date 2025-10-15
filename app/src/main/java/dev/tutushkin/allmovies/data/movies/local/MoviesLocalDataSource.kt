@@ -24,6 +24,8 @@ interface MoviesLocalDataSource {
 
     suspend fun setMovieDetails(movie: MovieDetailsEntity): Long
 
+    suspend fun getAllMovieDetails(): List<MovieDetailsEntity>
+
     suspend fun clearMovieDetails()
 
     suspend fun getActors(actorsId: List<Int>): List<ActorEntity>
@@ -33,4 +35,6 @@ interface MoviesLocalDataSource {
     suspend fun setActorsLoaded(movieId: Int)
 
     suspend fun clearActors()
+
+    suspend fun setMovie(movie: MovieListEntity)
 }

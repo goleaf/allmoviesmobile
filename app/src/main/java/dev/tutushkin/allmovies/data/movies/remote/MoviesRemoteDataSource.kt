@@ -11,4 +11,6 @@ interface MoviesRemoteDataSource {
     suspend fun getMovieDetails(movieId: Int, apiKey: String): Result<MovieDetailsResponse>
 
     suspend fun getActors(movieId: Int, apiKey: String): Result<List<MovieActorDto>>
+
+    suspend fun getVideos(movieId: Int, apiKey: String): Result<List<MovieVideoDto>>
 }

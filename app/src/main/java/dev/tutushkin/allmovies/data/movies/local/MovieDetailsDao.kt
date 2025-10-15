@@ -14,6 +14,9 @@ interface MovieDetailsDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insert(movie: MovieDetailsEntity): Long
 
+    @Query("SELECT * FROM movie_details")
+    fun getAll(): List<MovieDetailsEntity>
+
     @Query("UPDATE movie_details SET isActorsLoaded = 1 WHERE id = :id")
     fun setActorsLoaded(id: Int)
 

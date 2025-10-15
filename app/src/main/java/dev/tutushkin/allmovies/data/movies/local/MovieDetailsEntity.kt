@@ -17,6 +17,9 @@ data class MovieDetailsEntity(
     @ColumnInfo(name = "overview")
     val overview: String,
 
+    @ColumnInfo(name = "poster")
+    val poster: String = "",
+
     @ColumnInfo(name = "backdrop")
     val backdrop: String,
 
@@ -37,6 +40,30 @@ data class MovieDetailsEntity(
 
     @ColumnInfo(name = "genres")
     val genres: String,
+
+    @ColumnInfo(name = "imdbId")
+    val imdbId: String = "",
+
+    @ColumnInfo(name = "trailerUrl")
+    val trailerUrl: String = "",
+
+    @ColumnInfo(name = "loanedTo")
+    val loanedTo: String = "",
+
+    @ColumnInfo(name = "loanedSince")
+    val loanedSince: String = "",
+
+    @ColumnInfo(name = "loanDue")
+    val loanDue: String = "",
+
+    @ColumnInfo(name = "loanStatus")
+    val loanStatus: String = "",
+
+    @ColumnInfo(name = "loanNotes")
+    val loanNotes: String = "",
+
+    @ColumnInfo(name = "notes")
+    val notes: String = "",
 
     @ColumnInfo(name = "actors")
     var actors: List<Int> = listOf(),

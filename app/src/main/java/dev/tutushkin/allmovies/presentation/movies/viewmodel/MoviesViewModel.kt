@@ -159,7 +159,6 @@ class MoviesViewModel(
 
             val language = currentLanguage
             val result = moviesRepository.searchMovies(
-                BuildConfig.API_KEY,
                 language,
                 query
             )

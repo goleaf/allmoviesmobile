@@ -10,7 +10,7 @@ import android.view.MenuItem
 import android.view.View
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -22,11 +22,6 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dev.tutushkin.allmovies.R
-import dev.tutushkin.allmovies.data.core.db.MoviesDb
-import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
-import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
-import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
-import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
@@ -34,10 +29,9 @@ import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragme
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
-import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModelFactory
+import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.LazyThreadSafetyMode
@@ -54,21 +48,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private val languagePreferences: LanguagePreferences by lazy(LazyThreadSafetyMode.NONE) {
         LanguagePreferences(requireContext().applicationContext)
     }
-    private val viewModel: MoviesViewModel by viewModels {
-        val application = requireActivity().application
-        val db = MoviesDb.getDatabase(application)
-        val localDataSource = MoviesLocalDataSourceImpl(
-            db.moviesDao(),
-            db.movieDetails(),
-            db.actorsDao(),
-            db.actorDetailsDao(),
-            db.configurationDao(),
-            db.genresDao()
-        )
-        val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        MoviesViewModelFactory(repository, languagePreferences)
-    }
+    private val viewModel: MoviesViewModel by activityViewModels { provideMoviesViewModelFactory() }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)

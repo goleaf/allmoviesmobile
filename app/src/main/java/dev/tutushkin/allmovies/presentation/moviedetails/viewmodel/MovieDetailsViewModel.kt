@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
+import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import kotlinx.coroutines.launch
 
 class MovieDetailsViewModel(
@@ -15,7 +16,8 @@ class MovieDetailsViewModel(
     private val slug: String?,
     private val openedFromSharedLink: Boolean,
     private val analytics: SharedLinkAnalytics,
-    private val language: String
+    private val language: String,
+    private val moviesViewModel: MoviesViewModel
 ) : ViewModel() {
 
     private val _currentMovie = MutableLiveData<MovieDetailsState>()
@@ -56,9 +58,8 @@ class MovieDetailsViewModel(
         val movie = currentState.movie
         val newState = !movie.isFavorite
 
-        viewModelScope.launch {
-            val result = moviesRepository.setFavorite(movie.id, newState)
-            if (result.isSuccess) {
+        moviesViewModel.toggleFavorite(movie.id, newState) { success ->
+            if (success) {
                 _currentMovie.value = MovieDetailsState.Result(movie.copy(isFavorite = newState))
             }
         }

@@ -23,6 +23,7 @@ import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.util.launchFragment
+import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.util.withFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -73,7 +74,7 @@ class MoviesGridDecorationTest {
     fun spacingDecorationKeepsEdgePadding() = runTest(testDispatcher) {
         val repository = StaticMoviesRepository()
         val languagePreferences = TestLanguagePreferences()
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, TestLogger())
         val factory = FakeMoviesViewModelFactory(viewModel)
 
         launchFragment(
@@ -131,20 +132,19 @@ class MoviesGridDecorationTest {
     }
 
     private class StaticMoviesRepository : MoviesRepository {
-        override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
+        override suspend fun getConfiguration(language: String): Result<Configuration> {
             return Result.success(Configuration())
         }
 
-        override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> {
+        override suspend fun getGenres(language: String): Result<List<Genre>> {
             return Result.success(emptyList())
         }
 
-        override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
+        override suspend fun getNowPlaying(language: String): Result<List<MovieList>> {
             return Result.success(emptyList())
         }
 
         override suspend fun searchMovies(
-            apiKey: String,
             language: String,
             query: String,
             includeAdult: Boolean,
@@ -154,7 +154,6 @@ class MoviesGridDecorationTest {
 
         override suspend fun getMovieDetails(
             movieId: Int,
-            apiKey: String,
             language: String,
             ensureCached: Boolean,
         ): Result<MovieDetails> {
@@ -163,7 +162,6 @@ class MoviesGridDecorationTest {
 
         override suspend fun getActorDetails(
             actorId: Int,
-            apiKey: String,
             language: String,
         ): Result<ActorDetails> {
             return Result.failure(UnsupportedOperationException())
@@ -182,7 +180,6 @@ class MoviesGridDecorationTest {
         }
 
         override suspend fun refreshLibrary(
-            apiKey: String,
             language: String,
             onProgress: (current: Int, total: Int, title: String) -> Unit,
         ): Result<Unit> {

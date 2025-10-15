@@ -3,13 +3,13 @@ package dev.tutushkin.allmovies.presentation.moviedetails.view
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.material.snackbar.Snackbar
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
@@ -87,7 +87,14 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             }
             is MovieDetailsState.Error -> {
 //                hideLoading()
-                Toast.makeText(requireContext(), state.e.message, Toast.LENGTH_SHORT).show()
+                val message = state.e.message ?: getString(R.string.library_update_failed_generic)
+                binding?.root?.let {
+                    Snackbar.make(
+                        it,
+                        message,
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
                 binding?.moviesDetailsShareImage?.isVisible = false
                 shareLink = null
                 shareTitle = null
@@ -152,17 +159,24 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
     }
 
     private fun shareCurrentMovie() {
-        val link = shareLink ?: return Toast.makeText(
-            requireContext(),
-            getString(R.string.movie_details_share_error),
-            Toast.LENGTH_SHORT
-        ).show()
+        val anchor = binding?.root ?: requireView()
+        val link = shareLink ?: run {
+            Snackbar.make(
+                anchor,
+                getString(R.string.movie_details_share_error),
+                Snackbar.LENGTH_SHORT
+            ).show()
+            return
+        }
 
-        val title = shareTitle ?: return Toast.makeText(
-            requireContext(),
-            getString(R.string.movie_details_share_error),
-            Toast.LENGTH_SHORT
-        ).show()
+        val title = shareTitle ?: run {
+            Snackbar.make(
+                anchor,
+                getString(R.string.movie_details_share_error),
+                Snackbar.LENGTH_SHORT
+            ).show()
+            return
+        }
         val shareIntent = Intent(Intent.ACTION_SEND).apply {
             type = "text/plain"
             putExtra(Intent.EXTRA_SUBJECT, title)

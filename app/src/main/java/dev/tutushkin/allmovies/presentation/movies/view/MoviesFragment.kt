@@ -8,12 +8,12 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
-import android.widget.Toast
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.snackbar.Snackbar
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
 import androidx.work.NetworkType
@@ -127,7 +127,12 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             }
             is MoviesState.Error -> {
 //                hideLoading()
-                Toast.makeText(requireContext(), state.e.message, Toast.LENGTH_SHORT).show()
+                val message = state.e.message ?: getString(R.string.library_update_failed_generic)
+                Snackbar.make(
+                    binding.root,
+                    message,
+                    Snackbar.LENGTH_SHORT
+                ).show()
             }
             is MoviesState.Loading -> //showLoading()
             {
@@ -157,20 +162,20 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                     }
                     WorkInfo.State.SUCCEEDED -> {
                         hideLibraryStatus()
-                        Toast.makeText(
-                            requireContext(),
+                        Snackbar.make(
+                            binding.root,
                             getString(R.string.library_update_complete_toast),
-                            Toast.LENGTH_SHORT
+                            Snackbar.LENGTH_SHORT
                         ).show()
                     }
                     WorkInfo.State.FAILED -> {
                         hideLibraryStatus()
                         val error = info.outputData.getString(MoviesRefreshWorker.KEY_ERROR_MESSAGE)
                             ?: getString(R.string.library_update_failed_generic)
-                        Toast.makeText(
-                            requireContext(),
+                        Snackbar.make(
+                            binding.root,
                             getString(R.string.library_update_failed_toast, error),
-                            Toast.LENGTH_LONG
+                            Snackbar.LENGTH_LONG
                         ).show()
                     }
                     WorkInfo.State.CANCELLED -> hideLibraryStatus()
@@ -206,10 +211,10 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                 hideLibraryStatus()
                 val message = throwable.localizedMessage
                     ?: getString(R.string.library_update_failed_generic)
-                Toast.makeText(
-                    requireContext(),
+                Snackbar.make(
+                    binding.root,
                     getString(R.string.library_export_failed, message),
-                    Toast.LENGTH_LONG
+                    Snackbar.LENGTH_LONG
                 ).show()
             }
         }

@@ -29,8 +29,7 @@ interface MoviesApi {
 
     @GET("movie/{movie_id}/release_dates")
     suspend fun getMovieReleaseDates(
-        @Path("movie_id") movieId: Int,
-        @Query("api_key") apiKey: String,
+        @Path("movie_id") movieId: Int
     ): MovieReleaseDatesResponse
 
     @GET("movie/{movie_id}/credits")

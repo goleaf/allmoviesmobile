@@ -37,11 +37,10 @@ class MoviesRemoteDataSourceImpl(
         }
 
     override suspend fun getMovieReleaseDates(
-        movieId: Int,
-        apiKey: String,
+        movieId: Int
     ): Result<MovieReleaseDatesResponse> =
         runCatching {
-            moviesApi.getMovieReleaseDates(movieId, apiKey)
+            moviesApi.getMovieReleaseDates(movieId)
         }
 
     override suspend fun getActors(

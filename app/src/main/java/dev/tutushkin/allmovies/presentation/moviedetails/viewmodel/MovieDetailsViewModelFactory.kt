@@ -10,12 +10,13 @@ class MovieDetailsViewModelFactory(
     private val id: Int,
     private val slug: String?,
     private val openedFromSharedLink: Boolean,
-    private val analytics: SharedLinkAnalytics
+    private val analytics: SharedLinkAnalytics,
+    private val language: String
 ) : ViewModelProvider.Factory {
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MovieDetailsViewModel::class.java)) {
-            return MovieDetailsViewModel(repository, id, slug, openedFromSharedLink, analytics) as T
+            return MovieDetailsViewModel(repository, id, slug, openedFromSharedLink, analytics, language) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class")
     }

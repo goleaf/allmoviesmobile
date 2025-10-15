@@ -4,37 +4,45 @@ class MoviesRemoteDataSourceImpl(
     private val moviesApi: MoviesApi
 ) : MoviesRemoteDataSource {
 
-    override suspend fun getConfiguration(apiKey: String): Result<ConfigurationDto> =
+    override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> =
         runCatching {
-            moviesApi.getConfiguration(apiKey).images
+            moviesApi.getConfiguration(apiKey, language).images
         }
 
-    override suspend fun getGenres(apiKey: String): Result<List<GenreDto>> =
+    override suspend fun getGenres(apiKey: String, language: String): Result<List<GenreDto>> =
         runCatching {
-            moviesApi.getGenres(apiKey).genres
+            moviesApi.getGenres(apiKey, language).genres
         }
 
-    override suspend fun getNowPlaying(apiKey: String): Result<List<MovieListDto>> =
+    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieListDto>> =
         runCatching {
-            moviesApi.getNowPlaying(apiKey).results
+            moviesApi.getNowPlaying(apiKey, language).results
         }
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String
+        apiKey: String,
+        language: String
     ): Result<MovieDetailsResponse> =
         runCatching {
-            moviesApi.getMovieDetails(movieId, apiKey)
+            moviesApi.getMovieDetails(movieId, apiKey, language)
         }
 
-    override suspend fun getActors(movieId: Int, apiKey: String): Result<List<MovieActorDto>> =
+    override suspend fun getActors(
+        movieId: Int,
+        apiKey: String,
+        language: String
+    ): Result<List<MovieActorDto>> =
         runCatching {
-            moviesApi.getActors(movieId, apiKey).cast
+            moviesApi.getActors(movieId, apiKey, language).cast
         }
 
-    override suspend fun getVideos(movieId: Int, apiKey: String): Result<List<MovieVideoDto>> =
+    override suspend fun getVideos(
+        movieId: Int,
+        apiKey: String,
+        language: String
+    ): Result<List<MovieVideoDto>> =
         runCatching {
-            moviesApi.getVideos(movieId, apiKey).results
+            moviesApi.getVideos(movieId, apiKey, language).results
         }
-
 }

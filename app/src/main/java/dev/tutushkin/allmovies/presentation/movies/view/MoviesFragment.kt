@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.GridLayoutManager
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import androidx.work.Constraints
 import androidx.work.ExistingWorkPolicy
@@ -26,6 +27,7 @@ import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
+import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
@@ -38,6 +40,7 @@ import dev.tutushkin.allmovies.utils.export.ExportResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlin.LazyThreadSafetyMode
 
 @ExperimentalSerializationApi
 class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
@@ -48,16 +51,12 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private lateinit var adapter: MoviesAdapter
     private lateinit var csvExporter: CsvExporter
     private val workManager: WorkManager by lazy { WorkManager.getInstance(requireContext()) }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-// TODO Column alignment RecyclerView
-//        val displayMetrics = DisplayMetrics()
-//            ...
-
-        val db = MoviesDb.getDatabase(requireActivity().application)
-        val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
+    private val languagePreferences: LanguagePreferences by lazy(LazyThreadSafetyMode.NONE) {
+        LanguagePreferences(requireContext().applicationContext)
+    }
+    private val viewModel: MoviesViewModel by viewModels {
+        val application = requireActivity().application
+        val db = MoviesDb.getDatabase(application)
         val localDataSource = MoviesLocalDataSourceImpl(
             db.moviesDao(),
             db.movieDetails(),
@@ -65,9 +64,17 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             db.configurationDao(),
             db.genresDao()
         )
-        val repository =
-            MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        val viewModel: MoviesViewModel by viewModels { MoviesViewModelFactory(repository) }
+        val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
+        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+        MoviesViewModelFactory(repository, languagePreferences)
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+// TODO Column alignment RecyclerView
+//        val displayMetrics = DisplayMetrics()
+//            ...
 
         _binding = FragmentMoviesListBinding.bind(view)
         setHasOptionsMenu(true)
@@ -114,8 +121,42 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                 exportLibrary()
                 true
             }
+            R.id.action_language -> {
+                showLanguageSelectionDialog()
+                true
+            }
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    private fun showLanguageSelectionDialog() {
+        val entries = resources.getStringArray(R.array.language_entries)
+        val values = resources.getStringArray(R.array.language_values)
+        if (entries.isEmpty() || values.isEmpty()) {
+            return
+        }
+
+        val currentCode = languagePreferences.getSelectedLanguage()
+        var selectedIndex = values.indexOfFirst { it.equals(currentCode, ignoreCase = true) }
+        if (selectedIndex < 0) {
+            selectedIndex = 0
+        }
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.language_dialog_title)
+            .setSingleChoiceItems(entries, selectedIndex) { _, which ->
+                selectedIndex = which
+            }
+            .setPositiveButton(android.R.string.ok) { dialog, _ ->
+                val newCode = values.getOrNull(selectedIndex) ?: return@setPositiveButton
+                if (!newCode.equals(currentCode, ignoreCase = true)) {
+                    languagePreferences.setSelectedLanguage(newCode)
+                    viewModel.changeLanguage(newCode)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun handleMoviesList(state: MoviesState) {

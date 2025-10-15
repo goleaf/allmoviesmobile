@@ -17,6 +17,7 @@ import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
+import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import kotlinx.coroutines.Dispatchers
 
 class MoviesRefreshWorker(
@@ -40,6 +41,7 @@ class MoviesRefreshWorker(
         )
         val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
         val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
+        val languageCode = LanguagePreferences(applicationContext).getSelectedLanguage()
 
         setForegroundAsync(
             notificationHelper.createForegroundInfo(
@@ -49,7 +51,7 @@ class MoviesRefreshWorker(
             )
         )
 
-        val result = repository.refreshLibrary(apiKey) { current, total, title ->
+        val result = repository.refreshLibrary(apiKey, languageCode) { current, total, title ->
             val progressData = workDataOf(
                 PROGRESS_CURRENT to current,
                 PROGRESS_TOTAL to total,

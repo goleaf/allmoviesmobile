@@ -7,15 +7,16 @@ import dev.tutushkin.allmovies.domain.movies.models.MovieList
 
 interface MoviesRepository {
 
-    suspend fun getConfiguration(apiKey: String): Result<Configuration>
+    suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration>
 
-    suspend fun getGenres(apiKey: String): Result<List<Genre>>
+    suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>>
 
-    suspend fun getNowPlaying(apiKey: String): Result<List<MovieList>>
+    suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>>
 
     suspend fun getMovieDetails(
         movieId: Int,
         apiKey: String,
+        language: String,
         ensureCached: Boolean = false
     ): Result<MovieDetails>
 
@@ -23,6 +24,7 @@ interface MoviesRepository {
 
     suspend fun refreshLibrary(
         apiKey: String,
+        language: String,
         onProgress: (current: Int, total: Int, title: String) -> Unit
     ): Result<Unit>
 }

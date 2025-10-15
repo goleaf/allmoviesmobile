@@ -18,6 +18,19 @@
 
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>
+    <string name="menu_language">Language</string>
+
+    <string name="language_dialog_title">Choose language</string>
+    <string name="language_english">English</string>
+    <string name="language_russian">Russian</string>
+    <string-array name="language_entries">
+        <item>@string/language_english</item>
+        <item>@string/language_russian</item>
+    </string-array>
+    <string-array name="language_values">
+        <item>en</item>
+        <item>ru</item>
+    </string-array>
 
     <string name="library_update_title">Updating library</string>
     <string name="library_update_channel_name">Library maintenance</string>

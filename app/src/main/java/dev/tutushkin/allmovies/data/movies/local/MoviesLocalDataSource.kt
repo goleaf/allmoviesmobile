@@ -38,6 +38,12 @@ interface MoviesLocalDataSource {
 
     suspend fun clearActors()
 
+    suspend fun getActorDetails(actorId: Int): ActorDetailsEntity?
+
+    suspend fun setActorDetails(actorDetails: ActorDetailsEntity)
+
+    suspend fun clearActorDetails()
+
     suspend fun setMovie(movie: MovieListEntity)
 
     suspend fun getMovie(movieId: Int): MovieListEntity?

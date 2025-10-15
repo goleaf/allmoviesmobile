@@ -4,6 +4,7 @@ class MoviesLocalDataSourceImpl(
     private val moviesDao: MoviesDao,
     private val movieDetailsDao: MovieDetailsDao,
     private val actorsDao: ActorsDao,
+    private val actorDetailsDao: ActorDetailsDao,
     private val configurationDao: ConfigurationDao,
     private val genresDao: GenresDao
 ) : MoviesLocalDataSource {
@@ -70,6 +71,17 @@ class MoviesLocalDataSourceImpl(
 
     override suspend fun clearActors() {
         actorsDao.deleteAll()
+    }
+
+    override suspend fun getActorDetails(actorId: Int): ActorDetailsEntity? =
+        actorDetailsDao.getActorDetails(actorId)
+
+    override suspend fun setActorDetails(actorDetails: ActorDetailsEntity) {
+        actorDetailsDao.insert(actorDetails)
+    }
+
+    override suspend fun clearActorDetails() {
+        actorDetailsDao.clear()
     }
 
     override suspend fun setMovie(movie: MovieListEntity) {

@@ -61,6 +61,7 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             db.moviesDao(),
             db.movieDetails(),
             db.actorsDao(),
+            db.actorDetailsDao(),
             db.configurationDao(),
             db.genresDao()
         )

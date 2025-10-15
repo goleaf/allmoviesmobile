@@ -45,6 +45,22 @@ internal fun ActorEntity.toModel(): Actor = Actor(
     photo = this.photo
 )
 
+internal fun ActorDetailsEntity.toModel(): ActorDetails = ActorDetails(
+    id = this.id,
+    name = this.name,
+    biography = this.biography,
+    birthday = this.birthday,
+    deathday = this.deathday,
+    birthplace = this.birthplace,
+    profileImage = this.profileImage,
+    knownForDepartment = this.knownForDepartment,
+    alsoKnownAs = this.alsoKnownAs,
+    imdbId = this.imdbId,
+    homepage = this.homepage,
+    popularity = this.popularity,
+    knownFor = this.knownFor,
+)
+
 internal fun GenreEntity.toModel(): Genre = Genre(
     id = this.id,
     name = this.name

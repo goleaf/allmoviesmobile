@@ -201,6 +201,34 @@ class MoviesRepositoryImpl(
                 .mapCatching { actors -> movie.toModel(actors) }
         }
 
+    override suspend fun getActorDetails(
+        actorId: Int,
+        apiKey: String,
+        language: String
+    ): Result<ActorDetails> = withContext(ioDispatcher) {
+        var localDetails = moviesLocalDataSource.getActorDetails(actorId)
+
+        if (localDetails == null) {
+            val detailsResult = moviesRemoteDataSource.getActorDetails(actorId, apiKey, language)
+            detailsResult.onFailure { return@withContext Result.failure(it) }
+
+            val knownFor = moviesRemoteDataSource.getActorMovieCredits(actorId, apiKey, language)
+                .mapCatching { response -> response.toKnownForStrings() }
+                .getOrElse { emptyList() }
+
+            val entity = detailsResult.getOrThrow().toEntity(knownFor)
+            moviesLocalDataSource.setActorDetails(entity)
+            localDetails = entity
+        }
+
+        val details = localDetails
+        if (details == null) {
+            Result.failure(Exception("Actor details caching error!"))
+        } else {
+            Result.success(details.toModel())
+        }
+    }
+
     private suspend fun getMovieDetailsFromServer(
         movieId: Int,
         apiKey: String,
@@ -309,6 +337,7 @@ class MoviesRepositoryImpl(
             moviesLocalDataSource.clearNowPlaying()
             moviesLocalDataSource.clearMovieDetails()
             moviesLocalDataSource.clearActors()
+            moviesLocalDataSource.clearActorDetails()
         }
     }
 

@@ -15,9 +15,10 @@ import dev.tutushkin.allmovies.data.movies.local.*
         MovieDetailsEntity::class,
         GenreEntity::class,
         ActorEntity::class,
-        ConfigurationEntity::class
+        ConfigurationEntity::class,
+        ActorDetailsEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -28,6 +29,7 @@ abstract class MoviesDb : RoomDatabase() {
     abstract fun genresDao(): GenresDao
     abstract fun actorsDao(): ActorsDao
     abstract fun configurationDao(): ConfigurationDao
+    abstract fun actorDetailsDao(): ActorDetailsDao
 
     companion object {
 
@@ -42,7 +44,7 @@ abstract class MoviesDb : RoomDatabase() {
                     "Movies.db"
                 )
 //                    .allowMainThreadQueries()   // TODO Delete!!!
-                    .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
                     .build()
                 INSTANCE = instance
                 instance
@@ -56,6 +58,31 @@ abstract class MoviesDb : RoomDatabase() {
                 )
                 database.execSQL(
                     "ALTER TABLE movie_details ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0"
+                )
+            }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                database.execSQL(
+                    """
+                        CREATE TABLE IF NOT EXISTS actor_details (
+                            id INTEGER NOT NULL,
+                            name TEXT NOT NULL,
+                            biography TEXT NOT NULL,
+                            birthday TEXT,
+                            deathday TEXT,
+                            birthplace TEXT,
+                            profileImage TEXT,
+                            knownForDepartment TEXT,
+                            alsoKnownAs TEXT NOT NULL DEFAULT '',
+                            imdbId TEXT,
+                            homepage TEXT,
+                            popularity REAL NOT NULL DEFAULT 0.0,
+                            knownFor TEXT NOT NULL DEFAULT '',
+                            PRIMARY KEY(id)
+                        )
+                    """.trimIndent()
                 )
             }
         }

@@ -45,4 +45,22 @@ class MoviesRemoteDataSourceImpl(
         runCatching {
             moviesApi.getVideos(movieId, apiKey, language).results
         }
+
+    override suspend fun getActorDetails(
+        actorId: Int,
+        apiKey: String,
+        language: String,
+    ): Result<ActorDetailsResponse> =
+        runCatching {
+            moviesApi.getActorDetails(actorId, apiKey, language)
+        }
+
+    override suspend fun getActorMovieCredits(
+        actorId: Int,
+        apiKey: String,
+        language: String,
+    ): Result<ActorMovieCreditsResponse> =
+        runCatching {
+            moviesApi.getActorMovieCredits(actorId, apiKey, language)
+        }
 }

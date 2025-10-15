@@ -8,6 +8,7 @@ import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifierProvider
+import dev.tutushkin.allmovies.utils.logging.LoggerProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 
@@ -27,5 +28,10 @@ fun Fragment.provideMoviesViewModelFactory(): MoviesViewModelFactory {
     val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
     val languagePreferences = LanguagePreferences(requireContext().applicationContext)
     val favoritesNotifier = FavoritesUpdateNotifierProvider.notifier
-    return MoviesViewModelFactory(repository, languagePreferences, favoritesNotifier)
+    return MoviesViewModelFactory(
+        repository,
+        languagePreferences,
+        favoritesNotifier,
+        LoggerProvider.logger
+    )
 }

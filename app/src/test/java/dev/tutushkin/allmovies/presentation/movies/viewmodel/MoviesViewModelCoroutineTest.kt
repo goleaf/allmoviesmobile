@@ -3,6 +3,7 @@ package dev.tutushkin.allmovies.presentation.movies.viewmodel
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
 import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
+import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.ActorDetails
@@ -139,7 +140,8 @@ class MoviesViewModelCoroutineTest {
     private fun createViewModel() = MoviesViewModel(
         repository,
         languagePreferences,
-        TestFavoritesUpdateNotifier()
+        TestFavoritesUpdateNotifier(),
+        TestLogger()
     )
 }
 

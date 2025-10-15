@@ -9,6 +9,7 @@ import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
+import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
@@ -35,6 +36,7 @@ class MoviesViewModelTest {
     private lateinit var repository: FakeMoviesRepository
     private lateinit var languagePreferences: TestLanguagePreferences
     private lateinit var favoritesNotifier: TestFavoritesUpdateNotifier
+    private lateinit var logger: TestLogger
 
     @Before
     fun setUp() {
@@ -42,6 +44,7 @@ class MoviesViewModelTest {
         repository = FakeMoviesRepository()
         languagePreferences = TestLanguagePreferences("en")
         favoritesNotifier = TestFavoritesUpdateNotifier()
+        logger = TestLogger()
     }
 
     @After
@@ -53,7 +56,7 @@ class MoviesViewModelTest {
     fun `emits empty result when repository returns empty now playing`() = runTest(dispatcher) {
         repository.nowPlayingResult = Result.success(emptyList())
 
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val emittedStates = mutableListOf<MoviesState>()
         val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
         viewModel.movies.observeForever(observer)
@@ -77,7 +80,7 @@ class MoviesViewModelTest {
         val error = IllegalStateException("boom")
         repository.nowPlayingResult = Result.failure(error)
 
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val emittedStates = mutableListOf<MoviesState>()
         val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
         viewModel.movies.observeForever(observer)
@@ -97,7 +100,7 @@ class MoviesViewModelTest {
         repository.nowPlayingResult = Result.success(listOf(initialMovie))
         repository.setFavoriteResult = Result.success(Unit)
 
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val emittedStates = mutableListOf<MoviesState>()
         val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
         viewModel.movies.observeForever(observer)
@@ -121,7 +124,7 @@ class MoviesViewModelTest {
         repository.nowPlayingResult = Result.success(listOf(initialMovie))
         repository.setFavoriteResult = Result.success(Unit)
 
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val emittedStates = mutableListOf<MoviesState>()
         val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
         viewModel.movies.observeForever(observer)
@@ -152,7 +155,7 @@ class MoviesViewModelTest {
         repository.setFavoriteResult = Result.success(Unit)
         repository.searchMoviesResult = Result.success(listOf(initialMovie.copy(isFavorite = false)))
 
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val searchStates = mutableListOf<MoviesSearchState>()
         val observer = Observer<MoviesSearchState> { state -> searchStates.add(state) }
         viewModel.searchState.observeForever(observer)
@@ -186,7 +189,7 @@ class MoviesViewModelTest {
         val failure = IllegalStateException("network")
         repository.searchMoviesResult = Result.failure(failure)
 
-        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val viewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val searchStates = mutableListOf<MoviesSearchState>()
         val observer = Observer<MoviesSearchState> { state -> searchStates.add(state) }
         viewModel.searchState.observeForever(observer)
@@ -224,7 +227,7 @@ class MoviesViewModelTest {
         )
         repository.setFavoriteResult = Result.success(Unit)
 
-        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
         val emittedStates = mutableListOf<MoviesState>()
         val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
         moviesViewModel.movies.observeForever(observer)
@@ -255,6 +258,42 @@ class MoviesViewModelTest {
         assertTrue(repository.setFavoriteCalledWith == (movieId to true))
 
         moviesViewModel.movies.removeObserver(observer)
+    }
+
+    @Test
+    fun `logs error when configuration fetch fails`() = runTest(dispatcher) {
+        val failure = IllegalStateException("config boom")
+        repository.configurationResult = Result.failure(failure)
+
+        MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(
+            logger.errors.any { entry ->
+                entry.tag == "MoviesViewModel" &&
+                    entry.message.contains("configuration") &&
+                    entry.throwable === failure
+            }
+        )
+    }
+
+    @Test
+    fun `logs error when genres fetch fails`() = runTest(dispatcher) {
+        val failure = IllegalStateException("genres boom")
+        repository.genresResult = Result.failure(failure)
+
+        MoviesViewModel(repository, languagePreferences, favoritesNotifier, logger)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(
+            logger.errors.any { entry ->
+                entry.tag == "MoviesViewModel" &&
+                    entry.message.contains("genres") &&
+                    entry.throwable === failure
+            }
+        )
     }
 }
 

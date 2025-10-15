@@ -23,7 +23,9 @@ import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.favorites.sync.DefaultFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
+import dev.tutushkin.allmovies.utils.logging.AndroidLogger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -71,7 +73,12 @@ class MoviesFragmentSearchTest {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val languagePreferences = LanguagePreferences(context)
         languagePreferences.setSelectedLanguage("en")
-        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val viewModel = MoviesViewModel(
+            repository,
+            languagePreferences,
+            DefaultFavoritesUpdateNotifier(),
+            AndroidLogger()
+        )
         val factory = FakeMoviesViewModelFactory(viewModel)
 
         launchFragmentInContainer<MoviesFragment>(themeResId = R.style.Theme_AppCompat) {

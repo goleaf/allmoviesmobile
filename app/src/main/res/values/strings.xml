@@ -5,6 +5,10 @@
     <string name="movie_details_reviews">%1$d REVIEWS</string>
     <string name="movie_details_storyline">Storyline</string>
     <string name="movie_details_cast">Cast</string>
+    <string name="movie_details_share_content_description">Share movie</string>
+    <string name="movie_details_share_message">Check out %1$s: %2$s</string>
+    <string name="movie_details_share_chooser_title">Share movie</string>
+    <string name="movie_details_share_error">Nothing to share yet</string>
 
     <string name="movies_list_screen_title">Now Playing</string>
     <string name="movies_list_reviews">%1$d REVIEWS</string>

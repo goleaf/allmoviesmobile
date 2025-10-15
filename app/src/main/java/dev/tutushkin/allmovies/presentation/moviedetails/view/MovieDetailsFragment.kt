@@ -1,8 +1,10 @@
 package dev.tutushkin.allmovies.presentation.moviedetails.view
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -16,10 +18,14 @@ import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.databinding.FragmentMoviesDetailsBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
+import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalyticsLogger
+import dev.tutushkin.allmovies.presentation.extensions.toSlug
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModelFactory
-import dev.tutushkin.allmovies.presentation.movies.view.MOVIES_KEY
+import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
+import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SHARED
+import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SLUG
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 
@@ -28,9 +34,14 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
 
     private var _binding: FragmentMoviesDetailsBinding? = null
     private val binding get() = _binding
+    private var shareLink: String? = null
+    private var shareTitle: String? = null
+    private lateinit var args: MovieDetailsArgs
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        args = parseArgs(arguments)
 
         val db = MoviesDb.getDatabase(requireActivity().application)
         val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
@@ -43,11 +54,13 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         )
         val repository =
             MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        val arg = arguments?.getInt(MOVIES_KEY, 0) ?: 0
         val viewModel: MovieDetailsViewModel by viewModels {
             MovieDetailsViewModelFactory(
                 repository,
-                arg
+                args.movieId,
+                args.slug,
+                args.openedFromSharedLink,
+                SharedLinkAnalyticsLogger
             )
         }
 
@@ -57,6 +70,10 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
 
         binding?.moviesDetailsBackText?.setOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
+        }
+
+        binding?.moviesDetailsShareImage?.setOnClickListener {
+            shareCurrentMovie()
         }
     }
 
@@ -71,10 +88,16 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             is MovieDetailsState.Error -> {
 //                hideLoading()
                 Toast.makeText(requireContext(), state.e.message, Toast.LENGTH_SHORT).show()
+                binding?.moviesDetailsShareImage?.isVisible = false
+                shareLink = null
+                shareTitle = null
             }
             is MovieDetailsState.Loading -> {
 //                showLoading()
 //                Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
+                binding?.moviesDetailsShareImage?.isVisible = false
+                shareLink = null
+                shareTitle = null
             }
         }
     }
@@ -96,7 +119,11 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             movieDetailsActorsRecycler.layoutManager =
                 LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
             movieDetailsActorsRecycler.adapter = ActorsAdapter(movie.actors)
+            moviesDetailsShareImage.isVisible = true
         }
+
+        shareLink = buildShareLink(movie)
+        shareTitle = movie.title
     }
 
     private fun showLoading() {
@@ -111,4 +138,51 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         _binding = null
         super.onDestroyView()
     }
+
+    private fun parseArgs(bundle: Bundle?): MovieDetailsArgs {
+        val movieId = bundle?.getInt(ARG_MOVIE_ID, 0) ?: 0
+        val slug = bundle?.getString(ARG_MOVIE_SLUG)
+        val openedFromShare = bundle?.getBoolean(ARG_MOVIE_SHARED, false) ?: false
+        return MovieDetailsArgs(movieId, slug, openedFromShare)
+    }
+
+    private fun buildShareLink(movie: MovieDetails): String {
+        val slug = args.slug ?: movie.title.toSlug()
+        return "app://collection/movie/${movie.id}/$slug"
+    }
+
+    private fun shareCurrentMovie() {
+        val link = shareLink ?: return Toast.makeText(
+            requireContext(),
+            getString(R.string.movie_details_share_error),
+            Toast.LENGTH_SHORT
+        ).show()
+
+        val title = shareTitle ?: return Toast.makeText(
+            requireContext(),
+            getString(R.string.movie_details_share_error),
+            Toast.LENGTH_SHORT
+        ).show()
+        val shareIntent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_SUBJECT, title)
+            putExtra(
+                Intent.EXTRA_TEXT,
+                getString(R.string.movie_details_share_message, title, link)
+            )
+        }
+
+        startActivity(
+            Intent.createChooser(
+                shareIntent,
+                getString(R.string.movie_details_share_chooser_title)
+            )
+        )
+    }
 }
+
+private data class MovieDetailsArgs(
+    val movieId: Int,
+    val slug: String?,
+    val openedFromSharedLink: Boolean
+)

@@ -13,7 +13,11 @@ interface MoviesRepository {
 
     suspend fun getNowPlaying(apiKey: String): Result<List<MovieList>>
 
-    suspend fun getMovieDetails(movieId: Int, apiKey: String): Result<MovieDetails>
+    suspend fun getMovieDetails(
+        movieId: Int,
+        apiKey: String,
+        ensureCached: Boolean = false
+    ): Result<MovieDetails>
 
     suspend fun clearAll()
 }

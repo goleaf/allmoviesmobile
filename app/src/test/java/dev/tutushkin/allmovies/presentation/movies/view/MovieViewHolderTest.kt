@@ -1,5 +1,8 @@
 package dev.tutushkin.allmovies.presentation.movies.view
 
+import android.content.Context
+import android.os.Build
+import android.view.ContextThemeWrapper
 import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.test.core.app.ApplicationProvider
@@ -12,15 +15,18 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.Shadows
+import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
+@Config(sdk = [Build.VERSION_CODES.P])
 class MovieViewHolderTest {
 
     @Test
     fun `bind updates favorite icon and propagates clicks`() {
-        val context = ApplicationProvider.getApplicationContext<android.content.Context>()
-        val parent = FrameLayout(context)
-        val binding = ViewHolderMovieBinding.inflate(LayoutInflater.from(context), parent, false)
+        val baseContext = ApplicationProvider.getApplicationContext<Context>()
+        val themedContext = ContextThemeWrapper(baseContext, R.style.Theme_AllMovies)
+        val parent = FrameLayout(themedContext)
+        val binding = ViewHolderMovieBinding.inflate(LayoutInflater.from(themedContext), parent, false)
         val viewHolder = MovieViewHolder(binding)
 
         var toggleRequest: Pair<Int, Boolean>? = null

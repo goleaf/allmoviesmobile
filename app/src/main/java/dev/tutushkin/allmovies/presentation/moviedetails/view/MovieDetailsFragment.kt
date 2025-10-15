@@ -3,11 +3,13 @@ package dev.tutushkin.allmovies.presentation.moviedetails.view
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.annotation.VisibleForTesting
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -45,32 +47,18 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
     private var shareTitle: String? = null
     private val args: MovieDetailsArgs by lazy { parseArgs(arguments) }
 
-    private val moviesViewModel: MoviesViewModel by activityViewModels { provideMoviesViewModelFactory() }
+    @VisibleForTesting
+    internal var moviesViewModelFactoryOverride: ViewModelProvider.Factory? = null
+
+    private val moviesViewModel: MoviesViewModel by activityViewModels {
+        moviesViewModelFactoryOverride ?: provideMoviesViewModelFactory()
+    }
+
+    @VisibleForTesting
+    internal var viewModelFactoryOverride: ViewModelProvider.Factory? = null
 
     private val viewModel: MovieDetailsViewModel by viewModels {
-        val db = MoviesDb.getDatabase(requireActivity().application)
-        val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
-        val localDataSource = MoviesLocalDataSourceImpl(
-            db.moviesDao(),
-            db.movieDetails(),
-            db.actorsDao(),
-            db.actorDetailsDao(),
-            db.configurationDao(),
-            db.genresDao()
-        )
-        val repository =
-            MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        val languagePreferences = LanguagePreferences(requireContext().applicationContext)
-
-        MovieDetailsViewModelFactory(
-            repository,
-            args.movieId,
-            args.slug,
-            args.openedFromSharedLink,
-            SharedLinkAnalyticsLogger,
-            languagePreferences.getSelectedLanguage(),
-            moviesViewModel
-        )
+        viewModelFactoryOverride ?: createMovieDetailsViewModelFactory()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -99,13 +87,11 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
     private fun render(state: MovieDetailsState) {
         when (state) {
             is MovieDetailsState.Result -> {
-//                hideLoading()
+                hideLoading()
                 renderResult(state.movie)
-//                Toast.makeText(requireContext(), "Success", Toast.LENGTH_SHORT).show()
-//                adapter.submitList(state.result)
             }
             is MovieDetailsState.Error -> {
-//                hideLoading()
+                hideLoading()
                 val message = state.e.message ?: getString(R.string.library_update_failed_generic)
                 binding?.root?.let {
                     Snackbar.make(
@@ -120,10 +106,7 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
                 shareTitle = null
             }
             is MovieDetailsState.Loading -> {
-//                showLoading()
-//                Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
-                binding?.moviesDetailsShareImage?.isVisible = false
-                binding?.moviesDetailsFavoriteImage?.isVisible = false
+                showLoading()
                 shareLink = null
                 shareTitle = null
             }
@@ -172,12 +155,41 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         shareTitle = movie.title
     }
 
+    private fun createMovieDetailsViewModelFactory(): MovieDetailsViewModelFactory {
+        val db = MoviesDb.getDatabase(requireActivity().application)
+        val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
+        val localDataSource = MoviesLocalDataSourceImpl(
+            db.moviesDao(),
+            db.movieDetails(),
+            db.actorsDao(),
+            db.actorDetailsDao(),
+            db.configurationDao(),
+            db.genresDao()
+        )
+        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+        val languagePreferences = LanguagePreferences(requireContext().applicationContext)
+
+        return MovieDetailsViewModelFactory(
+            repository,
+            args.movieId,
+            args.slug,
+            args.openedFromSharedLink,
+            SharedLinkAnalyticsLogger,
+            languagePreferences.getSelectedLanguage(),
+            moviesViewModel
+        )
+    }
+
     private fun showLoading() {
-        TODO("Not yet implemented")
+        binding?.apply {
+            moviesDetailsLoadingOverlay.isVisible = true
+            moviesDetailsShareImage.isVisible = false
+            moviesDetailsFavoriteImage.isVisible = false
+        }
     }
 
     private fun hideLoading() {
-        TODO("Not yet implemented")
+        binding?.moviesDetailsLoadingOverlay?.isVisible = false
     }
 
     override fun onDestroyView() {

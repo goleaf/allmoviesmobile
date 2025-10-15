@@ -4,6 +4,14 @@ AllMovies is an Android client for browsing movie information from [TMDB](https:
 
 This repository now includes a macOS-friendly automation script that lets you run every build, test, and deployment task from the Cursor editor without opening Android Studio. The README provides the full manual process so you can reproduce the workflow or adapt it to your own setup.
 
+## Features
+
+- Smooth loading indicators while browsing movie collections and details.
+- Full-text movie search with instant results.
+- Favorite lists synced between the catalog and detail screens.
+- Language selection dialog for switching between supported locales.
+- Actor detail pages linked from each movie's cast list.
+
 ## Technology stack
 
 - Kotlin with Coroutines, Serialization, and ViewBinding

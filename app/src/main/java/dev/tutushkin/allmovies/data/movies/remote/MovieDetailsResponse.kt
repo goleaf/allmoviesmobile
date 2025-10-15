@@ -11,6 +11,8 @@ data class MovieDetailsResponse(
     val title: String,
     @SerialName("overview")
     val overview: String,
+    @SerialName("poster_path")
+    val posterPath: String?,
     @SerialName("backdrop_path")
     val backdropPath: String?,
     @SerialName("vote_average")
@@ -24,5 +26,7 @@ data class MovieDetailsResponse(
     @SerialName("runtime")
     val runtime: Int,
     @SerialName("genres")
-    val genres: List<GenreDto>
+    val genres: List<GenreDto>,
+    @SerialName("imdb_id")
+    val imdbId: String?
 )

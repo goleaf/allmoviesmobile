@@ -32,4 +32,9 @@ class MoviesRemoteDataSourceImpl(
             moviesApi.getActors(movieId, apiKey).cast
         }
 
+    override suspend fun getVideos(movieId: Int, apiKey: String): Result<List<MovieVideoDto>> =
+        runCatching {
+            moviesApi.getVideos(movieId, apiKey).results
+        }
+
 }

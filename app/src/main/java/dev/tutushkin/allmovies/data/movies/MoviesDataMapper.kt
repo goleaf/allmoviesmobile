@@ -23,13 +23,15 @@ internal fun MovieDetailsResponse.toEntity(): MovieDetailsEntity = MovieDetailsE
     id = this.id,
     title = this.title,
     overview = this.overview,
+    poster = getImageUrl(this.posterPath),
     backdrop = getImageUrl(this.backdropPath),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
     minimumAge = normalizeAge(this.adult),
     year = dateToYear(this.releaseDate),
     runtime = this.runtime,
-    genres = this.genres.joinToString { it.name }
+    genres = this.genres.joinToString { it.name },
+    imdbId = this.imdbId.orEmpty()
 )
 
 internal fun MovieActorDto.toEntity(): ActorEntity = ActorEntity(
@@ -82,8 +84,27 @@ private fun filterGenres(genres: List<Int>): String = NetworkModule.allGenres.fi
     genres.contains(it.id)
 }.joinToString(transform = Genre::name)
 
+internal fun List<MovieVideoDto>.toPreferredTrailerUrl(): String {
+    val preferred = this.firstOrNull { video ->
+        video.site.equals(YOUTUBE, ignoreCase = true) &&
+            video.type.equals(TYPE_TRAILER, ignoreCase = true) &&
+            video.official
+    } ?: this.firstOrNull { video ->
+        video.site.equals(YOUTUBE, ignoreCase = true) &&
+            video.type.equals(TYPE_TRAILER, ignoreCase = true)
+    } ?: this.firstOrNull { video ->
+        video.site.equals(YOUTUBE, ignoreCase = true)
+    }
+
+    return preferred?.let { video ->
+        "https://www.youtube.com/watch?v=${video.key}"
+    } ?: ""
+}
+
 private const val AGE_ADULT = "18+"
 private const val AGE_CHILD = "13+"
 private const val SOURCE_DATE_PATTERN = "yyyy-MM-dd"
 private const val TARGET_YEAR_PATTERN = "yyyy"
+private const val YOUTUBE = "YouTube"
+private const val TYPE_TRAILER = "Trailer"
 internal const val UNKNOWN_YEAR = ""

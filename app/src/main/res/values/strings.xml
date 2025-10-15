@@ -15,4 +15,21 @@
     <string name="movies_list_duration">%1$d MIN</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Unknown</string>
+
+    <string name="menu_update_all">Update all</string>
+    <string name="menu_export">Export</string>
+
+    <string name="library_update_title">Updating library</string>
+    <string name="library_update_channel_name">Library maintenance</string>
+    <string name="library_update_preparing">Preparing library update…</string>
+    <string name="library_update_progress">%1$d%% • %2$s</string>
+    <string name="library_update_unknown_title">Unknown movie</string>
+    <string name="library_update_success">Library updated</string>
+    <string name="library_update_failed_generic">Unable to refresh movies.</string>
+    <string name="library_update_complete_toast">Library refresh finished</string>
+    <string name="library_update_failed_toast">Library refresh failed: %1$s</string>
+
+    <string name="library_export_in_progress">Preparing export…</string>
+    <string name="library_export_failed">Export failed: %1$s</string>
+    <string name="library_export_share_title">Share your collection</string>
 </resources>

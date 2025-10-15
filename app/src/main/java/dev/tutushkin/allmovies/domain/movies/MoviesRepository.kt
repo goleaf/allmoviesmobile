@@ -20,4 +20,9 @@ interface MoviesRepository {
     ): Result<MovieDetails>
 
     suspend fun clearAll()
+
+    suspend fun refreshLibrary(
+        apiKey: String,
+        onProgress: (current: Int, total: Int, title: String) -> Unit
+    ): Result<Unit>
 }

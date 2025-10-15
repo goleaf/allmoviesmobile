@@ -18,6 +18,7 @@ internal fun MovieDetailsEntity.toModel(actors: List<Actor>): MovieDetails = Mov
     id = this.id,
     title = this.title,
     overview = this.overview,
+    poster = this.poster,
     backdrop = this.backdrop,
     ratings = this.ratings,
     numberOfRatings = this.numberOfRatings,
@@ -25,6 +26,14 @@ internal fun MovieDetailsEntity.toModel(actors: List<Actor>): MovieDetails = Mov
     year = this.year,
     runtime = this.runtime,
     genres = this.genres,
+    imdbId = this.imdbId,
+    trailerUrl = this.trailerUrl,
+    loanedTo = this.loanedTo,
+    loanedSince = this.loanedSince,
+    loanDue = this.loanDue,
+    loanStatus = this.loanStatus,
+    loanNotes = this.loanNotes,
+    notes = this.notes,
     actors = actors
 )
 

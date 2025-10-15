@@ -136,6 +136,17 @@ class MoviesRepositoryImpl(
 
                 moviesLocalDataSource.setMovieDetails(movieToSave)
                 moviesLocalDataSource.setActors(actors)
+                val summaryEntity = MovieListEntity(
+                    id = movieToSave.id,
+                    title = movieToSave.title,
+                    poster = movieToSave.poster,
+                    ratings = movieToSave.ratings,
+                    numberOfRatings = movieToSave.numberOfRatings,
+                    minimumAge = movieToSave.minimumAge,
+                    year = movieToSave.year,
+                    genres = movieToSave.genres
+                )
+                moviesLocalDataSource.setMovie(summaryEntity)
 
                 localMovie = moviesLocalDataSource.getMovieDetails(movieId) ?: movieToSave
             }
@@ -204,6 +215,63 @@ class MoviesRepositoryImpl(
             moviesLocalDataSource.clearNowPlaying()
             moviesLocalDataSource.clearMovieDetails()
             moviesLocalDataSource.clearActors()
+        }
+    }
+
+    override suspend fun refreshLibrary(
+        apiKey: String,
+        onProgress: (current: Int, total: Int, title: String) -> Unit
+    ): Result<Unit> = withContext(ioDispatcher) {
+        runCatching {
+            val movies = moviesLocalDataSource.getNowPlaying()
+            if (movies.isEmpty()) {
+                return@runCatching
+            }
+
+            val total = movies.size
+            movies.forEachIndexed { index, movie ->
+                onProgress(index, total, movie.title)
+
+                val existingDetails = moviesLocalDataSource.getMovieDetails(movie.id)
+
+                val movieDetails = getMovieDetailsFromServer(movie.id, apiKey).getOrThrow()
+                val actors = getActorsFromServer(movie.id, apiKey).getOrThrow()
+                val videos = moviesRemoteDataSource.getVideos(movie.id, apiKey)
+                    .getOrDefault(emptyList())
+                val trailerUrl = videos.toPreferredTrailerUrl()
+
+                val detailsToSave = movieDetails.copy(
+                    poster = movieDetails.poster.ifBlank { existingDetails?.poster ?: movie.poster },
+                    actors = actors.map { actor -> actor.id },
+                    isActorsLoaded = true,
+                    imdbId = movieDetails.imdbId.ifBlank { existingDetails?.imdbId.orEmpty() },
+                    trailerUrl = trailerUrl.ifBlank { existingDetails?.trailerUrl.orEmpty() },
+                    loanedTo = existingDetails?.loanedTo.orEmpty(),
+                    loanedSince = existingDetails?.loanedSince.orEmpty(),
+                    loanDue = existingDetails?.loanDue.orEmpty(),
+                    loanStatus = existingDetails?.loanStatus.orEmpty(),
+                    loanNotes = existingDetails?.loanNotes.orEmpty(),
+                    notes = existingDetails?.notes.orEmpty()
+                )
+
+                moviesLocalDataSource.setMovieDetails(detailsToSave)
+                moviesLocalDataSource.setActors(actors)
+                moviesLocalDataSource.setActorsLoaded(movie.id)
+
+                val summaryEntity = MovieListEntity(
+                    id = detailsToSave.id,
+                    title = detailsToSave.title,
+                    poster = detailsToSave.poster.ifBlank { movie.poster },
+                    ratings = detailsToSave.ratings,
+                    numberOfRatings = detailsToSave.numberOfRatings,
+                    minimumAge = detailsToSave.minimumAge,
+                    year = detailsToSave.year,
+                    genres = detailsToSave.genres
+                )
+                moviesLocalDataSource.setMovie(summaryEntity)
+
+                onProgress(index + 1, total, movie.title)
+            }
         }
     }
 

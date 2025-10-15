@@ -68,11 +68,11 @@ class MoviesRefreshWorker(
             notificationHelper.showCompleted()
             Result.success()
         } else {
-            val message = result.exceptionOrNull()?.localizedMessage
-                ?: applicationContext.getString(R.string.library_update_failed_generic)
-            setProgress(workDataOf(KEY_ERROR_MESSAGE to message))
+            val messageResId = R.string.library_update_failed_generic
+            val message = applicationContext.getString(messageResId)
+            setProgress(workDataOf(KEY_ERROR_MESSAGE_RES_ID to messageResId))
             notificationHelper.showFailed(message)
-            Result.failure(workDataOf(KEY_ERROR_MESSAGE to message))
+            Result.failure(workDataOf(KEY_ERROR_MESSAGE_RES_ID to messageResId))
         }
     }
 
@@ -83,7 +83,7 @@ class MoviesRefreshWorker(
         const val PROGRESS_CURRENT = "progress_current"
         const val PROGRESS_TOTAL = "progress_total"
         const val PROGRESS_TITLE = "progress_title"
-        const val KEY_ERROR_MESSAGE = "error_message"
+        const val KEY_ERROR_MESSAGE_RES_ID = "error_message_res_id"
     }
 }
 

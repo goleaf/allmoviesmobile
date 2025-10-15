@@ -14,6 +14,7 @@
     <string name="movie_details_favorite_add">Отметить как избранное</string>
     <string name="movie_details_favorite_remove">Удалить из избранного</string>
     <string name="movie_details_favorite_content_description">Переключить избранное</string>
+    <string name="movie_details_error_generic">Не удалось загрузить информацию о фильме.</string>
 
     <string name="actor_details_title">Информация об актёре</string>
     <string name="actor_details_biography">Биография</string>
@@ -39,6 +40,7 @@
     <string name="movies_list_favorite_add">Добавить в избранное</string>
     <string name="movies_list_favorite_remove">Удалить из избранного</string>
     <string name="movies_list_loading_message">Загрузка фильмов…</string>
+    <string name="movies_list_error_generic">Не удалось загрузить фильмы.</string>
 
     <string name="menu_update_all">Обновить все</string>
     <string name="menu_export">Экспорт</string>

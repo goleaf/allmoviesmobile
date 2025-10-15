@@ -9,6 +9,7 @@
     <string name="movie_details_share_message">Посмотри %1$s: %2$s</string>
     <string name="movie_details_share_chooser_title">Поделиться фильмом</string>
     <string name="movie_details_share_error">Пока нечем поделиться</string>
+    <string name="movie_details_runtime_year_accessibility">Длительность %1$d минут, год выхода %2$s</string>
 
     <string name="movies_list_screen_title">Сейчас в прокате</string>
     <string name="movies_list_reviews">%1$d ОТЗЫВОВ</string>

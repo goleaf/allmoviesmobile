@@ -121,8 +121,17 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
             moviesDetailsRating.rating = movie.ratings / 2
             moviesDetailsRatingsCountText.text =
                 requireContext().getString(R.string.movie_details_reviews, movie.numberOfRatings)
-            moviesDetailsDurationText.text =
-                requireContext().getString(R.string.movies_list_duration, movie.runtime)
+            val runtimeText = requireContext().getString(R.string.movies_list_duration, movie.runtime)
+            val yearText = movie.year.ifBlank { getString(R.string.movies_list_year_unknown) }
+            moviesDetailsDurationText.text = runtimeText
+            moviesDetailsYearText.text = yearText
+            val runtimeAndYearContentDescription = getString(
+                R.string.movie_details_runtime_year_accessibility,
+                movie.runtime,
+                yearText
+            )
+            moviesDetailsDurationText.contentDescription = runtimeAndYearContentDescription
+            moviesDetailsYearText.contentDescription = runtimeAndYearContentDescription
             moviesDetailsStorylineContentText.text = movie.overview
             Glide.with(requireContext())
                 .load(movie.backdrop)

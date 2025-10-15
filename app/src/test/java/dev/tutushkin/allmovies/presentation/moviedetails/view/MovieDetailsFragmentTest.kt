@@ -3,6 +3,7 @@ package dev.tutushkin.allmovies.presentation.moviedetails.view
 import android.os.Build
 import android.os.Looper
 import android.view.View
+import android.widget.TextView
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.core.os.bundleOf
 import androidx.lifecycle.ViewModel
@@ -118,6 +119,56 @@ class MovieDetailsFragmentTest {
             host.withFragment { fragment ->
                 val overlay = fragment.requireView().findViewById<View>(R.id.movies_details_loading_overlay)
                 assertEquals(View.GONE, overlay.visibility)
+            }
+        }
+    }
+
+    @Test
+    fun yearTextReflectsMovieYear() = runTest(dispatcher) {
+        val languagePreferences = TestLanguagePreferences()
+        val moviesViewModel = MoviesViewModel(repository, languagePreferences, favoritesNotifier)
+        val language = languagePreferences.getSelectedLanguage()
+        val movieId = 7
+        val args = bundleOf(ARG_MOVIE_ID to movieId)
+        val detailsFactory = FakeMovieDetailsViewModelFactory(
+            repository,
+            movieId,
+            language,
+            moviesViewModel
+        )
+        val moviesFactory = FakeMoviesViewModelFactory(moviesViewModel)
+
+        launchFragment(
+            MovieDetailsFragment().apply {
+                arguments = args
+                moviesViewModelFactoryOverride = moviesFactory
+                viewModelFactoryOverride = detailsFactory
+            }
+        ).use { host ->
+            dispatcher.scheduler.runCurrent()
+            shadowOf(Looper.getMainLooper()).idle()
+
+            val movieDetails = MovieDetails(
+                id = movieId,
+                title = "Title",
+                overview = "Overview",
+                poster = "",
+                backdrop = "",
+                ratings = 9f,
+                numberOfRatings = 10,
+                minimumAge = "13+",
+                year = "1995",
+                runtime = 110,
+                genres = "Action"
+            )
+            repository.emitMovieDetails(Result.success(movieDetails))
+            dispatcher.scheduler.runCurrent()
+            shadowOf(Looper.getMainLooper()).idle()
+
+            host.withFragment { fragment ->
+                val yearView =
+                    fragment.requireView().findViewById<TextView>(R.id.movies_details_year_text)
+                assertEquals("1995", yearView.text.toString())
             }
         }
     }

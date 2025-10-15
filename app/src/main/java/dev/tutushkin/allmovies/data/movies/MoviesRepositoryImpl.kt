@@ -13,7 +13,8 @@ class MoviesRepositoryImpl(
     private val moviesRemoteDataSource: MoviesRemoteDataSource,
     private val moviesLocalDataSource: MoviesLocalDataSource,
     private val configurationDataStore: ConfigurationDataStore,
-    private val ioDispatcher: CoroutineDispatcher
+    private val ioDispatcher: CoroutineDispatcher,
+    private val imageSizeSelector: ImageSizeSelector
 ) : MoviesRepository {
 
     override suspend fun getConfiguration(language: String): Result<Configuration> =
@@ -133,7 +134,7 @@ class MoviesRepositoryImpl(
         moviesRemoteDataSource.searchMovies(language, query, includeAdult)
             .mapCatching { dtos ->
                 dtos.map { dto ->
-                    val entity = dto.toEntity(configuration)
+                    val entity = dto.toEntity(imageSizeSelector)
                     val merged = if (favoriteIds.contains(entity.id)) {
                         entity.copy(isFavorite = true)
                     } else {
@@ -152,7 +153,7 @@ class MoviesRepositoryImpl(
             runCatching {
                 moviesRemoteDataSource.getNowPlaying(language)
                     .getOrThrow()
-                    .map { it.toEntity(configuration) }
+                    .map { it.toEntity(imageSizeSelector) }
             }
         }
 
@@ -245,7 +246,7 @@ class MoviesRepositoryImpl(
                 .mapCatching { response -> response.toKnownForStrings() }
                 .getOrElse { emptyList() }
 
-            val entity = detailsResult.getOrThrow().toEntity(configuration, knownFor)
+            val entity = detailsResult.getOrThrow().toEntity(knownFor, imageSizeSelector)
             moviesLocalDataSource.setActorDetails(entity)
             localDetails = entity
         }
@@ -274,7 +275,7 @@ class MoviesRepositoryImpl(
                         ?.takeIf { it.code.isNotBlank() || it.label.isNotBlank() }
                         ?: fallbackCertification(response.adult)
 
-                    response.toEntity(configuration, certification)
+                    response.toEntity(imageSizeSelector, certification)
                 }
         }
 
@@ -315,7 +316,7 @@ class MoviesRepositoryImpl(
             runCatching {
                 moviesRemoteDataSource.getActors(movieId, language)
                     .getOrThrow()
-                    .map { it.toEntity(configuration) }
+                    .map { it.toEntity(imageSizeSelector) }
             }
         }
 

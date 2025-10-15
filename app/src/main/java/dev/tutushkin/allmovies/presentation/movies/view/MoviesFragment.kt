@@ -26,6 +26,7 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
@@ -99,7 +100,8 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
+        val imageSizeSelector = requireContext().createImageSizeSelector()
+        adapter = MoviesAdapter(listener, imageSizeSelector)
         binding.moviesListRecycler.adapter = adapter
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)

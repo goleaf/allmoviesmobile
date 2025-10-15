@@ -15,6 +15,7 @@ import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.ConfigurationDataStore
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.local.configurationPreferencesDataStore
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
@@ -44,11 +45,13 @@ class MoviesRefreshWorker(
         val configurationDataStore = ConfigurationDataStore(
             applicationContext.configurationPreferencesDataStore
         )
+        val imageSizeSelector = applicationContext.createImageSizeSelector()
         val repository = MoviesRepositoryImpl(
             remoteDataSource,
             localDataSource,
             configurationDataStore,
-            Dispatchers.IO
+            Dispatchers.IO,
+            imageSizeSelector
         )
         val languageCode = LanguagePreferences(applicationContext).getSelectedLanguage()
 

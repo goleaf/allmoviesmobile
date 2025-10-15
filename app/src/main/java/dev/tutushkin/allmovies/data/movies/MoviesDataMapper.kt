@@ -1,6 +1,5 @@
 package dev.tutushkin.allmovies.data.movies
 
-import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.local.*
 import dev.tutushkin.allmovies.data.movies.remote.*
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
@@ -19,12 +18,12 @@ internal data class CertificationValue(
 }
 
 internal fun MovieListDto.toEntity(
-    configuration: Configuration,
+    imageSizeSelector: ImageSizeSelector,
     certification: CertificationValue = fallbackCertification(this.adult)
 ): MovieListEntity = MovieListEntity(
     id = this.id,
     title = this.title,
-    poster = configuration.posterUrl(this.posterPath),
+    poster = getImageUrl(this.posterPath, imageSizeSelector),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
     certificationLabel = certification.label,
@@ -35,14 +34,14 @@ internal fun MovieListDto.toEntity(
 )
 
 internal fun MovieDetailsResponse.toEntity(
-    configuration: Configuration,
+    imageSizeSelector: ImageSizeSelector,
     certification: CertificationValue = fallbackCertification(this.adult)
 ): MovieDetailsEntity = MovieDetailsEntity(
     id = this.id,
     title = this.title,
     overview = this.overview,
-    poster = configuration.posterUrl(this.posterPath),
-    backdrop = configuration.backdropUrl(this.backdropPath),
+    poster = getImageUrl(this.posterPath, imageSizeSelector),
+    backdrop = getImageUrl(this.backdropPath, imageSizeSelector),
     ratings = this.voteAverage,
     numberOfRatings = this.voteCount,
     certificationLabel = certification.label,
@@ -54,15 +53,15 @@ internal fun MovieDetailsResponse.toEntity(
     isFavorite = false,
 )
 
-internal fun MovieActorDto.toEntity(configuration: Configuration): ActorEntity = ActorEntity(
+internal fun MovieActorDto.toEntity(imageSizeSelector: ImageSizeSelector): ActorEntity = ActorEntity(
     id = this.id,
     name = this.name,
-    photo = configuration.profileUrl(this.profilePath)
+    photo = getImageUrl(this.profilePath, imageSizeSelector)
 )
 
 internal fun ActorDetailsResponse.toEntity(
-    configuration: Configuration,
-    knownFor: List<String>
+    knownFor: List<String>,
+    imageSizeSelector: ImageSizeSelector
 ): ActorDetailsEntity = ActorDetailsEntity(
     id = this.id,
     name = this.name,
@@ -70,7 +69,7 @@ internal fun ActorDetailsResponse.toEntity(
     birthday = this.birthday,
     deathday = this.deathday,
     birthplace = this.placeOfBirth,
-    profileImage = configuration.profileUrl(this.profilePath).ifBlank { null },
+    profileImage = getImageUrl(this.profilePath, imageSizeSelector).ifBlank { null },
     knownForDepartment = this.knownForDepartment,
     alsoKnownAs = this.alsoKnownAs ?: emptyList(),
     imdbId = this.imdbId,
@@ -91,24 +90,12 @@ internal fun ConfigurationDto.toEntity(): ConfigurationEntity = ConfigurationEnt
     profileSizes = this.profileSizes
 )
 
-private fun Configuration.posterUrl(path: String?): String = buildImageUrl(
-    path,
-    posterSizes.preferredSize(DEFAULT_POSTER_SIZE)
-)
-
-private fun Configuration.backdropUrl(path: String?): String = buildImageUrl(
-    path,
-    backdropSizes.preferredSize(DEFAULT_BACKDROP_SIZE)
-)
-
-private fun Configuration.profileUrl(path: String?): String = buildImageUrl(
-    path,
-    profileSizes.preferredSize(DEFAULT_PROFILE_SIZE)
-)
-
-private fun Configuration.buildImageUrl(path: String?, size: String): String {
-    if (path.isNullOrBlank()) return ""
-    return "$imagesBaseUrl$size$path"
+private fun getImageUrl(
+    posterPath: String?,
+    imageSizeSelector: ImageSizeSelector
+): String {
+    if (posterPath.isNullOrBlank()) return ""
+    return imageSizeSelector.buildPosterUrl(posterPath)
 }
 
 internal fun fallbackCertification(isAdult: Boolean): CertificationValue =

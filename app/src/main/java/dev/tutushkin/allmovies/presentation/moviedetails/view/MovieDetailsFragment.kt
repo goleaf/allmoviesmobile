@@ -19,6 +19,7 @@ import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.ConfigurationDataStore
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.local.configurationPreferencesDataStore
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
@@ -190,11 +191,13 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         val configurationDataStore = ConfigurationDataStore(
             requireContext().applicationContext.configurationPreferencesDataStore
         )
+        val imageSizeSelector = requireContext().createImageSizeSelector()
         val repository = MoviesRepositoryImpl(
             remoteDataSource,
             localDataSource,
             configurationDataStore,
-            Dispatchers.IO
+            Dispatchers.IO,
+            imageSizeSelector
         )
         val languagePreferences = LanguagePreferences(requireContext().applicationContext)
 

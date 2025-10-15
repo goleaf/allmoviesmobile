@@ -1,10 +1,14 @@
 package dev.tutushkin.allmovies.data.movies
 
+import android.content.Context
+import android.net.ConnectivityManager
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.core.mutablePreferencesOf
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.test.core.app.ApplicationProvider
+import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.CertificationValue
 import dev.tutushkin.allmovies.data.movies.fallbackCertification
 import dev.tutushkin.allmovies.data.movies.local.ActorEntity
@@ -40,7 +44,10 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
 
+@RunWith(RobolectricTestRunner::class)
 @OptIn(ExperimentalCoroutinesApi::class)
 class MoviesRepositoryImplTest {
 
@@ -50,6 +57,7 @@ class MoviesRepositoryImplTest {
     private lateinit var configurationDataStore: ConfigurationDataStore
     private lateinit var inMemoryDataStore: InMemoryPreferencesDataStore
     private lateinit var repository: MoviesRepositoryImpl
+    private lateinit var imageSizeSelector: ImageSizeSelector
 
     private companion object {
         private const val LANGUAGE = "en"
@@ -65,7 +73,16 @@ class MoviesRepositoryImplTest {
         inMemoryDataStore = InMemoryPreferencesDataStore()
         configurationDataStore = ConfigurationDataStore(inMemoryDataStore)
         configurationDataStore.write(Configuration(imagesBaseUrl = "https://images.test/"))
-        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, configurationDataStore, dispatcher)
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        NetworkModule.configApi = Configuration()
+        imageSizeSelector = ImageSizeSelector(
+            connectivityManager = connectivityManager,
+            configurationProvider = { NetworkModule.configApi },
+            deviceWidthProvider = { 500 },
+            bandwidthProvider = { 5_000 }
+        )
+        repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, configurationDataStore, dispatcher, imageSizeSelector)
     }
 
     @Test

@@ -2,7 +2,6 @@ package dev.tutushkin.allmovies.presentation.movies.view
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuInflater
@@ -16,6 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -36,7 +36,9 @@ import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
-import androidx.navigation.fragment.findNavController
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridCalculator
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridProvider
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridSpacingItemDecoration
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.LazyThreadSafetyMode
@@ -72,19 +74,9 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-// TODO Column alignment RecyclerView
-//        val displayMetrics = DisplayMetrics()
-//            ...
-
         _binding = FragmentMoviesListBinding.bind(view)
         setHasOptionsMenu(true)
         csvExporter = CsvExporter(requireContext())
-
-        val spanCount = when (resources.configuration.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> 3
-            else -> 2
-        }
-        binding.moviesListRecycler.layoutManager = GridLayoutManager(requireContext(), spanCount)
 
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
@@ -100,7 +92,21 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         }
 
         adapter = MoviesAdapter(listener)
+        val spacing = resources.getDimensionPixelSize(R.dimen.movie_grid_spacing)
+        val calculator = ResponsiveGridCalculator(
+            minimumCellWidthPx = resources.getDimensionPixelSize(R.dimen.movie_grid_min_item_width),
+            horizontalSpacingPx = spacing,
+        )
+        val gridSpec = ResponsiveGridProvider(requireActivity(), calculator).calculate()
+        val layoutManager = GridLayoutManager(requireContext(), gridSpec.spanCount)
+        binding.moviesListRecycler.layoutManager = layoutManager
+        binding.moviesListRecycler.clipToPadding = false
+        while (binding.moviesListRecycler.itemDecorationCount > 0) {
+            binding.moviesListRecycler.removeItemDecorationAt(0)
+        }
+        binding.moviesListRecycler.addItemDecoration(ResponsiveGridSpacingItemDecoration(spacing))
         binding.moviesListRecycler.adapter = adapter
+        adapter.updateGridSpec(gridSpec)
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)
         viewModel.searchState.observe(viewLifecycleOwner, ::handleSearchState)

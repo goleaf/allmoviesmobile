@@ -3,6 +3,7 @@ package dev.tutushkin.allmovies.presentation.moviedetails.view
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -17,6 +18,7 @@ import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
+import dev.tutushkin.allmovies.presentation.actors.view.ActorDetailsFragment
 import dev.tutushkin.allmovies.databinding.FragmentMoviesDetailsBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalyticsLogger
@@ -24,6 +26,7 @@ import dev.tutushkin.allmovies.presentation.extensions.toSlug
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModelFactory
+import dev.tutushkin.allmovies.presentation.navigation.ARG_ACTOR_ID
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SHARED
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_SLUG
@@ -73,6 +76,9 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         viewModel.currentMovie.observe(viewLifecycleOwner, ::render)
 
         binding?.moviesDetailsBackText?.setOnClickListener {
+            requireActivity().supportFragmentManager.popBackStack()
+        }
+        binding?.moviesDetailsBackImage?.setOnClickListener {
             requireActivity().supportFragmentManager.popBackStack()
         }
 
@@ -135,7 +141,16 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
                 .into(moviesDetailsPosterImage)
             movieDetailsActorsRecycler.layoutManager =
                 LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
-            movieDetailsActorsRecycler.adapter = ActorsAdapter(movie.actors)
+            movieDetailsActorsRecycler.adapter = ActorsAdapter(movie.actors) { actorId ->
+                val args = bundleOf(ARG_ACTOR_ID to actorId)
+                val fragment = ActorDetailsFragment().apply {
+                    arguments = args
+                }
+                requireActivity().supportFragmentManager.beginTransaction()
+                    .addToBackStack(null)
+                    .replace(R.id.main_container, fragment)
+                    .commit()
+            }
             moviesDetailsShareImage.isVisible = true
             val favoriteIcon = if (movie.isFavorite) R.drawable.ic_like else R.drawable.ic_notlike
             moviesDetailsFavoriteImage.setImageResource(favoriteIcon)

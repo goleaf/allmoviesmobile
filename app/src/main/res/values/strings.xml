@@ -20,7 +20,12 @@
 
     <string name="menu_update_all">Update all</string>
     <string name="menu_export">Export</string>
+    <string name="menu_search">Search</string>
     <string name="menu_language">Language</string>
+
+    <string name="movies_search_hint">Search movies</string>
+    <string name="movies_now_playing_empty">No movies are available right now.</string>
+    <string name="movies_search_empty">No movies matched “%1$s”.</string>
 
     <string name="language_dialog_title">Choose language</string>
     <string name="language_english">English</string>

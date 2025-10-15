@@ -130,6 +130,27 @@ class MoviesRepositoryImpl(
             }
         }
 
+    override suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String
+    ): Result<List<MovieList>> = withContext(ioDispatcher) {
+        val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()
+
+        moviesRemoteDataSource.searchMovies(apiKey, language, query)
+            .mapCatching { dtos ->
+                dtos.map { dto ->
+                    val entity = dto.toEntity()
+                    val withFavorite = if (favoriteIds.contains(entity.id)) {
+                        entity.copy(isFavorite = true)
+                    } else {
+                        entity
+                    }
+                    withFavorite.toModel()
+                }
+            }
+    }
+
     override suspend fun getMovieDetails(
         movieId: Int,
         apiKey: String,

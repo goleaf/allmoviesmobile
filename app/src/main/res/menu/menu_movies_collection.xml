@@ -13,6 +13,12 @@
         app:showAsAction="never" />
 
     <item
+        android:id="@+id/action_search"
+        android:title="@string/menu_search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"
+        app:showAsAction="ifRoom|collapseActionView" />
+
+    <item
         android:id="@+id/action_language"
         android:title="@string/menu_language"
         app:showAsAction="never" />

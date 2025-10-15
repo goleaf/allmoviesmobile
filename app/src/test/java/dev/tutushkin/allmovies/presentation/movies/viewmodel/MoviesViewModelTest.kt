@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -47,7 +48,7 @@ class MoviesViewModelTest {
     }
 
     @Test
-    fun `emits empty result when repository returns empty now playing`() = runTest(dispatcher) {
+    fun `emits empty state when repository returns empty now playing`() = runTest(dispatcher) {
         repository.nowPlayingResult = Result.success(emptyList())
 
         val viewModel = MoviesViewModel(repository, languagePreferences)
@@ -59,8 +60,8 @@ class MoviesViewModelTest {
 
         assertTrue(emittedStates.isNotEmpty())
         val resultState = emittedStates.last()
-        assertTrue(resultState is MoviesState.Result)
-        assertTrue((resultState as MoviesState.Result).result.isEmpty())
+        assertTrue(resultState is MoviesState.Empty)
+        assertEquals(MoviesState.EmptyReason.NOW_PLAYING, (resultState as MoviesState.Empty).reason)
         assertTrue(repository.clearAllCalled)
         assertTrue(repository.configurationRequested)
         assertTrue(repository.genresRequested)
@@ -91,6 +92,82 @@ class MoviesViewModelTest {
 
         viewModel.movies.removeObserver(observer)
     }
+
+    @Test
+    fun `search with blank query restores cached now playing`() = runTest(dispatcher) {
+        val initialMovie = MovieList(id = 1, title = "Movie")
+        repository.nowPlayingResult = Result.success(listOf(initialMovie))
+        repository.searchMoviesResult = Result.success(emptyList())
+
+        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val emittedStates = mutableListOf<MoviesState>()
+        val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
+        viewModel.movies.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        emittedStates.clear()
+
+        viewModel.search("   ")
+
+        val resultState = emittedStates.last() as MoviesState.Result
+        assertEquals(listOf(initialMovie), resultState.result)
+
+        viewModel.movies.removeObserver(observer)
+    }
+
+    @Test
+    fun `search emits empty state when repository returns no matches`() = runTest(dispatcher) {
+        val initialMovie = MovieList(id = 1, title = "Movie")
+        repository.nowPlayingResult = Result.success(listOf(initialMovie))
+        repository.searchMoviesResult = Result.success(emptyList())
+
+        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val emittedStates = mutableListOf<MoviesState>()
+        val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
+        viewModel.movies.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        emittedStates.clear()
+
+        viewModel.search("Matrix")
+        dispatcher.scheduler.advanceUntilIdle()
+
+        assertTrue(emittedStates.first() is MoviesState.Searching)
+        val emptyState = emittedStates.last() as MoviesState.Empty
+        assertEquals(MoviesState.EmptyReason.SEARCH, emptyState.reason)
+        assertEquals("Matrix", emptyState.query)
+        assertEquals("Matrix", repository.searchMoviesRequested?.third)
+
+        viewModel.movies.removeObserver(observer)
+    }
+
+    @Test
+    fun `search emits results from repository`() = runTest(dispatcher) {
+        val initialMovie = MovieList(id = 1, title = "Movie")
+        val searchedMovie = MovieList(id = 2, title = "Searched")
+        repository.nowPlayingResult = Result.success(listOf(initialMovie))
+        repository.searchMoviesResult = Result.success(listOf(searchedMovie))
+
+        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val emittedStates = mutableListOf<MoviesState>()
+        val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
+        viewModel.movies.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        emittedStates.clear()
+
+        viewModel.search("Search")
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val resultState = emittedStates.last() as MoviesState.Result
+        assertEquals(listOf(searchedMovie), resultState.result)
+        assertEquals("Search", repository.searchMoviesRequested?.third)
+
+        viewModel.movies.removeObserver(observer)
+    }
 }
 
 private class FakeMoviesRepository : MoviesRepository {
@@ -101,6 +178,7 @@ private class FakeMoviesRepository : MoviesRepository {
     var movieDetailsResult: Result<MovieDetails> = Result.failure(UnsupportedOperationException())
     var favoritesResult: Result<List<MovieList>> = Result.success(emptyList())
     var setFavoriteResult: Result<Unit> = Result.success(Unit)
+    var searchMoviesResult: Result<List<MovieList>> = Result.success(emptyList())
 
     var clearAllCalled: Boolean = false
         private set
@@ -111,6 +189,7 @@ private class FakeMoviesRepository : MoviesRepository {
     var nowPlayingRequested: Boolean = false
         private set
     var setFavoriteCalledWith: Pair<Int, Boolean>? = null
+    var searchMoviesRequested: Triple<String, String, String>? = null
 
     override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
         configurationRequested = true
@@ -125,6 +204,15 @@ private class FakeMoviesRepository : MoviesRepository {
     override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
         nowPlayingRequested = true
         return nowPlayingResult
+    }
+
+    override suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String
+    ): Result<List<MovieList>> {
+        searchMoviesRequested = Triple(apiKey, language, query)
+        return searchMoviesResult
     }
 
     override suspend fun getMovieDetails(

@@ -44,4 +44,13 @@ interface MoviesApi {
         @Query("api_key") apiKey: String,
         @Query("language") language: String
     ): MovieVideosResponse
+
+    @GET("search/movie")
+    suspend fun searchMovies(
+        @Query("api_key") apiKey: String,
+        @Query("language") language: String,
+        @Query("query") query: String,
+        @Query("include_adult") includeAdult: Boolean = false,
+        @Query("page") page: Int? = null
+    ): MovieListResponse
 }

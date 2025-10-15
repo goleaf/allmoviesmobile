@@ -13,6 +13,8 @@ interface MoviesRepository {
 
     suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>>
 
+    suspend fun searchMovies(apiKey: String, language: String, query: String): Result<List<MovieList>>
+
     suspend fun getMovieDetails(
         movieId: Int,
         apiKey: String,

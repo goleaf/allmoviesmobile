@@ -1,5 +1,6 @@
 package dev.tutushkin.allmovies.presentation.movies.view
 
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
@@ -8,10 +9,13 @@ import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import androidx.annotation.VisibleForTesting
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -21,6 +25,7 @@ import androidx.work.NetworkType
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
+import androidx.appcompat.widget.SearchView
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
@@ -30,6 +35,7 @@ import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
+import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
@@ -39,6 +45,8 @@ import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.LazyThreadSafetyMode
 
@@ -54,20 +62,25 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private val languagePreferences: LanguagePreferences by lazy(LazyThreadSafetyMode.NONE) {
         LanguagePreferences(requireContext().applicationContext)
     }
+    @VisibleForTesting
+    internal var viewModelFactoryOverride: ViewModelProvider.Factory? = null
     private val viewModel: MoviesViewModel by viewModels {
-        val application = requireActivity().application
-        val db = MoviesDb.getDatabase(application)
-        val localDataSource = MoviesLocalDataSourceImpl(
-            db.moviesDao(),
-            db.movieDetails(),
-            db.actorsDao(),
-            db.configurationDao(),
-            db.genresDao()
-        )
-        val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
-        MoviesViewModelFactory(repository, languagePreferences)
+        viewModelFactoryOverride ?: run {
+            val application = requireActivity().application
+            val db = MoviesDb.getDatabase(application)
+            val localDataSource = MoviesLocalDataSourceImpl(
+                db.moviesDao(),
+                db.movieDetails(),
+                db.actorsDao(),
+                db.configurationDao(),
+                db.genresDao()
+            )
+            val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
+            val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+            MoviesViewModelFactory(repository, languagePreferences)
+        }
     }
+    private var searchJob: Job? = null
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -113,6 +126,59 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.menu_movies_collection, menu)
+
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem.actionView as? SearchView ?: return
+        searchView.queryHint = getString(R.string.movies_search_hint)
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                val text = query.orEmpty()
+                performSearch(text)
+                searchView.clearFocus()
+                dismissKeyboard()
+                return true
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                val text = newText.orEmpty()
+                searchJob?.cancel()
+                if (text.isBlank()) {
+                    viewModel.search(text)
+                } else {
+                    searchJob = viewLifecycleOwner.lifecycleScope.launch {
+                        delay(SEARCH_DEBOUNCE_MS)
+                        viewModel.search(text)
+                    }
+                }
+                return true
+            }
+        })
+
+        searchView.setOnQueryTextFocusChangeListener { _, hasFocus ->
+            if (!hasFocus) {
+                dismissKeyboard()
+            }
+        }
+
+        searchView.setOnCloseListener {
+            searchJob?.cancel()
+            viewModel.search("")
+            dismissKeyboard()
+            false
+        }
+
+        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+            override fun onMenuItemActionExpand(item: MenuItem?): Boolean = true
+
+            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                searchJob?.cancel()
+                searchView.setQuery("", false)
+                viewModel.refreshMovies(clearCache = false)
+                dismissKeyboard()
+                return true
+            }
+        })
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -166,23 +232,26 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     private fun handleMoviesList(state: MoviesState) {
         when (state) {
             is MoviesState.Result -> {
-//                hideLoading()
-//                Toast.makeText(requireContext(), "Success", Toast.LENGTH_SHORT).show()
-                adapter.submitList(state.result)
+                hideLoading()
+                showMovies(state.result)
             }
             is MoviesState.Error -> {
-//                hideLoading()
+                hideLoading()
                 val message = state.e.message ?: getString(R.string.library_update_failed_generic)
                 Snackbar.make(
                     binding.root,
                     message,
                     Snackbar.LENGTH_SHORT
                 ).show()
+                if (adapter.itemCount == 0) {
+                    showEmpty(MoviesState.Empty(MoviesState.EmptyReason.NOW_PLAYING))
+                }
             }
-            is MoviesState.Loading -> //showLoading()
-            {
-//                showLoading()
-//                Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
+            is MoviesState.Loading -> showLoading()
+            is MoviesState.Searching -> showLoading()
+            is MoviesState.Empty -> {
+                hideLoading()
+                showEmpty(state)
             }
         }
     }
@@ -318,16 +387,52 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         binding.libraryStatusContainer.isVisible = false
     }
 
+    private fun showMovies(movies: List<MovieList>) {
+        adapter.submitList(movies)
+        binding.moviesListRecycler.isVisible = true
+        binding.moviesListEmptyView.isVisible = false
+    }
+
+    private fun showEmpty(state: MoviesState.Empty) {
+        adapter.submitList(emptyList())
+        binding.moviesListRecycler.isVisible = false
+        binding.moviesListEmptyView.isVisible = true
+        binding.moviesListEmptyView.text = when (state.reason) {
+            MoviesState.EmptyReason.NOW_PLAYING -> getString(R.string.movies_now_playing_empty)
+            MoviesState.EmptyReason.SEARCH -> getString(
+                R.string.movies_search_empty,
+                state.query.orEmpty().replace("%", "%%")
+            )
+        }
+    }
+
     private fun showLoading() {
-        TODO("Not yet implemented")
+        binding.moviesListProgress.isVisible = true
+        binding.moviesListRecycler.isVisible = false
+        binding.moviesListEmptyView.isVisible = false
     }
 
     private fun hideLoading() {
-        TODO("Not yet implemented")
+        binding.moviesListProgress.isVisible = false
+    }
+
+    private fun performSearch(query: String) {
+        searchJob?.cancel()
+        viewModel.search(query)
+    }
+
+    private fun dismissKeyboard() {
+        val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
+        imm?.hideSoftInputFromWindow(binding.root.windowToken, 0)
     }
 
     override fun onDestroyView() {
+        searchJob?.cancel()
         _binding = null
         super.onDestroyView()
+    }
+
+    companion object {
+        private const val SEARCH_DEBOUNCE_MS = 300L
     }
 }

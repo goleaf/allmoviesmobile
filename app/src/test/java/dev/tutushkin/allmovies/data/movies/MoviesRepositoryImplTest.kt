@@ -126,6 +126,72 @@ class MoviesRepositoryImplTest {
     }
 
     @Test
+    fun `searchMovies merges favorites without clearing cache`() = runTest(dispatcher) {
+        val favoriteId = 500
+        val cachedMovie = MovieListEntity(
+            id = favoriteId,
+            title = "Cached Favorite",
+            poster = "poster",
+            ratings = 7.0f,
+            numberOfRatings = 10,
+            minimumAge = "13+",
+            year = "2023",
+            genres = "Action",
+            isFavorite = true
+        )
+        localDataSource.setNowPlaying(
+            listOf(
+                MovieListEntity(
+                    id = 100,
+                    title = "Now Playing",
+                    poster = "poster",
+                    ratings = 6.0f,
+                    numberOfRatings = 5,
+                    minimumAge = "13+",
+                    year = "2022",
+                    genres = "Drama",
+                    isFavorite = false
+                )
+            )
+        )
+        localDataSource.setMovie(cachedMovie)
+
+        val beforeSearch = localDataSource.getNowPlaying()
+
+        remoteDataSource.searchMoviesResult = Result.success(
+            listOf(
+                MovieListDto(
+                    id = favoriteId,
+                    title = "Cached Favorite",
+                    posterPath = "/poster.jpg",
+                    voteAverage = 7.0f,
+                    voteCount = 10,
+                    adult = false,
+                    releaseDate = "2023-01-01",
+                    genreIds = emptyList()
+                ),
+                MovieListDto(
+                    id = 501,
+                    title = "Other Movie",
+                    posterPath = "/poster2.jpg",
+                    voteAverage = 6.5f,
+                    voteCount = 8,
+                    adult = false,
+                    releaseDate = "2022-05-05",
+                    genreIds = emptyList()
+                )
+            )
+        )
+
+        val result = repository.searchMovies("api", LANGUAGE, "Cached")
+
+        assertTrue(result.isSuccess)
+        val movies = result.getOrThrow()
+        assertTrue(movies.first { it.id == favoriteId }.isFavorite)
+        assertEquals(beforeSearch, localDataSource.getNowPlaying())
+    }
+
+    @Test
     fun `getGenres returns success with empty list when remote data empty`() = runTest(dispatcher) {
         remoteDataSource.genresResult = Result.success(emptyList())
 
@@ -322,6 +388,7 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var nowPlayingResult: Result<List<MovieListDto>> = Result.failure(UnsupportedOperationException())
     var movieDetailsResult: Result<MovieDetailsResponse> = Result.failure(UnsupportedOperationException())
     var actorsResult: Result<List<MovieActorDto>> = Result.failure(UnsupportedOperationException())
+    var searchMoviesResult: Result<List<MovieListDto>> = Result.failure(UnsupportedOperationException())
 
     var nowPlayingCallCount: Int = 0
         private set
@@ -330,6 +397,8 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
     var movieDetailsCallCount: Int = 0
         private set
     var actorsCallCount: Int = 0
+        private set
+    var searchMoviesCallCount: Int = 0
         private set
 
     override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> =
@@ -362,12 +431,24 @@ private class FakeMoviesRemoteDataSource : MoviesRemoteDataSource {
         return actorsResult
     }
 
+    override suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String,
+        includeAdult: Boolean,
+        page: Int?
+    ): Result<List<MovieListDto>> {
+        searchMoviesCallCount++
+        return searchMoviesResult
+    }
+
     fun resetCallCounters() {
         nowPlayingCallCount = 0
         lastNowPlayingApiKey = null
         lastNowPlayingLanguage = null
         movieDetailsCallCount = 0
         actorsCallCount = 0
+        searchMoviesCallCount = 0
     }
 }
 

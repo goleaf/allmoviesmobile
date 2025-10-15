@@ -22,6 +22,7 @@ class MoviesViewModel(
 
     private var currentLanguage: String = languagePreferences.getSelectedLanguage()
     private var cachedMovies: List<MovieList> = emptyList()
+    private var displayedMovies: List<MovieList> = emptyList()
 
     init {
         refreshMovies(clearCache = true)
@@ -36,7 +37,7 @@ class MoviesViewModel(
         refreshMovies(clearCache = true)
     }
 
-    private fun refreshMovies(clearCache: Boolean) {
+    fun refreshMovies(clearCache: Boolean = false) {
         val language = currentLanguage
         viewModelScope.launch {
             _movies.value = MoviesState.Loading
@@ -78,10 +79,48 @@ class MoviesViewModel(
         return if (moviesResult.isSuccess) {
             val movies = moviesResult.getOrThrow()
             cachedMovies = movies
-            MoviesState.Result(movies)
+            displayedMovies = movies
+            if (movies.isEmpty()) {
+                MoviesState.Empty(MoviesState.EmptyReason.NOW_PLAYING)
+            } else {
+                MoviesState.Result(movies)
+            }
         } else {
             cachedMovies = emptyList()
+            displayedMovies = emptyList()
             MoviesState.Error(IllegalArgumentException("Error loading movies from the server!"))
+        }
+    }
+
+    fun search(query: String) {
+        val trimmed = query.trim()
+
+        if (trimmed.isBlank()) {
+            displayedMovies = cachedMovies
+            _movies.value = if (cachedMovies.isEmpty()) {
+                MoviesState.Empty(MoviesState.EmptyReason.NOW_PLAYING)
+            } else {
+                MoviesState.Result(cachedMovies)
+            }
+            return
+        }
+
+        val language = currentLanguage
+        viewModelScope.launch {
+            _movies.value = MoviesState.Searching(trimmed)
+            val result = moviesRepository.searchMovies(BuildConfig.API_KEY, language, trimmed)
+
+            _movies.value = if (result.isSuccess) {
+                val movies = result.getOrThrow()
+                displayedMovies = movies
+                if (movies.isEmpty()) {
+                    MoviesState.Empty(MoviesState.EmptyReason.SEARCH, trimmed)
+                } else {
+                    MoviesState.Result(movies)
+                }
+            } else {
+                MoviesState.Error(result.exceptionOrNull() ?: IllegalStateException("Search failed"))
+            }
         }
     }
 
@@ -92,11 +131,21 @@ class MoviesViewModel(
                 return@launch
             }
 
-            val updated = cachedMovies.map { movie ->
+            val updatedCached = cachedMovies.map { movie ->
                 if (movie.id == movieId) movie.copy(isFavorite = isFavorite) else movie
             }
-            cachedMovies = updated
-            _movies.value = MoviesState.Result(updated)
+            cachedMovies = updatedCached
+
+            val updatedDisplayed = displayedMovies.map { movie ->
+                if (movie.id == movieId) movie.copy(isFavorite = isFavorite) else movie
+            }
+            displayedMovies = updatedDisplayed
+
+            if (updatedDisplayed.isEmpty()) {
+                _movies.value = MoviesState.Empty(MoviesState.EmptyReason.NOW_PLAYING)
+            } else {
+                _movies.value = MoviesState.Result(updatedDisplayed)
+            }
         }
     }
 }

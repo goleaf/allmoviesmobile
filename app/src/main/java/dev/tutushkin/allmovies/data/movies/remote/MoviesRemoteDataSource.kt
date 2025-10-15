@@ -25,4 +25,12 @@ interface MoviesRemoteDataSource {
         apiKey: String,
         language: String
     ): Result<List<MovieVideoDto>>
+
+    suspend fun searchMovies(
+        apiKey: String,
+        language: String,
+        query: String,
+        includeAdult: Boolean = false,
+        page: Int? = null
+    ): Result<List<MovieListDto>>
 }

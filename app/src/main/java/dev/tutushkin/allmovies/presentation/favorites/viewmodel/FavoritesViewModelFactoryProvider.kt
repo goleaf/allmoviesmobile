@@ -8,7 +8,9 @@ import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifierProvider
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.ExperimentalSerializationApi
 
+@OptIn(ExperimentalSerializationApi::class)
 fun Fragment.provideFavoritesViewModelFactory(): FavoritesViewModelFactory {
     val application = requireActivity().application
     val db = MoviesDb.getDatabase(application)

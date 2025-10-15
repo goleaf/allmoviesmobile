@@ -244,12 +244,11 @@ class MoviesRepositoryImpl(
             localDetails = entity
         }
 
-        val details = localDetails
-        if (details == null) {
-            Result.failure(Exception("Actor details caching error!"))
-        } else {
-            Result.success(details.toModel())
-        }
+        val details = localDetails ?: return@withContext Result.failure(
+            Exception("Actor details caching error!")
+        )
+
+        Result.success(details.toModel())
     }
 
     private suspend fun getMovieDetailsFromServer(

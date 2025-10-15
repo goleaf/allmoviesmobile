@@ -63,7 +63,7 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
 
             override fun onToggleFavorite(movieId: Int, isFavorite: Boolean) {
                 moviesViewModel.toggleFavorite(movieId, isFavorite) { success ->
-                    if (!success && view != null) {
+                    if (!success && isAdded) {
                         Snackbar.make(binding.root, R.string.favorites_list_error_generic, Snackbar.LENGTH_SHORT)
                             .show()
                     }

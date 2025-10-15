@@ -201,8 +201,11 @@ class MoviesViewModel(
         }
 
         return results.map { movie ->
-            val favorite = favoriteIds[movie.id] ?: return@map movie
-            if (movie.isFavorite) movie else movie.copy(isFavorite = true)
+            if (favoriteIds.containsKey(movie.id)) {
+                if (movie.isFavorite) movie else movie.copy(isFavorite = true)
+            } else {
+                movie
+            }
         }
     }
 

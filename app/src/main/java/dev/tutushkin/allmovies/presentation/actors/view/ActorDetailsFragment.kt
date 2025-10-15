@@ -24,7 +24,9 @@ import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsViewMod
 import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsViewModelFactory
 import dev.tutushkin.allmovies.presentation.navigation.ARG_ACTOR_ID
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.ExperimentalSerializationApi
 
+@OptIn(ExperimentalSerializationApi::class)
 class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
 
     private var _binding: FragmentActorDetailsBinding? = null

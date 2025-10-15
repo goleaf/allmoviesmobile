@@ -4,6 +4,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
 import androidx.annotation.VisibleForTesting
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -15,13 +16,13 @@ import dev.tutushkin.allmovies.databinding.FragmentFavoritesListBinding
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesState
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesViewModel
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.provideFavoritesViewModelFactory
-import dev.tutushkin.allmovies.presentation.moviedetails.view.MovieDetailsFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesAdapter
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesClickListener
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import kotlinx.serialization.ExperimentalSerializationApi
+import androidx.navigation.fragment.findNavController
 
 @ExperimentalSerializationApi
 class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
@@ -36,14 +37,26 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
     internal var moviesViewModelFactoryOverride: ViewModelProvider.Factory? = null
 
     private val favoritesViewModel: FavoritesViewModel by viewModels {
-        favoritesViewModelFactoryOverride ?: provideFavoritesViewModelFactory()
+        favoritesViewModelFactoryOverride
+            ?: defaultFavoritesViewModelFactoryOverride
+            ?: provideFavoritesViewModelFactory()
     }
 
     private val moviesViewModel: MoviesViewModel by activityViewModels {
-        moviesViewModelFactoryOverride ?: provideMoviesViewModelFactory()
+        moviesViewModelFactoryOverride
+            ?: defaultMoviesViewModelFactoryOverride
+            ?: provideMoviesViewModelFactory()
     }
 
     private lateinit var adapter: MoviesAdapter
+
+    companion object {
+        @VisibleForTesting
+        var defaultFavoritesViewModelFactoryOverride: ViewModelProvider.Factory? = null
+
+        @VisibleForTesting
+        var defaultMoviesViewModelFactoryOverride: ViewModelProvider.Factory? = null
+    }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -108,16 +121,10 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
     }
 
     private fun navigateToDetails(movieId: Int) {
-        val bundle = Bundle().apply {
-            putInt(ARG_MOVIE_ID, movieId)
+        val args = bundleOf(ARG_MOVIE_ID to movieId)
+        if (findNavController().currentDestination?.id == R.id.favoritesFragment) {
+            findNavController().navigate(R.id.action_favoritesFragment_to_movieDetailsFragment, args)
         }
-        val fragment = MovieDetailsFragment().apply {
-            arguments = bundle
-        }
-        requireActivity().supportFragmentManager.beginTransaction()
-            .addToBackStack(null)
-            .replace(R.id.main_container, fragment)
-            .commit()
     }
 
     override fun onDestroyView() {

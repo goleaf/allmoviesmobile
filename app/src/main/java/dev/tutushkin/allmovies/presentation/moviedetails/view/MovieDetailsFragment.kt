@@ -21,7 +21,6 @@ import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
-import dev.tutushkin.allmovies.presentation.actors.view.ActorDetailsFragment
 import dev.tutushkin.allmovies.databinding.FragmentMoviesDetailsBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalyticsLogger
@@ -37,6 +36,7 @@ import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
+import androidx.navigation.fragment.findNavController
 
 @ExperimentalSerializationApi
 class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
@@ -51,14 +51,26 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
     internal var moviesViewModelFactoryOverride: ViewModelProvider.Factory? = null
 
     private val moviesViewModel: MoviesViewModel by activityViewModels {
-        moviesViewModelFactoryOverride ?: provideMoviesViewModelFactory()
+        moviesViewModelFactoryOverride
+            ?: defaultMoviesViewModelFactoryOverride
+            ?: provideMoviesViewModelFactory()
     }
 
     @VisibleForTesting
     internal var viewModelFactoryOverride: ViewModelProvider.Factory? = null
 
     private val viewModel: MovieDetailsViewModel by viewModels {
-        viewModelFactoryOverride ?: createMovieDetailsViewModelFactory()
+        viewModelFactoryOverride
+            ?: defaultMovieDetailsViewModelFactoryProvider?.invoke(this)
+            ?: createMovieDetailsViewModelFactory()
+    }
+
+    companion object {
+        @VisibleForTesting
+        var defaultMoviesViewModelFactoryOverride: ViewModelProvider.Factory? = null
+
+        @VisibleForTesting
+        var defaultMovieDetailsViewModelFactoryProvider: ((MovieDetailsFragment) -> ViewModelProvider.Factory)? = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -69,10 +81,10 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
         viewModel.currentMovie.observe(viewLifecycleOwner, ::render)
 
         binding?.moviesDetailsBackText?.setOnClickListener {
-            requireActivity().supportFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
         binding?.moviesDetailsBackImage?.setOnClickListener {
-            requireActivity().supportFragmentManager.popBackStack()
+            findNavController().popBackStack()
         }
 
         binding?.moviesDetailsShareImage?.setOnClickListener {
@@ -131,13 +143,9 @@ class MovieDetailsFragment : Fragment(R.layout.fragment_movies_details) {
                 LinearLayoutManager(requireContext(), RecyclerView.HORIZONTAL, false)
             movieDetailsActorsRecycler.adapter = ActorsAdapter(movie.actors) { actorId ->
                 val args = bundleOf(ARG_ACTOR_ID to actorId)
-                val fragment = ActorDetailsFragment().apply {
-                    arguments = args
+                if (findNavController().currentDestination?.id == R.id.movieDetailsFragment) {
+                    findNavController().navigate(R.id.action_movieDetailsFragment_to_actorDetailsFragment, args)
                 }
-                requireActivity().supportFragmentManager.beginTransaction()
-                    .addToBackStack(null)
-                    .replace(R.id.main_container, fragment)
-                    .commit()
             }
             moviesDetailsShareImage.isVisible = true
             val favoriteIcon = if (movie.isFavorite) R.drawable.ic_like else R.drawable.ic_notlike

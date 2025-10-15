@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">All Movies</string>
 
+    <string name="movie_details_title">Movie details</string>
     <string name="movie_details_back">Back</string>
     <string name="movie_details_reviews">%1$d REVIEWS</string>
     <string name="movie_details_storyline">Storyline</string>
@@ -10,6 +11,7 @@
     <string name="movie_details_share_chooser_title">Share movie</string>
     <string name="movie_details_share_error">Nothing to share yet</string>
 
+    <string name="actor_details_title">Actor details</string>
     <string name="actor_details_biography">Biography</string>
     <string name="actor_details_biography_empty">Biography not available.</string>
     <string name="actor_details_birthday">Birthday</string>

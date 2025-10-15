@@ -332,12 +332,46 @@ class MoviesRepositoryImpl(
 
     override suspend fun clearAll() {
         withContext(ioDispatcher) {
+            val favoriteIds = moviesLocalDataSource.getFavoriteMovieIds()
+
+            val favoriteSummaries = if (favoriteIds.isNotEmpty()) {
+                moviesLocalDataSource.getFavoriteMovies()
+                    .filter { favoriteIds.contains(it.id) }
+                    .map { favorite ->
+                        if (favorite.isFavorite) favorite else favorite.copy(isFavorite = true)
+                    }
+            } else {
+                emptyList()
+            }
+
+            val favoriteDetails = if (favoriteIds.isNotEmpty()) {
+                moviesLocalDataSource.getFavoriteMovieDetails()
+                    .filter { favoriteIds.contains(it.id) }
+                    .map { details ->
+                        if (details.isFavorite) details else details.copy(isFavorite = true)
+                    }
+            } else {
+                emptyList()
+            }
+
             moviesLocalDataSource.clearConfiguration()
             moviesLocalDataSource.clearGenres()
             moviesLocalDataSource.clearNowPlaying()
             moviesLocalDataSource.clearMovieDetails()
             moviesLocalDataSource.clearActors()
             moviesLocalDataSource.clearActorDetails()
+
+            if (favoriteSummaries.isNotEmpty()) {
+                favoriteSummaries.forEach { summary ->
+                    moviesLocalDataSource.setMovie(summary)
+                }
+            }
+
+            if (favoriteDetails.isNotEmpty()) {
+                favoriteDetails.forEach { details ->
+                    moviesLocalDataSource.setMovieDetails(details)
+                }
+            }
         }
     }
 

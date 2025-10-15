@@ -91,6 +91,36 @@ class MoviesViewModelTest {
 
         viewModel.movies.removeObserver(observer)
     }
+
+    @Test
+    fun `changeLanguage keeps favorites marked`() = runTest(dispatcher) {
+        val movieId = 42
+        val initialMovie = MovieList(id = movieId, title = "Movie", isFavorite = false)
+        repository.nowPlayingResult = Result.success(listOf(initialMovie))
+        repository.setFavoriteResult = Result.success(Unit)
+
+        val viewModel = MoviesViewModel(repository, languagePreferences)
+        val emittedStates = mutableListOf<MoviesState>()
+        val observer = Observer<MoviesState> { state -> emittedStates.add(state) }
+        viewModel.movies.observeForever(observer)
+
+        dispatcher.scheduler.advanceUntilIdle()
+
+        viewModel.toggleFavorite(movieId, true)
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val localizedMovie = initialMovie.copy(title = "Película", isFavorite = false)
+        repository.nowPlayingResult = Result.success(listOf(localizedMovie))
+
+        viewModel.changeLanguage("es")
+        dispatcher.scheduler.advanceUntilIdle()
+
+        val lastResult = emittedStates.filterIsInstance<MoviesState.Result>().last()
+        val refreshedMovie = lastResult.result.first { it.id == movieId }
+        assertTrue(refreshedMovie.isFavorite)
+
+        viewModel.movies.removeObserver(observer)
+    }
 }
 
 private class FakeMoviesRepository : MoviesRepository {
@@ -104,6 +134,8 @@ private class FakeMoviesRepository : MoviesRepository {
 
     var clearAllCalled: Boolean = false
         private set
+    var clearAllCallCount: Int = 0
+        private set
     var configurationRequested: Boolean = false
         private set
     var genresRequested: Boolean = false
@@ -111,6 +143,8 @@ private class FakeMoviesRepository : MoviesRepository {
     var nowPlayingRequested: Boolean = false
         private set
     var setFavoriteCalledWith: Pair<Int, Boolean>? = null
+
+    private val favoriteMovieIds = mutableSetOf<Int>()
 
     override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
         configurationRequested = true
@@ -124,7 +158,12 @@ private class FakeMoviesRepository : MoviesRepository {
 
     override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
         nowPlayingRequested = true
-        return nowPlayingResult
+        return nowPlayingResult.map { movies ->
+            movies.map { movie ->
+                val isFavorite = favoriteMovieIds.contains(movie.id) || movie.isFavorite
+                if (movie.isFavorite == isFavorite) movie else movie.copy(isFavorite = isFavorite)
+            }
+        }
     }
 
     override suspend fun getMovieDetails(
@@ -138,6 +177,11 @@ private class FakeMoviesRepository : MoviesRepository {
 
     override suspend fun setFavorite(movieId: Int, isFavorite: Boolean): Result<Unit> {
         setFavoriteCalledWith = movieId to isFavorite
+        if (isFavorite) {
+            favoriteMovieIds.add(movieId)
+        } else {
+            favoriteMovieIds.remove(movieId)
+        }
         return setFavoriteResult
     }
 
@@ -145,6 +189,7 @@ private class FakeMoviesRepository : MoviesRepository {
 
     override suspend fun clearAll() {
         clearAllCalled = true
+        clearAllCallCount++
     }
 
     override suspend fun refreshLibrary(

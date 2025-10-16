@@ -3,8 +3,6 @@ package dev.tutushkin.allmovies.presentation.movies.view
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.view.Menu
-import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.widget.SearchView
@@ -26,9 +24,11 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
+import dev.tutushkin.allmovies.presentation.favorites.view.FavoritesFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesSearchState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
@@ -36,9 +36,7 @@ import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
-import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridCalculator
-import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridProvider
-import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridSpacingItemDecoration
+import androidx.window.layout.WindowMetricsCalculator
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.LazyThreadSafetyMode
@@ -75,9 +73,24 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         super.onViewCreated(view, savedInstanceState)
 
         _binding = FragmentMoviesListBinding.bind(view)
-        setHasOptionsMenu(true)
         csvExporter = CsvExporter(requireContext())
 
+        setupToolbarMenu()
+
+        val windowMetrics = WindowMetricsCalculator.getOrCreate()
+            .computeCurrentWindowMetrics(requireActivity())
+        val density = resources.displayMetrics.density
+        val spacingDp = resources.getDimension(R.dimen.movies_grid_spacing) / density
+        val gridConfig = ResponsiveGridCalculatorProvider.calculator
+            .calculate(windowMetrics, density, spacingDp)
+
+        binding.moviesListRecycler.layoutManager = GridLayoutManager(
+            requireContext(),
+            gridConfig.spanCount,
+        )
+        binding.moviesListRecycler.addItemDecoration(
+            SpacingItemDecoration(gridConfig.spanCount, gridConfig.spacingPx),
+        )
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
                 val args = bundleOf(ARG_MOVIE_ID to movieId)
@@ -91,88 +104,79 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
-        val spacing = resources.getDimensionPixelSize(R.dimen.movie_grid_spacing)
-        val calculator = ResponsiveGridCalculator(
-            minimumCellWidthPx = resources.getDimensionPixelSize(R.dimen.movie_grid_min_item_width),
-            horizontalSpacingPx = spacing,
-        )
-        val gridSpec = ResponsiveGridProvider(requireActivity(), calculator).calculate()
-        val layoutManager = GridLayoutManager(requireContext(), gridSpec.spanCount)
-        binding.moviesListRecycler.layoutManager = layoutManager
-        binding.moviesListRecycler.clipToPadding = false
-        while (binding.moviesListRecycler.itemDecorationCount > 0) {
-            binding.moviesListRecycler.removeItemDecorationAt(0)
-        }
-        binding.moviesListRecycler.addItemDecoration(ResponsiveGridSpacingItemDecoration(spacing))
+        val imageSizeSelector = requireContext().createImageSizeSelector()
+        adapter = MoviesAdapter(listener, imageSizeSelector, gridConfig.itemWidthPx)
         binding.moviesListRecycler.adapter = adapter
-        adapter.updateGridSpec(gridSpec)
 
         viewModel.movies.observe(viewLifecycleOwner, ::handleMoviesList)
         viewModel.searchState.observe(viewLifecycleOwner, ::handleSearchState)
         observeRefreshWork()
     }
 
-    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        inflater.inflate(R.menu.menu_movies_collection, menu)
+    private fun setupToolbarMenu() {
+        val toolbar = binding.moviesListToolbar
+        toolbar.inflateMenu(R.menu.menu_movies_collection)
 
-        val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem?.actionView as? SearchView ?: return
-        this.searchMenuItem = searchItem
-        this.searchView = searchView
-
-        searchView.queryHint = getString(R.string.movies_search_query_hint)
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                viewModel.observeSearch(query.orEmpty())
-                searchView.clearFocus()
-                return true
-            }
-
-            override fun onQueryTextChange(newText: String?): Boolean {
-                viewModel.observeSearch(newText.orEmpty())
-                return true
-            }
-        })
-
-        searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
-            override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
-                return true
-            }
-
-            override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
-                searchView.setQuery("", false)
-                viewModel.observeSearch("")
-                return true
-            }
-        })
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_update_all -> {
-                enqueueLibraryRefresh()
-                true
-            }
-            R.id.action_export -> {
-                exportLibrary()
-                true
-            }
-            R.id.action_language -> {
-                showLanguageSelectionDialog()
-                true
-            }
-            R.id.action_favorites -> {
-                resetSearch()
-                if (findNavController().currentDestination?.id == R.id.moviesFragment) {
-                    findNavController().navigate(R.id.action_moviesFragment_to_favoritesFragment)
+        val searchItem = toolbar.menu.findItem(R.id.action_search)
+        val searchView = searchItem?.actionView as? SearchView
+        if (searchView != null) {
+            this.searchMenuItem = searchItem
+            this.searchView = searchView
+            searchView.queryHint = getString(R.string.movies_search_query_hint)
+            searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    viewModel.observeSearch(query.orEmpty())
+                    searchView.clearFocus()
+                    return true
                 }
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
+
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    viewModel.observeSearch(newText.orEmpty())
+                    return true
+                }
+            })
+
+            searchItem.setOnActionExpandListener(object : MenuItem.OnActionExpandListener {
+                override fun onMenuItemActionExpand(item: MenuItem?): Boolean {
+                    isSearchActive = true
+                    return true
+                }
+
+                override fun onMenuItemActionCollapse(item: MenuItem?): Boolean {
+                    isSearchActive = false
+                    searchView.setQuery("", false)
+                    viewModel.observeSearch("")
+                    return true
+                }
+            })
         }
+
+        toolbar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.action_update_all -> {
+                    enqueueLibraryRefresh()
+                    true
+                }
+                R.id.action_export -> {
+                    exportLibrary()
+                    true
+                }
+                R.id.action_language -> {
+                    showLanguageSelectionDialog()
+                    true
+                }
+                R.id.action_favorites -> {
+                    requireActivity().supportFragmentManager.beginTransaction()
+                        .addToBackStack(null)
+                        .replace(R.id.main_container, FavoritesFragment())
+                        .commit()
+                    true
+                }
+                else -> false
+            }
+        })
     }
+
 
     private fun showLanguageSelectionDialog() {
         val entries = resources.getStringArray(R.array.language_entries)

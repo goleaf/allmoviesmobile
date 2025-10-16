@@ -10,12 +10,14 @@ import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
 import androidx.work.WorkerParameters
 import androidx.work.workDataOf
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
+import dev.tutushkin.allmovies.data.movies.local.ConfigurationDataStore
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
+import dev.tutushkin.allmovies.data.movies.local.configurationPreferencesDataStore
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import kotlinx.coroutines.Dispatchers
@@ -30,9 +32,6 @@ class MoviesRefreshWorker(
     private val notificationHelper = MoviesRefreshNotificationHelper(applicationContext)
 
     override suspend fun doWork(): Result {
-        val apiKey = inputData.getString(KEY_API_KEY).takeUnless { it.isNullOrBlank() }
-            ?: BuildConfig.API_KEY
-
         val db = MoviesDb.getDatabase(applicationContext)
         val localDataSource = MoviesLocalDataSourceImpl(
             db.moviesDao(),
@@ -43,7 +42,17 @@ class MoviesRefreshWorker(
             db.genresDao()
         )
         val remoteDataSource = MoviesRemoteDataSourceImpl(NetworkModule.moviesApi)
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
+        val configurationDataStore = ConfigurationDataStore(
+            applicationContext.configurationPreferencesDataStore
+        )
+        val imageSizeSelector = applicationContext.createImageSizeSelector()
+        val repository = MoviesRepositoryImpl(
+            remoteDataSource,
+            localDataSource,
+            configurationDataStore,
+            Dispatchers.IO,
+            imageSizeSelector
+        )
         val languageCode = LanguagePreferences(applicationContext).getSelectedLanguage()
 
         setForegroundAsync(
@@ -54,7 +63,7 @@ class MoviesRefreshWorker(
             )
         )
 
-        val result = repository.refreshLibrary(apiKey, languageCode) { current, total, title ->
+        val result = repository.refreshLibrary(languageCode) { current, total, title ->
             val progressData = workDataOf(
                 PROGRESS_CURRENT to current,
                 PROGRESS_TOTAL to total,
@@ -68,22 +77,21 @@ class MoviesRefreshWorker(
             notificationHelper.showCompleted()
             Result.success()
         } else {
-            val message = result.exceptionOrNull()?.localizedMessage
-                ?: applicationContext.getString(R.string.library_update_failed_generic)
-            setProgress(workDataOf(KEY_ERROR_MESSAGE to message))
+            val messageResId = R.string.library_update_failed_generic
+            val message = applicationContext.getString(messageResId)
+            setProgress(workDataOf(KEY_ERROR_MESSAGE_RES_ID to messageResId))
             notificationHelper.showFailed(message)
-            Result.failure(workDataOf(KEY_ERROR_MESSAGE to message))
+            Result.failure(workDataOf(KEY_ERROR_MESSAGE_RES_ID to messageResId))
         }
     }
 
     companion object {
         const val WORK_NAME = "movies-refresh-work"
         const val WORK_TAG = "movies-refresh-tag"
-        const val KEY_API_KEY = "api_key"
         const val PROGRESS_CURRENT = "progress_current"
         const val PROGRESS_TOTAL = "progress_total"
         const val PROGRESS_TITLE = "progress_title"
-        const val KEY_ERROR_MESSAGE = "error_message"
+        const val KEY_ERROR_MESSAGE_RES_ID = "error_message_res_id"
     }
 }
 

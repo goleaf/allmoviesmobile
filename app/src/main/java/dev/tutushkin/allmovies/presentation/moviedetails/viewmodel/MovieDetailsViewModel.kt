@@ -4,7 +4,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
@@ -42,7 +41,6 @@ class MovieDetailsViewModel(
     private suspend fun handleMovieDetails(): MovieDetailsState {
         val movieDetails = moviesRepository.getMovieDetails(
             id,
-            BuildConfig.API_KEY,
             language,
             ensureCached = true
         )

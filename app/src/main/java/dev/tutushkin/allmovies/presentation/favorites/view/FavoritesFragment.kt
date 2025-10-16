@@ -17,8 +17,11 @@ import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesState
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.FavoritesViewModel
 import dev.tutushkin.allmovies.presentation.favorites.viewmodel.provideFavoritesViewModelFactory
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesAdapter
 import dev.tutushkin.allmovies.presentation.movies.view.MoviesClickListener
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridCalculatorProvider
+import dev.tutushkin.allmovies.presentation.movies.view.SpacingItemDecoration
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridCalculator
@@ -64,6 +67,20 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
         super.onViewCreated(view, savedInstanceState)
         _binding = FragmentFavoritesListBinding.bind(view)
 
+        val windowMetrics = WindowMetricsCalculator.getOrCreate()
+            .computeCurrentWindowMetrics(requireActivity())
+        val density = resources.displayMetrics.density
+        val spacingDp = resources.getDimension(R.dimen.movies_grid_spacing) / density
+        val gridConfig = ResponsiveGridCalculatorProvider.calculator
+            .calculate(windowMetrics, density, spacingDp)
+
+        binding.favoritesListRecycler.layoutManager = GridLayoutManager(
+            requireContext(),
+            gridConfig.spanCount,
+        )
+        binding.favoritesListRecycler.addItemDecoration(
+            SpacingItemDecoration(gridConfig.spanCount, gridConfig.spacingPx),
+        )
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
                 navigateToDetails(movieId)
@@ -79,22 +96,9 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
             }
         }
 
-        adapter = MoviesAdapter(listener)
-        val spacing = resources.getDimensionPixelSize(R.dimen.movie_grid_spacing)
-        val calculator = ResponsiveGridCalculator(
-            minimumCellWidthPx = resources.getDimensionPixelSize(R.dimen.movie_grid_min_item_width),
-            horizontalSpacingPx = spacing,
-        )
-        val gridSpec = ResponsiveGridProvider(requireActivity(), calculator).calculate()
-        val layoutManager = GridLayoutManager(requireContext(), gridSpec.spanCount)
-        binding.favoritesListRecycler.layoutManager = layoutManager
-        binding.favoritesListRecycler.clipToPadding = false
-        while (binding.favoritesListRecycler.itemDecorationCount > 0) {
-            binding.favoritesListRecycler.removeItemDecorationAt(0)
-        }
-        binding.favoritesListRecycler.addItemDecoration(ResponsiveGridSpacingItemDecoration(spacing))
+        val imageSizeSelector = requireContext().createImageSizeSelector()
+        adapter = MoviesAdapter(listener, imageSizeSelector, gridConfig.itemWidthPx)
         binding.favoritesListRecycler.adapter = adapter
-        adapter.updateGridSpec(gridSpec)
 
         favoritesViewModel.favorites.observe(viewLifecycleOwner, ::renderState)
     }

@@ -18,6 +18,9 @@ import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
 import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridCalculator
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridCalculatorProvider
+import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridConfig
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.util.launchFragment
 import dev.tutushkin.allmovies.presentation.util.withFragment
@@ -55,17 +58,29 @@ class MoviesFragmentTest {
     private val testDispatcher = StandardTestDispatcher()
     private lateinit var repository: FakeMoviesRepository
     private lateinit var favoritesNotifier: TestFavoritesUpdateNotifier
+    private lateinit var originalCalculator: ResponsiveGridCalculator
 
     @Before
     fun setup() {
         Dispatchers.setMain(testDispatcher)
         repository = FakeMoviesRepository()
         favoritesNotifier = TestFavoritesUpdateNotifier()
+        originalCalculator = ResponsiveGridCalculatorProvider.calculator
+        ResponsiveGridCalculatorProvider.calculator = object : ResponsiveGridCalculator {
+            override fun calculate(
+                windowMetrics: androidx.window.layout.WindowMetrics,
+                density: Float,
+                spacingDp: Float,
+            ): ResponsiveGridConfig {
+                return ResponsiveGridConfig(spanCount = 2, itemWidthPx = 400, spacingPx = 24)
+            }
+        }
     }
 
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        ResponsiveGridCalculatorProvider.calculator = originalCalculator
     }
 
     @Test
@@ -124,15 +139,15 @@ class MoviesFragmentTest {
     private class FakeMoviesRepository : MoviesRepository {
         private var nowPlayingDeferred = CompletableDeferred<Result<List<MovieList>>>()
 
-        override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
+        override suspend fun getConfiguration(language: String): Result<Configuration> {
             return Result.success(Configuration())
         }
 
-        override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> {
+        override suspend fun getGenres(language: String): Result<List<Genre>> {
             return Result.success(emptyList())
         }
 
-        override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
+        override suspend fun getNowPlaying(language: String): Result<List<MovieList>> {
             val result = nowPlayingDeferred.await()
             nowPlayingDeferred = CompletableDeferred()
             return result
@@ -145,7 +160,6 @@ class MoviesFragmentTest {
         }
 
         override suspend fun searchMovies(
-            apiKey: String,
             language: String,
             query: String,
             includeAdult: Boolean
@@ -155,7 +169,6 @@ class MoviesFragmentTest {
 
         override suspend fun getMovieDetails(
             movieId: Int,
-            apiKey: String,
             language: String,
             ensureCached: Boolean
         ): Result<MovieDetails> {
@@ -164,7 +177,6 @@ class MoviesFragmentTest {
 
         override suspend fun getActorDetails(
             actorId: Int,
-            apiKey: String,
             language: String
         ): Result<ActorDetails> {
             return Result.failure(UnsupportedOperationException())
@@ -183,7 +195,6 @@ class MoviesFragmentTest {
         }
 
         override suspend fun refreshLibrary(
-            apiKey: String,
             language: String,
             onProgress: (current: Int, total: Int, title: String) -> Unit
         ): Result<Unit> {

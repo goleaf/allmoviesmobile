@@ -4,81 +4,74 @@ class MoviesRemoteDataSourceImpl(
     private val moviesApi: MoviesApi
 ) : MoviesRemoteDataSource {
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<ConfigurationDto> =
+    override suspend fun getConfiguration(language: String): Result<ConfigurationDto> =
         runCatching {
-            moviesApi.getConfiguration(apiKey, language).images
+            moviesApi.getConfiguration(language).images
         }
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<GenreDto>> =
+    override suspend fun getGenres(language: String): Result<List<GenreDto>> =
         runCatching {
-            moviesApi.getGenres(apiKey, language).genres
+            moviesApi.getGenres(language).genres
         }
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieListDto>> =
+    override suspend fun getNowPlaying(language: String): Result<List<MovieListDto>> =
         runCatching {
-            moviesApi.getNowPlaying(apiKey, language).results
+            moviesApi.getNowPlaying(language).results
         }
 
     override suspend fun searchMovies(
-        apiKey: String,
         language: String,
         query: String,
         includeAdult: Boolean,
     ): Result<List<MovieListDto>> =
         runCatching {
-            moviesApi.searchMovies(apiKey, language, query, includeAdult).results
+            moviesApi.searchMovies(language, query, includeAdult).results
         }
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<MovieDetailsResponse> =
         runCatching {
-            moviesApi.getMovieDetails(movieId, apiKey, language)
+            moviesApi.getMovieDetails(movieId, language)
         }
 
     override suspend fun getMovieReleaseDates(
-        movieId: Int,
-        apiKey: String,
+        movieId: Int
     ): Result<MovieReleaseDatesResponse> =
         runCatching {
-            moviesApi.getMovieReleaseDates(movieId, apiKey)
+            moviesApi.getMovieReleaseDates(movieId)
         }
 
     override suspend fun getActors(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<List<MovieActorDto>> =
         runCatching {
-            moviesApi.getActors(movieId, apiKey, language).cast
+            moviesApi.getActors(movieId, language).cast
         }
 
     override suspend fun getVideos(
         movieId: Int,
-        apiKey: String,
         language: String
     ): Result<List<MovieVideoDto>> =
         runCatching {
-            moviesApi.getVideos(movieId, apiKey, language).results
+            moviesApi.getVideos(movieId, language).results
         }
 
     override suspend fun getActorDetails(
         actorId: Int,
-        apiKey: String,
         language: String,
     ): Result<ActorDetailsResponse> =
         runCatching {
-            moviesApi.getActorDetails(actorId, apiKey, language)
+            moviesApi.getActorDetails(actorId, language)
         }
 
     override suspend fun getActorMovieCredits(
         actorId: Int,
-        apiKey: String,
         language: String,
     ): Result<ActorMovieCreditsResponse> =
         runCatching {
-            moviesApi.getActorMovieCredits(actorId, apiKey, language)
+            moviesApi.getActorMovieCredits(actorId, language)
         }
 }

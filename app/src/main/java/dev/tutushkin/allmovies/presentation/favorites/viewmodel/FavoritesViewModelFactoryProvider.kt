@@ -4,7 +4,10 @@ import androidx.fragment.app.Fragment
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.moviesApi
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
+import dev.tutushkin.allmovies.data.movies.local.ConfigurationDataStore
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
+import dev.tutushkin.allmovies.data.movies.local.configurationPreferencesDataStore
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifierProvider
 import kotlinx.coroutines.Dispatchers
@@ -23,7 +26,17 @@ fun Fragment.provideFavoritesViewModelFactory(): FavoritesViewModelFactory {
         db.genresDao()
     )
     val remoteDataSource = MoviesRemoteDataSourceImpl(moviesApi)
-    val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.Default)
+    val configurationDataStore = ConfigurationDataStore(
+        requireContext().applicationContext.configurationPreferencesDataStore
+    )
+    val imageSizeSelector = application.createImageSizeSelector()
+    val repository = MoviesRepositoryImpl(
+        remoteDataSource,
+        localDataSource,
+        configurationDataStore,
+        Dispatchers.Default,
+        imageSizeSelector
+    )
     val favoritesNotifier = FavoritesUpdateNotifierProvider.notifier
     return FavoritesViewModelFactory(repository, favoritesNotifier)
 }

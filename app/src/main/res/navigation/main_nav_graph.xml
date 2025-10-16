@@ -35,14 +35,14 @@
         tools:layout="@layout/fragment_movies_details">
         <argument
             android:name="arg_movie_id"
-            android:argType="integer" />
+            app:argType="integer" />
         <argument
             android:name="arg_movie_slug"
-            android:argType="string"
-            android:nullable="true" />
+            app:argType="string"
+            app:nullable="true" />
         <argument
             android:name="arg_movie_shared"
-            android:argType="boolean"
+            app:argType="boolean"
             android:defaultValue="false" />
         <action
             android:id="@+id/action_movieDetailsFragment_to_actorDetailsFragment"
@@ -60,6 +60,6 @@
         tools:layout="@layout/fragment_actor_details">
         <argument
             android:name="arg_actor_id"
-            android:argType="integer" />
+            app:argType="integer" />
     </fragment>
 </navigation>

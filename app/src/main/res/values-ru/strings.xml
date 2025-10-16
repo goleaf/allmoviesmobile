@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">Все фильмы</string>
 
+    <string name="movie_details_title">Информация о фильме</string>
     <string name="movie_details_back">Назад</string>
     <string name="movie_details_reviews">%1$d ОТЗЫВОВ</string>
     <string name="movie_details_storyline">Сюжет</string>
@@ -10,16 +11,48 @@
     <string name="movie_details_share_chooser_title">Поделиться фильмом</string>
     <string name="movie_details_share_error">Пока нечем поделиться</string>
     <string name="movie_details_runtime_year_accessibility">Длительность %1$d минут, год выхода %2$s</string>
+    <string name="movie_details_favorite_add">Отметить как избранное</string>
+    <string name="movie_details_favorite_remove">Удалить из избранного</string>
+    <string name="movie_details_favorite_content_description">Переключить избранное</string>
+    <string name="movie_details_error_generic">Не удалось загрузить информацию о фильме.</string>
+
+    <string name="actor_details_title">Информация об актёре</string>
+    <string name="actor_details_biography">Биография</string>
+    <string name="actor_details_biography_empty">Биография недоступна.</string>
+    <string name="actor_details_birthday">Дата рождения</string>
+    <string name="actor_details_deathday">Дата смерти</string>
+    <string name="actor_details_birthplace">Место рождения</string>
+    <string name="actor_details_known_for">Известные работы</string>
+    <string name="actor_details_also_known_as">Также известен как</string>
+    <string name="actor_details_imdb">IMDb</string>
+    <string name="actor_details_homepage">Домашняя страница</string>
+    <string name="actor_details_popularity">Популярность: %1$.1f</string>
+    <string name="actor_details_error">Не удалось загрузить данные актёра.</string>
+    <string name="actor_details_retry">Повторить</string>
+    <string name="actor_details_photo_content_description">Фото актёра</string>
+    <string name="actor_details_back_content_description">Вернуться назад</string>
 
     <string name="movies_list_screen_title">Сейчас в прокате</string>
     <string name="movies_list_reviews">%1$d ОТЗЫВОВ</string>
     <string name="movies_list_duration">%1$d МИН</string>
     <string name="movies_list_age">%1$d+</string>
     <string name="movies_list_year_unknown">Неизвестно</string>
+    <string name="movies_list_favorite_add">Добавить в избранное</string>
+    <string name="movies_list_favorite_remove">Удалить из избранного</string>
+    <string name="movies_list_loading_message">Загрузка фильмов…</string>
+    <string name="movies_list_error_generic">Не удалось загрузить фильмы.</string>
 
     <string name="menu_update_all">Обновить все</string>
     <string name="menu_export">Экспорт</string>
     <string name="menu_language">Язык</string>
+    <string name="menu_favorites">Избранное</string>
+    <string name="menu_search">Поиск</string>
+    <string name="menu_search_content_description">Искать фильмы</string>
+    <string name="menu_search_talkback_hint">Дважды нажмите, чтобы искать в библиотеке</string>
+    <string name="movies_search_query_hint">Поиск фильмов</string>
+    <string name="movies_search_empty_state">Фильмы не найдены по запросу «%1$s».</string>
+    <string name="movies_search_error">Не удалось показать результаты для «%1$s».</string>
+    <string name="movies_search_error_with_reason">Не удалось показать результаты для «%1$s»: %2$s</string>
 
     <string name="language_dialog_title">Выберите язык</string>
     <string name="language_english">Английский</string>
@@ -46,6 +79,10 @@
     <string name="library_export_in_progress">Подготовка экспорта…</string>
     <string name="library_export_failed">Ошибка экспорта: %1$s</string>
     <string name="library_export_share_title">Поделитесь своей коллекцией</string>
+
+    <string name="favorites_list_title">Избранное</string>
+    <string name="favorites_list_empty">Избранных фильмов пока нет.</string>
+    <string name="favorites_list_error_generic">Не удалось загрузить избранное.</string>
 
     <string name="export_csv_yes">Да</string>
     <string name="export_csv_no">Нет</string>

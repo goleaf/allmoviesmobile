@@ -1,6 +1,8 @@
 package dev.tutushkin.allmovies.presentation
 
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.findNavController
@@ -157,6 +159,27 @@ class MainActivityNavigationTest {
                     actorId,
                     languagePreferences.getSelectedLanguage()
                 )
+            }
+        }
+    }
+
+    @Test
+    fun movieDeepLinkNavigatesToMovieDetails() {
+        val intent = Intent(ApplicationProvider.getApplicationContext(), MainActivity::class.java).apply {
+            action = Intent.ACTION_VIEW
+            data = Uri.parse("app://collection/movie/1/test-movie")
+        }
+
+        ActivityScenario.launch<MainActivity>(intent).use { scenario ->
+            InstrumentationRegistry.getInstrumentation().waitForIdleSync()
+
+            scenario.onActivity { activity ->
+                val navController = activity.findNavController(R.id.main_nav_host)
+                assertEquals(R.id.movieDetailsFragment, navController.currentDestination?.id)
+                val args = navController.currentBackStackEntry?.arguments
+                assertEquals(1, args?.getInt(ARG_MOVIE_ID))
+                assertEquals("test-movie", args?.getString(ARG_MOVIE_SLUG))
+                assertEquals(true, args?.getBoolean(ARG_MOVIE_SHARED))
             }
         }
     }

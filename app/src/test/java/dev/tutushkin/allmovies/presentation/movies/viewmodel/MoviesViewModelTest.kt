@@ -2,6 +2,7 @@ package dev.tutushkin.allmovies.presentation.movies.viewmodel
 
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.lifecycle.Observer
+import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.Configuration
@@ -14,6 +15,7 @@ import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -21,6 +23,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -89,7 +92,10 @@ class MoviesViewModelTest {
 
         val lastState = emittedStates.last()
         assertTrue(lastState is MoviesState.Error)
-        assertTrue((lastState as MoviesState.Error).e.message!!.contains("Error"))
+        val error = lastState as MoviesState.Error
+        assertTrue(error.message is UiText.StringResource)
+        val message = error.message as UiText.StringResource
+        assertEquals(R.string.movies_list_error_generic, message.resId)
 
         viewModel.movies.removeObserver(observer)
     }
@@ -201,8 +207,10 @@ class MoviesViewModelTest {
         dispatcher.scheduler.advanceUntilIdle()
 
         val errorState = searchStates.last() as MoviesSearchState.Error
-        assertTrue(errorState.query == "Broken")
-        assertTrue(errorState.cause === failure)
+        assertTrue(errorState.message is UiText.StringResource)
+        val message = errorState.message as UiText.StringResource
+        assertEquals(R.string.movies_search_error, message.resId)
+        assertEquals(listOf("Broken"), message.args)
 
         viewModel.searchState.removeObserver(observer)
     }

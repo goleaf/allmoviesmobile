@@ -28,6 +28,7 @@ import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsState
 import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsViewModel
 import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsViewModelFactory
 import dev.tutushkin.allmovies.presentation.navigation.ARG_ACTOR_ID
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import androidx.navigation.fragment.findNavController
@@ -107,7 +108,7 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
         when (state) {
             is ActorDetailsState.Loading -> showLoading()
             is ActorDetailsState.Result -> renderResult(state.details)
-            is ActorDetailsState.Error -> showError(state.throwable)
+            is ActorDetailsState.Error -> showError(state.message)
         }
     }
 
@@ -167,13 +168,12 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
         }
     }
 
-    private fun showError(throwable: Throwable) {
+    private fun showError(message: UiText) {
         binding?.apply {
             actorDetailsProgress.isVisible = false
             actorDetailsScroll.isVisible = false
             actorDetailsErrorGroup.isVisible = true
-            val message = throwable.message ?: getString(R.string.actor_details_error)
-            actorDetailsErrorText.text = message
+            actorDetailsErrorText.text = message.resolve(resources)
         }
     }
 

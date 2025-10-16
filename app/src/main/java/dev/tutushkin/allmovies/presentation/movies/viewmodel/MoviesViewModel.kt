@@ -7,12 +7,11 @@ import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.network.NetworkModule.allGenres
-import dev.tutushkin.allmovies.data.core.network.NetworkModule.configApi
 import dev.tutushkin.allmovies.data.settings.LanguagePreferencesDataSource
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
-import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
+import dev.tutushkin.allmovies.utils.UiText
 import dev.tutushkin.allmovies.utils.logging.Logger
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -72,18 +71,15 @@ class MoviesViewModel(
     }
 
     private suspend fun handleLoadApiConfiguration(language: String) {
-        val conf = moviesRepository.getConfiguration(BuildConfig.API_KEY, language)
-
-        if (conf.isSuccess) {
-            configApi = conf.getOrThrow()
-        } else {
-            val throwable = conf.exceptionOrNull()
+        val result = moviesRepository.getConfiguration(language)
+        if (result.isFailure) {
+            val throwable = result.exceptionOrNull()
             logger.e(TAG, "Failed to load configuration for language=$language", throwable)
         }
     }
 
     private suspend fun handleGenres(language: String) {
-        val genres = moviesRepository.getGenres(BuildConfig.API_KEY, language)
+        val genres = moviesRepository.getGenres(language)
 
         if (genres.isSuccess) {
             allGenres = genres.getOrThrow()
@@ -94,7 +90,7 @@ class MoviesViewModel(
     }
 
     private suspend fun handleMoviesNowPlaying(language: String): MoviesState {
-        val moviesResult = moviesRepository.getNowPlaying(BuildConfig.API_KEY, language)
+        val moviesResult = moviesRepository.getNowPlaying(language)
 
         return if (moviesResult.isSuccess) {
             val movies = moviesResult.getOrThrow()
@@ -102,7 +98,7 @@ class MoviesViewModel(
             MoviesState.Result(movies)
         } else {
             cachedMovies = emptyList()
-            MoviesState.Error(UiText.Resource(R.string.movies_list_error_generic))
+            MoviesState.Error(UiText.stringResource(R.string.movies_list_error_generic))
         }
     }
 
@@ -165,7 +161,6 @@ class MoviesViewModel(
 
             val language = currentLanguage
             val result = moviesRepository.searchMovies(
-                BuildConfig.API_KEY,
                 language,
                 query
             )
@@ -179,17 +174,9 @@ class MoviesViewModel(
                 emitSearchResults(query)
             } else {
                 lastSearchResults = emptyList()
-                val throwable = result.exceptionOrNull()
-                val reason = throwable?.localizedMessage
-                val message = if (!reason.isNullOrBlank()) {
-                    UiText.Resource(
-                        R.string.movies_search_error_with_reason,
-                        listOf(query, reason)
-                    )
-                } else {
-                    UiText.Resource(R.string.movies_search_error, listOf(query))
-                }
-                _searchState.value = MoviesSearchState.Error(query, message)
+                _searchState.value = MoviesSearchState.Error(
+                    UiText.stringResource(R.string.movies_search_error, query)
+                )
             }
         }
     }

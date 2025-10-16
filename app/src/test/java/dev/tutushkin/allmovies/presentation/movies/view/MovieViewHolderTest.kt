@@ -7,10 +7,10 @@ import android.view.LayoutInflater
 import android.widget.FrameLayout
 import androidx.test.core.app.ApplicationProvider
 import dev.tutushkin.allmovies.R
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
 import dev.tutushkin.allmovies.domain.movies.models.Certification
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
-import dev.tutushkin.allmovies.presentation.images.PosterImageLoader
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Test
@@ -29,8 +29,8 @@ class MovieViewHolderTest {
         val themedContext = ContextThemeWrapper(baseContext, R.style.Theme_AllMovies)
         val parent = FrameLayout(themedContext)
         val binding = ViewHolderMovieBinding.inflate(LayoutInflater.from(themedContext), parent, false)
-        val loader = RecordingPosterImageLoader()
-        val viewHolder = MovieViewHolder(binding, loader)
+        val imageSizeSelector = baseContext.createImageSizeSelector()
+        val viewHolder = MovieViewHolder(binding, imageSizeSelector)
 
         var toggleRequest: Pair<Int, Boolean>? = null
         val listener = object : MoviesClickListener {
@@ -55,8 +55,6 @@ class MovieViewHolderTest {
 
         viewHolder.bind(movie, listener)
 
-        assertEquals(listOf(movie.poster), loader.loadedPosters)
-
         assertEquals(android.view.View.VISIBLE, binding.viewHolderMovieLikeImage.visibility)
         val drawable = binding.viewHolderMovieLikeImage.drawable
         assertNotNull(drawable)
@@ -66,32 +64,5 @@ class MovieViewHolderTest {
         binding.viewHolderMovieLikeImage.performClick()
 
         assertEquals(1 to false, toggleRequest)
-    }
-
-    @Test
-    fun `clear poster delegates to loader`() {
-        val baseContext = ApplicationProvider.getApplicationContext<Context>()
-        val themedContext = ContextThemeWrapper(baseContext, R.style.Theme_AllMovies)
-        val parent = FrameLayout(themedContext)
-        val binding = ViewHolderMovieBinding.inflate(LayoutInflater.from(themedContext), parent, false)
-        val loader = RecordingPosterImageLoader()
-        val viewHolder = MovieViewHolder(binding, loader)
-
-        viewHolder.clearPoster()
-
-        assertEquals(1, loader.clearCount)
-    }
-}
-
-private class RecordingPosterImageLoader : PosterImageLoader {
-    val loadedPosters = mutableListOf<String>()
-    var clearCount: Int = 0
-
-    override fun loadPoster(target: android.widget.ImageView, posterUrl: String) {
-        loadedPosters += posterUrl
-    }
-
-    override fun clear(target: android.widget.ImageView) {
-        clearCount += 1
     }
 }

@@ -4,13 +4,16 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
+import androidx.recyclerview.widget.RecyclerView
+import dev.tutushkin.allmovies.data.movies.ImageSizeSelector
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
-import dev.tutushkin.allmovies.presentation.images.PosterImageLoaderFactory
 
 class MoviesAdapter(
     private val clickListener: MoviesClickListener,
-    private val posterImageLoaderFactory: PosterImageLoaderFactory,
+    private val imageSizeSelector: ImageSizeSelector,
+    private val itemWidthPx: Int,
+    private val requestManagerFactory: PosterRequestManagerFactory = DefaultPosterRequestManagerFactory
 ) : ListAdapter<MovieList, MovieViewHolder>(
     MoviesListDiffCallback()
 ) {
@@ -18,18 +21,17 @@ class MoviesAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
         val binding = ViewHolderMovieBinding.inflate(layoutInflater, parent, false)
-        val loader = posterImageLoaderFactory.create(binding.root)
-        return MovieViewHolder(binding, loader)
+        val layoutParams = RecyclerView.LayoutParams(
+            itemWidthPx.takeIf { it > 0 } ?: ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+        )
+        binding.root.layoutParams = layoutParams
+        return MovieViewHolder(binding, imageSizeSelector, requestManagerFactory)
     }
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item, clickListener)
-    }
-
-    override fun onViewRecycled(holder: MovieViewHolder) {
-        holder.clearPoster()
-        super.onViewRecycled(holder)
     }
 }
 

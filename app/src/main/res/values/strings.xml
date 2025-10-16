@@ -82,6 +82,7 @@
     <string name="movie_details_favorite_add">Mark as favorite</string>
     <string name="movie_details_favorite_remove">Remove from favorites</string>
     <string name="movie_details_favorite_content_description">Toggle favorite</string>
+    <string name="movie_details_error_generic">Unable to load movie details.</string>
 
     <string name="favorites_list_title">Favorites</string>
     <string name="favorites_list_empty">No favorite movies yet.</string>

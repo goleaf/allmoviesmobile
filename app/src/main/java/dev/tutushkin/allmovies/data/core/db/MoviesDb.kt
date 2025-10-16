@@ -43,7 +43,7 @@ abstract class MoviesDb : RoomDatabase() {
                     MoviesDb::class.java,
                     "Movies.db"
                 )
-                    // Room requires database operations to be performed off the main thread.
+                    // Room enforces background threading for database access.
                     .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
                     .build()
                 INSTANCE = instance

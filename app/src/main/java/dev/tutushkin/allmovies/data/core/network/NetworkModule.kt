@@ -3,7 +3,6 @@ package dev.tutushkin.allmovies.data.core.network
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.data.movies.remote.MoviesApi
-import dev.tutushkin.allmovies.domain.movies.models.Configuration
 import dev.tutushkin.allmovies.domain.movies.models.Genre
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -14,14 +13,10 @@ import retrofit2.Retrofit
 import retrofit2.create
 import java.util.concurrent.TimeUnit
 
-// TODO Implement Api Key through the interceptor
 // TODO Get off singleton
 object NetworkModule {
 
     var allGenres: List<Genre> = listOf()
-
-    // TODO Move to DataStore(?)
-    var configApi: Configuration = Configuration()
 
     private val json = Json {
         prettyPrint = true
@@ -36,6 +31,7 @@ object NetworkModule {
         .connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS)
         .writeTimeout(10, TimeUnit.SECONDS)
+        .addInterceptor(ApiKeyInterceptor())
         .addInterceptor(loggingInterceptor)
         .addNetworkInterceptor(loggingInterceptor)
         .build()

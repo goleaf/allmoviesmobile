@@ -1,7 +1,7 @@
 package dev.tutushkin.allmovies.presentation.moviedetails.viewmodel
 
 import dev.tutushkin.allmovies.domain.movies.models.MovieDetails
-import dev.tutushkin.allmovies.presentation.common.UiText
+import dev.tutushkin.allmovies.utils.UiText
 
 sealed class MovieDetailsState {
     object Loading : MovieDetailsState()

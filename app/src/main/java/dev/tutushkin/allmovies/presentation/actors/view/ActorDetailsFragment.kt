@@ -16,7 +16,10 @@ import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.core.db.MoviesDb
 import dev.tutushkin.allmovies.data.core.network.NetworkModule
 import dev.tutushkin.allmovies.data.movies.MoviesRepositoryImpl
+import dev.tutushkin.allmovies.data.movies.local.ConfigurationDataStore
+import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.movies.local.MoviesLocalDataSourceImpl
+import dev.tutushkin.allmovies.data.movies.local.configurationPreferencesDataStore
 import dev.tutushkin.allmovies.data.movies.remote.MoviesRemoteDataSourceImpl
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.databinding.FragmentActorDetailsBinding
@@ -26,6 +29,7 @@ import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsViewMod
 import dev.tutushkin.allmovies.presentation.actors.viewmodel.ActorDetailsViewModelFactory
 import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.navigation.ARG_ACTOR_ID
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.ExperimentalSerializationApi
 import androidx.navigation.fragment.findNavController
@@ -81,7 +85,17 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
             db.configurationDao(),
             db.genresDao(),
         )
-        val repository = MoviesRepositoryImpl(remoteDataSource, localDataSource, Dispatchers.IO)
+        val configurationDataStore = ConfigurationDataStore(
+            requireContext().applicationContext.configurationPreferencesDataStore
+        )
+        val imageSizeSelector = requireContext().createImageSizeSelector()
+        val repository = MoviesRepositoryImpl(
+            remoteDataSource,
+            localDataSource,
+            configurationDataStore,
+            Dispatchers.IO,
+            imageSizeSelector
+        )
         val languagePreferences = LanguagePreferences(requireContext().applicationContext)
         return ActorDetailsViewModelFactory(repository, args.actorId, languagePreferences.getSelectedLanguage())
     }
@@ -160,7 +174,7 @@ class ActorDetailsFragment : Fragment(R.layout.fragment_actor_details) {
             actorDetailsProgress.isVisible = false
             actorDetailsScroll.isVisible = false
             actorDetailsErrorGroup.isVisible = true
-            actorDetailsErrorText.text = message.asString(requireContext())
+            actorDetailsErrorText.text = message.resolve(resources)
         }
     }
 

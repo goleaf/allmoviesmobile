@@ -12,10 +12,10 @@ import dev.tutushkin.allmovies.domain.movies.models.MovieList
 import dev.tutushkin.allmovies.presentation.TestLanguagePreferences
 import dev.tutushkin.allmovies.presentation.TestLogger
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
-import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.favorites.TestFavoritesUpdateNotifier
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsState
 import dev.tutushkin.allmovies.presentation.moviedetails.viewmodel.MovieDetailsViewModel
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -23,6 +23,7 @@ import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -91,9 +92,10 @@ class MoviesViewModelTest {
 
         val lastState = emittedStates.last()
         assertTrue(lastState is MoviesState.Error)
-        val uiText = (lastState as MoviesState.Error).message
-        assertTrue(uiText is UiText.Resource)
-        assertTrue((uiText as UiText.Resource).resId == R.string.movies_list_error_generic)
+        val error = lastState as MoviesState.Error
+        assertTrue(error.message is UiText.StringResource)
+        val message = error.message as UiText.StringResource
+        assertEquals(R.string.movies_list_error_generic, message.resId)
 
         viewModel.movies.removeObserver(observer)
     }
@@ -205,13 +207,10 @@ class MoviesViewModelTest {
         dispatcher.scheduler.advanceUntilIdle()
 
         val errorState = searchStates.last() as MoviesSearchState.Error
-        assertTrue(errorState.query == "Broken")
-        val message = errorState.message
-        assertTrue(message is UiText.Resource)
-        val resource = message as UiText.Resource
-        assertTrue(resource.resId == R.string.movies_search_error_with_reason)
-        assertTrue(resource.args.contains("Broken"))
-        assertTrue(resource.args.contains("network"))
+        assertTrue(errorState.message is UiText.StringResource)
+        val message = errorState.message as UiText.StringResource
+        assertEquals(R.string.movies_search_error, message.resId)
+        assertEquals(listOf("Broken"), message.args)
 
         viewModel.searchState.removeObserver(observer)
     }
@@ -332,17 +331,17 @@ private class FakeMoviesRepository : MoviesRepository {
 
     private val favoriteMovieIds = mutableSetOf<Int>()
 
-    override suspend fun getConfiguration(apiKey: String, language: String): Result<Configuration> {
+    override suspend fun getConfiguration(language: String): Result<Configuration> {
         configurationRequested = true
         return configurationResult
     }
 
-    override suspend fun getGenres(apiKey: String, language: String): Result<List<Genre>> {
+    override suspend fun getGenres(language: String): Result<List<Genre>> {
         genresRequested = true
         return genresResult
     }
 
-    override suspend fun getNowPlaying(apiKey: String, language: String): Result<List<MovieList>> {
+    override suspend fun getNowPlaying(language: String): Result<List<MovieList>> {
         nowPlayingRequested = true
         return nowPlayingResult.map { movies ->
             movies.map { movie ->
@@ -354,7 +353,6 @@ private class FakeMoviesRepository : MoviesRepository {
 
     override suspend fun getMovieDetails(
         movieId: Int,
-        apiKey: String,
         language: String,
         ensureCached: Boolean
     ): Result<MovieDetails> {
@@ -363,7 +361,6 @@ private class FakeMoviesRepository : MoviesRepository {
 
     override suspend fun getActorDetails(
         actorId: Int,
-        apiKey: String,
         language: String
     ): Result<dev.tutushkin.allmovies.domain.movies.models.ActorDetails> =
         Result.failure(UnsupportedOperationException())
@@ -381,7 +378,6 @@ private class FakeMoviesRepository : MoviesRepository {
     override suspend fun getFavorites(): Result<List<MovieList>> = favoritesResult
 
     override suspend fun searchMovies(
-        apiKey: String,
         language: String,
         query: String,
         includeAdult: Boolean
@@ -396,7 +392,6 @@ private class FakeMoviesRepository : MoviesRepository {
     }
 
     override suspend fun refreshLibrary(
-        apiKey: String,
         language: String,
         onProgress: (current: Int, total: Int, title: String) -> Unit
     ): Result<Unit> = Result.success(Unit)

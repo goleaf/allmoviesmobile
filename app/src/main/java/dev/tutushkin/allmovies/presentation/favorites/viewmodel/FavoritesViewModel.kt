@@ -7,8 +7,8 @@ import androidx.lifecycle.viewModelScope
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
-import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.favorites.sync.FavoritesUpdateNotifier
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -51,7 +51,7 @@ class FavoritesViewModel(
                     FavoritesState.Result(movies)
                 }
             } else {
-                FavoritesState.Error(UiText.Resource(R.string.favorites_list_error_generic))
+                FavoritesState.Error(UiText.stringResource(R.string.favorites_list_error_generic))
             }
         }
     }

@@ -4,12 +4,11 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
 import dev.tutushkin.allmovies.presentation.analytics.SharedLinkAnalytics
-import dev.tutushkin.allmovies.presentation.common.UiText
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.launch
 
 class MovieDetailsViewModel(
@@ -29,7 +28,7 @@ class MovieDetailsViewModel(
         viewModelScope.launch {
             if (id <= 0) {
                 _currentMovie.value = MovieDetailsState.Error(
-                    UiText.Resource(R.string.movie_details_error_missing_id)
+                    UiText.stringResource(R.string.movie_details_error_missing_id)
                 )
                 return@launch
             }
@@ -46,7 +45,6 @@ class MovieDetailsViewModel(
     private suspend fun handleMovieDetails(): MovieDetailsState {
         val movieDetails = moviesRepository.getMovieDetails(
             id,
-            BuildConfig.API_KEY,
             language,
             ensureCached = true
         )
@@ -54,7 +52,7 @@ class MovieDetailsViewModel(
         return if (movieDetails.isSuccess)
             MovieDetailsState.Result(movieDetails.getOrThrow())
         else
-            MovieDetailsState.Error(UiText.Resource(R.string.movie_details_error_generic))
+            MovieDetailsState.Error(UiText.stringResource(R.string.movie_details_error_generic))
     }
 
     fun toggleFavorite() {

@@ -4,10 +4,9 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.tutushkin.allmovies.BuildConfig
 import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.domain.movies.MoviesRepository
-import dev.tutushkin.allmovies.presentation.common.UiText
+import dev.tutushkin.allmovies.utils.UiText
 import kotlinx.coroutines.launch
 
 class ActorDetailsViewModel(
@@ -31,7 +30,7 @@ class ActorDetailsViewModel(
         viewModelScope.launch {
             if (actorId <= 0) {
                 _actorDetails.value =
-                    ActorDetailsState.Error(UiText.Resource(R.string.actor_details_error_missing_id))
+                    ActorDetailsState.Error(UiText.stringResource(R.string.actor_details_error_missing_id))
                 return@launch
             }
 
@@ -43,14 +42,13 @@ class ActorDetailsViewModel(
     private suspend fun fetchActorDetails(): ActorDetailsState {
         val result = moviesRepository.getActorDetails(
             actorId,
-            BuildConfig.API_KEY,
             language,
         )
 
         return if (result.isSuccess) {
             ActorDetailsState.Result(result.getOrThrow())
         } else {
-            ActorDetailsState.Error(UiText.Resource(R.string.actor_details_error))
+            ActorDetailsState.Error(UiText.stringResource(R.string.actor_details_error))
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import android.widget.ImageView
 import androidx.core.view.isVisible
+import androidx.core.view.updateLayoutParams
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.RequestManager
@@ -12,6 +13,7 @@ import dev.tutushkin.allmovies.R
 import dev.tutushkin.allmovies.data.movies.ImageSizeSelector
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridSpec
 
 typealias PosterRequestManagerFactory = (Context) -> PosterRequestManager
 
@@ -25,8 +27,13 @@ class MovieViewHolder(
     private val requestManagerFactory: PosterRequestManagerFactory = DefaultPosterRequestManagerFactory
 ) : RecyclerView.ViewHolder(binding.root) {
 
-    fun bind(item: MovieList, clickListener: MoviesClickListener) {
+    fun bind(item: MovieList, clickListener: MoviesClickListener, gridSpec: ResponsiveGridSpec?) {
         binding.apply {
+            gridSpec?.let { spec ->
+                root.updateLayoutParams<RecyclerView.LayoutParams> {
+                    width = spec.cellWidthPx
+                }
+            }
             viewHolderMovieTitleText.text = item.title
             viewHolderMovieGenresText.text = item.genres
             viewHolderMovieYearText.text = item.year.ifBlank {

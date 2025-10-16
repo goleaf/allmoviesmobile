@@ -8,6 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 import dev.tutushkin.allmovies.data.movies.ImageSizeSelector
 import dev.tutushkin.allmovies.databinding.ViewHolderMovieBinding
 import dev.tutushkin.allmovies.domain.movies.models.MovieList
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridSpec
 
 class MoviesAdapter(
     private val clickListener: MoviesClickListener,
@@ -17,6 +18,15 @@ class MoviesAdapter(
 ) : ListAdapter<MovieList, MovieViewHolder>(
     MoviesListDiffCallback()
 ) {
+
+    private var gridSpec: ResponsiveGridSpec? = null
+
+    fun updateGridSpec(spec: ResponsiveGridSpec) {
+        gridSpec = spec
+        if (itemCount > 0) {
+            notifyDataSetChanged()
+        }
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
         val layoutInflater = LayoutInflater.from(parent.context)
@@ -31,7 +41,7 @@ class MoviesAdapter(
 
     override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
         val item = getItem(position)
-        holder.bind(item, clickListener)
+        holder.bind(item, clickListener, gridSpec)
     }
 }
 

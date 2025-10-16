@@ -13,6 +13,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -35,7 +36,6 @@ import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
 import dev.tutushkin.allmovies.utils.export.CsvExporter
 import dev.tutushkin.allmovies.utils.export.ExportResult
-import androidx.navigation.fragment.findNavController
 import androidx.window.layout.WindowMetricsCalculator
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -72,10 +72,6 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-// TODO Column alignment RecyclerView
-//        val displayMetrics = DisplayMetrics()
-//            ...
-
         _binding = FragmentMoviesListBinding.bind(view)
         csvExporter = CsvExporter(requireContext())
 
@@ -95,7 +91,6 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         binding.moviesListRecycler.addItemDecoration(
             SpacingItemDecoration(gridConfig.spanCount, gridConfig.spacingPx),
         )
-
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
                 val args = bundleOf(ARG_MOVIE_ID to movieId)

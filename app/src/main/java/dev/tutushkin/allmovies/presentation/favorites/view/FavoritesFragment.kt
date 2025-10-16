@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import com.google.android.material.snackbar.Snackbar
 import dev.tutushkin.allmovies.R
@@ -23,9 +24,10 @@ import dev.tutushkin.allmovies.presentation.movies.view.ResponsiveGridCalculator
 import dev.tutushkin.allmovies.presentation.movies.view.SpacingItemDecoration
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesViewModel
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.provideMoviesViewModelFactory
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridCalculator
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridProvider
+import dev.tutushkin.allmovies.presentation.responsivegrid.ResponsiveGridSpacingItemDecoration
 import kotlinx.serialization.ExperimentalSerializationApi
-import androidx.navigation.fragment.findNavController
-import androidx.window.layout.WindowMetricsCalculator
 
 @ExperimentalSerializationApi
 class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
@@ -79,7 +81,6 @@ class FavoritesFragment : Fragment(R.layout.fragment_favorites_list) {
         binding.favoritesListRecycler.addItemDecoration(
             SpacingItemDecoration(gridConfig.spanCount, gridConfig.spacingPx),
         )
-
         val listener = object : MoviesClickListener {
             override fun onItemClick(movieId: Int) {
                 navigateToDetails(movieId)

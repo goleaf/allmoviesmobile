@@ -27,6 +27,7 @@ import dev.tutushkin.allmovies.data.movies.createImageSizeSelector
 import dev.tutushkin.allmovies.data.settings.LanguagePreferences
 import dev.tutushkin.allmovies.data.sync.MoviesRefreshWorker
 import dev.tutushkin.allmovies.databinding.FragmentMoviesListBinding
+import dev.tutushkin.allmovies.presentation.favorites.view.FavoritesFragment
 import dev.tutushkin.allmovies.presentation.navigation.ARG_MOVIE_ID
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesSearchState
 import dev.tutushkin.allmovies.presentation.movies.viewmodel.MoviesState
@@ -121,7 +122,6 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
         val toolbar = binding.moviesListToolbar
         toolbar.inflateMenu(R.menu.menu_movies_collection)
 
-<<<<<<< HEAD
         val searchItem = toolbar.menu.findItem(R.id.action_search)
         val searchView = searchItem?.actionView as? SearchView
         if (searchView != null) {
@@ -179,34 +179,9 @@ class MoviesFragment : Fragment(R.layout.fragment_movies_list) {
                 }
                 else -> false
             }
-<<<<<<< HEAD
         })
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return when (item.itemId) {
-            R.id.action_update_all -> {
-                enqueueLibraryRefresh()
-                true
-            }
-            R.id.action_export -> {
-                exportLibrary()
-                true
-            }
-            R.id.action_language -> {
-                showLanguageSelectionDialog()
-                true
-            }
-            R.id.action_favorites -> {
-                resetSearch()
-                if (findNavController().currentDestination?.id == R.id.moviesFragment) {
-                    findNavController().navigate(R.id.action_moviesFragment_to_favoritesFragment)
-                }
-                true
-            }
-            else -> super.onOptionsItemSelected(item)
-        }
-    }
 
     private fun showLanguageSelectionDialog() {
         val entries = resources.getStringArray(R.array.language_entries)

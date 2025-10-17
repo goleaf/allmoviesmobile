@@ -3,14 +3,13 @@ import 'package:http/http.dart' as http;
 import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
+import 'models/collection_model.dart';
 import 'models/configuration_model.dart';
-import 'models/discover_filters_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
-import 'models/network_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
@@ -142,23 +141,13 @@ class TmdbRepository {
   }
 
   Future<PaginatedResponse<Movie>> discoverMovies({
-    DiscoverFilters? discoverFilters,
     Map<String, String>? filters,
     int page = 1,
     bool forceRefresh = false,
   }) async {
     _checkApiKey();
 
-    Map<String, String>? mergedFilters = filters;
-
-    if (discoverFilters != null) {
-      mergedFilters = {
-        ...discoverFilters.toQueryParameters(),
-        if (filters != null) ...filters,
-      };
-    }
-
-    final sanitizedFilters = _sanitizeFilters(mergedFilters);
+    final sanitizedFilters = _sanitizeFilters(filters);
     final normalizedFilters = _normalizeFilters(sanitizedFilters);
     final cacheKey = 'discover-movies-$normalizedFilters-$page';
     if (!forceRefresh) {
@@ -240,38 +229,6 @@ class TmdbRepository {
     return movie;
   }
 
-  Future<List<Movie>> fetchSimilarMovies(
-    int movieId, {
-    int page = 1,
-    bool forceRefresh = false,
-  }) async {
-    _checkApiKey();
-
-    final cacheKey = 'movie-similar-$movieId-$page';
-    if (!forceRefresh) {
-      final cached = _cache.get<List<Movie>>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.fetchMovieSimilar(
-      movieId,
-      page: page,
-    );
-
-    final results = payload['results'];
-    final movies = results is List
-        ? results
-            .whereType<Map<String, dynamic>>()
-            .map(Movie.fromJson)
-            .toList(growable: false)
-        : <Movie>[];
-
-    _cache.set(cacheKey, movies, ttlSeconds: CacheService.defaultTTL);
-    return movies;
-  }
-
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
@@ -295,38 +252,6 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
-  }
-
-  Future<List<Movie>> fetchSimilarTvShows(
-    int tvId, {
-    int page = 1,
-    bool forceRefresh = false,
-  }) async {
-    _checkApiKey();
-
-    final cacheKey = 'tv-similar-$tvId-$page';
-    if (!forceRefresh) {
-      final cached = _cache.get<List<Movie>>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.fetchTvSimilar(
-      tvId,
-      page: page,
-    );
-
-    final results = payload['results'];
-    final shows = results is List
-        ? results
-            .whereType<Map<String, dynamic>>()
-            .map(Movie.fromJson)
-            .toList(growable: false)
-        : <Movie>[];
-
-    _cache.set(cacheKey, shows, ttlSeconds: CacheService.defaultTTL);
-    return shows;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -354,94 +279,6 @@ class TmdbRepository {
     );
 
     _cache.set(cacheKey, response);
-    return response;
-  }
-
-  Future<PaginatedResponse<Person>> fetchTrendingPeople({
-    String timeWindow = 'day',
-    int page = 1,
-    bool forceRefresh = false,
-  }) async {
-    _checkApiKey();
-
-    final normalizedWindow = (timeWindow == 'week') ? 'week' : 'day';
-    final cacheKey = 'people-trending-$normalizedWindow-$page';
-    if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<Person>>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.fetchTrending(
-      mediaType: 'person',
-      timeWindow: normalizedWindow,
-      page: page,
-    );
-
-    final response = PaginatedResponse<Person>.fromJson(
-      payload,
-      Person.fromJson,
-    );
-
-    _cache.set(cacheKey, response, ttlSeconds: CacheService.trendingTTL);
-    return response;
-  }
-
-  Future<Person> fetchLatestPerson({bool forceRefresh = false}) async {
-    _checkApiKey();
-
-    const cacheKey = 'people-latest';
-    if (!forceRefresh) {
-      final cached = _cache.get<Person>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.fetchLatestPerson();
-    final person = Person.fromJson(payload);
-    _cache.set(cacheKey, person);
-    return person;
-  }
-
-  Future<PaginatedResponse<Person>> searchPeople(
-    String query, {
-    int page = 1,
-    bool forceRefresh = false,
-  }) async {
-    _checkApiKey();
-
-    final trimmed = query.trim();
-    if (trimmed.isEmpty) {
-      return const PaginatedResponse<Person>(
-        page: 1,
-        totalPages: 1,
-        totalResults: 0,
-        results: <Person>[],
-      );
-    }
-
-    final cacheKey = 'people-search-${trimmed.toLowerCase()}-$page';
-    if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<Person>>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.search(
-      'person',
-      trimmed,
-      page: page,
-    );
-
-    final response = PaginatedResponse<Person>.fromJson(
-      payload,
-      Person.fromJson,
-    );
-
-    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
     return response;
   }
 
@@ -519,68 +356,59 @@ class TmdbRepository {
     return company;
   }
 
-  Future<PaginatedResponse<Network>> fetchNetworks({
-    String query = '',
-    String? country,
+  Future<PaginatedResponse<Collection>> searchCollections(
+    String query, {
     int page = 1,
     bool forceRefresh = false,
   }) async {
     _checkApiKey();
 
-    final trimmedQuery = query.trim();
-    final normalizedCountry = country?.trim().toUpperCase();
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Collection>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Collection>[],
+      );
+    }
 
-    final cacheKey = 'networks-${trimmedQuery.isEmpty ? 'all' : trimmedQuery.toLowerCase()}-${normalizedCountry ?? 'all'}-$page';
+    final cacheKey = 'collection-search-$trimmed-$page';
     if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<Network>>(cacheKey);
+      final cached = _cache.get<PaginatedResponse<Collection>>(cacheKey);
       if (cached != null) {
         return cached;
       }
     }
 
-    final filters = <String, String>{
-      if (trimmedQuery.isNotEmpty) 'query': trimmedQuery,
-      if (normalizedCountry != null && normalizedCountry.isNotEmpty)
-        'with_countries': normalizedCountry,
-    };
-
-    final payload = await _apiService.fetchNetworks(
-      page: page,
-      queryParameters: filters.isEmpty ? null : filters,
-    );
-
-    final response = PaginatedResponse<Network>.fromJson(
+    final payload = await _apiService.search('collection', trimmed, page: page);
+    final response = PaginatedResponse<Collection>.fromJson(
       payload,
-      Network.fromJson,
+      Collection.fromJson,
     );
 
     _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
     return response;
   }
 
-  Future<PaginatedResponse<Network>> fetchPopularNetworks({
-    int page = 1,
+  Future<CollectionDetails> fetchCollectionDetails(
+    int collectionId, {
     bool forceRefresh = false,
   }) async {
     _checkApiKey();
 
-    final cacheKey = 'networks-popular-$page';
+    final cacheKey = 'collection-details-$collectionId';
     if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<Network>>(cacheKey);
+      final cached = _cache.get<CollectionDetails>(cacheKey);
       if (cached != null) {
         return cached;
       }
     }
 
-    final payload = await _apiService.fetchPopularNetworks(page: page);
-
-    final response = PaginatedResponse<Network>.fromJson(
-      payload,
-      Network.fromJson,
-    );
-
-    _cache.set(cacheKey, response, ttlSeconds: CacheService.trendingTTL);
-    return response;
+    final payload = await _apiService.fetchCollection(collectionId);
+    final details = CollectionDetails.fromJson(payload);
+    _cache.set(cacheKey, details, ttlSeconds: CacheService.movieDetailsTTL);
+    return details;
   }
 
   Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {

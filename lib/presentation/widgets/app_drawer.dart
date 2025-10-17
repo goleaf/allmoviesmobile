@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_strings.dart';
+import '../screens/collections/browse_collections_screen.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
 import '../screens/home/home_screen.dart';
@@ -8,7 +9,6 @@ import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
-import '../screens/networks/networks_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -95,10 +95,10 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
           ),
           ListTile(
-            leading: const Icon(Icons.account_tree_outlined),
-            title: const Text(AppStrings.networks),
-            selected: currentRoute == NetworksScreen.routeName,
-            onTap: () => _navigateTo(context, NetworksScreen.routeName),
+            leading: const Icon(Icons.collections_bookmark_outlined),
+            title: const Text(AppStrings.collections),
+            selected: currentRoute == CollectionsBrowserScreen.routeName,
+            onTap: () => _navigateTo(context, CollectionsBrowserScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.explore_outlined),

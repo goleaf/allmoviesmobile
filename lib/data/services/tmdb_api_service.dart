@@ -126,20 +126,6 @@ class TmdbApiService {
     );
   }
 
-  Future<Map<String, dynamic>> fetchMovieSimilar(
-    int movieId, {
-    int page = 1,
-    Map<String, String>? queryParameters,
-  }) {
-    return _getJson(
-      '/$_apiVersion/movie/$movieId/similar',
-      queryParameters: {
-        'page': '$page',
-        if (queryParameters != null) ...queryParameters,
-      },
-    );
-  }
-
   Future<Map<String, dynamic>> fetchTvDetails(
     int tvId, {
     Map<String, String>? queryParameters,
@@ -147,20 +133,6 @@ class TmdbApiService {
     return _getJson(
       '/$_apiVersion/tv/$tvId',
       queryParameters: queryParameters,
-    );
-  }
-
-  Future<Map<String, dynamic>> fetchTvSimilar(
-    int tvId, {
-    int page = 1,
-    Map<String, String>? queryParameters,
-  }) {
-    return _getJson(
-      '/$_apiVersion/tv/$tvId/similar',
-      queryParameters: {
-        'page': '$page',
-        if (queryParameters != null) ...queryParameters,
-      },
     );
   }
 
@@ -188,15 +160,6 @@ class TmdbApiService {
     );
   }
 
-  Future<Map<String, dynamic>> fetchLatestPerson({
-    Map<String, String>? queryParameters,
-  }) {
-    return _getJson(
-      '/$_apiVersion/person/latest',
-      queryParameters: queryParameters,
-    );
-  }
-
   Future<Map<String, dynamic>> fetchCompanyDetails(
     int companyId, {
     Map<String, String>? queryParameters,
@@ -207,29 +170,13 @@ class TmdbApiService {
     );
   }
 
-  Future<Map<String, dynamic>> fetchNetworks({
-    int page = 1,
+  Future<Map<String, dynamic>> fetchCollection(
+    int collectionId, {
     Map<String, String>? queryParameters,
   }) {
     return _getJson(
-      '/$_apiVersion/networks',
-      queryParameters: {
-        'page': '$page',
-        if (queryParameters != null) ...queryParameters,
-      },
-    );
-  }
-
-  Future<Map<String, dynamic>> fetchPopularNetworks({
-    int page = 1,
-    Map<String, String>? queryParameters,
-  }) {
-    return _getJson(
-      '/$_apiVersion/networks/popular',
-      queryParameters: {
-        'page': '$page',
-        if (queryParameters != null) ...queryParameters,
-      },
+      '/$_apiVersion/collection/$collectionId',
+      queryParameters: queryParameters,
     );
   }
 

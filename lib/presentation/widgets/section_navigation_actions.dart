@@ -74,6 +74,13 @@ class SectionNavigationActions extends StatelessWidget {
               ? null
               : () => _navigateTo(context, AppRoutes.companies, normalizedRoute),
         ),
+        IconButton(
+          tooltip: 'Collections',
+          icon: const Icon(Icons.collections_bookmark_outlined),
+          onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.collections)
+              ? null
+              : () => _navigateTo(context, AppRoutes.collections, normalizedRoute),
+        ),
       ],
     );
   }

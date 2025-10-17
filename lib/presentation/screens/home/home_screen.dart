@@ -8,6 +8,7 @@ import '../../../providers/trending_titles_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../companies/companies_screen.dart';
 import '../explorer/api_explorer_screen.dart';
+import '../collections/browse_collections_screen.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../movies/movies_screen.dart';
 import '../people/people_screen.dart';
@@ -124,6 +125,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Text(AppStrings.companies),
               ),
               PopupMenuItem(
+                value: CollectionsBrowserScreen.routeName,
+                child: Text(AppStrings.collections),
+              ),
+              PopupMenuItem(
                 value: ApiExplorerScreen.routeName,
                 child: Text(AppStrings.apiExplorer),
               ),
@@ -148,6 +153,14 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               AppStrings.exploreCollections,
               style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            FilledButton.icon(
+              onPressed: () {
+                Navigator.pushNamed(context, CollectionsBrowserScreen.routeName);
+              },
+              icon: const Icon(Icons.collections_bookmark_outlined),
+              label: const Text(AppStrings.browseCollections),
             ),
             const SizedBox(height: 24),
             _RecommendationsSection(

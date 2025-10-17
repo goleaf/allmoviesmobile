@@ -16,8 +16,10 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/api_explorer_provider.dart';
+import 'providers/collections_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
+import 'presentation/screens/collections/browse_collections_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
@@ -29,10 +31,8 @@ import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
-import 'presentation/screens/networks/networks_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
-import 'providers/networks_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/recommendations_provider.dart';
 import 'providers/series_provider.dart';
@@ -80,16 +80,12 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MoviesProvider()),
         ChangeNotifierProvider(create: (_) => SeriesProvider()),
         ChangeNotifierProvider(create: (_) => PeopleProvider()),
-        ChangeNotifierProvider(
-          create: (context) =>
-              CompaniesProvider(context.read<TmdbRepository>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) =>
-              NetworksProvider(context.read<TmdbRepository>()),
-        ),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider()),
         ChangeNotifierProvider(
           create: (_) => ApiExplorerProvider(tmdbRepository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CollectionsProvider(tmdbRepository),
         ),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
@@ -116,7 +112,8 @@ class AllMoviesApp extends StatelessWidget {
               SeriesScreen.routeName: (context) => const SeriesScreen(),
               PeopleScreen.routeName: (context) => const PeopleScreen(),
               CompaniesScreen.routeName: (context) => const CompaniesScreen(),
-              NetworksScreen.routeName: (context) => const NetworksScreen(),
+              CollectionsBrowserScreen.routeName: (context) =>
+                  const CollectionsBrowserScreen(),
               ApiExplorerScreen.routeName: (context) => const ApiExplorerScreen(),
               FavoritesScreen.routeName: (context) => const FavoritesScreen(),
               WatchlistScreen.routeName: (context) => const WatchlistScreen(),

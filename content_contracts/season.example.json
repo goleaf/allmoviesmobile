@@ -5,23 +5,6 @@
   "air_date": "2012-04-01",
   "episode_count": 10,
   "poster_path": "/s2.jpg",
-  "cast": [
-    {
-      "id": 1223786,
-      "name": "Emilia Clarke",
-      "character": "Daenerys Targaryen",
-      "profile_path": "/emilia-clarke.jpg",
-      "order": 0
-    }
-  ],
-  "crew": [
-    {
-      "id": 98123,
-      "name": "David Benioff",
-      "job": "Writer",
-      "department": "Writing",
-      "profile_path": "/david-benioff.jpg"
-    }
-  ],
+  "backdrop_path": "/s2_backdrop.jpg",
   "episodes": []
 }

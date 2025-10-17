@@ -16,6 +16,7 @@ class Season with _$Season {
     String? overview,
     @JsonKey(name: 'air_date') String? airDate,
     @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
     @JsonKey(name: 'episode_count') int? episodeCount,
     @Default([]) List<Cast> cast,
     @Default([]) List<Crew> crew,
@@ -23,7 +24,16 @@ class Season with _$Season {
     @Default([]) List<Video> videos,
   }) = _Season;
 
+  const Season._();
+
   factory Season.fromJson(Map<String, dynamic> json) =>
       _$SeasonFromJson(json);
+
+  String? get posterUrl =>
+      posterPath != null ? 'https://image.tmdb.org/t/p/w500$posterPath' : null;
+
+  String? get backdropUrl => backdropPath != null
+      ? 'https://image.tmdb.org/t/p/w780$backdropPath'
+      : null;
 }
 

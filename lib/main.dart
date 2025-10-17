@@ -183,10 +183,13 @@ class AllMoviesApp extends StatelessWidget {
                   SearchResultsListScreen.routeName: (context) =>
                       const SearchResultsListScreen(),
                   VideosScreen.routeName: (context) => const VideosScreen(),
-                  VideoPlayerScreen.routeName: (context) => const VideoPlayerScreen(
-                        videoKey: 'dQw4w9WgXcQ',
-                        title: 'Video',
-                      ),
+                  VideoPlayerScreen.routeName: (context) {
+                    final args =
+                        ModalRoute.of(context)?.settings.arguments;
+                    return VideoPlayerScreen(
+                      args: args is VideoPlayerScreenArgs ? args : null,
+                    );
+                  },
                   ListsScreen.routeName: (context) => const ListsScreen(),
                 },
                 onGenerateRoute: (settings) {

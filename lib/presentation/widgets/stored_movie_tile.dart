@@ -38,7 +38,8 @@ class StoredMovieTile extends StatelessWidget {
             horizontal: 12,
             vertical: 8,
           ),
-          leading: _PosterImage(posterPath: movie.posterPath),
+          leading:
+              _PosterImage(posterPath: movie.posterPath, title: movie.title),
           title: Text(
             movie.title,
             maxLines: 2,
@@ -116,9 +117,10 @@ class StoredMovieTile extends StatelessWidget {
 }
 
 class _PosterImage extends StatelessWidget {
-  const _PosterImage({required this.posterPath});
+  const _PosterImage({required this.posterPath, required this.title});
 
   final String? posterPath;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -146,6 +148,7 @@ class _PosterImage extends StatelessWidget {
         width: 60,
         height: 90,
         fit: BoxFit.cover,
+        semanticsLabel: 'Poster for $title',
         placeholder: Container(
           width: 60,
           height: 90,

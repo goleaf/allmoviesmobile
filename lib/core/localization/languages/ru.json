@@ -14,7 +14,9 @@
     "discover": "Обзор",
     "favorites": "Избранное",
     "watchlist": "Список просмотра",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "mainNavigation": "Основная навигация",
+    "sectionSuffix": "раздел"
   },
   "home": {
     "trending": "В тренде",
@@ -257,6 +259,20 @@
   "settings": {
     "title": "Настройки",
     "appearance": "Внешний Вид",
+    "accessibility": "Доступность",
+    "accessibilityDescription": "Оптимизируйте приложение для вспомогательных технологий.",
+    "highContrast": "Высококонтрастный режим",
+    "highContrastHelp": "Увеличивает контраст и толщину текста для лучшей читаемости.",
+    "colorBlindFriendly": "Палитра для людей с дальтонизмом",
+    "colorBlindFriendlyHelp": "Меняет цвета темы, чтобы они различались при нарушениях цветового зрения.",
+    "focusIndicators": "Усиленные индикаторы фокуса",
+    "focusIndicatorsHelp": "Добавляет более заметные контуры при управлении с клавиатуры и других устройств.",
+    "textSize": "Размер текста",
+    "textSizeHelp": "Настройте масштаб текста для комфортного чтения.",
+    "decreaseTextSize": "Уменьшить текст",
+    "increaseTextSize": "Увеличить текст",
+    "resetTextSize": "Сбросить размер",
+    "ofDefault": "от стандартного",
     "theme": "Тема",
     "theme_light": "Светлая",
     "theme_dark": "Темная",

@@ -23,6 +23,91 @@ class AppTheme {
     return _buildTheme(dynamicScheme ?? _fallbackDarkScheme);
   }
 
+  static ThemeData adaptForAccessibility(
+    ThemeData base, {
+    required bool highContrast,
+    required bool colorBlindFriendly,
+    required bool focusIndicators,
+  }) {
+    var scheme = base.colorScheme;
+    if (colorBlindFriendly) {
+      final isDark = scheme.brightness == Brightness.dark;
+      scheme = scheme.copyWith(
+        primary: isDark ? const Color(0xFF64B5F6) : const Color(0xFF0D47A1),
+        onPrimary: Colors.white,
+        secondary:
+            isDark ? const Color(0xFFFFE082) : const Color(0xFFEF6C00),
+        onSecondary: Colors.black,
+        tertiary:
+            isDark ? const Color(0xFF80CBC4) : const Color(0xFF00695C),
+        onTertiary: Colors.black,
+      );
+    }
+
+    if (highContrast) {
+      scheme = scheme.brightness == Brightness.dark
+          ? ColorScheme.highContrastDark(
+              primary: scheme.primary,
+              onPrimary: scheme.onPrimary,
+              secondary: scheme.secondary,
+              onSecondary: scheme.onSecondary,
+              tertiary: scheme.tertiary,
+              onTertiary: scheme.onTertiary,
+              error: scheme.error,
+              onError: scheme.onError,
+              surface: scheme.surface,
+              onSurface: scheme.onSurface,
+              surfaceTint: scheme.surfaceTint,
+              background: scheme.background,
+              onBackground: scheme.onBackground,
+            )
+          : ColorScheme.highContrastLight(
+              primary: scheme.primary,
+              onPrimary: scheme.onPrimary,
+              secondary: scheme.secondary,
+              onSecondary: scheme.onSecondary,
+              tertiary: scheme.tertiary,
+              onTertiary: scheme.onTertiary,
+              error: scheme.error,
+              onError: scheme.onError,
+              surface: scheme.surface,
+              onSurface: scheme.onSurface,
+              surfaceTint: scheme.surfaceTint,
+              background: scheme.background,
+              onBackground: scheme.onBackground,
+            );
+    }
+
+    var theme = base.copyWith(
+      colorScheme: scheme,
+      focusColor: focusIndicators ? scheme.secondary : base.focusColor,
+      hoverColor:
+          focusIndicators ? scheme.secondary.withOpacity(0.12) : base.hoverColor,
+      highlightColor: focusIndicators
+          ? scheme.secondary.withOpacity(0.2)
+          : base.highlightColor,
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        indicatorShape: focusIndicators
+            ? RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(color: scheme.secondary, width: 2),
+              )
+            : base.navigationBarTheme.indicatorShape,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+      ),
+    );
+
+    final updatedTextTheme = theme.textTheme.apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+      fontWeightDelta: highContrast ? 1 : 0,
+    );
+
+    theme = theme.copyWith(textTheme: updatedTextTheme);
+
+    return theme;
+  }
+
   static ThemeData _buildTheme(ColorScheme colorScheme) {
     final isDark = colorScheme.brightness == Brightness.dark;
     // Avoid runtime font fetching during tests or when fonts are unavailable

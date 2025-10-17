@@ -23,6 +23,8 @@ class AppLocalizations {
         'series': 'Series',
         'people': 'People',
         'companies': 'Companies',
+        'mainNavigation': 'Main navigation',
+        'sectionSuffix': 'section',
       },
       'common': {
         'cancel': 'Cancel',
@@ -39,6 +41,24 @@ class AppLocalizations {
       'settings': {
         'title': 'Settings',
         'appearance': 'Appearance',
+        'accessibility': 'Accessibility',
+        'accessibilityDescription':
+            'Tune the app for assistive technologies.',
+        'highContrast': 'High contrast mode',
+        'highContrastHelp':
+            'Increase contrast and text weight for improved readability.',
+        'colorBlindFriendly': 'Color-blind friendly palette',
+        'colorBlindFriendlyHelp':
+            'Adjusts theme colors to stay distinguishable for most color vision deficiencies.',
+        'focusIndicators': 'Enhanced focus indicators',
+        'focusIndicatorsHelp':
+            'Display stronger outlines when navigating with assistive devices.',
+        'textSize': 'Text size',
+        'textSizeHelp': 'Adjust font scaling for improved readability.',
+        'decreaseTextSize': 'Decrease text size',
+        'increaseTextSize': 'Increase text size',
+        'resetTextSize': 'Reset text size',
+        'ofDefault': 'of default',
         'localization': 'Localization',
         'about': 'About',
         'appVersion': 'App version',

@@ -313,6 +313,9 @@ class EpisodeDetailScreen extends StatelessWidget {
               final video = trailers[index];
               final thumbnailUrl =
                   'https://img.youtube.com/vi/${video.key}/mqdefault.jpg';
+              final videoTitle = (video.name ?? '').trim();
+              final semanticLabel =
+                  videoTitle.isEmpty ? 'Video thumbnail' : '$videoTitle thumbnail';
               return Container(
                 width: 240,
                 margin: const EdgeInsets.only(right: 12),
@@ -324,6 +327,7 @@ class EpisodeDetailScreen extends StatelessWidget {
                       width: 240,
                       height: 140,
                       fit: BoxFit.cover,
+                      semanticLabel: semanticLabel,
                     ),
                     Container(
                       decoration: BoxDecoration(

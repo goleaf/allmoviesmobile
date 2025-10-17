@@ -14,7 +14,9 @@
     "discover": "Огляд",
     "favorites": "Обране",
     "watchlist": "Список перегляду",
-    "settings": "Налаштування"
+    "settings": "Налаштування",
+    "mainNavigation": "Головна навігація",
+    "sectionSuffix": "розділ"
   },
   "home": {
     "trending": "У тренді",
@@ -257,6 +259,20 @@
   "settings": {
     "title": "Налаштування",
     "appearance": "Зовнішній Вигляд",
+    "accessibility": "Доступність",
+    "accessibilityDescription": "Налаштуйте застосунок для допоміжних технологій.",
+    "highContrast": "Режим високої контрастності",
+    "highContrastHelp": "Збільшує контраст і товщину тексту для кращої читабельності.",
+    "colorBlindFriendly": "Палітра для людей із дальтонізмом",
+    "colorBlindFriendlyHelp": "Змінює кольори теми, щоб вони залишалися розрізнюваними при порушеннях зору кольорів.",
+    "focusIndicators": "Посилені індикатори фокусу",
+    "focusIndicatorsHelp": "Додає помітні контури під час керування з клавіатури чи інших пристроїв.",
+    "textSize": "Розмір тексту",
+    "textSizeHelp": "Налаштуйте масштаб тексту для зручності читання.",
+    "decreaseTextSize": "Зменшити текст",
+    "increaseTextSize": "Збільшити текст",
+    "resetTextSize": "Скинути розмір",
+    "ofDefault": "від стандартного",
     "theme": "Тема",
     "theme_light": "Світла",
     "theme_dark": "Темна",

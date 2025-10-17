@@ -21,6 +21,9 @@ class MediaImage extends StatefulWidget {
     this.enableProgress = true,
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
+    this.semanticsLabel,
+    this.semanticsHint,
+    this.isDecorative = false,
   });
 
   final String? path;
@@ -36,6 +39,9 @@ class MediaImage extends StatefulWidget {
   final bool enableProgress;
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
+  final String? semanticsLabel;
+  final String? semanticsHint;
+  final bool isDecorative;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -120,11 +126,24 @@ class _MediaImageState extends State<MediaImage> {
       children: [if (preview != null) preview, image, progressIndicator],
     );
 
-    return _wrapWithSize(
+    final clipped = _wrapWithSize(
       ClipRRect(
         borderRadius: widget.borderRadius ?? BorderRadius.zero,
         child: stack,
       ),
+    );
+
+    if (widget.isDecorative) {
+      return ExcludeSemantics(child: clipped);
+    }
+
+    final label = widget.semanticsLabel ?? _defaultSemanticLabel();
+
+    return Semantics(
+      label: label,
+      hint: widget.semanticsHint,
+      image: true,
+      child: clipped,
     );
   }
 
@@ -234,6 +253,21 @@ class _MediaImageState extends State<MediaImage> {
         _progress = 1;
       });
     });
+  }
+
+  String _defaultSemanticLabel() {
+    switch (widget.type) {
+      case MediaImageType.poster:
+        return 'Poster image';
+      case MediaImageType.backdrop:
+        return 'Backdrop image';
+      case MediaImageType.profile:
+        return 'Profile image';
+      case MediaImageType.still:
+        return 'Scene still image';
+      case MediaImageType.logo:
+        return 'Logo image';
+    }
   }
 }
 

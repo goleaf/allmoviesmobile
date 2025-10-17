@@ -200,6 +200,7 @@ class _MovieContent extends StatelessWidget {
                         type: MediaImageType.poster,
                         size: MediaImageSize.w342,
                         fit: BoxFit.cover,
+                        semanticsLabel: 'Poster for ${movie.title}',
                         placeholder: Container(
                           color: Colors.grey[300],
                           child: const Center(

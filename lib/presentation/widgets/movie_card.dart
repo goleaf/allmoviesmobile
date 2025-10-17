@@ -149,6 +149,7 @@ class MovieCard extends StatelessWidget {
       type: MediaImageType.poster,
       size: MediaImageSize.w342,
       fit: BoxFit.cover,
+      semanticsLabel: 'Poster for $title',
       placeholder: Container(
         color: Colors.grey[300],
         child: const Center(child: CircularProgressIndicator()),

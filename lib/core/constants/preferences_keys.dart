@@ -16,6 +16,14 @@ class PreferenceKeys {
   // Presentation
   static const String imageQuality = 'settings.image_quality';
 
+  // Accessibility
+  static const String highContrast = 'settings.accessibility.high_contrast';
+  static const String colorBlindFriendly =
+      'settings.accessibility.color_blind';
+  static const String textScale = 'settings.accessibility.text_scale';
+  static const String focusIndicators =
+      'settings.accessibility.focus_indicators';
+
   // Notifications
   static const String notificationsNewReleases =
       'settings.notifications.new_releases';

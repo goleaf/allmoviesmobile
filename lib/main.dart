@@ -9,6 +9,7 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
+import 'providers/accessibility_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -95,6 +96,7 @@ class AllMoviesApp extends StatelessWidget {
         Provider<TmdbRepository>.value(value: repo),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => AccessibilityProvider(prefs)),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(storageService),
         ),
@@ -135,12 +137,25 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
       ],
-      child: Consumer2<LocaleProvider, ThemeProvider>(
-        builder: (context, localeProvider, themeProvider, _) {
+      child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
+        builder:
+            (context, localeProvider, themeProvider, accessibilityProvider, _) {
           return DynamicColorBuilder(
             builder: (lightDynamic, darkDynamic) {
-              final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-              final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+              final lightTheme = AppTheme.adaptForAccessibility(
+                AppTheme.light(dynamicScheme: lightDynamic),
+                highContrast: accessibilityProvider.highContrastEnabled,
+                colorBlindFriendly:
+                    accessibilityProvider.colorBlindFriendlyEnabled,
+                focusIndicators: accessibilityProvider.focusIndicatorsEnabled,
+              );
+              final darkTheme = AppTheme.adaptForAccessibility(
+                AppTheme.dark(dynamicScheme: darkDynamic),
+                highContrast: accessibilityProvider.highContrastEnabled,
+                colorBlindFriendly:
+                    accessibilityProvider.colorBlindFriendlyEnabled,
+                focusIndicators: accessibilityProvider.focusIndicatorsEnabled,
+              );
 
               return MaterialApp(
                 title: AppLocalizations.of(context).t('app.name'),
@@ -148,6 +163,29 @@ class AllMoviesApp extends StatelessWidget {
                 darkTheme: darkTheme,
                 themeMode: themeProvider.materialThemeMode,
                 locale: localeProvider.locale,
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  FocusManager.instance.highlightStrategy =
+                      accessibilityProvider.focusIndicatorsEnabled
+                          ? FocusHighlightStrategy.alwaysTraditional
+                          : FocusHighlightStrategy.automatic;
+
+                  return MediaQuery(
+                    data: mediaQuery.copyWith(
+                      textScaleFactor:
+                          accessibilityProvider.textScaleFactor,
+                      boldText: accessibilityProvider.highContrastEnabled
+                          ? true
+                          : mediaQuery.boldText,
+                      highContrast: accessibilityProvider.highContrastEnabled ||
+                          mediaQuery.highContrast,
+                    ),
+                    child: FocusTraversalGroup(
+                      policy: OrderedTraversalPolicy(),
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  );
+                },
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,

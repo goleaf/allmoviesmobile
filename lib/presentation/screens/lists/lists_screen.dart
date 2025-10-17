@@ -135,7 +135,7 @@ class _ListCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _ListPoster(posterUrl: list.posterPath),
+              _ListPoster(posterUrl: list.posterPath, title: list.name),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(
@@ -338,9 +338,10 @@ class _ListCard extends StatelessWidget {
 }
 
 class _ListPoster extends StatelessWidget {
-  const _ListPoster({this.posterUrl});
+  const _ListPoster({this.posterUrl, required this.title});
 
   final String? posterUrl;
+  final String title;
 
   @override
   Widget build(BuildContext context) {
@@ -363,6 +364,7 @@ class _ListPoster extends StatelessWidget {
               posterUrl!,
               fit: BoxFit.cover,
               errorBuilder: (context, _, __) => const _PosterFallback(),
+              semanticLabel: '$title poster',
             );
           }
           return MediaImage(
@@ -370,6 +372,7 @@ class _ListPoster extends StatelessWidget {
             type: MediaImageType.poster,
             size: MediaImageSize.w342,
             fit: BoxFit.cover,
+            semanticsLabel: 'Poster for $title',
             errorWidget: const _PosterFallback(),
           );
         }(),

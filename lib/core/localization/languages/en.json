@@ -14,7 +14,9 @@
     "discover": "Discover",
     "favorites": "Favorites",
     "watchlist": "Watchlist",
-    "settings": "Settings"
+    "settings": "Settings",
+    "mainNavigation": "Main navigation",
+    "sectionSuffix": "section"
   },
   "home": {
     "trending": "Trending",
@@ -273,6 +275,20 @@
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",
+    "accessibility": "Accessibility",
+    "accessibilityDescription": "Tune the app for assistive technologies.",
+    "highContrast": "High contrast mode",
+    "highContrastHelp": "Increase contrast and text weight for improved readability.",
+    "colorBlindFriendly": "Color-blind friendly palette",
+    "colorBlindFriendlyHelp": "Adjusts theme colors to remain distinguishable for most color vision deficiencies.",
+    "focusIndicators": "Enhanced focus indicators",
+    "focusIndicatorsHelp": "Display stronger outlines when using a keyboard or other assistive devices.",
+    "textSize": "Text size",
+    "textSizeHelp": "Adjust font scaling for improved readability.",
+    "decreaseTextSize": "Decrease text size",
+    "increaseTextSize": "Increase text size",
+    "resetTextSize": "Reset text size",
+    "ofDefault": "of default",
     "theme": "Theme",
     "theme_light": "Light",
     "theme_dark": "Dark",

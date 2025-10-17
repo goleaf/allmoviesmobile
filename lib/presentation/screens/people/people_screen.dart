@@ -199,6 +199,7 @@ class _PersonCard extends StatelessWidget {
                   width: 64,
                   height: 64,
                   fit: BoxFit.cover,
+                  semanticsLabel: 'Profile image of ${person.name}',
                 ),
               ),
               const SizedBox(width: 16),

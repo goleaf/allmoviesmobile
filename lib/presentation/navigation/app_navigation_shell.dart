@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../core/localization/app_localizations.dart';
 // Home/More removed in this app variant; keep movies/search/series only
@@ -17,6 +18,14 @@ class AppNavigationShell extends StatefulWidget {
   State<AppNavigationShell> createState() => _AppNavigationShellState();
 }
 
+class _NavigationIntent extends Intent {
+  const _NavigationIntent(this.direction);
+
+  final _NavigationDirection direction;
+}
+
+enum _NavigationDirection { previous, next }
+
 class _AppNavigationShellState extends State<AppNavigationShell> {
   final Map<AppDestination, GlobalKey<NavigatorState>> _navigatorKeys = {
     for (final destination in AppDestination.values)
@@ -27,20 +36,51 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final currentLabel = _destinationLabel(_currentDestination, l);
     return WillPopScope(
       onWillPop: _handleWillPop,
-      child: Scaffold(
-        body: IndexedStack(
-          index: _currentDestination.index,
-          children: [
-            for (final destination in AppDestination.values)
-              _DestinationNavigator(
-                navigatorKey: _navigatorKeys[destination]!,
-                destination: destination,
+      child: Shortcuts(
+        shortcuts: <ShortcutActivator, Intent>{
+          const SingleActivator(LogicalKeyboardKey.arrowRight):
+              const _NavigationIntent(_NavigationDirection.next),
+          const SingleActivator(LogicalKeyboardKey.arrowLeft):
+              const _NavigationIntent(_NavigationDirection.previous),
+        },
+        child: Actions(
+          actions: <Type, Action<Intent>>{
+            _NavigationIntent: CallbackAction<_NavigationIntent>(
+              onInvoke: (intent) {
+                _handleKeyboardNavigation(intent.direction);
+                return null;
+              },
+            ),
+          },
+          child: Scaffold(
+            body: Semantics(
+              container: true,
+              label: '$currentLabel ${l.t('navigation.sectionSuffix')}',
+              child: FocusTraversalGroup(
+                policy: OrderedTraversalPolicy(),
+                child: IndexedStack(
+                  index: _currentDestination.index,
+                  children: [
+                    for (final destination in AppDestination.values)
+                      _DestinationNavigator(
+                        navigatorKey: _navigatorKeys[destination]!,
+                        destination: destination,
+                      ),
+                  ],
+                ),
               ),
-          ],
+            ),
+            bottomNavigationBar: Semantics(
+              container: true,
+              label: l.t('navigation.mainNavigation'),
+              child: _buildBottomNavigationBar(),
+            ),
+          ),
         ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
       ),
     );
   }
@@ -85,19 +125,45 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           icon: Icon(Icons.movie_outlined),
           selectedIcon: Icon(Icons.movie),
           label: l.t('navigation.movies'),
+          tooltip: l.t('navigation.movies'),
         ),
         NavigationDestination(
           icon: Icon(Icons.tv_outlined),
           selectedIcon: Icon(Icons.tv),
           label: l.t('navigation.series'),
+          tooltip: l.t('navigation.series'),
         ),
         NavigationDestination(
           icon: Icon(Icons.search),
           selectedIcon: Icon(Icons.search),
           label: l.t('navigation.search'),
+          tooltip: l.t('navigation.search'),
         ),
       ],
     );
+  }
+
+  void _handleKeyboardNavigation(_NavigationDirection direction) {
+    final destinations = AppDestination.values;
+    final currentIndex = _currentDestination.index;
+    final nextIndex = direction == _NavigationDirection.next
+        ? (currentIndex + 1) % destinations.length
+        : (currentIndex - 1 + destinations.length) % destinations.length;
+
+    setState(() {
+      _currentDestination = destinations[nextIndex];
+    });
+  }
+
+  String _destinationLabel(AppDestination destination, AppLocalizations l) {
+    switch (destination) {
+      case AppDestination.movies:
+        return l.t('navigation.movies');
+      case AppDestination.tv:
+        return l.t('navigation.series');
+      case AppDestination.search:
+        return l.t('navigation.search');
+    }
   }
 }
 

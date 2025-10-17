@@ -4,7 +4,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../providers/watch_region_provider.dart';
-// duplicate import removed
+import '../../../providers/accessibility_provider.dart';
 import '../../../core/utils/service_locator.dart';
 import '../../../data/services/cache_service.dart';
 import '../../../data/services/local_storage_service.dart';
@@ -23,6 +23,14 @@ class SettingsScreen extends StatelessWidget {
       appBar: AppBar(title: Text(l.t('settings.title'))),
       body: ListView(
         children: [
+          _SettingsHeader(
+            title: l.t('settings.accessibility'),
+            subtitle: l.t('settings.accessibilityDescription'),
+          ),
+          const _HighContrastTile(),
+          const _ColorBlindTile(),
+          const _FocusIndicatorsTile(),
+          const _TextScaleTile(),
           _SettingsHeader(title: l.t('settings.appearance')),
           _ThemeTile(),
           _SettingsHeader(title: l.t('settings.localization')),
@@ -54,18 +62,164 @@ class SettingsScreen extends StatelessWidget {
 
 class _SettingsHeader extends StatelessWidget {
   final String title;
+  final String? subtitle;
 
-  const _SettingsHeader({required this.title});
+  const _SettingsHeader({required this.title, this.subtitle});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+    final textTheme = Theme.of(context).textTheme;
+    return Semantics(
+      container: true,
+      header: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            if (subtitle != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(
+                  subtitle!,
+                  style: textTheme.bodySmall,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HighContrastTile extends StatelessWidget {
+  const _HighContrastTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.contrast),
+      title: Text(l.t('settings.highContrast')),
+      subtitle: Text(l.t('settings.highContrastHelp')),
+      value: provider.highContrastEnabled,
+      onChanged: (value) =>
+          context.read<AccessibilityProvider>().setHighContrast(value),
+    );
+  }
+}
+
+class _ColorBlindTile extends StatelessWidget {
+  const _ColorBlindTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.palette_rounded),
+      title: Text(l.t('settings.colorBlindFriendly')),
+      subtitle: Text(l.t('settings.colorBlindFriendlyHelp')),
+      value: provider.colorBlindFriendlyEnabled,
+      onChanged: (value) => context
+          .read<AccessibilityProvider>()
+          .setColorBlindFriendly(value),
+    );
+  }
+}
+
+class _FocusIndicatorsTile extends StatelessWidget {
+  const _FocusIndicatorsTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.center_focus_strong),
+      title: Text(l.t('settings.focusIndicators')),
+      subtitle: Text(l.t('settings.focusIndicatorsHelp')),
+      value: provider.focusIndicatorsEnabled,
+      onChanged: (value) => context
+          .read<AccessibilityProvider>()
+          .setFocusIndicatorsEnabled(value),
+    );
+  }
+}
+
+class _TextScaleTile extends StatelessWidget {
+  const _TextScaleTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+    final percentage = (provider.textScaleFactor * 100).round();
+
+    return ListTile(
+      leading: const Icon(Icons.text_fields),
+      title: Text(l.t('settings.textSize')),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.t('settings.textSizeHelp')),
+          Semantics(
+            label: l.t('settings.textSize'),
+            value: '$percentage% ${l.t('settings.ofDefault')}',
+            child: Slider(
+              min: AccessibilityProvider.minTextScale,
+              max: AccessibilityProvider.maxTextScale,
+              divisions: ((AccessibilityProvider.maxTextScale -
+                          AccessibilityProvider.minTextScale) /
+                      AccessibilityProvider.textScaleStep)
+                  .round(),
+              value: provider.textScaleFactor,
+              onChanged: (value) {
+                context.read<AccessibilityProvider>().setTextScaleFactor(value);
+              },
+            ),
+          ),
+          Row(
+            children: [
+              IconButton(
+                tooltip: l.t('settings.decreaseTextSize'),
+                onPressed: provider.textScaleFactor <=
+                        AccessibilityProvider.minTextScale
+                    ? null
+                    : () => context
+                        .read<AccessibilityProvider>()
+                        .decreaseTextScale(),
+                icon: const Icon(Icons.remove_circle_outline),
+              ),
+              Text('$percentage%'),
+              IconButton(
+                tooltip: l.t('settings.increaseTextSize'),
+                onPressed: provider.textScaleFactor >=
+                        AccessibilityProvider.maxTextScale
+                    ? null
+                    : () => context
+                        .read<AccessibilityProvider>()
+                        .increaseTextScale(),
+                icon: const Icon(Icons.add_circle_outline),
+              ),
+              TextButton(
+                onPressed: () =>
+                    context.read<AccessibilityProvider>().resetTextScale(),
+                child: Text(l.t('settings.resetTextSize')),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

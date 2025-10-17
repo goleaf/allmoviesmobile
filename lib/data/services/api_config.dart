@@ -58,6 +58,11 @@ class ApiConfig {
     return '$tmdbImageBaseUrl/$size$path';
   }
 
+  static String getLogoUrl(String? path, {String size = posterSizeSmall}) {
+    if (path == null || path.isEmpty) return '';
+    return '$tmdbImageBaseUrl/$size$path';
+  }
+
   // Cache TTL values (in seconds)
   static const int cacheTTLShort = 300; // 5 minutes
   static const int cacheTTLMedium = 1800; // 30 minutes

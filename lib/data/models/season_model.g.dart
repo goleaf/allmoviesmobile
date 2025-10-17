@@ -19,6 +19,10 @@ _$SeasonImpl _$$SeasonImplFromJson(Map<String, dynamic> json) => _$SeasonImpl(
           ?.map((e) => Episode.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  videos: (json['videos'] as List<dynamic>?)
+          ?.map((e) => Video.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
 );
 
 Map<String, dynamic> _$$SeasonImplToJson(_$SeasonImpl instance) =>
@@ -31,4 +35,5 @@ Map<String, dynamic> _$$SeasonImplToJson(_$SeasonImpl instance) =>
       'poster_path': instance.posterPath,
       'episode_count': instance.episodeCount,
       'episodes': instance.episodes,
+      'videos': instance.videos,
     };

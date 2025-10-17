@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:allmovies_mobile/presentation/screens/series/series_filters_screen.dart';
+import 'package:allmovies_mobile/providers/series_provider.dart';
 import '../test_utils/pump_app.dart';
 
 void main() {
-  testWidgets('SeriesFiltersScreen returns Map<String,String> on apply', (
+  testWidgets('SeriesFiltersScreen returns SeriesFiltersResult on apply', (
     tester,
   ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
@@ -32,6 +33,10 @@ void main() {
     await tester.pumpAndSettle();
 
     final result = await future;
-    expect(result, isA<Map<String, String>>());
+    expect(result, isA<SeriesFiltersResult>());
+    final typed = result as SeriesFiltersResult;
+    expect(typed.filters, isA<Map<String, String>>());
+    expect(typed.persistenceAction, TvFilterPersistenceAction.keep);
+    expect(typed.clearActiveFilters, isFalse);
   });
 }

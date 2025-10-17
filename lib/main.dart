@@ -190,8 +190,21 @@ class AllMoviesApp extends StatelessWidget {
                       const MoviesFiltersScreen(),
                   SearchScreen.routeName: (context) => const SearchScreen(),
                   SeriesScreen.routeName: (context) => const SeriesScreen(),
-                  SeriesFiltersScreen.routeName: (context) =>
-                      const SeriesFiltersScreen(),
+                  SeriesFiltersScreen.routeName: (context) {
+                    final args = ModalRoute.of(context)?.settings.arguments;
+                    if (args is SeriesFiltersScreenArgs) {
+                      return SeriesFiltersScreen(
+                        initialFilters: args.initialFilters,
+                        presetSaved: args.presetSaved,
+                      );
+                    }
+                    final preferences = context.read<PreferencesProvider?>();
+                    final saved = preferences?.tvDiscoverFilterPreset;
+                    return SeriesFiltersScreen(
+                      initialFilters: saved,
+                      presetSaved: saved != null && saved.isNotEmpty,
+                    );
+                  },
                   PeopleScreen.routeName: (context) => const PeopleScreen(),
                   CompaniesScreen.routeName: (context) =>
                       const CompaniesScreen(),

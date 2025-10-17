@@ -1,12 +1,49 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../../providers/preferences_provider.dart';
+import '../../../providers/series_provider.dart' show TvFilterPersistenceAction;
+
+class SeriesFiltersScreenArgs {
+  const SeriesFiltersScreenArgs({
+    this.initialFilters,
+    this.presetSaved = false,
+  });
+
+  final Map<String, String>? initialFilters;
+  final bool presetSaved;
+}
+
+class SeriesFiltersResult {
+  const SeriesFiltersResult({
+    required this.filters,
+    required this.persistenceAction,
+    this.clearActiveFilters = false,
+  });
+
+  const SeriesFiltersResult.clear()
+      : filters = const <String, String>{},
+        persistenceAction = TvFilterPersistenceAction.clear,
+        clearActiveFilters = true;
+
+  final Map<String, String> filters;
+  final TvFilterPersistenceAction persistenceAction;
+  final bool clearActiveFilters;
+}
 
 class SeriesFiltersScreen extends StatefulWidget {
   static const routeName = '/series/filters';
 
-  const SeriesFiltersScreen({super.key});
+  const SeriesFiltersScreen({
+    super.key,
+    this.initialFilters,
+    this.presetSaved = false,
+  });
+
+  final Map<String, String>? initialFilters;
+  final bool presetSaved;
 
   @override
   State<SeriesFiltersScreen> createState() => _SeriesFiltersScreenState();
@@ -32,33 +69,143 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   int runtimeMax = 90;
   int voteCountMin = 50;
 
-  void _reset() {
-    setState(() {
-      networks.clear();
-      status = null;
-      type = null;
-      airFrom = null;
-      airTo = null;
-      language = '';
-      firstAirYear = null;
-      genres.clear();
-      includeNullFirstAirDates = false;
-      screenedTheatrically = false;
-      timezone = '';
-      watchProviders = '';
-      monetization
-        ..clear()
-        ..addAll({'flatrate', 'rent', 'buy'});
-      voteMin = 5.0;
-      voteMax = 9.5;
-      runtimeMin = 20;
-      runtimeMax = 90;
-      voteCountMin = 50;
-    });
+  late final TextEditingController _timezoneController;
+  late final TextEditingController _watchProvidersController;
+  bool _shouldSavePreset = false;
+  bool _hasPersistedPreset = false;
+  bool _didLoadInitialState = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _timezoneController = TextEditingController();
+    _watchProvidersController = TextEditingController();
+    _resetValues();
+    _shouldSavePreset = widget.presetSaved;
+    _hasPersistedPreset = widget.presetSaved;
   }
 
-  void _apply() {
-    final filters = <String, String>{
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didLoadInitialState) {
+      return;
+    }
+    _didLoadInitialState = true;
+
+    var presetSaved = widget.presetSaved;
+    Map<String, String>? preset = widget.initialFilters;
+
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is SeriesFiltersScreenArgs) {
+      preset = args.initialFilters ?? preset;
+      presetSaved = args.presetSaved;
+    }
+
+    if ((preset == null || preset.isEmpty) && !presetSaved) {
+      final preferences = _maybeReadPreferences();
+      final persisted = preferences?.tvDiscoverFilterPreset;
+      if (persisted != null && persisted.isNotEmpty) {
+        preset = persisted;
+        presetSaved = true;
+      }
+    }
+
+    if (preset != null && preset.isNotEmpty) {
+      _resetValues();
+      _hydrateFromPreset(preset);
+      _hasPersistedPreset = presetSaved;
+      _shouldSavePreset = presetSaved;
+    } else {
+      _hasPersistedPreset = presetSaved;
+      _shouldSavePreset = presetSaved;
+    }
+  }
+
+  @override
+  void dispose() {
+    _timezoneController.dispose();
+    _watchProvidersController.dispose();
+    super.dispose();
+  }
+
+  PreferencesProvider? _maybeReadPreferences() {
+    try {
+      return context.read<PreferencesProvider>();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _resetValues() {
+    networks.clear();
+    status = null;
+    type = null;
+    airFrom = null;
+    airTo = null;
+    language = '';
+    firstAirYear = null;
+    genres.clear();
+    includeNullFirstAirDates = false;
+    screenedTheatrically = false;
+    timezone = '';
+    _timezoneController.text = '';
+    watchProviders = '';
+    _watchProvidersController.text = '';
+    monetization
+      ..clear()
+      ..addAll({'flatrate', 'rent', 'buy'});
+    voteMin = 5.0;
+    voteMax = 9.5;
+    runtimeMin = 20;
+    runtimeMax = 90;
+    voteCountMin = 50;
+  }
+
+  void _hydrateFromPreset(Map<String, String> preset) {
+    status = preset['with_status'];
+    type = preset['with_type'];
+    final airFromRaw = preset['first_air_date.gte'];
+    final airToRaw = preset['first_air_date.lte'];
+    airFrom = airFromRaw != null ? DateTime.tryParse(airFromRaw) : null;
+    airTo = airToRaw != null ? DateTime.tryParse(airToRaw) : null;
+    language = preset['with_original_language'] ?? '';
+    final yearRaw = preset['first_air_date_year'];
+    firstAirYear = yearRaw != null ? int.tryParse(yearRaw) : null;
+    final genreRaw = preset['with_genres'];
+    genres
+      ..clear()
+      ..addAll((genreRaw ?? '')
+          .split(',')
+          .where((element) => element.trim().isNotEmpty)
+          .map((value) => int.tryParse(value) ?? -1)
+          .where((value) => value >= 0));
+    includeNullFirstAirDates =
+        preset['include_null_first_air_dates'] == 'true';
+    screenedTheatrically = preset['screened_theatrically'] == 'true';
+    timezone = preset['timezone'] ?? '';
+    _timezoneController.text = timezone;
+    watchProviders = preset['with_watch_providers'] ?? '';
+    _watchProvidersController.text = watchProviders;
+    final monetizationRaw = preset['with_watch_monetization_types'];
+    monetization
+      ..clear();
+    if (monetizationRaw != null && monetizationRaw.isNotEmpty) {
+      monetization.addAll(
+        monetizationRaw.split('|').where((element) => element.isNotEmpty),
+      );
+    } else {
+      monetization.addAll({'flatrate', 'rent', 'buy'});
+    }
+    voteMin = double.tryParse(preset['vote_average.gte'] ?? '') ?? 5.0;
+    voteMax = double.tryParse(preset['vote_average.lte'] ?? '') ?? 9.5;
+    runtimeMin = int.tryParse(preset['with_runtime.gte'] ?? '') ?? 20;
+    runtimeMax = int.tryParse(preset['with_runtime.lte'] ?? '') ?? 90;
+    voteCountMin = int.tryParse(preset['vote_count.gte'] ?? '') ?? 50;
+  }
+
+  Map<String, String> _buildFilters() {
+    return <String, String>{
       if (airFrom != null)
         'first_air_date.gte': airFrom!.toIso8601String().split('T').first,
       if (airTo != null)
@@ -80,8 +227,31 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       'with_runtime.lte': '$runtimeMax',
       'vote_count.gte': '$voteCountMin',
     };
+  }
 
-    Navigator.pop(context, filters);
+  void _reset() {
+    setState(_resetValues);
+  }
+
+  void _apply() {
+    final filters = Map<String, String>.from(_buildFilters());
+    final action = _shouldSavePreset
+        ? TvFilterPersistenceAction.save
+        : (_hasPersistedPreset
+            ? TvFilterPersistenceAction.clear
+            : TvFilterPersistenceAction.keep);
+
+    Navigator.pop(
+      context,
+      SeriesFiltersResult(
+        filters: Map.unmodifiable(filters),
+        persistenceAction: action,
+      ),
+    );
+  }
+
+  void _clearPresetAndClose() {
+    Navigator.pop(context, const SeriesFiltersResult.clear());
   }
 
   @override
@@ -314,10 +484,24 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           Text('Timezone', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
+            controller: _timezoneController,
             decoration: const InputDecoration(
               hintText: 'e.g., America/New_York',
             ),
-            onChanged: (v) => setState(() => timezone = v.trim()),
+            onChanged: (value) {
+              final normalized = value.trim();
+              if (value != normalized) {
+                final selection =
+                    TextSelection.collapsed(offset: normalized.length);
+                _timezoneController.value = TextEditingValue(
+                  text: normalized,
+                  selection: selection,
+                );
+              }
+              if (timezone != normalized) {
+                setState(() => timezone = normalized);
+              }
+            },
           ),
           const SizedBox(height: 16),
           Text(
@@ -326,11 +510,24 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           ),
           const SizedBox(height: 8),
           TextField(
+            controller: _watchProvidersController,
             decoration: const InputDecoration(
               hintText: 'Comma-separated provider IDs',
             ),
-            onChanged: (v) =>
-                setState(() => watchProviders = v.replaceAll(' ', '')),
+            onChanged: (value) {
+              final normalized = value.replaceAll(' ', '');
+              if (value != normalized) {
+                final selection =
+                    TextSelection.collapsed(offset: normalized.length);
+                _watchProvidersController.value = TextEditingValue(
+                  text: normalized,
+                  selection: selection,
+                );
+              }
+              if (watchProviders != normalized) {
+                setState(() => watchProviders = normalized);
+              }
+            },
           ),
           const SizedBox(height: 8),
           Text(
@@ -416,20 +613,47 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          SwitchListTile.adaptive(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Save these filters as my preset'),
+            subtitle: const Text('Reuse this configuration when discovering TV shows.'),
+            value: _shouldSavePreset,
+            onChanged: (value) {
+              setState(() {
+                _shouldSavePreset = value;
+              });
+            },
+          ),
           const SizedBox(height: 24),
         ],
       ),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              key: const ValueKey('seriesApplyFilters'),
-              onPressed: _apply,
-              icon: const Icon(Icons.check),
-              label: const Text(AppStrings.apply),
-            ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_hasPersistedPreset)
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _clearPresetAndClose,
+                    icon: const Icon(Icons.delete_forever_outlined),
+                    label: const Text('Clear saved preset'),
+                  ),
+                ),
+              if (_hasPersistedPreset) const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  key: const ValueKey('seriesApplyFilters'),
+                  onPressed: _apply,
+                  icon: const Icon(Icons.check),
+                  label: const Text(AppStrings.apply),
+                ),
+              ),
+            ],
           ),
         ),
       ),

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/preferences_keys.dart';
@@ -103,6 +105,38 @@ class PreferencesProvider extends ChangeNotifier {
     if (normalized.isEmpty) return;
     if (normalized == imageQuality) return;
     await _prefs.setString(PreferenceKeys.imageQuality, normalized);
+    notifyListeners();
+  }
+
+  Map<String, String>? get tvDiscoverFilterPreset {
+    final raw = _prefs.getString(PreferenceKeys.tvFiltersPreset);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        return decoded.map((key, value) => MapEntry('$key', '$value'));
+      }
+    } catch (_) {
+      return null;
+    }
+
+    return null;
+  }
+
+  Future<void> setTvDiscoverFilterPreset(Map<String, String>? filters) async {
+    if (filters == null || filters.isEmpty) {
+      await _prefs.remove(PreferenceKeys.tvFiltersPreset);
+      notifyListeners();
+      return;
+    }
+
+    await _prefs.setString(
+      PreferenceKeys.tvFiltersPreset,
+      jsonEncode(filters),
+    );
     notifyListeners();
   }
 }

@@ -86,17 +86,44 @@ class _SeriesScreenState extends State<SeriesScreen> {
 
 extension on _SeriesScreenState {
   void _openNetworkFilter() {
-    Navigator.of(context).pushNamed(SeriesFiltersScreen.routeName).then((
-      result,
-    ) async {
+    final provider = context.read<SeriesProvider>();
+    final savedPreset = provider.persistedTvFilters;
+    final initialFilters = savedPreset != null && savedPreset.isNotEmpty
+        ? Map<String, String>.from(savedPreset)
+        : provider.activeFilters != null
+            ? Map<String, String>.from(provider.activeFilters!)
+            : null;
+    final args = SeriesFiltersScreenArgs(
+      initialFilters: initialFilters,
+      presetSaved: savedPreset != null && savedPreset.isNotEmpty,
+    );
+
+    Navigator.of(context)
+        .pushNamed(SeriesFiltersScreen.routeName, arguments: args)
+        .then((result) async {
       if (!mounted) return;
-      if (result is Map<String, String>) {
-        await context.read<SeriesProvider>().applyTvFilters(result);
-        if (!mounted) return;
-        DefaultTabController.of(
-          context,
-        ).animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
+      final seriesProvider = context.read<SeriesProvider>();
+      if (result is SeriesFiltersResult) {
+        if (result.clearActiveFilters) {
+          await seriesProvider.clearTvFilters();
+        } else {
+          await seriesProvider.applyTvFilters(
+            result.filters,
+            persistenceAction: result.persistenceAction,
+          );
+        }
+      } else if (result is Map<String, String>) {
+        await seriesProvider.applyTvFilters(
+          result,
+          persistenceAction: TvFilterPersistenceAction.keep,
+        );
+      } else {
+        return;
       }
+
+      if (!mounted) return;
+      DefaultTabController.of(context)
+          ?.animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
     });
   }
 }

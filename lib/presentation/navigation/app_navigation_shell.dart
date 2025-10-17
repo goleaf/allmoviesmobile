@@ -167,6 +167,13 @@ class _DestinationNavigator extends StatelessWidget {
       case SeriesScreen.routeName:
         return const SeriesScreen();
       case SeriesFiltersScreen.routeName:
+        final args = settings.arguments;
+        if (args is SeriesFiltersScreenArgs) {
+          return SeriesFiltersScreen(
+            initialFilters: args.initialFilters,
+            presetSaved: args.presetSaved,
+          );
+        }
         return const SeriesFiltersScreen();
       case SearchScreen.routeName:
         final initialQuery = settings.arguments is String

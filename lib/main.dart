@@ -41,6 +41,8 @@ import 'presentation/screens/network_detail/network_detail_screen.dart';
 import 'presentation/screens/episode_detail/episode_detail_screen.dart';
 import 'presentation/screens/collections/collection_detail_screen.dart';
 import 'presentation/screens/keywords/keyword_detail_screen.dart';
+import 'presentation/screens/genres/genres_screen.dart';
+import 'presentation/screens/genres/genre_explore_screen.dart';
 import 'presentation/navigation/season_detail_args.dart';
 import 'presentation/navigation/episode_detail_args.dart';
 import 'presentation/screens/season_detail/season_detail_screen.dart';
@@ -314,6 +316,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       PeopleScreen.routeName: (context) => const PeopleScreen(),
                       CompaniesScreen.routeName: (context) =>
                           const CompaniesScreen(),
+                      GenresScreen.routeName: (context) => const GenresScreen(),
+                      GenreExploreScreen.routeName: (context) =>
+                          const GenreExploreScreen(),
                       FavoritesScreen.routeName: (context) =>
                           const FavoritesScreen(),
                       WatchlistScreen.routeName: (context) =>

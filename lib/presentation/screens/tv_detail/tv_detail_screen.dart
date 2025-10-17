@@ -7,6 +7,7 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/credit_model.dart';
 import '../../../data/models/episode_model.dart';
+import '../../../data/models/episode_group_model.dart';
 import '../../../data/models/image_model.dart';
 import '../../../data/models/keyword_model.dart';
 import '../../../data/models/movie.dart';
@@ -101,6 +102,7 @@ class _TVDetailView extends StatelessWidget {
                 _buildGenres(context, details, loc),
                 _buildNetworks(context, details, loc),
                 _buildSeasons(context, details, loc, provider),
+                _buildEpisodeGroups(context, provider, loc),
                 _buildCast(context, details, loc),
                 _buildVideos(context, details, loc),
                 _buildKeywords(context, details, loc),
@@ -627,6 +629,99 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
+  Widget _buildEpisodeGroups(
+    BuildContext context,
+    TvDetailProvider provider,
+    AppLocalizations loc,
+  ) {
+    final groups = provider.episodeGroups;
+    final isLoading = provider.isEpisodeGroupsLoading;
+    final error = provider.episodeGroupsError;
+    final selectedGroup = provider.selectedEpisodeGroup;
+
+    if (groups.isEmpty) {
+      if (error != null) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: ErrorDisplay(
+            message: error,
+            onRetry: () => provider.retryEpisodeGroups(),
+          ),
+        );
+      }
+
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                loc.t('tv.episode_groups'),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              if (isLoading) ...[
+                const SizedBox(width: 12),
+                SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ],
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final group in groups)
+                ChoiceChip(
+                  label: Text(group.name),
+                  selected: provider.selectedEpisodeGroupId == group.id ||
+                      (provider.selectedEpisodeGroupId == null &&
+                          group == groups.first),
+                  onSelected: (_) => provider.selectEpisodeGroup(group.id),
+                ),
+            ],
+          ),
+          if (selectedGroup != null &&
+              selectedGroup.description != null &&
+              selectedGroup.description!.trim().isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              selectedGroup.description!,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+          const SizedBox(height: 16),
+          if (selectedGroup == null || selectedGroup.groups.isEmpty)
+            Text(
+              loc.t('tv.episode_group_no_episodes'),
+              style: Theme.of(context)
+                  .textTheme
+                  .bodyMedium
+                  ?.copyWith(color: Colors.grey[600]),
+            )
+          else
+            Column(
+              children: [
+                for (final node in selectedGroup.groups)
+                  _EpisodeGroupNodeCard(node: node, loc: loc),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSelectedSeasonDetails(
     BuildContext context,
     TVDetailed details,
@@ -680,7 +775,7 @@ class _TVDetailView extends StatelessWidget {
                       ),
                 )
               else
-                const Center(child: Text('No episodes available')),
+                Center(child: Text(loc.t('tv.no_episodes'))),
             ],
           ),
         ),
@@ -1430,6 +1525,159 @@ class _SeasonImageGallery extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _EpisodeGroupNodeCard extends StatelessWidget {
+  const _EpisodeGroupNodeCard({required this.node, required this.loc});
+
+  final EpisodeGroupNode node;
+  final AppLocalizations loc;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final overview = node.overview?.trim();
+    final episodes = node.episodes;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              node.name,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (overview != null && overview.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                overview,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ],
+            const SizedBox(height: 12),
+            if (episodes.isEmpty)
+              Text(
+                loc.t('tv.episode_group_no_episodes'),
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: Colors.grey[600],
+                ),
+              )
+            else
+              Column(
+                children: [
+                  for (final episode in episodes)
+                    _EpisodeGroupEpisodeTile(
+                      episode: episode,
+                      loc: loc,
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EpisodeGroupEpisodeTile extends StatelessWidget {
+  const _EpisodeGroupEpisodeTile({required this.episode, required this.loc});
+
+  final EpisodeGroupEpisode episode;
+  final AppLocalizations loc;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final seasonNumber = episode.seasonNumber.toString().padLeft(2, '0');
+    final episodeNumber = episode.episodeNumber.toString().padLeft(2, '0');
+    final meta = <String>[];
+    if (episode.airDate != null && episode.airDate!.isNotEmpty) {
+      meta.add(episode.airDate!);
+    }
+    if (episode.voteAverage != null && episode.voteAverage! > 0) {
+      meta.add('${episode.voteAverage!.toStringAsFixed(1)}/10');
+    }
+    if (episode.order != null) {
+      meta.add(
+        loc
+            .t('tv.episode_group_order')
+            .replaceFirst('{order}', '${episode.order}'),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (episode.stillPath != null && episode.stillPath!.isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(6),
+              child: MediaImage(
+                path: episode.stillPath,
+                type: MediaImageType.still,
+                size: MediaImageSize.w300,
+                width: 120,
+                height: 68,
+                fit: BoxFit.cover,
+              ),
+            )
+          else
+            Container(
+              width: 120,
+              height: 68,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Icon(
+                Icons.live_tv,
+                color: Colors.grey[600],
+              ),
+            ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'S$seasonNumber · E$episodeNumber — ${episode.name}',
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (meta.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    meta.join(' • '),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+                if (episode.overview != null && episode.overview!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    episode.overview!,
+                    style: theme.textTheme.bodySmall,
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -67,6 +67,10 @@ class AppLocalizations {
         'episodes': 'Episodes',
         'no_images': 'No images available for this season',
         'season_images_title': 'Season {seasonNumber} images',
+        'no_episodes': 'No episodes available',
+        'episode_groups': 'Episode Groups',
+        'episode_group_no_episodes': 'No episodes available for this group',
+        'episode_group_order': 'Order {order}',
       },
       'movie': {
         'overview': 'Overview',

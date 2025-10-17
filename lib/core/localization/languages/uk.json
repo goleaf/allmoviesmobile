@@ -90,7 +90,11 @@
     "alternative_titles": "Альтернативні Назви",
     "similar": "Схожі Шоу",
     "no_images": "Немає доступних зображень для цього сезону",
-    "season_images_title": "Зображення сезону {seasonNumber}"
+    "season_images_title": "Зображення сезону {seasonNumber}",
+    "no_episodes": "Немає доступних епізодів",
+    "episode_groups": "Групи епізодів",
+    "episode_group_no_episodes": "У цій групі немає епізодів",
+    "episode_group_order": "Порядок {order}"
   },
   "person": {
     "title": "Персона",

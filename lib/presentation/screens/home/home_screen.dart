@@ -51,6 +51,18 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Preloads the content required for the home screen sections.
+  ///
+  /// Movies, TV series, and people rely on the following TMDB endpoints via
+  /// their respective providers to populate the UI with the latest data:
+  /// * GET `/3/trending/movie/{time_window}` ("Of the moment" movies carousel)
+  /// * GET `/3/trending/tv/{time_window}` ("Of the moment" TV carousel)
+  /// * GET `/3/person/popular` (Popular people carousel)
+  /// * GET `/3/collection/{collection_id}` (Featured collections carousel)
+  /// * GET `/3/movie/now_playing` (New releases section)
+  /// Personalized recommendations are fetched from the local
+  /// `RecommendationsProvider`, which wraps TMDB account recommendation APIs
+  /// and cached insights when available in offline mode.
   Future<void> _preloadContent() async {
     final moviesProvider = context.read<MoviesProvider>();
     final seriesProvider = context.read<SeriesProvider>();
@@ -70,6 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Forces a refresh of every provider that backs a home section so the user
+  /// always sees the freshest JSON payloads from the same TMDB endpoints listed
+  /// in [_preloadContent].
   Future<void> _refreshAll() async {
     final moviesProvider = context.read<MoviesProvider>();
     final seriesProvider = context.read<SeriesProvider>();
@@ -86,6 +101,11 @@ class _HomeScreenState extends State<HomeScreen> {
     ]);
   }
 
+  /// Navigates to the search screen once the user confirms an inline query.
+  ///
+  /// The search screen ultimately calls TMDB's multi-search endpoint
+  /// `GET /3/search/multi`, so we avoid sending empty queries from here to keep
+  /// network requests clean.
   void _openSearch(BuildContext context, String query) {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
@@ -333,6 +353,14 @@ class _MoviesCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Each carousel uses cached JSON payloads from the movies provider, which
+    // maps to:
+    // * GET `/3/trending/movie/{time_window}` for [MovieSection.trending]
+    // * GET `/3/movie/now_playing` for [MovieSection.nowPlaying]
+    // * GET `/3/movie/popular` for [MovieSection.popular]
+    // * GET `/3/movie/top_rated` for [MovieSection.topRated]
+    // * GET `/3/movie/upcoming` for [MovieSection.upcoming]
+    // * GET `/3/discover/movie` for [MovieSection.discover]
     return Consumer<MoviesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
@@ -375,6 +403,11 @@ class _SeriesCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Series sections rely on the series provider which fetches JSON payloads
+    // from TMDB's TV catalog such as:
+    // * GET `/3/trending/tv/{time_window}` for trending entries
+    // * GET `/3/tv/on_the_air` and related collections depending on
+    //   [SeriesSection]
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
@@ -413,6 +446,8 @@ class _PeopleCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Popular people leverage TMDB's `GET /3/person/popular` endpoint to
+    // surface the latest trending talent.
     return Consumer<PeopleProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(PeopleSection.popular);
@@ -449,6 +484,9 @@ class _CollectionsCarousel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Collections are sourced via the collections provider which batches
+    // requests to `GET /3/collection/{collection_id}` to keep artwork and
+    // descriptions fresh.
     return Consumer<CollectionsProvider>(
       builder: (context, provider, _) {
         final collections = provider.popularCollections;
@@ -486,6 +524,8 @@ class _ContinueWatchingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Continue watching relies on the locally persisted watchlist cache rather
+    // than remote endpoints so the UI remains instant even when offline.
     return Consumer<WatchlistProvider>(
       builder: (context, provider, _) {
         final items = provider.watchlistItems
@@ -515,6 +555,9 @@ class _RecommendationsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Personalized recommendations use TMDB's account recommendation APIs
+    // (GET `/4/account/{account_id}/movie/recommendations`) when authenticated
+    // and gracefully fall back to locally curated mixes.
     return Consumer<RecommendationsProvider>(
       builder: (context, provider, _) {
         final movies = provider.recommendedMovies;

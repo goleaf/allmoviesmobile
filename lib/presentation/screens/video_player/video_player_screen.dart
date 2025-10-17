@@ -45,6 +45,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _initialized = false;
   bool _isFullScreen = false;
   bool _requestedQualityLevels = false;
+  bool _qualityOptionsLoading = false;
+  bool _qualityOptionsUnavailable = false;
 
   YoutubePlayerController? _ytController;
   List<String> _availableQualities = const [];
@@ -90,6 +92,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   bool _isYoutube(Video video) => video.site.toLowerCase() == 'youtube';
 
+  void _resetQualityState() {
+    _requestedQualityLevels = false;
+    _availableQualities = const [];
+    _selectedQuality = null;
+    _qualityOptionsLoading = false;
+    _qualityOptionsUnavailable = false;
+  }
+
   void _selectVideo(Video video, {bool notify = true}) {
     void updateSelection() {
       final isYoutubeVideo = _isYoutube(video);
@@ -102,9 +112,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         if (_ytController == null) {
           _initializeYoutubeController(video);
         } else {
-          _requestedQualityLevels = false;
-          _availableQualities = const [];
-          _selectedQuality = null;
+          _resetQualityState();
           if (_autoPlay) {
             _ytController!.load(video.key);
           } else {
@@ -123,9 +131,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   void _initializeYoutubeController(Video video) {
     _disposeYoutubeController();
-    _requestedQualityLevels = false;
-    _availableQualities = const [];
-    _selectedQuality = null;
+    _resetQualityState();
     _isFullScreen = false;
 
     final controller = YoutubePlayerController(
@@ -148,9 +154,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       controller.dispose();
     }
     _ytController = null;
-    _requestedQualityLevels = false;
-    _availableQualities = const [];
-    _selectedQuality = null;
+    _resetQualityState();
     _isFullScreen = false;
   }
 
@@ -184,6 +188,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       return;
     }
 
+    if (mounted) {
+      setState(() {
+        _qualityOptionsLoading = true;
+        _qualityOptionsUnavailable = false;
+      });
+    }
+
     try {
       final result = await webController.evaluateJavascript(
         source: 'JSON.stringify(getAvailableQualityLevels())',
@@ -191,21 +202,44 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       if (!mounted) {
         return;
       }
-      final qualities = _parseQualityLevels(result);
-      if (qualities.isEmpty) {
+      if (_ytController != controller) {
         return;
       }
-      if (!listEquals(qualities, _availableQualities)) {
-        setState(() {
-          _availableQualities = qualities;
+      final qualities = _parseQualityLevels(result);
+      final normalizedQualities = _normalizeQualityList(qualities);
+      setState(() {
+        _qualityOptionsLoading = false;
+        if (normalizedQualities.isEmpty) {
+          _availableQualities = const [];
+          _qualityOptionsUnavailable = true;
+          final normalizedCurrent =
+              _normalizeQualityValue(controller.value.playbackQuality);
+          if (normalizedCurrent != null) {
+            _selectedQuality = normalizedCurrent;
+          }
+        } else if (!listEquals(normalizedQualities, _availableQualities)) {
+          _availableQualities = normalizedQualities;
+          _qualityOptionsUnavailable = false;
           if (_selectedQuality == null ||
               !_availableQualities.contains(_selectedQuality)) {
             _selectedQuality = _availableQualities.first;
           }
-        });
-      }
+        } else {
+          _qualityOptionsUnavailable = false;
+        }
+      });
     } catch (error) {
       debugPrint('Failed to load quality levels: $error');
+      if (!mounted) {
+        return;
+      }
+      if (_ytController != controller) {
+        return;
+      }
+      setState(() {
+        _qualityOptionsLoading = false;
+        _qualityOptionsUnavailable = true;
+      });
     }
   }
 
@@ -229,6 +263,57 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return const [];
   }
 
+  String? _normalizeQualityValue(String? quality) {
+    if (quality == null || quality.isEmpty) {
+      return null;
+    }
+    return quality == 'default' ? 'auto' : quality;
+  }
+
+  List<String> _normalizeQualityList(Iterable<String> qualities) {
+    final seen = <String>{};
+    final normalized = <String>[];
+    for (final quality in qualities) {
+      final normalizedQuality = _normalizeQualityValue(quality);
+      if (normalizedQuality != null && seen.add(normalizedQuality)) {
+        normalized.add(normalizedQuality);
+      }
+    }
+    return normalized;
+  }
+
+  List<String> _extractQualitiesFromValue(YoutubePlayerValue value) {
+    final dynamic dynamicValue = value;
+    final potentialLists = <dynamic>[];
+
+    void safeAdd(dynamic Function() accessor) {
+      try {
+        final result = accessor();
+        if (result != null) {
+          potentialLists.add(result);
+        }
+      } catch (_) {
+        // Ignore missing properties or API incompatibilities.
+      }
+    }
+
+    safeAdd(() => dynamicValue.availableQualities);
+    safeAdd(() => dynamicValue.availableQualityLevels);
+    safeAdd(() => dynamicValue.metaData?.availableQualities);
+    safeAdd(() => dynamicValue.metaData?.availableQualityLevels);
+    safeAdd(() => dynamicValue.metadata?.availableQualities);
+    safeAdd(() => dynamicValue.metadata?.availableQualityLevels);
+    for (final potential in potentialLists) {
+      if (potential is List) {
+        final normalized = _normalizeQualityList(potential.whereType<String>());
+        if (normalized.isNotEmpty) {
+          return normalized;
+        }
+      }
+    }
+    return const [];
+  }
+
   void _handleYoutubeUpdates() {
     final controller = _ytController;
     if (controller == null || !mounted) {
@@ -240,10 +325,24 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         _isFullScreen = value.isFullScreen;
       });
     }
-    final currentQuality = value.playbackQuality;
+    final trackedQualities = _extractQualitiesFromValue(value);
+    if (trackedQualities.isNotEmpty &&
+        !listEquals(trackedQualities, _availableQualities)) {
+      setState(() {
+        _availableQualities = trackedQualities;
+        _qualityOptionsLoading = false;
+        _qualityOptionsUnavailable = false;
+        if (_selectedQuality == null ||
+            !_availableQualities.contains(_selectedQuality)) {
+          _selectedQuality = _availableQualities.first;
+        }
+      });
+    }
+    final currentQuality = _normalizeQualityValue(value.playbackQuality);
     if (currentQuality != null && currentQuality != _selectedQuality) {
-      if (_availableQualities.contains(currentQuality) ||
-          _availableQualities.isEmpty) {
+      final knownQualities =
+          _availableQualities.isEmpty ? trackedQualities : _availableQualities;
+      if (knownQualities.contains(currentQuality) || knownQualities.isEmpty) {
         setState(() {
           _selectedQuality = currentQuality;
         });
@@ -333,6 +432,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return labels[quality] ?? quality.toUpperCase();
   }
 
+  /// Builds the toolbar that hosts playback customization controls such as the
+  /// YouTube quality picker and the autoplay toggle shown beneath the player
+  /// when the video is not in fullscreen mode.
   Widget _buildPlaybackOptions({required bool showQualitySelector}) {
     final qualityOptions = <String>[..._availableQualities];
     if (showQualitySelector && qualityOptions.isNotEmpty) {
@@ -361,8 +463,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               children: [
                 const Icon(Icons.high_quality_outlined, size: 20),
                 const SizedBox(width: 8),
-                if (qualityOptions.isEmpty)
-                  const Text('Quality options loading...')
+                if (_qualityOptionsLoading)
+                  const Text('Loading quality options...')
+                else if (_qualityOptionsUnavailable)
+                  Text(
+                    'Quality selection unavailable',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Theme.of(context).disabledColor),
+                  )
+                else if (qualityOptions.isEmpty)
+                  const Text('Quality options unavailable')
                 else
                   DropdownButton<String>(
                     value: currentQuality,

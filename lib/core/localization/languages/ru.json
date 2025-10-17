@@ -76,7 +76,8 @@
     "number_of_episodes": "Количество Эпизодов",
     "episode_runtime": "Продолжительность Эпизода",
     "networks": "Сети",
-    "similar": "Похожие Шоу"
+    "similar": "Похожие Шоу",
+    "guest_stars": "Приглашённые звёзды"
   },
   "person": {
     "title": "Персона",

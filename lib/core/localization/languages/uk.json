@@ -76,7 +76,8 @@
     "number_of_episodes": "Кількість Епізодів",
     "episode_runtime": "Тривалість Епізоду",
     "networks": "Мережі",
-    "similar": "Схожі Шоу"
+    "similar": "Схожі Шоу",
+    "guest_stars": "Запрошені зірки"
   },
   "person": {
     "title": "Персона",

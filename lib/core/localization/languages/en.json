@@ -76,7 +76,8 @@
     "number_of_episodes": "Number of Episodes",
     "episode_runtime": "Episode Runtime",
     "networks": "Networks",
-    "similar": "Similar Shows"
+    "similar": "Similar Shows",
+    "guest_stars": "Guest Stars"
   },
   "person": {
     "title": "Person",

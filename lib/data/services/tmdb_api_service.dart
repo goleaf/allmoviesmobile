@@ -126,6 +126,10 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchMovieCredits(int movieId) {
+    return _getJson('/$_apiVersion/movie/$movieId/credits');
+  }
+
   Future<Map<String, dynamic>> fetchTvDetails(
     int tvId, {
     Map<String, String>? queryParameters,

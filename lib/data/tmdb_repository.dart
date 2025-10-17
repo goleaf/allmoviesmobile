@@ -4,6 +4,7 @@ import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
+import 'models/credit_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
@@ -226,6 +227,23 @@ class TmdbRepository {
     final movie = MovieDetailed.fromJson(normalized);
     _cache.set(cacheKey, movie, ttlSeconds: CacheService.movieDetailsTTL);
     return movie;
+  }
+
+  Future<Credits> fetchMovieCredits(int movieId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    final cacheKey = 'movie-credits-$movieId';
+    if (!forceRefresh) {
+      final cached = _cache.get<Credits>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieCredits(movieId);
+    final credits = Credits.fromJson(payload);
+    _cache.set(cacheKey, credits, ttlSeconds: CacheService.movieDetailsTTL);
+    return credits;
   }
 
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {

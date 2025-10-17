@@ -4,6 +4,7 @@ import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
+import 'models/image_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
@@ -251,6 +252,47 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
+  }
+
+  Future<List<ImageModel>> fetchEpisodeImages({
+    required int tvId,
+    required int seasonNumber,
+    required int episodeNumber,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'episode-images-$tvId-$seasonNumber-$episodeNumber';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<ImageModel>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchEpisodeImages(
+      tvId: tvId,
+      seasonNumber: seasonNumber,
+      episodeNumber: episodeNumber,
+      queryParameters: const {
+        'include_image_language': 'en,null',
+      },
+    );
+
+    final stills = payload['stills'];
+    final images = stills is List
+        ? stills
+            .whereType<Map<String, dynamic>>()
+            .map(ImageModel.fromJson)
+            .toList()
+        : <ImageModel>[];
+
+    _cache.set(
+      cacheKey,
+      images,
+      ttlSeconds: CacheService.movieDetailsTTL,
+    );
+    return images;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -758,6 +800,7 @@ class TmdbRepository {
       final backdrops = images['backdrops'];
       final posters = images['posters'];
       final profiles = images['profiles'];
+      final stills = images['stills'];
       final combined = <Map<String, dynamic>>[];
       if (backdrops is List) {
         combined.addAll(backdrops.whereType<Map<String, dynamic>>());
@@ -767,6 +810,9 @@ class TmdbRepository {
       }
       if (profiles is List) {
         combined.addAll(profiles.whereType<Map<String, dynamic>>());
+      }
+      if (stills is List) {
+        combined.addAll(stills.whereType<Map<String, dynamic>>());
       }
       normalized['images'] = combined;
     }

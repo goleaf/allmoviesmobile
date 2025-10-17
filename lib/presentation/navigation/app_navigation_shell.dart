@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../../core/localization/app_localizations.dart';
-// Home/More removed in this app variant; keep movies/search/series only
+import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/movies/movies_filters_screen.dart';
 import '../screens/series/series_filters_screen.dart';
 
-enum AppDestination { movies, tv, search }
+enum AppDestination { home, movies, tv, search }
 
 class AppNavigationShell extends StatefulWidget {
   const AppNavigationShell({super.key});
@@ -23,7 +23,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       destination: GlobalKey<NavigatorState>(),
   };
 
-  AppDestination _currentDestination = AppDestination.movies;
+  AppDestination _currentDestination = AppDestination.home;
 
   @override
   Widget build(BuildContext context) {
@@ -52,9 +52,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       return false;
     }
 
-    if (_currentDestination != AppDestination.movies) {
+    if (_currentDestination != AppDestination.home) {
       setState(() {
-        _currentDestination = AppDestination.movies;
+        _currentDestination = AppDestination.home;
       });
       return false;
     }
@@ -81,6 +81,11 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
         });
       },
       destinations: [
+        NavigationDestination(
+          icon: Icon(Icons.home_outlined),
+          selectedIcon: Icon(Icons.home),
+          label: l.t('navigation.home'),
+        ),
         NavigationDestination(
           icon: Icon(Icons.movie_outlined),
           selectedIcon: Icon(Icons.movie),
@@ -115,6 +120,13 @@ class _DestinationNavigator extends StatelessWidget {
     final isInitialRoute = settings.name == Navigator.defaultRouteName;
 
     switch (destination) {
+      case AppDestination.home:
+        if (isInitialRoute || settings.name == HomeScreen.routeName) {
+          page = const HomeScreen();
+          break;
+        }
+        page = _buildSharedRoute(settings);
+        break;
       case AppDestination.movies:
         if (isInitialRoute || settings.name == MoviesScreen.routeName) {
           page = const MoviesScreen();
@@ -159,6 +171,8 @@ class _DestinationNavigator extends StatelessWidget {
             ? settings.arguments as String
             : null;
         return SearchScreen(initialQuery: initialQuery);
+      case HomeScreen.routeName:
+        return const HomeScreen();
       default:
         return const SizedBox.shrink();
     }

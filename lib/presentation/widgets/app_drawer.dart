@@ -4,7 +4,7 @@ import '../../core/constants/app_strings.dart';
 import '../../core/localization/app_localizations.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
-// HomeScreen import removed (not present); default to Movies as home
+import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
@@ -17,6 +17,7 @@ class AppDrawer extends StatelessWidget {
   void _navigateTo(BuildContext context, String routeName) {
     Navigator.pop(context);
     final currentRoute = ModalRoute.of(context)?.settings.name;
+    final isRootRoute = currentRoute == Navigator.defaultRouteName;
     if (currentRoute == routeName) {
       return;
     }
@@ -68,8 +69,8 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home),
             title: Text(AppLocalizations.of(context).t('navigation.home')),
-            selected: currentRoute == MoviesScreen.routeName,
-            onTap: () => _navigateTo(context, MoviesScreen.routeName),
+            selected: currentRoute == HomeScreen.routeName || isRootRoute,
+            onTap: () => _navigateTo(context, HomeScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.movie_creation_outlined),

@@ -11,6 +11,16 @@
     "air_date": { "type": ["string", "null"], "format": "date" },
     "episode_count": { "type": "integer", "minimum": 0 },
     "poster_path": { "type": ["string", "null"] },
+    "cast": {
+      "type": "array",
+      "items": { "$ref": "shared.schema.json#/$defs/CastMember" },
+      "default": []
+    },
+    "crew": {
+      "type": "array",
+      "items": { "$ref": "shared.schema.json#/$defs/CrewMember" },
+      "default": []
+    },
     "episodes": {
       "type": "array",
       "items": { "$ref": "episode.schema.json" },

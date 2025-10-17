@@ -39,6 +39,30 @@
         "origin_country": { "type": ["string", "null"], "minLength": 2, "maxLength": 2 }
       },
       "additionalProperties": false
+    },
+    "CastMember": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "character": { "type": ["string", "null"] },
+        "profile_path": { "type": ["string", "null"] },
+        "order": { "type": ["integer", "null"], "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "CrewMember": {
+      "type": "object",
+      "required": ["id", "name", "job", "department"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "job": { "type": "string" },
+        "department": { "type": "string" },
+        "profile_path": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
     }
   }
 }

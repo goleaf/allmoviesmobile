@@ -32,6 +32,8 @@ mixin _$Season {
   String? get posterPath => throw _privateConstructorUsedError;
   @JsonKey(name: 'episode_count')
   int? get episodeCount => throw _privateConstructorUsedError;
+  List<Cast> get cast => throw _privateConstructorUsedError;
+  List<Crew> get crew => throw _privateConstructorUsedError;
   List<Episode> get episodes => throw _privateConstructorUsedError;
 
   /// Serializes this Season to a JSON map.
@@ -56,6 +58,8 @@ abstract class $SeasonCopyWith<$Res> {
     @JsonKey(name: 'air_date') String? airDate,
     @JsonKey(name: 'poster_path') String? posterPath,
     @JsonKey(name: 'episode_count') int? episodeCount,
+    List<Cast> cast,
+    List<Crew> crew,
     List<Episode> episodes,
   });
 }
@@ -82,6 +86,8 @@ class _$SeasonCopyWithImpl<$Res, $Val extends Season>
     Object? airDate = freezed,
     Object? posterPath = freezed,
     Object? episodeCount = freezed,
+    Object? cast = null,
+    Object? crew = null,
     Object? episodes = null,
   }) {
     return _then(
@@ -114,6 +120,14 @@ class _$SeasonCopyWithImpl<$Res, $Val extends Season>
                 ? _value.episodeCount
                 : episodeCount // ignore: cast_nullable_to_non_nullable
                       as int?,
+            cast: null == cast
+                ? _value.cast
+                : cast // ignore: cast_nullable_to_non_nullable
+                      as List<Cast>,
+            crew: null == crew
+                ? _value.crew
+                : crew // ignore: cast_nullable_to_non_nullable
+                      as List<Crew>,
             episodes: null == episodes
                 ? _value.episodes
                 : episodes // ignore: cast_nullable_to_non_nullable
@@ -140,6 +154,8 @@ abstract class _$$SeasonImplCopyWith<$Res> implements $SeasonCopyWith<$Res> {
     @JsonKey(name: 'air_date') String? airDate,
     @JsonKey(name: 'poster_path') String? posterPath,
     @JsonKey(name: 'episode_count') int? episodeCount,
+    List<Cast> cast,
+    List<Crew> crew,
     List<Episode> episodes,
   });
 }
@@ -165,6 +181,8 @@ class __$$SeasonImplCopyWithImpl<$Res>
     Object? airDate = freezed,
     Object? posterPath = freezed,
     Object? episodeCount = freezed,
+    Object? cast = null,
+    Object? crew = null,
     Object? episodes = null,
   }) {
     return _then(
@@ -197,6 +215,14 @@ class __$$SeasonImplCopyWithImpl<$Res>
             ? _value.episodeCount
             : episodeCount // ignore: cast_nullable_to_non_nullable
                   as int?,
+        cast: null == cast
+            ? _value._cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                  as List<Cast>,
+        crew: null == crew
+            ? _value._crew
+            : crew // ignore: cast_nullable_to_non_nullable
+                  as List<Crew>,
         episodes: null == episodes
             ? _value._episodes
             : episodes // ignore: cast_nullable_to_non_nullable
@@ -217,8 +243,12 @@ class _$SeasonImpl implements _Season {
     @JsonKey(name: 'air_date') this.airDate,
     @JsonKey(name: 'poster_path') this.posterPath,
     @JsonKey(name: 'episode_count') this.episodeCount,
+    final List<Cast> cast = const [],
+    final List<Crew> crew = const [],
     final List<Episode> episodes = const [],
-  }) : _episodes = episodes;
+  })  : _cast = cast,
+        _crew = crew,
+        _episodes = episodes;
 
   factory _$SeasonImpl.fromJson(Map<String, dynamic> json) =>
       _$$SeasonImplFromJson(json);
@@ -241,6 +271,22 @@ class _$SeasonImpl implements _Season {
   @override
   @JsonKey(name: 'episode_count')
   final int? episodeCount;
+  final List<Cast> _cast;
+  @override
+  List<Cast> get cast {
+    if (_cast is EqualUnmodifiableListView) return _cast;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_cast);
+  }
+
+  final List<Crew> _crew;
+  @override
+  List<Crew> get crew {
+    if (_crew is EqualUnmodifiableListView) return _crew;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_crew);
+  }
+
   final List<Episode> _episodes;
   @override
   @JsonKey()
@@ -252,7 +298,7 @@ class _$SeasonImpl implements _Season {
 
   @override
   String toString() {
-    return 'Season(id: $id, name: $name, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, posterPath: $posterPath, episodeCount: $episodeCount, episodes: $episodes)';
+    return 'Season(id: $id, name: $name, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, posterPath: $posterPath, episodeCount: $episodeCount, cast: $cast, crew: $crew, episodes: $episodes)';
   }
 
   @override
@@ -271,6 +317,8 @@ class _$SeasonImpl implements _Season {
                 other.posterPath == posterPath) &&
             (identical(other.episodeCount, episodeCount) ||
                 other.episodeCount == episodeCount) &&
+            const DeepCollectionEquality().equals(other._cast, _cast) &&
+            const DeepCollectionEquality().equals(other._crew, _crew) &&
             const DeepCollectionEquality().equals(other._episodes, _episodes));
   }
 
@@ -285,6 +333,8 @@ class _$SeasonImpl implements _Season {
     airDate,
     posterPath,
     episodeCount,
+    const DeepCollectionEquality().hash(_cast),
+    const DeepCollectionEquality().hash(_crew),
     const DeepCollectionEquality().hash(_episodes),
   );
 

@@ -45,6 +45,24 @@
       "air_date": "2011-04-17",
       "episode_count": 10,
       "poster_path": "/s1.jpg",
+      "cast": [
+        {
+          "id": 1223786,
+          "name": "Emilia Clarke",
+          "character": "Daenerys Targaryen",
+          "profile_path": "/emilia-clarke.jpg",
+          "order": 0
+        }
+      ],
+      "crew": [
+        {
+          "id": 98123,
+          "name": "David Benioff",
+          "job": "Writer",
+          "department": "Writing",
+          "profile_path": "/david-benioff.jpg"
+        }
+      ],
       "episodes": [
         {
           "episode_number": 1,

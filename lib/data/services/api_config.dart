@@ -21,6 +21,11 @@ class ApiConfig {
   static const String profileSizeLarge = 'h632';
   static const String profileSizeOriginal = 'original';
 
+  static const String stillSizeSmall = 'w92';
+  static const String stillSizeMedium = 'w185';
+  static const String stillSizeLarge = 'w300';
+  static const String stillSizeOriginal = 'original';
+
   // API Endpoints
   static const String trendingMovies = '/trending/movie';
   static const String trendingTV = '/trending/tv';
@@ -54,6 +59,11 @@ class ApiConfig {
   }
 
   static String getProfileUrl(String? path, {String size = profileSizeMedium}) {
+    if (path == null || path.isEmpty) return '';
+    return '$tmdbImageBaseUrl/$size$path';
+  }
+
+  static String getStillUrl(String? path, {String size = stillSizeLarge}) {
     if (path == null || path.isEmpty) return '';
     return '$tmdbImageBaseUrl/$size$path';
   }

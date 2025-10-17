@@ -102,7 +102,12 @@ class _MovieDetailView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context, details, loc),
+                _buildHeader(
+                  context,
+                  provider.initialMovie.id,
+                  details,
+                  loc,
+                ),
                 _buildActions(context, details, loc),
                 _buildOverview(context, details, loc),
                 _buildMetadata(context, details, loc),
@@ -195,6 +200,7 @@ class _MovieDetailView extends StatelessWidget {
 
   Widget _buildHeader(
     BuildContext context,
+    int movieId,
     MovieDetailed details,
     AppLocalizations loc,
   ) {
@@ -203,9 +209,17 @@ class _MovieDetailView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Poster hero transition from list cards into detail header.
+          // Poster
           Hero(
-            tag: 'moviePoster-${details.id}',
+            tag: 'movie-poster-$movieId',
+            flightShuttleBuilder: (context, animation, direction, from, to) {
+              return FadeTransition(
+                opacity: animation.drive(
+                  CurveTween(curve: Curves.easeInOut),
+                ),
+                child: to.widget,
+              );
+            },
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8),
               child: MediaImage(
@@ -1092,7 +1106,7 @@ class _MovieDetailView extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
-                  heroTag: 'moviePoster-${movie.id}',
+                  heroTag: 'movie-poster-${movie.id}',
                   onTap: () {
                     // Navigate to movie details
                     Navigator.of(context).push(
@@ -1159,7 +1173,7 @@ class _MovieDetailView extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
-                  heroTag: 'moviePoster-${movie.id}',
+                  heroTag: 'movie-poster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

@@ -5,6 +5,7 @@ import '../../core/localization/app_localizations.dart';
 import '../../data/models/movie_detailed_model.dart';
 import '../../core/utils/media_image_helper.dart';
 import 'media_image.dart';
+import 'loading_indicator.dart';
 import '../../data/tmdb_repository.dart';
 import 'loading_indicator.dart';
 
@@ -99,17 +100,27 @@ class _LoadingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Expanded(
-            child: ShimmerLoading(
-              width: double.infinity,
-              height: double.infinity,
+          Expanded(
+            child: LayoutBuilder(
+              builder: (context, constraints) => ShimmerLoading(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: const ShimmerLoading(width: double.infinity, height: 12),
+            child: Container(
+              height: 12,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(4),
+              ),
+              child: const ShimmerLoading(
+                width: double.infinity,
+                height: 12,
+                borderRadius: BorderRadius.all(Radius.circular(4)),
+              ),
             ),
           ),
           const SizedBox(height: 4),

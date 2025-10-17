@@ -212,15 +212,26 @@ class _PersonAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            if (resolvedProfileUrl != null)
-              MediaImage(
-                path: resolvedProfileUrl,
-                type: MediaImageType.profile,
-                size: MediaImageSize.h632,
-                fit: BoxFit.cover,
-              )
-            else
-              _FallbackProfile(name: name),
+            Hero(
+              tag: 'person-profile-$personId',
+              flightShuttleBuilder:
+                  (context, animation, direction, from, to) {
+                return FadeTransition(
+                  opacity: animation.drive(
+                    CurveTween(curve: Curves.easeInOut),
+                  ),
+                  child: to.widget,
+                );
+              },
+              child: resolvedProfileUrl != null
+                  ? MediaImage(
+                      path: resolvedProfileUrl,
+                      type: MediaImageType.profile,
+                      size: MediaImageSize.h632,
+                      fit: BoxFit.cover,
+                    )
+                  : _FallbackProfile(name: name),
+            ),
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(

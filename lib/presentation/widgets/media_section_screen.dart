@@ -138,7 +138,7 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
             : LayoutBuilder(
                 builder: (context, constraints) {
                   final width = constraints.maxWidth;
-                  final crossAxisCount = width >= 900 ? 3 : 2;
+                  final crossAxisCount = width >= 720 ? 3 : 2;
                   return GridView.builder(
                     gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: crossAxisCount,

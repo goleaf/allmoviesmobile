@@ -66,7 +66,12 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
     Navigator.pushNamed(
       context,
       CollectionDetailScreen.routeName,
-      arguments: details.id,
+      arguments: {
+        'id': details.id,
+        'name': details.name,
+        'posterPath': details.posterPath,
+        'backdropPath': details.backdropPath,
+      },
     );
   }
 
@@ -74,7 +79,12 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
     Navigator.pushNamed(
       context,
       CollectionDetailScreen.routeName,
-      arguments: collection.id,
+      arguments: {
+        'id': collection.id,
+        'name': collection.name,
+        'posterPath': collection.posterPath,
+        'backdropPath': collection.backdropPath,
+      },
     );
   }
 
@@ -474,15 +484,27 @@ class _CollectionShowcaseCard extends StatelessWidget {
             children: [
               Expanded(
                 flex: 2,
-                child: posterUrl.isNotEmpty
-                    ? MediaImage(
-                        path: details.posterPath,
-                        type: MediaImageType.poster,
-                        size: MediaImageSize.w500,
-                        fit: BoxFit.cover,
-                        errorWidget: _PosterFallbackIcon(theme: theme),
-                      )
-                    : _PosterFallbackIcon(theme: theme),
+                child: Hero(
+                  tag: 'collection-poster-${details.id}',
+                  flightShuttleBuilder:
+                      (context, animation, direction, from, to) {
+                    return FadeTransition(
+                      opacity: animation.drive(
+                        CurveTween(curve: Curves.easeInOut),
+                      ),
+                      child: to.widget,
+                    );
+                  },
+                  child: posterUrl.isNotEmpty
+                      ? MediaImage(
+                          path: details.posterPath,
+                          type: MediaImageType.poster,
+                          size: MediaImageSize.w500,
+                          fit: BoxFit.cover,
+                          errorWidget: _PosterFallbackIcon(theme: theme),
+                        )
+                      : _PosterFallbackIcon(theme: theme),
+                ),
               ),
               Expanded(
                 flex: 1,
@@ -559,19 +581,31 @@ class _CollectionSearchResultTile extends StatelessWidget {
     );
 
     return ListTile(
-      leading: posterUrl.isNotEmpty
-          ? ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: MediaImage(
-                path: collection.posterPath,
-                type: MediaImageType.poster,
-                size: MediaImageSize.w185,
+      leading: Hero(
+        tag: 'collection-poster-${collection.id}',
+        flightShuttleBuilder: (context, animation, direction, from, to) {
+          return FadeTransition(
+            opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
+            child: to.widget,
+          );
+        },
+        child: posterUrl.isNotEmpty
+            ? ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: MediaImage(
+                  path: collection.posterPath,
+                  type: MediaImageType.poster,
+                  size: MediaImageSize.w185,
+                  width: 56,
+                  fit: BoxFit.cover,
+                  errorWidget: _PosterFallbackIcon(theme: theme),
+                ),
+              )
+            : SizedBox(
                 width: 56,
-                fit: BoxFit.cover,
-                errorWidget: _PosterFallbackIcon(theme: theme),
+                child: _PosterFallbackIcon(theme: theme),
               ),
-            )
-          : SizedBox(width: 56, child: _PosterFallbackIcon(theme: theme)),
+      ),
       title: Text(collection.name),
       subtitle: Text('Collection ID: ${collection.id}'),
       trailing: const Icon(Icons.chevron_right),
@@ -678,14 +712,26 @@ class _CollectionDetailsSheet extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             if (posterUrl.isNotEmpty)
-              ClipRRect(
-                borderRadius: BorderRadius.circular(16),
-                child: MediaImage(
-                  path: details.posterPath,
-                  type: MediaImageType.poster,
-                  size: MediaImageSize.w500,
-                  fit: BoxFit.cover,
-                  errorWidget: _PosterFallbackIcon(theme: theme),
+              Hero(
+                tag: 'collection-poster-${details.id}',
+                flightShuttleBuilder:
+                    (context, animation, direction, from, to) {
+                  return FadeTransition(
+                    opacity: animation.drive(
+                      CurveTween(curve: Curves.easeInOut),
+                    ),
+                    child: to.widget,
+                  );
+                },
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(16),
+                  child: MediaImage(
+                    path: details.posterPath,
+                    type: MediaImageType.poster,
+                    size: MediaImageSize.w500,
+                    fit: BoxFit.cover,
+                    errorWidget: _PosterFallbackIcon(theme: theme),
+                  ),
                 ),
               ),
             const SizedBox(height: 16),

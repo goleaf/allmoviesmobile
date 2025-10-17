@@ -165,6 +165,7 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
                 _buildHeader(
                   context,
                   loc,
+                  widget.collectionId,
                   posterPath,
                   displayName,
                   data?.totalRevenue,
@@ -350,6 +351,7 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
   Widget _buildHeader(
     BuildContext context,
     AppLocalizations loc,
+    int collectionId,
     String? posterPath,
     String title,
     num? totalRevenue,
@@ -364,37 +366,46 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: (posterUrl != null && posterUrl.isNotEmpty)
-              ? MediaImage(
-                  path: posterPath,
-                  type: MediaImageType.poster,
-                  size: MediaImageSize.w500,
-                  width: 120,
-                  height: 180,
-                  fit: BoxFit.cover,
-                  placeholder: Container(
+        Hero(
+          tag: 'collection-poster-$collectionId',
+          flightShuttleBuilder: (context, animation, direction, from, to) {
+            return FadeTransition(
+              opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
+              child: to.widget,
+            );
+          },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: (posterUrl != null && posterUrl.isNotEmpty)
+                ? MediaImage(
+                    path: posterPath,
+                    type: MediaImageType.poster,
+                    size: MediaImageSize.w500,
                     width: 120,
                     height: 180,
-                    color: Colors.grey[300],
-                  ),
-                  errorWidget: Container(
+                    fit: BoxFit.cover,
+                    placeholder: Container(
+                      width: 120,
+                      height: 180,
+                      color: Colors.grey[300],
+                    ),
+                    errorWidget: Container(
+                      width: 120,
+                      height: 180,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image),
+                    ),
+                  )
+                : Container(
                     width: 120,
                     height: 180,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.broken_image),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: const Icon(Icons.movie, size: 48),
                   ),
-                )
-              : Container(
-                  width: 120,
-                  height: 180,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.movie, size: 48),
-                ),
+          ),
         ),
         const SizedBox(width: 16),
         Expanded(

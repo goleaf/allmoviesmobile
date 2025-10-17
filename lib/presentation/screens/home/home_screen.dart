@@ -16,7 +16,6 @@ import '../../../providers/watchlist_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../widgets/movie_card.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/error_widget.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../person_detail/person_detail_screen.dart';
@@ -444,7 +443,7 @@ class _MoviesCarousel extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
-                  heroTag: 'moviePoster-${movie.id}',
+                  heroTag: 'movie-poster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       MovieDetailScreen.routeName,
@@ -492,7 +491,7 @@ class _SeriesCarousel extends StatelessWidget {
                   posterPath: show.posterPath,
                   voteAverage: show.voteAverage,
                   releaseDate: show.releaseDate,
-                  heroTag: 'tvPoster-${show.id}',
+                  heroTag: 'tv-poster-${show.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       TVDetailScreen.routeName,
@@ -528,6 +527,7 @@ class _PeopleCarousel extends StatelessWidget {
               .take(20)
               .map(
                 (person) => _PersonCard(
+                  id: person.id,
                   name: person.name,
                   subtitle: person.knownForDepartment ?? '',
                   profilePath: person.profilePath,
@@ -568,13 +568,19 @@ class _CollectionsCarousel extends StatelessWidget {
           items: collections
               .map(
                 (collection) => _CollectionCard(
+                  id: collection.id,
                   name: collection.name,
                   posterPath: collection.posterPath,
                   overview: collection.overview,
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       CollectionDetailScreen.routeName,
-                      arguments: collection.id,
+                      arguments: {
+                        'id': collection.id,
+                        'name': collection.name,
+                        'posterPath': collection.posterPath,
+                        'backdropPath': collection.backdropPath,
+                      },
                     );
                   },
                 ),
@@ -647,7 +653,7 @@ class _RecommendationsSection extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
-                  heroTag: 'moviePoster-${movie.id}',
+                  heroTag: 'movie-poster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       MovieDetailScreen.routeName,
@@ -739,19 +745,7 @@ class _HorizontalMediaSectionState extends State<_HorizontalMediaSection> {
         ),
         const SizedBox(height: 12),
         if (isLoading)
-          SizedBox(
-            height: 260,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) => const SizedBox(
-                width: 160,
-                child: _ShimmerMediaCard(),
-              ),
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemCount: 5,
-            ),
-          )
+          const _HorizontalMediaSkeleton()
         else if (errorMessage != null && errorMessage!.isNotEmpty)
           SizedBox(
             height: 220,
@@ -805,14 +799,81 @@ class _ShimmerMediaCard extends StatelessWidget {
   }
 }
 
+class _HorizontalMediaSkeleton extends StatelessWidget {
+  const _HorizontalMediaSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 260,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        scrollDirection: Axis.horizontal,
+        itemCount: 4,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (context, index) => const _MediaSkeletonCard(),
+      ),
+    );
+  }
+}
+
+class _MediaSkeletonCard extends StatelessWidget {
+  const _MediaSkeletonCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 160,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) => ShimmerLoading(
+                  width: constraints.maxWidth,
+                  height: constraints.maxHeight,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: const [
+                  ShimmerLoading(
+                    width: 120,
+                    height: 12,
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                  SizedBox(height: 8),
+                  ShimmerLoading(
+                    width: 80,
+                    height: 10,
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _PersonCard extends StatelessWidget {
   const _PersonCard({
+    required this.id,
     required this.name,
     required this.subtitle,
     required this.profilePath,
     required this.onTap,
   });
 
+  final int id;
   final String name;
   final String subtitle;
   final String? profilePath;
@@ -821,78 +882,38 @@ class _PersonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final loc = AppLocalizations.of(context);
-    final accessibility = loc.accessibility;
-    final semanticsLabel = subtitle.isNotEmpty ? '$name, $subtitle' : name;
-    final imageLabelTemplate =
-        accessibility['profile_label'] ?? 'Profile image for {name}';
-    final semanticImageLabel =
-        imageLabelTemplate.replaceAll('{name}', name);
-
-    return Semantics(
-      container: true,
-      button: true,
-      label: semanticsLabel,
-      hint: accessibility['open_details'] ?? 'Open details',
-      child: Focus(
-        child: Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            focusColor: Theme.of(context).focusColor,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ClipOval(
-                    child: SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: MediaImage(
-                        path: profilePath,
-                        type: MediaImageType.profile,
-                        size: MediaImageSize.w185,
-                        fit: BoxFit.cover,
-                        semanticLabel: semanticImageLabel,
-                        placeholder: Container(
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(
-                            Icons.person,
-                            color: colorScheme.onSurfaceVariant,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Hero(
+                tag: 'person-profile-$id',
+                flightShuttleBuilder: _buildFadeFlight,
+                child: ClipOval(
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: (profilePath != null && profilePath!.isNotEmpty)
+                        ? MediaImage(
+                            path: profilePath,
+                            type: MediaImageType.profile,
+                            size: MediaImageSize.w185,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            color: colorScheme.surfaceVariant,
+                            child: Icon(
+                              Icons.person,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
                           ),
-                        ),
-                        errorWidget: Container(
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(
-                            Icons.person_off,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ),
-                    ),
                   ),
-                  const SizedBox(height: 12),
-                  Text(
-                    name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ],
+                ),
               ),
             ),
           ),
@@ -902,14 +923,29 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
+Widget _buildFadeFlight(
+  BuildContext context,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromHeroContext,
+  BuildContext toHeroContext,
+) {
+  return FadeTransition(
+    opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
+    child: toHeroContext.widget,
+  );
+}
+
 class _CollectionCard extends StatelessWidget {
   const _CollectionCard({
+    required this.id,
     required this.name,
     required this.posterPath,
     required this.overview,
     required this.onTap,
   });
 
+  final int id;
   final String name;
   final String? posterPath;
   final String? overview;
@@ -918,51 +954,55 @@ class _CollectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final loc = AppLocalizations.of(context);
-    final accessibility = loc.accessibility;
-    final semanticsLabel =
-        overview != null && overview!.isNotEmpty ? '$name, $overview' : name;
-    final imageLabelTemplate = accessibility['collection_label'] ??
-        'Collection poster for {title}';
-    final semanticImageLabel =
-        imageLabelTemplate.replaceAll('{title}', name);
-
-    return Semantics(
-      container: true,
-      button: true,
-      label: semanticsLabel,
-      hint: accessibility['open_details'] ?? 'Open details',
-      child: Focus(
-        child: Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            focusColor: Theme.of(context).focusColor,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: MediaImage(
-                    path: posterPath,
-                    type: MediaImageType.poster,
-                    size: MediaImageSize.w342,
-                    fit: BoxFit.cover,
-                    semanticLabel: semanticImageLabel,
-                    placeholder: Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(
-                        Icons.collections_bookmark,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant,
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Hero(
+                tag: 'collection-poster-$id',
+                flightShuttleBuilder: _buildFadeFlight,
+                child: (posterPath != null && posterPath!.isNotEmpty)
+                    ? MediaImage(
+                        path: posterPath,
+                        type: MediaImageType.poster,
+                        size: MediaImageSize.w342,
+                        fit: BoxFit.cover,
+                      )
+                    : Container(
+                        color: colorScheme.surfaceVariant,
+                        child: Icon(
+                          Icons.collections_bookmark,
+                          size: 48,
+                          color: colorScheme.onSurfaceVariant,
+                        ),
                       ),
-                    ),
-                    errorWidget: Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(
-                        Icons.collections_outlined,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    name,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  if (overview != null && overview!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      overview!,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ),
@@ -1010,60 +1050,64 @@ class _WatchlistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final releaseYear = item.releaseYear;
-    final loc = AppLocalizations.of(context);
-    final accessibility = loc.accessibility;
-    final semanticsParts = <String>[item.title];
-    if (releaseYear != null) {
-      semanticsParts.add(releaseYear);
-    }
-    final semanticsLabel = semanticsParts.join(', ');
-    final imageLabelTemplate = accessibility['poster_label'] ?? 'Poster for {title}';
-    final semanticImageLabel =
-        imageLabelTemplate.replaceAll('{title}', item.title);
-
-    return Semantics(
-      container: true,
-      button: true,
-      label: semanticsLabel,
-      hint: accessibility['open_details'] ?? 'Open details',
-      child: Focus(
-        child: Card(
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () {
-              final route = item.type == SavedMediaType.tv
-                  ? TVDetailScreen.routeName
-                  : MovieDetailScreen.routeName;
-              Navigator.of(context).pushNamed(route, arguments: item.id);
-            },
-            focusColor: Theme.of(context).focusColor,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(
-                  child: MediaImage(
-                    path: item.posterPath,
-                    type: MediaImageType.poster,
-                    size: MediaImageSize.w342,
-                    fit: BoxFit.cover,
-                    semanticLabel: semanticImageLabel,
-                    placeholder: Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(
-                        item.type == SavedMediaType.tv
-                            ? Icons.tv
-                            : Icons.movie,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    errorWidget: Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(
-                        Icons.broken_image,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant,
-                      ),
+    final heroTag = item.type == SavedMediaType.tv
+        ? 'tv-poster-${item.id}'
+        : 'movie-poster-${item.id}';
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () {
+          final route = item.type == SavedMediaType.tv
+              ? TVDetailScreen.routeName
+              : MovieDetailScreen.routeName;
+          Navigator.of(context).pushNamed(route, arguments: item.id);
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Hero(
+                tag: heroTag,
+                flightShuttleBuilder: _buildFadeFlight,
+                child:
+                    (item.posterPath != null && item.posterPath!.isNotEmpty)
+                        ? MediaImage(
+                            path: item.posterPath,
+                            type: MediaImageType.poster,
+                            size: MediaImageSize.w342,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            color: colorScheme.surfaceVariant,
+                            child: Icon(
+                              item.type == SavedMediaType.tv
+                                  ? Icons.tv
+                                  : Icons.movie,
+                              size: 48,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  if (releaseYear != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      releaseYear,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
                     ),
                   ),
                 ),

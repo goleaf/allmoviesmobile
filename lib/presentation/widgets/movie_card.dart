@@ -16,7 +16,7 @@ class MovieCard extends StatelessWidget {
   final String? releaseDate;
   final String? showingLabel;
   final VoidCallback? onTap;
-  final String heroTag;
+  final String? heroTag;
 
   const MovieCard({
     super.key,
@@ -27,8 +27,8 @@ class MovieCard extends StatelessWidget {
     this.releaseDate,
     this.showingLabel,
     this.onTap,
-    String? heroTag,
-  }) : heroTag = heroTag ?? 'mediaPoster-$id';
+    this.heroTag,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -181,55 +181,52 @@ class MovieCard extends StatelessWidget {
   }
 
   Widget _buildPoster() {
-    final resolvedHeroTag = heroTag;
+    final tag = heroTag ?? 'movie-poster-$id';
     if (posterPath == null || posterPath!.isEmpty) {
-      return Stack(
-        fit: StackFit.expand,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final width = _resolveDimension(constraints.maxWidth, 150);
-              final height = _resolveDimension(constraints.maxHeight, 225);
-              return ShimmerLoading(
-                width: width,
-                height: height,
-                borderRadius: BorderRadius.circular(0),
-              );
-            },
-          ),
-          const Center(
+      return Hero(
+        tag: tag,
+        flightShuttleBuilder: _buildFlightShuttle,
+        child: Container(
+          color: Colors.grey[300],
+          child: const Center(
             child: Icon(Icons.movie, size: 48, color: Colors.grey),
           ),
-        ],
+        ),
       );
     }
 
-    final imageWidget = MediaImage(
-      path: posterPath,
-      type: MediaImageType.poster,
-      size: MediaImageSize.w342,
-      fit: BoxFit.cover,
-      overlay: MediaImageOverlay.legible(
-        topOpacityLight: 0.22,
-        topOpacityDark: 0.16,
-        bottomOpacityLight: 0.72,
-        bottomOpacityDark: 0.58,
-      ),
-      placeholder: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = _resolveDimension(constraints.maxWidth, 150);
-          final height = _resolveDimension(constraints.maxHeight, 225);
-          return ShimmerLoading(
-            width: width,
-            height: height,
-            borderRadius: BorderRadius.circular(0),
-          );
-        },
-      ),
-      errorWidget: Container(
-        color: Colors.grey[300],
-        child: const Center(
-          child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+    return Hero(
+      tag: tag,
+      flightShuttleBuilder: _buildFlightShuttle,
+      child: MediaImage(
+        path: posterPath,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w342,
+        fit: BoxFit.cover,
+        overlay: MediaImageOverlay(
+          gradientResolvers: [
+            (theme, _) {
+              final isDark = theme.brightness == Brightness.dark;
+              return LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(isDark ? 0.4 : 0.6),
+                  Colors.black.withOpacity(0),
+                ],
+              );
+            },
+          ],
+        ),
+        placeholder: Container(
+          color: Colors.grey[300],
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+        errorWidget: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+          ),
         ),
       ),
     );
@@ -245,5 +242,20 @@ class MovieCard extends StatelessWidget {
       return value;
     }
     return fallback;
+  }
+
+  static Widget _buildFlightShuttle(
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection direction,
+    BuildContext fromHeroContext,
+    BuildContext toHeroContext,
+  ) {
+    return FadeTransition(
+      opacity: animation.drive(
+        CurveTween(curve: Curves.easeInOut),
+      ),
+      child: toHeroContext.widget,
+    );
   }
 }

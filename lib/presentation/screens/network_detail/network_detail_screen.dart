@@ -709,7 +709,7 @@ class _ShowsGrid extends StatelessWidget {
               posterPath: show.posterPath,
               voteAverage: show.voteAverage,
               releaseDate: show.releaseDate,
-              heroTag: 'tvPoster-${show.id}',
+              heroTag: 'tv-poster-${show.id}',
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(

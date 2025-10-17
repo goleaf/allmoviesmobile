@@ -273,6 +273,7 @@
   "settings": {
     "title": "Настройки",
     "appearance": "Внешний Вид",
+    "accessibility": "Доступность",
     "theme": "Тема",
     "theme_light": "Светлая",
     "theme_dark": "Темная",
@@ -287,7 +288,22 @@
     "about": "О Приложении",
     "version": "Версия",
     "terms": "Условия Использования",
-    "privacy": "Политика Конфиденциальности"
+    "privacy": "Политика Конфиденциальности",
+    "highContrast": "Режим высокого контраста",
+    "highContrastEnabled": "Высококонтрастные цвета включены",
+    "highContrastDisabled": "Высококонтрастные цвета выключены",
+    "colorBlindFriendly": "Палитра для дальтоников",
+    "colorBlindFriendlyDescription": "Использует цвета, различимые при распространенных нарушениях цветового зрения.",
+    "textScale": "Размер текста",
+    "chooseTextScale": "Выберите размер текста",
+    "textScaleSmall": "Маленький (90%)",
+    "textScaleNormal": "Обычный (100%)",
+    "textScaleLarge": "Крупный (120%)",
+    "textScaleExtraLarge": "Очень крупный (135%)",
+    "focusIndicators": "Индикация фокуса",
+    "focusIndicatorsDescription": "Показывать выделение элементов при фокусе с клавиатуры.",
+    "keyboardNavigation": "Навигация с клавиатуры",
+    "keyboardNavigationDescription": "Использовать стрелки вместе с Tab для перехода между элементами."
   },
   "common": {
     "loading": "Загрузка...",
@@ -315,7 +331,12 @@
     "show_less": "Показать Меньше",
     "copy": "Скопировать ссылку",
     "unknown": "Неизвестно",
-    "not_available": "Н/Д"
+    "not_available": "Н/Д",
+    "viewDetailsHint": "Дважды нажмите, чтобы открыть детали",
+    "posterLabelPrefix": "Постер для",
+    "profileLabelPrefix": "Фото профиля",
+    "addToFavorites": "Добавить в избранное",
+    "removeFromFavorites": "Убрать из избранного"
   },
   "errors": {
     "generic": "Что-то пошло не так",

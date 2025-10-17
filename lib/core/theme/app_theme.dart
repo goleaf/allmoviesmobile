@@ -3,6 +3,18 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../constants/app_colors.dart';
 
+class AccessibilityThemeOptions {
+  const AccessibilityThemeOptions({
+    this.highContrast = false,
+    this.emphasizeFocus = true,
+    this.colorBlindFriendlyPalette = false,
+  });
+
+  final bool highContrast;
+  final bool emphasizeFocus;
+  final bool colorBlindFriendlyPalette;
+}
+
 class AppTheme {
   AppTheme._();
 
@@ -15,15 +27,25 @@ class AppTheme {
     seedColor: AppColors.primary,
   );
 
-  static ThemeData light({ColorScheme? dynamicScheme}) {
-    return _buildTheme(dynamicScheme ?? _fallbackLightScheme);
+  static ThemeData light({
+    ColorScheme? dynamicScheme,
+    AccessibilityThemeOptions options = const AccessibilityThemeOptions(),
+  }) {
+    return _buildTheme(dynamicScheme ?? _fallbackLightScheme, options);
   }
 
-  static ThemeData dark({ColorScheme? dynamicScheme}) {
-    return _buildTheme(dynamicScheme ?? _fallbackDarkScheme);
+  static ThemeData dark({
+    ColorScheme? dynamicScheme,
+    AccessibilityThemeOptions options = const AccessibilityThemeOptions(),
+  }) {
+    return _buildTheme(dynamicScheme ?? _fallbackDarkScheme, options);
   }
 
-  static ThemeData _buildTheme(ColorScheme colorScheme) {
+  static ThemeData _buildTheme(
+    ColorScheme colorScheme,
+    AccessibilityThemeOptions options,
+  ) {
+    colorScheme = _resolveColorScheme(colorScheme, options);
     final isDark = colorScheme.brightness == Brightness.dark;
     // Avoid runtime font fetching during tests or when fonts are unavailable
     final baseTextTheme = ThemeData(
@@ -46,6 +68,10 @@ class AppTheme {
     final surfaceMuted = surfaceTint(isDark ? 0.24 : 0.08);
     final surfaceElevated = surfaceTint(isDark ? 0.32 : 0.12);
     final surfaceHighest = surfaceTint(isDark ? 0.4 : 0.16);
+
+    final focusGlowColor = options.emphasizeFocus
+        ? colorScheme.tertiary.withOpacity(isDark ? 0.85 : 0.7)
+        : colorScheme.primary.withOpacity(0.4);
 
     return ThemeData(
       useMaterial3: true,
@@ -169,6 +195,7 @@ class AppTheme {
           textStyle: textTheme.titleMedium,
         ),
       ),
+      focusTheme: FocusThemeData(glowColor: focusGlowColor),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
@@ -205,5 +232,73 @@ class AppTheme {
         linearTrackColor: surfaceHighest,
       ),
     );
+  }
+
+  static ColorScheme _resolveColorScheme(
+    ColorScheme baseScheme,
+    AccessibilityThemeOptions options,
+  ) {
+    var scheme = baseScheme;
+
+    if (options.highContrast) {
+      scheme = baseScheme.brightness == Brightness.dark
+          ? ColorScheme.highContrastDark(
+              primary: baseScheme.primary,
+              onPrimary: baseScheme.onPrimary,
+              secondary: baseScheme.secondary,
+              onSecondary: baseScheme.onSecondary,
+              background: baseScheme.background,
+              onBackground: baseScheme.onBackground,
+              surface: baseScheme.surface,
+              onSurface: baseScheme.onSurface,
+              error: baseScheme.error,
+              onError: baseScheme.onError,
+            )
+          : ColorScheme.highContrastLight(
+              primary: baseScheme.primary,
+              onPrimary: baseScheme.onPrimary,
+              secondary: baseScheme.secondary,
+              onSecondary: baseScheme.onSecondary,
+              background: baseScheme.background,
+              onBackground: baseScheme.onBackground,
+              surface: baseScheme.surface,
+              onSurface: baseScheme.onSurface,
+              error: baseScheme.error,
+              onError: baseScheme.onError,
+            );
+    }
+
+    if (options.colorBlindFriendlyPalette) {
+      // Palette inspired by color-blind-safe combinations (blue/orange/purple).
+      const primary = Color(0xFF1B4F72); // deep blue
+      const onPrimary = Colors.white;
+      const secondary = Color(0xFFAF601A); // burnt orange
+      const onSecondary = Colors.white;
+      const tertiary = Color(0xFF7D3C98); // royal purple
+      const onTertiary = Colors.white;
+      final neutralSurface = scheme.brightness == Brightness.dark
+          ? const Color(0xFF121417)
+          : const Color(0xFFF5F5F7);
+
+      scheme = scheme.copyWith(
+        primary: primary,
+        onPrimary: onPrimary,
+        primaryContainer: primary.withOpacity(0.85),
+        onPrimaryContainer: onPrimary,
+        secondary: secondary,
+        onSecondary: onSecondary,
+        secondaryContainer: secondary.withOpacity(0.85),
+        onSecondaryContainer: onSecondary,
+        tertiary: tertiary,
+        onTertiary: onTertiary,
+        tertiaryContainer: tertiary.withOpacity(0.85),
+        onTertiaryContainer: onTertiary,
+        surface: neutralSurface,
+        background: neutralSurface,
+        surfaceTint: primary,
+      );
+    }
+
+    return scheme;
   }
 }

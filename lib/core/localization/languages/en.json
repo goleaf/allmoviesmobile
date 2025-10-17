@@ -289,6 +289,7 @@
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",
+    "accessibility": "Accessibility",
     "theme": "Theme",
     "theme_light": "Light",
     "theme_dark": "Dark",
@@ -303,7 +304,22 @@
     "about": "About",
     "version": "Version",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "highContrast": "High contrast mode",
+    "highContrastEnabled": "High contrast colors enabled",
+    "highContrastDisabled": "High contrast colors disabled",
+    "colorBlindFriendly": "Color-blind friendly palette",
+    "colorBlindFriendlyDescription": "Uses a palette that remains distinguishable for common color vision deficiencies.",
+    "textScale": "Text size",
+    "chooseTextScale": "Choose text size",
+    "textScaleSmall": "Small (90%)",
+    "textScaleNormal": "Default (100%)",
+    "textScaleLarge": "Large (120%)",
+    "textScaleExtraLarge": "Extra large (135%)",
+    "focusIndicators": "Focus indicators",
+    "focusIndicatorsDescription": "Show prominent outlines when items receive keyboard focus.",
+    "keyboardNavigation": "Keyboard navigation",
+    "keyboardNavigationDescription": "Use arrow keys in addition to Tab to move between interactive items."
   },
   "common": {
     "loading": "Loading...",
@@ -331,7 +347,12 @@
     "show_less": "Show Less",
     "copy": "Copy link",
     "unknown": "Unknown",
-    "not_available": "N/A"
+    "not_available": "N/A",
+    "viewDetailsHint": "Double tap to view details",
+    "posterLabelPrefix": "Poster for",
+    "profileLabelPrefix": "Profile image of",
+    "addToFavorites": "Add to favorites",
+    "removeFromFavorites": "Remove from favorites"
   },
   "errors": {
     "generic": "Something went wrong",

@@ -25,6 +25,7 @@ class MediaImage extends StatefulWidget {
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
     this.overlay = const MediaImageOverlay.none(),
+    this.semanticsLabel,
   });
 
   final String? path;
@@ -41,6 +42,7 @@ class MediaImage extends StatefulWidget {
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
   final MediaImageOverlay overlay;
+  final String? semanticsLabel;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -136,11 +138,22 @@ class _MediaImageState extends State<MediaImage> {
       children: stackChildren,
     );
 
-    return _wrapWithSize(
+    final clipped = _wrapWithSize(
       ClipRRect(
         borderRadius: widget.borderRadius ?? BorderRadius.zero,
         child: stack,
       ),
+    );
+
+    final label = widget.semanticsLabel;
+    if (label == null || label.isEmpty) {
+      return ExcludeSemantics(child: clipped);
+    }
+
+    return Semantics(
+      image: true,
+      label: label,
+      child: clipped,
     );
   }
 

@@ -49,6 +49,16 @@ flutter run -d <device_id> --dart-define=TMDB_API_KEY=YOUR_KEY_HERE
 
 For release or profile builds, include the same dart-define when invoking `flutter build`.
 
+## Maintaining Isar schemas
+When regenerating the local database bindings, use the helper script to keep schema and index IDs within the JavaScript safe integer range required by Flutter web builds:
+
+```bash
+dart run build_runner build --delete-conflicting-outputs
+dart run tool/ensure_web_safe_isar_ids.dart --fix
+```
+
+The second command scans every generated file under `lib/data/local/isar/`, clamps any out-of-range IDs, and fails the build if run without `--fix` while violations remain.
+
 ## Additional resources
 - [`FEATURES.md`](FEATURES.md) – Detailed feature list, architecture overview, and usage tips.
 - [`QA_CHECKLIST.md`](QA_CHECKLIST.md) – Quality checklist maintained for the project.

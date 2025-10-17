@@ -16,7 +16,7 @@ extension GetCountryTranslationEntityCollection on Isar {
 
 const CountryTranslationEntitySchema = CollectionSchema(
   name: r'CountryTranslationEntity',
-  id: -2013486865922696118,
+  id: -4881432115455125,
   properties: {
     r'iso3166_1': PropertySchema(
       id: 0,
@@ -33,7 +33,7 @@ const CountryTranslationEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'iso3166_1_locale': IndexSchema(
-      id: -1777727100910144982,
+      id: -639042883698880,
       name: r'iso3166_1_locale',
       unique: true,
       replace: false,
@@ -51,7 +51,7 @@ const CountryTranslationEntitySchema = CollectionSchema(
       ],
     ),
     r'locale': IndexSchema(
-      id: -8287102531631808820,
+      id: -479217270097100,
       name: r'locale',
       unique: false,
       replace: false,

@@ -15,6 +15,7 @@ class SeriesSectionState {
     this.errorMessage,
     this.currentPage = 1,
     this.totalPages = 1,
+    this.pageResults = const <int, List<Movie>>{},
   });
 
   static const _sentinel = Object();
@@ -24,6 +25,7 @@ class SeriesSectionState {
   final String? errorMessage;
   final int currentPage;
   final int totalPages;
+  final Map<int, List<Movie>> pageResults;
 
   SeriesSectionState copyWith({
     List<Movie>? items,
@@ -31,6 +33,7 @@ class SeriesSectionState {
     Object? errorMessage = _sentinel,
     int? currentPage,
     int? totalPages,
+    Map<int, List<Movie>>? pageResults,
   }) {
     return SeriesSectionState(
       items: items ?? this.items,
@@ -40,6 +43,7 @@ class SeriesSectionState {
           : errorMessage as String?,
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
+      pageResults: pageResults ?? this.pageResults,
     );
   }
 }
@@ -119,8 +123,11 @@ class SeriesProvider extends ChangeNotifier {
     try {
       final sectionsList = SeriesSection.values;
       final futures = <Future<PaginatedResponse<Movie>>>[];
+      final previousStates = <SeriesSection, SeriesSectionState>{};
       for (final section in sectionsList) {
-        final desiredPage = force ? 1 : _sections[section]?.currentPage ?? 1;
+        final state = _sections[section]!;
+        previousStates[section] = state;
+        final desiredPage = force ? 1 : state.currentPage;
         futures.add(_fetchSection(section, page: desiredPage));
       }
 
@@ -129,10 +136,17 @@ class SeriesProvider extends ChangeNotifier {
       for (var index = 0; index < sectionsList.length; index++) {
         final section = sectionsList[index];
         final response = results[index];
+        final pageItems = List<Movie>.unmodifiable(response.results);
+        final previousState = previousStates[section]!;
+        final updatedPages = force
+            ? <int, List<Movie>>{}
+            : Map<int, List<Movie>>.from(previousState.pageResults);
+        updatedPages[response.page] = pageItems;
         _sections[section] = SeriesSectionState(
-          items: response.results,
+          items: pageItems,
           currentPage: response.page,
           totalPages: response.totalPages,
+          pageResults: Map<int, List<Movie>>.unmodifiable(updatedPages),
         );
       }
 
@@ -193,14 +207,33 @@ class SeriesProvider extends ChangeNotifier {
     return loadSectionPage(section, previousPage);
   }
 
-  Future<void> loadSectionPage(SeriesSection section, int page) async {
+  Future<void> refreshSection(SeriesSection section) {
+    final currentPage = sectionState(section).currentPage;
+    return loadSectionPage(section, currentPage, forceReload: true);
+  }
+
+  Future<void> loadSectionPage(
+    SeriesSection section,
+    int page, {
+    bool forceReload = false,
+  }) async {
     final currentState = sectionState(section);
-    if (page == currentState.currentPage) {
+    if (!forceReload && page == currentState.currentPage) {
       return;
     }
     if (page < 1 || page > currentState.totalPages) {
       _sections[section] = currentState.copyWith(
         errorMessage: 'Requested page $page is out of range.',
+      );
+      notifyListeners();
+      return;
+    }
+
+    if (!forceReload && currentState.pageResults.containsKey(page)) {
+      _sections[section] = currentState.copyWith(
+        currentPage: page,
+        items: currentState.pageResults[page],
+        errorMessage: null,
       );
       notifyListeners();
       return;
@@ -214,10 +247,14 @@ class SeriesProvider extends ChangeNotifier {
 
     try {
       final response = await _fetchSection(section, page: page);
+      final nextPageItems = List<Movie>.unmodifiable(response.results);
+      final updatedPages = Map<int, List<Movie>>.from(currentState.pageResults)
+        ..[response.page] = nextPageItems;
       _sections[section] = SeriesSectionState(
-        items: response.results,
+        items: nextPageItems,
         currentPage: response.page,
         totalPages: response.totalPages,
+        pageResults: Map<int, List<Movie>>.unmodifiable(updatedPages),
       );
     } on TmdbException catch (error) {
       _sections[section] = currentState.copyWith(
@@ -242,6 +279,7 @@ class SeriesProvider extends ChangeNotifier {
         items: const <Movie>[],
         currentPage: 1,
         totalPages: 1,
+        pageResults: const <int, List<Movie>>{},
       );
     }
   }
@@ -249,18 +287,26 @@ class SeriesProvider extends ChangeNotifier {
   Future<void> applyNetworkFilter(int networkId) async {
     _activeNetworkId = networkId;
     _activeFilters = null;
-    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
+    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      items: const <Movie>[],
+      pageResults: const <int, List<Movie>>{},
+    );
     notifyListeners();
 
     try {
       final response = await _repository.fetchNetworkTvShows(
         networkId: networkId,
       );
+      final pageItems = List<Movie>.unmodifiable(response.results);
       _sections[SeriesSection.popular] = SeriesSectionState(
-        items: response.results,
+        items: pageItems,
         currentPage: response.page,
         totalPages: response.totalPages,
+        pageResults: Map<int, List<Movie>>.unmodifiable({
+          response.page: pageItems,
+        }),
       );
     } catch (error) {
       _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
@@ -270,6 +316,7 @@ class SeriesProvider extends ChangeNotifier {
             items: const <Movie>[],
             currentPage: 1,
             totalPages: 1,
+            pageResults: const <int, List<Movie>>{},
           );
     } finally {
       notifyListeners();
@@ -279,15 +326,23 @@ class SeriesProvider extends ChangeNotifier {
   Future<void> applyTvFilters(Map<String, String> filters) async {
     _activeFilters = Map<String, String>.from(filters);
     _activeNetworkId = null;
-    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
+    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      items: const <Movie>[],
+      pageResults: const <int, List<Movie>>{},
+    );
     notifyListeners();
     try {
       final response = await _repository.discoverTvSeries(filters: filters);
+      final pageItems = List<Movie>.unmodifiable(response.results);
       _sections[SeriesSection.popular] = SeriesSectionState(
-        items: response.results,
+        items: pageItems,
         currentPage: response.page,
         totalPages: response.totalPages,
+        pageResults: Map<int, List<Movie>>.unmodifiable({
+          response.page: pageItems,
+        }),
       );
     } catch (error) {
       _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
@@ -297,6 +352,7 @@ class SeriesProvider extends ChangeNotifier {
             items: const <Movie>[],
             currentPage: 1,
             totalPages: 1,
+            pageResults: const <int, List<Movie>>{},
           );
     } finally {
       notifyListeners();

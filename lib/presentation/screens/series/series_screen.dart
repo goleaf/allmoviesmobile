@@ -28,8 +28,11 @@ class _SeriesScreenState extends State<SeriesScreen> {
     });
   }
 
-  Future<void> _refreshAll(BuildContext context) {
-    return context.read<SeriesProvider>().refresh(force: true);
+  Future<void> _refreshSection(
+    BuildContext context,
+    SeriesSection section,
+  ) {
+    return context.read<SeriesProvider>().refreshSection(section);
   }
 
   @override
@@ -61,7 +64,10 @@ class _SeriesScreenState extends State<SeriesScreen> {
         body: TabBarView(
           children: [
             for (final section in sections)
-              _SeriesSectionView(section: section, onRefreshAll: _refreshAll),
+              _SeriesSectionView(
+                section: section,
+                onRefreshSection: _refreshSection,
+              ),
           ],
         ),
       ),
@@ -127,16 +133,21 @@ class _NetworkChip extends StatelessWidget {
 }
 
 class _SeriesSectionView extends StatelessWidget {
-  const _SeriesSectionView({required this.section, required this.onRefreshAll});
+  const _SeriesSectionView({
+    required this.section,
+    required this.onRefreshSection,
+  });
 
   final SeriesSection section;
-  final Future<void> Function(BuildContext context) onRefreshAll;
+  final Future<void> Function(BuildContext context, SeriesSection section)
+      onRefreshSection;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
+        Future<void> refreshSection() => onRefreshSection(context, section);
         if (state.isLoading && state.items.isEmpty) {
           return const _SeriesListSkeleton();
         }
@@ -144,7 +155,7 @@ class _SeriesSectionView extends StatelessWidget {
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
-            onRetry: () => onRefreshAll(context),
+            onRetry: refreshSection,
           );
         }
 
@@ -154,7 +165,7 @@ class _SeriesSectionView extends StatelessWidget {
               const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => onRefreshAll(context),
+                onRefresh: refreshSection,
                 child: _SeriesList(series: state.items),
               ),
             ),

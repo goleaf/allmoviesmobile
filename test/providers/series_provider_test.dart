@@ -92,6 +92,16 @@ class _ErroringRepo extends _FakeRepo {
   }
 }
 
+class _CountingRepo extends _FakeRepo {
+  int popularCalls = 0;
+
+  @override
+  Future<PaginatedResponse<Movie>> fetchPopularTv({int page = 1}) async {
+    popularCalls++;
+    return super.fetchPopularTv(page: page);
+  }
+}
+
 void main() {
   group('SeriesProvider', () {
     test('initial refresh populates series sections with pagination metadata',
@@ -174,6 +184,49 @@ void main() {
       await provider.loadNextPage(SeriesSection.popular);
       expect(provider.sectionState(SeriesSection.popular).items.first.title,
           'Filtered 2');
+    });
+
+    test('loadSectionPage reuses cached data for previously fetched pages',
+        () async {
+      final repo = _CountingRepo();
+      final provider = SeriesProvider(repo);
+      await provider.initialized;
+
+      expect(repo.popularCalls, 1);
+
+      await provider.loadNextPage(SeriesSection.popular);
+      expect(provider.sectionState(SeriesSection.popular).currentPage, 2);
+      expect(repo.popularCalls, 2);
+
+      await provider.loadSectionPage(SeriesSection.popular, 1);
+      final state = provider.sectionState(SeriesSection.popular);
+      expect(state.currentPage, 1);
+      expect(state.items.first.title, 'P1');
+      expect(repo.popularCalls, 2);
+    });
+
+    test('refreshSection reloads the current page while preserving caches',
+        () async {
+      final repo = _CountingRepo();
+      final provider = SeriesProvider(repo);
+      await provider.initialized;
+
+      await provider.loadNextPage(SeriesSection.popular);
+      final cachedState = provider.sectionState(SeriesSection.popular);
+      expect(cachedState.pageResults.containsKey(1), isTrue);
+      expect(cachedState.pageResults.containsKey(2), isTrue);
+
+      final previousCalls = repo.popularCalls;
+      await provider.refreshSection(SeriesSection.popular);
+      expect(repo.popularCalls, previousCalls + 1);
+
+      final refreshedState = provider.sectionState(SeriesSection.popular);
+      expect(refreshedState.currentPage, cachedState.currentPage);
+      expect(refreshedState.pageResults.length, cachedState.pageResults.length);
+      expect(
+        refreshedState.pageResults[refreshedState.currentPage]?.first.title,
+        startsWith('P'),
+      );
     });
   });
 }

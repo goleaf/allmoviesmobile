@@ -247,7 +247,7 @@ class _PersonDetailBody extends StatelessWidget {
       _SectionPadding(child: _BiographySection(detail: detail)),
       _SectionPadding(child: _PersonalInfoSection(detail: detail)),
       _SectionPadding(child: _KnownForSection(detail: detail)),
-      _SectionPadding(child: _CombinedCreditsSection(detail: detail)),
+      const _SectionPadding(child: _CombinedCreditsSection()),
       _SectionPadding(
         child: _TimelineSection(
           titleKey: 'person.movie_actor_timeline',
@@ -555,71 +555,114 @@ class _KnownForCard extends StatelessWidget {
 }
 
 class _CombinedCreditsSection extends StatelessWidget {
-  const _CombinedCreditsSection({required this.detail});
-
-  final PersonDetail detail;
+  const _CombinedCreditsSection();
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final combined = detail.combinedCredits;
-    final cast = combined.cast ?? const [];
-    final crew = combined.crew ?? const [];
-    if (cast.isEmpty && crew.isEmpty) {
+    final provider = context.watch<PersonDetailProvider>();
+
+    if (!provider.hasCombinedCredits) {
       return const SizedBox.shrink();
     }
 
-    final combinedCredits = [...cast, ...crew];
-    combinedCredits.sort(
-      (a, b) => (b.releaseYear ?? '').compareTo(a.releaseYear ?? ''),
-    );
+    final labels = {
+      PersonCreditsSortOption.year: loc.t('person.credits_sort_year'),
+      PersonCreditsSortOption.popularity:
+          loc.t('person.credits_sort_popularity'),
+      PersonCreditsSortOption.rating: loc.t('person.credits_sort_rating'),
+    };
+
+    final combinedCredits = provider.combinedCreditsSorted.take(12).toList();
+    if (combinedCredits.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
     return _SectionCard(
       title: loc.t('person.combined_credits'),
+      trailing: DropdownButtonHideUnderline(
+        child: DropdownButton<PersonCreditsSortOption>(
+          key: const ValueKey('personCombinedCreditsSortDropdown'),
+          value: provider.combinedCreditsSortOption,
+          onChanged: (value) {
+            if (value != null) {
+              provider.setCombinedCreditsSortOption(value);
+            }
+          },
+          isDense: true,
+          items: PersonCreditsSortOption.values.map((option) {
+            return DropdownMenuItem<PersonCreditsSortOption>(
+              key: ValueKey('personCombinedCreditsSortOption_${option.name}'),
+              value: option,
+              child: Text(labels[option] ?? option.name),
+            );
+          }).toList(),
+        ),
+      ),
       child: Column(
-        children: combinedCredits.take(12).map((credit) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6),
-            child: Row(
+        children: combinedCredits.asMap().entries.map((entry) {
+          final index = entry.key;
+          final credit = entry.value;
+          return _CombinedCreditRow(
+            credit: credit,
+            index: index,
+          );
+        }).toList(),
+      ),
+    );
+  }
+}
+
+class _CombinedCreditRow extends StatelessWidget {
+  const _CombinedCreditRow({required this.credit, required this.index});
+
+  final PersonCredit credit;
+  final int index;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      key: ValueKey('combinedCreditRow_$index'),
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 64,
+            child: Text(
+              credit.releaseYear ?? '—',
+              key: ValueKey('combinedCreditYear_$index'),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+            ),
+          ),
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: 64,
-                  child: Text(
-                    credit.releaseYear ?? '—',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
+                Text(
+                  credit.displayTitle,
+                  key: ValueKey('combinedCreditTitle_$index'),
+                  style: Theme.of(context).textTheme.bodyLarge,
                 ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        credit.displayTitle,
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                      const SizedBox(height: 2),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        children: [
-                          if ((credit.mediaType ?? '').isNotEmpty)
-                            _InfoChip(label: credit.mediaType!.toUpperCase()),
-                          if ((credit.character ?? '').isNotEmpty)
-                            _InfoChip(label: credit.character!),
-                          if ((credit.job ?? '').isNotEmpty)
-                            _InfoChip(label: credit.job!),
-                        ],
-                      ),
-                    ],
-                  ),
+                const SizedBox(height: 2),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 4,
+                  children: [
+                    if ((credit.mediaType ?? '').isNotEmpty)
+                      _InfoChip(label: credit.mediaType!.toUpperCase()),
+                    if ((credit.character ?? '').isNotEmpty)
+                      _InfoChip(label: credit.character!),
+                    if ((credit.job ?? '').isNotEmpty)
+                      _InfoChip(label: credit.job!),
+                  ],
                 ),
               ],
             ),
-          );
-        }).toList(),
+          ),
+        ],
       ),
     );
   }
@@ -1152,22 +1195,44 @@ class _TranslationsSection extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({required this.title, required this.child});
+  const _SectionCard({
+    required this.title,
+    required this.child,
+    this.trailing,
+  });
 
   final String title;
   final Widget child;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
+    final titleText = Text(
+      title,
+      style: Theme.of(
+        context,
+      ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-        ),
+        if (trailing == null)
+          titleText
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(child: titleText),
+              const SizedBox(width: 12),
+              Flexible(
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: trailing!,
+                ),
+              ),
+            ],
+          ),
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(16),

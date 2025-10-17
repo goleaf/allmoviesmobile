@@ -1,32 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:provider/provider.dart';
-
 import '../../core/localization/app_localizations.dart';
 import '../../core/navigation/deep_link_handler.dart';
 import '../../core/navigation/deep_link_parser.dart';
+import '../../data/models/collection_model.dart';
 import '../../data/models/company_model.dart';
 import '../../data/models/episode_model.dart';
 import '../../data/models/movie.dart';
+import '../../data/models/movie_detailed_model.dart';
+import '../../data/models/person_detail_model.dart';
+import '../../data/models/person_model.dart';
+import '../../data/models/season_model.dart';
+import '../../data/models/tv_detailed_model.dart';
 import '../../data/tmdb_repository.dart';
+import '../../providers/app_state_provider.dart';
+import '../../providers/deep_link_breadcrumbs_provider.dart';
+import '../navigation/app_destination.dart';
+import '../navigation/episode_detail_args.dart';
 import '../navigation/season_detail_args.dart';
 import '../screens/collections/collection_detail_screen.dart';
 import '../screens/company_detail/company_detail_screen.dart';
 import '../screens/episode_detail/episode_detail_screen.dart';
-import '../navigation/episode_detail_args.dart';
+import '../screens/home/home_screen.dart';
 import '../screens/movie_detail/movie_detail_screen.dart';
-import '../screens/person_detail/person_detail_screen.dart';
-import '../screens/season_detail/season_detail_screen.dart';
-import '../screens/tv_detail/tv_detail_screen.dart';
-// Home/More removed in this app variant; keep movies/search/series only
+import '../screens/movies/movies_filters_screen.dart';
 import '../screens/movies/movies_screen.dart';
+import '../screens/person_detail/person_detail_screen.dart';
 import '../screens/search/search_screen.dart';
+import '../screens/season_detail/season_detail_screen.dart';
 import '../screens/series/series_filters_screen.dart';
+import '../screens/series/series_screen.dart';
+import '../screens/tv_detail/tv_detail_screen.dart';
+import '../widgets/deep_link_breadcrumb_bar.dart';
 import '../widgets/offline_banner.dart';
 
-enum AppDestination { movies, tv, search }
-
+/// Hosts the bottom navigation shell and coordinates deep-link specific flows.
 class AppNavigationShell extends StatefulWidget {
   const AppNavigationShell({super.key});
 
@@ -40,13 +49,18 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       destination: GlobalKey<NavigatorState>(),
   };
 
-  AppDestination _currentDestination = AppDestination.movies;
+  AppDestination? _currentDestination;
   DeepLinkHandler? _deepLinkHandler;
   bool _isHandlingDeepLink = false;
+
+  AppDestination get _activeDestination =>
+      _currentDestination ?? AppDestination.home;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    _currentDestination ??= context.read<AppStateProvider>().currentDestination;
+
     final handler = Provider.of<DeepLinkHandler>(context);
     if (handler != _deepLinkHandler) {
       _deepLinkHandler?.removeListener(_handlePendingDeepLink);
@@ -64,15 +78,23 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final breadcrumbProvider = context.watch<DeepLinkBreadcrumbsProvider>();
+
     return WillPopScope(
       onWillPop: _handleWillPop,
       child: Scaffold(
         body: Column(
           children: [
             const OfflineBanner(),
+            if (breadcrumbProvider.hasBreadcrumbs)
+              DeepLinkBreadcrumbBar(
+                breadcrumbs: breadcrumbProvider.breadcrumbs,
+                onBreadcrumbTap: _handleBreadcrumbTap,
+                onClear: breadcrumbProvider.clear,
+              ),
             Expanded(
               child: IndexedStack(
-                index: _currentDestination.index,
+                index: _activeDestination.index,
                 children: [
                   for (final destination in AppDestination.values)
                     _DestinationNavigator(
@@ -89,21 +111,22 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     );
   }
 
+  /// Handles system back navigation by delegating to the currently active
+  /// nested navigator. When that stack is already at its root we fall back to
+  /// switching the shell to the home destination.
   Future<bool> _handleWillPop() async {
-    final currentNavigator = _navigatorKeys[_currentDestination]!.currentState!;
+    final currentNavigator = _navigatorKeys[_activeDestination]!.currentState!;
 
     if (await currentNavigator.maybePop()) {
       return false;
     }
 
-    if (_currentDestination != AppDestination.home) {
-      setState(() {
-        _currentDestination = AppDestination.home;
-      });
-      context.read<AppStateProvider>().updateDestination(AppDestination.home);
+    if (_activeDestination != AppDestination.home) {
+      await _ensureDestination(AppDestination.home, shouldNotify: true);
       return false;
     }
 
+    context.read<DeepLinkBreadcrumbsProvider>().clear();
     return true;
   }
 
@@ -123,10 +146,12 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     }
   }
 
+  /// Entry point that performs the heavy lifting for each supported deep link.
   Future<void> _openDeepLink(DeepLinkData link) async {
     final rootNavigator = Navigator.of(context, rootNavigator: true);
     final repo = context.read<TmdbRepository>();
     final loc = AppLocalizations.of(context);
+    final breadcrumbProvider = context.read<DeepLinkBreadcrumbsProvider>();
 
     Future<void> showError(String message) async {
       if (!mounted) return;
@@ -134,98 +159,347 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           .showSnackBar(SnackBar(content: Text(message)));
     }
 
+    breadcrumbProvider.clear();
+
     switch (link.type) {
       case DeepLinkType.movie:
+        if (link.id == null) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
         await _ensureDestination(AppDestination.movies);
+        MovieDetailed? detailed;
+        try {
+          // GET /3/movie/{movie_id} – used to resolve the movie title for the
+          // breadcrumb trail.
+          detailed = await repo.fetchMovieDetails(link.id!);
+        } catch (_) {
+          detailed = null;
+        }
+        final resolvedTitle = (detailed?.title?.isNotEmpty ?? false)
+            ? detailed!.title!
+            : 'Movie #${link.id}';
+        final movieArg = Movie(id: link.id!, title: resolvedTitle);
+
+        breadcrumbProvider.setBreadcrumbs([
+          DeepLinkBreadcrumb(
+            label: loc.t('navigation.movies'),
+            destination: AppDestination.movies,
+            routeName: MoviesScreen.routeName,
+          ),
+          DeepLinkBreadcrumb(label: resolvedTitle),
+        ]);
+
         await rootNavigator.pushNamed(
           MovieDetailScreen.routeName,
-          arguments: Movie(id: link.id!, title: 'Movie #${link.id}'),
+          arguments: movieArg,
         );
         break;
       case DeepLinkType.tvShow:
+        if (link.id == null) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
         await _ensureDestination(AppDestination.tv);
+        TVDetailed? detailed;
+        try {
+          // GET /3/tv/{tv_id} – resolves the show name for breadcrumbs.
+          detailed = await repo.fetchTvDetails(link.id!);
+        } catch (_) {
+          detailed = null;
+        }
+        final resolvedName = (detailed?.name?.isNotEmpty ?? false)
+            ? detailed!.name!
+            : 'Series #${link.id}';
+        final showMovie = Movie(
+          id: link.id!,
+          title: resolvedName,
+          mediaType: 'tv',
+        );
+
+        breadcrumbProvider.setBreadcrumbs([
+          DeepLinkBreadcrumb(
+            label: loc.t('navigation.series'),
+            destination: AppDestination.tv,
+            routeName: SeriesScreen.routeName,
+          ),
+          DeepLinkBreadcrumb(
+            label: resolvedName,
+            destination: AppDestination.tv,
+            routeName: TVDetailScreen.routeName,
+            arguments: showMovie,
+          ),
+        ]);
+
         await rootNavigator.pushNamed(
           TVDetailScreen.routeName,
-          arguments: Movie(
-            id: link.id!,
-            title: 'Series #${link.id}',
-            mediaType: 'tv',
-          ),
+          arguments: showMovie,
         );
         break;
       case DeepLinkType.season:
+        if (link.id == null || link.seasonNumber == null) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
         await _ensureDestination(AppDestination.tv);
+        TVDetailed? detailed;
+        Season? season;
+        try {
+          // GET /3/tv/{tv_id}
+          detailed = await repo.fetchTvDetails(link.id!);
+          // GET /3/tv/{tv_id}/season/{season_number}
+          season = await repo.fetchTvSeason(link.id!, link.seasonNumber!);
+        } catch (_) {
+          detailed = null;
+          season = null;
+        }
+        final showName = (detailed?.name?.isNotEmpty ?? false)
+            ? detailed!.name!
+            : 'Series #${link.id}';
+        final seasonLabel = (season?.name?.isNotEmpty ?? false)
+            ? season!.name!
+            : 'Season ${link.seasonNumber}';
+        final showMovie = Movie(
+          id: link.id!,
+          title: showName,
+          mediaType: 'tv',
+        );
+        final seasonArgs = SeasonDetailArgs(
+          tvId: link.id!,
+          seasonNumber: link.seasonNumber!,
+        );
+
+        breadcrumbProvider.setBreadcrumbs([
+          DeepLinkBreadcrumb(
+            label: loc.t('navigation.series'),
+            destination: AppDestination.tv,
+            routeName: SeriesScreen.routeName,
+          ),
+          DeepLinkBreadcrumb(
+            label: showName,
+            destination: AppDestination.tv,
+            routeName: TVDetailScreen.routeName,
+            arguments: showMovie,
+          ),
+          DeepLinkBreadcrumb(
+            label: seasonLabel,
+            destination: AppDestination.tv,
+            routeName: SeasonDetailScreen.routeName,
+            arguments: seasonArgs,
+          ),
+        ]);
+
         await rootNavigator.pushNamed(
           SeasonDetailScreen.routeName,
-          arguments: SeasonDetailArgs(
-            tvId: link.id!,
-            seasonNumber: link.seasonNumber!,
-          ),
+          arguments: seasonArgs,
         );
         break;
       case DeepLinkType.episode:
+        if (link.id == null ||
+            link.seasonNumber == null ||
+            link.episodeNumber == null) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
         await _ensureDestination(AppDestination.tv);
         try {
-          final Episode episode = await repo.fetchTvEpisode(
+          // GET /3/tv/{tv_id}
+          final show = await repo.fetchTvDetails(link.id!);
+          // GET /3/tv/{tv_id}/season/{season_number}
+          final season = await repo.fetchTvSeason(
+            link.id!,
+            link.seasonNumber!,
+          );
+          // GET /3/tv/{tv_id}/season/{season_number}/episode/{episode_number}
+          final episode = await repo.fetchTvEpisode(
             link.id!,
             link.seasonNumber!,
             link.episodeNumber!,
           );
-          if (!mounted) return;
+
+          final showName = (show.name?.isNotEmpty ?? false)
+              ? show.name!
+              : 'Series #${link.id}';
+          final showMovie = Movie(
+            id: link.id!,
+            title: showName,
+            mediaType: 'tv',
+          );
+          final seasonLabel = (season.name?.isNotEmpty ?? false)
+              ? season.name!
+              : 'Season ${link.seasonNumber}';
+          final episodeLabel = episode.name.isNotEmpty
+              ? episode.name
+              : 'Episode ${link.episodeNumber}';
+          final seasonArgs = SeasonDetailArgs(
+            tvId: link.id!,
+            seasonNumber: link.seasonNumber!,
+          );
+
+          breadcrumbProvider.setBreadcrumbs([
+            DeepLinkBreadcrumb(
+              label: loc.t('navigation.series'),
+              destination: AppDestination.tv,
+              routeName: SeriesScreen.routeName,
+            ),
+            DeepLinkBreadcrumb(
+              label: showName,
+              destination: AppDestination.tv,
+              routeName: TVDetailScreen.routeName,
+              arguments: showMovie,
+            ),
+            DeepLinkBreadcrumb(
+              label: seasonLabel,
+              destination: AppDestination.tv,
+              routeName: SeasonDetailScreen.routeName,
+              arguments: seasonArgs,
+            ),
+            DeepLinkBreadcrumb(label: episodeLabel),
+          ]);
+
           await rootNavigator.pushNamed(
             EpisodeDetailScreen.routeName,
             arguments: EpisodeDetailArgs(tvId: link.id!, episode: episode),
           );
-        } catch (error) {
+        } catch (_) {
           await showError(loc.t('errors.generic'));
         }
         break;
       case DeepLinkType.person:
+        if (link.id == null) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
+        PersonDetail? personDetail;
+        Person? summary;
+        try {
+          // GET /3/person/{person_id}
+          personDetail = await repo.fetchPersonDetails(link.id!);
+        } catch (_) {
+          personDetail = null;
+        }
+        final resolvedName = (personDetail?.name?.isNotEmpty ?? false)
+            ? personDetail!.name
+            : 'Person #${link.id}';
+        summary = personDetail == null
+            ? Person(id: link.id!, name: resolvedName)
+            : Person(id: link.id!, name: personDetail!.name);
+
+        breadcrumbProvider.setBreadcrumbs([
+          DeepLinkBreadcrumb(label: resolvedName),
+        ]);
+
         await rootNavigator.pushNamed(
           PersonDetailScreen.routeName,
-          arguments: link.id!,
+          arguments: summary,
         );
         break;
       case DeepLinkType.company:
+        if (link.id == null) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
+        Company? company;
+        try {
+          // GET /3/company/{company_id}
+          company = await repo.fetchCompanyDetails(link.id!);
+        } catch (_) {
+          company = null;
+        }
+        final resolvedCompany = company ??
+            Company(
+              id: link.id!,
+              name: 'Company #${link.id}',
+            );
+
+        breadcrumbProvider.setBreadcrumbs([
+          DeepLinkBreadcrumb(label: resolvedCompany.name),
+        ]);
+
         await rootNavigator.pushNamed(
           CompanyDetailScreen.routeName,
-          arguments: Company(id: link.id!, name: 'Company #${link.id}'),
+          arguments: resolvedCompany,
         );
         break;
       case DeepLinkType.collection:
+        if (link.id == null) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
+        CollectionDetails? collection;
+        try {
+          // GET /3/collection/{collection_id}
+          collection = await repo.fetchCollectionDetails(link.id!);
+        } catch (_) {
+          collection = null;
+        }
+        final resolvedName = (collection?.name?.isNotEmpty ?? false)
+            ? collection!.name
+            : 'Collection #${link.id}';
+
+        breadcrumbProvider.setBreadcrumbs([
+          DeepLinkBreadcrumb(label: resolvedName),
+        ]);
+
         await rootNavigator.pushNamed(
           CollectionDetailScreen.routeName,
           arguments: link.id!,
         );
         break;
       case DeepLinkType.search:
+        final query = link.searchQuery?.trim();
+        if (query == null || query.isEmpty) {
+          await showError(loc.t('errors.generic'));
+          return;
+        }
         await _ensureDestination(AppDestination.search);
+        breadcrumbProvider.setBreadcrumbs([
+          DeepLinkBreadcrumb(
+            label: loc.t('navigation.search'),
+            destination: AppDestination.search,
+            routeName: SearchScreen.routeName,
+          ),
+          DeepLinkBreadcrumb(label: '"$query"'),
+        ]);
+
         final navigator = _navigatorKeys[AppDestination.search]?.currentState;
         navigator?.popUntil((route) => route.isFirst);
         navigator?.pushNamed(
           SearchScreen.routeName,
-          arguments: link.searchQuery,
+          arguments: query,
         );
         break;
     }
   }
 
-  Future<void> _ensureDestination(AppDestination destination) async {
-    if (_currentDestination == destination) return;
+  Future<void> _ensureDestination(
+    AppDestination destination, {
+    bool shouldNotify = false,
+  }) async {
+    if (_activeDestination == destination) {
+      return;
+    }
     setState(() {
       _currentDestination = destination;
     });
+    if (shouldNotify) {
+      context.read<AppStateProvider>().updateDestination(destination);
+    } else {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        context.read<AppStateProvider>().updateDestination(destination);
+      });
+    }
     await Future<void>.delayed(Duration.zero);
   }
 
-  Widget _buildBottomNavigationBar() {
-    final l = AppLocalizations.of(context);
+  NavigationBar _buildBottomNavigationBar() {
+    final loc = AppLocalizations.of(context);
     return NavigationBar(
-      selectedIndex: _currentDestination.index,
+      selectedIndex: _activeDestination.index,
       onDestinationSelected: (index) {
         final selected = AppDestination.values[index];
-
-        if (_currentDestination == selected) {
+        if (_activeDestination == selected) {
           _navigatorKeys[selected]!.currentState?.popUntil(
             (route) => route.isFirst,
           );
@@ -236,29 +510,47 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           _currentDestination = selected;
         });
         context.read<AppStateProvider>().updateDestination(selected);
+        context.read<DeepLinkBreadcrumbsProvider>().clear();
       },
       destinations: [
         NavigationDestination(
           icon: const Icon(Icons.home_outlined),
           selectedIcon: const Icon(Icons.home),
-          label: l.t('navigation.home'),
+          label: loc.t('navigation.home'),
         ),
         NavigationDestination(
           icon: const Icon(Icons.movie_outlined),
           selectedIcon: const Icon(Icons.movie),
-          label: l.t('navigation.movies'),
+          label: loc.t('navigation.movies'),
         ),
         NavigationDestination(
           icon: const Icon(Icons.tv_outlined),
           selectedIcon: const Icon(Icons.tv),
-          label: l.t('navigation.series'),
+          label: loc.t('navigation.series'),
         ),
         NavigationDestination(
           icon: const Icon(Icons.search),
           selectedIcon: const Icon(Icons.search),
-          label: l.t('navigation.search'),
+          label: loc.t('navigation.search'),
         ),
       ],
+    );
+  }
+
+  Future<void> _handleBreadcrumbTap(DeepLinkBreadcrumb breadcrumb) async {
+    if (!breadcrumb.isActionable) {
+      return;
+    }
+    await _ensureDestination(breadcrumb.destination!, shouldNotify: true);
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    rootNavigator.popUntil((route) => route.isFirst);
+    if (!mounted || breadcrumb.routeName == null) {
+      return;
+    }
+    await Future<void>.delayed(Duration.zero);
+    await rootNavigator.pushNamed(
+      breadcrumb.routeName!,
+      arguments: breadcrumb.arguments,
     );
   }
 }
@@ -273,44 +565,50 @@ class _DestinationNavigator extends StatelessWidget {
   final AppDestination destination;
 
   Route<dynamic> _onGenerateRoute(RouteSettings settings) {
-    Widget page;
     final isInitialRoute = settings.name == Navigator.defaultRouteName;
 
     switch (destination) {
       case AppDestination.home:
         if (isInitialRoute || settings.name == HomeScreen.routeName) {
-          page = const HomeScreen();
-          break;
+          return MaterialPageRoute(
+            builder: (_) => const HomeScreen(),
+            settings: settings,
+          );
         }
-        page = _buildSharedRoute(settings);
         break;
       case AppDestination.movies:
         if (isInitialRoute || settings.name == MoviesScreen.routeName) {
-          page = const MoviesScreen();
-          break;
+          return MaterialPageRoute(
+            builder: (_) => const MoviesScreen(),
+            settings: settings,
+          );
         }
-        page = _buildSharedRoute(settings);
         break;
       case AppDestination.tv:
         if (isInitialRoute || settings.name == SeriesScreen.routeName) {
-          page = const SeriesScreen();
-          break;
+          return MaterialPageRoute(
+            builder: (_) => const SeriesScreen(),
+            settings: settings,
+          );
         }
-        page = _buildSharedRoute(settings);
         break;
       case AppDestination.search:
         if (isInitialRoute || settings.name == SearchScreen.routeName) {
           final initialQuery = settings.arguments is String
               ? settings.arguments as String
               : null;
-          page = SearchScreen(initialQuery: initialQuery);
-          break;
+          return MaterialPageRoute(
+            builder: (_) => SearchScreen(initialQuery: initialQuery),
+            settings: settings,
+          );
         }
-        page = _buildSharedRoute(settings);
         break;
     }
 
-    return MaterialPageRoute(builder: (_) => page, settings: settings);
+    return MaterialPageRoute(
+      builder: (_) => _buildSharedRoute(settings),
+      settings: settings,
+    );
   }
 
   Widget _buildSharedRoute(RouteSettings settings) {
@@ -325,10 +623,10 @@ class _DestinationNavigator extends StatelessWidget {
         return const SeriesScreen();
       case SeriesFiltersScreen.routeName:
         final args = settings.arguments;
-        if (args is SeriesFiltersScreenArgs) {
+        if (args is SeriesFiltersScreenArguments) {
           return SeriesFiltersScreen(
             initialFilters: args.initialFilters,
-            presetSaved: args.presetSaved,
+            presetSaved: args.initialPresetName != null,
           );
         }
         return const SeriesFiltersScreen();

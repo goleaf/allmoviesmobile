@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 import '../../core/constants/app_strings.dart';
-import '../../providers/auth_provider.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
@@ -24,28 +22,44 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
-    final user = authProvider.currentUser;
     final currentRoute = ModalRoute.of(context)?.settings.name;
-
     final screenWidth = MediaQuery.of(context).size.width;
 
     return Drawer(
       width: screenWidth,
       child: Column(
         children: [
-          UserAccountsDrawerHeader(
-            accountName: Text(user?.fullName ?? 'Guest'),
-            accountEmail: Text(user?.email ?? ''),
-            currentAccountPicture: CircleAvatar(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              child: Text(
-                user?.fullName.substring(0, 1).toUpperCase() ?? 'G',
-                style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold),
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Theme.of(context).colorScheme.primary,
+                  Theme.of(context).colorScheme.primaryContainer,
+                ],
               ),
             ),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.movie_filter,
+                    size: 64,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    AppStrings.appName,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ],
+              ),
             ),
           ),
           ListTile(
@@ -99,18 +113,6 @@ class AppDrawer extends StatelessWidget {
             },
           ),
           const Spacer(),
-          const Divider(),
-          if (user != null)
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text(AppStrings.logout),
-              onTap: () async {
-                await authProvider.logout();
-                if (context.mounted) {
-                  Navigator.pop(context);
-                }
-              },
-            ),
           const SizedBox(height: 16),
         ],
       ),

@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/movie.dart';
-import '../../../providers/auth_provider.dart';
 import '../../../providers/trending_titles_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../companies/companies_screen.dart';
@@ -33,7 +32,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = context.watch<AuthProvider>();
     final trendingProvider = context.watch<TrendingTitlesProvider>();
     final filteredTitles = _filterTitles(trendingProvider.titles);
     final isLoading = trendingProvider.isLoading;
@@ -122,7 +120,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Welcome, ${authProvider.currentUser?.fullName ?? "Guest"}!',
+              'Welcome to AllMovies!',
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 8),

@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
 import '../../../data/models/movie.dart';
+import '../../../providers/favorites_provider.dart';
+import '../../../providers/watchlist_provider.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
@@ -18,6 +21,9 @@ class MovieDetailScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           _buildSliverAppBar(context),
+          SliverToBoxAdapter(
+            child: _buildActionButtons(context),
+          ),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,6 +329,71 @@ class MovieDetailScreen extends StatelessWidget {
               ),
             );
           }),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButtons(BuildContext context) {
+    final favoritesProvider = context.watch<FavoritesProvider>();
+    final watchlistProvider = context.watch<WatchlistProvider>();
+    final isFavorite = favoritesProvider.isFavorite(movie.id);
+    final isInWatchlist = watchlistProvider.isInWatchlist(movie.id);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                favoritesProvider.toggleFavorite(movie.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isFavorite
+                          ? 'Removed from favorites'
+                          : 'Added to favorites',
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : null,
+              ),
+              label: Text(isFavorite ? 'Favorited' : 'Favorite'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () {
+                watchlistProvider.toggleWatchlist(movie.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      isInWatchlist
+                          ? 'Removed from watchlist'
+                          : 'Added to watchlist',
+                    ),
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+              },
+              icon: Icon(
+                isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
+              ),
+              label: Text(isInWatchlist ? 'In Watchlist' : 'Watchlist'),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+            ),
+          ),
         ],
       ),
     );

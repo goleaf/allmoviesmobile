@@ -1,132 +1,139 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../models/user_model.dart';
 
 class LocalStorageService {
-  static const String _usersKey = 'allmovies_users';
-  static const String _currentUserKey = 'allmovies_current_user';
+  static const String _favoritesKey = 'allmovies_favorites';
+  static const String _watchlistKey = 'allmovies_watchlist';
+  static const String _recentlyViewedKey = 'allmovies_recently_viewed';
+  static const String _searchHistoryKey = 'allmovies_search_history';
 
   final SharedPreferences _prefs;
 
   LocalStorageService(this._prefs);
 
-  // Get all registered users
-  List<UserModel> getUsers() {
-    final String? usersJson = _prefs.getString(_usersKey);
-    if (usersJson == null || usersJson.isEmpty) return [];
-
-    final List<dynamic> usersList = json.decode(usersJson);
-    return usersList.map((json) => UserModel.fromMap(json)).toList();
-  }
-
-  // Save all users
-  Future<bool> saveUsers(List<UserModel> users) async {
-    final usersJson = json.encode(users.map((u) => u.toMap()).toList());
-    return await _prefs.setString(_usersKey, usersJson);
-  }
-
-  // Get current logged-in user
-  UserModel? getCurrentUser() {
-    final String? userJson = _prefs.getString(_currentUserKey);
-    if (userJson == null || userJson.isEmpty) return null;
-    return UserModel.fromJson(userJson);
-  }
-
-  // Save current user
-  Future<bool> saveCurrentUser(UserModel user) async {
-    return await _prefs.setString(_currentUserKey, user.toJson());
-  }
-
-  // Update a user and persist changes to the cached current user
-  Future<bool> updateUser(UserModel user) async {
-    final users = getUsers();
-    final index = users.indexWhere((u) => u.id == user.id);
-
-    if (index == -1) return false;
-
-    users[index] = user;
-    final success = await saveUsers(users);
-
-    if (success) {
-      final current = getCurrentUser();
-      if (current?.id == user.id) {
-        await saveCurrentUser(user);
-      }
-    }
-
-    return success;
-  }
-
-  // Clear current user (logout)
-  Future<bool> clearCurrentUser() async {
-    return await _prefs.remove(_currentUserKey);
-  }
-
-  // Register a new user
-  Future<bool> registerUser(UserModel user) async {
-    final users = getUsers();
+  // Favorites Management
+  Set<int> getFavorites() {
+    final favoritesJson = _prefs.getString(_favoritesKey);
+    if (favoritesJson == null || favoritesJson.isEmpty) return {};
     
-    // Check if email already exists
-    if (users.any((u) => u.email.toLowerCase() == user.email.toLowerCase())) {
-      return false;
-    }
+    final List<dynamic> favoritesList = json.decode(favoritesJson);
+    return favoritesList.whereType<int>().toSet();
+  }
+
+  Future<bool> saveFavorites(Set<int> favorites) async {
+    final favoritesJson = json.encode(favorites.toList());
+    return await _prefs.setString(_favoritesKey, favoritesJson);
+  }
+
+  Future<bool> addToFavorites(int movieId) async {
+    final favorites = getFavorites();
+    favorites.add(movieId);
+    return await saveFavorites(favorites);
+  }
+
+  Future<bool> removeFromFavorites(int movieId) async {
+    final favorites = getFavorites();
+    favorites.remove(movieId);
+    return await saveFavorites(favorites);
+  }
+
+  bool isFavorite(int movieId) {
+    return getFavorites().contains(movieId);
+  }
+
+  // Watchlist Management
+  Set<int> getWatchlist() {
+    final watchlistJson = _prefs.getString(_watchlistKey);
+    if (watchlistJson == null || watchlistJson.isEmpty) return {};
     
-    users.add(user);
-    return await saveUsers(users);
+    final List<dynamic> watchlist = json.decode(watchlistJson);
+    return watchlist.whereType<int>().toSet();
   }
 
-  // Update user password
-  Future<bool> updateUserPassword(String email, String newPassword) async {
-    final users = getUsers();
-    final index = users.indexWhere(
-      (u) => u.email.toLowerCase() == email.toLowerCase(),
-    );
+  Future<bool> saveWatchlist(Set<int> watchlist) async {
+    final watchlistJson = json.encode(watchlist.toList());
+    return await _prefs.setString(_watchlistKey, watchlistJson);
+  }
+
+  Future<bool> addToWatchlist(int movieId) async {
+    final watchlist = getWatchlist();
+    watchlist.add(movieId);
+    return await saveWatchlist(watchlist);
+  }
+
+  Future<bool> removeFromWatchlist(int movieId) async {
+    final watchlist = getWatchlist();
+    watchlist.remove(movieId);
+    return await saveWatchlist(watchlist);
+  }
+
+  bool isInWatchlist(int movieId) {
+    return getWatchlist().contains(movieId);
+  }
+
+  // Recently Viewed Management
+  List<int> getRecentlyViewed({int limit = 20}) {
+    final recentlyViewedJson = _prefs.getString(_recentlyViewedKey);
+    if (recentlyViewedJson == null || recentlyViewedJson.isEmpty) return [];
     
-    if (index == -1) return false;
+    final List<dynamic> recentlyViewed = json.decode(recentlyViewedJson);
+    final movieIds = recentlyViewed.whereType<int>().toList();
+    return movieIds.take(limit).toList();
+  }
+
+  Future<bool> addToRecentlyViewed(int movieId) async {
+    final recentlyViewed = getRecentlyViewed(limit: 100);
+    recentlyViewed.remove(movieId); // Remove if exists
+    recentlyViewed.insert(0, movieId); // Add to front
     
-    users[index] = users[index].copyWith(password: newPassword);
-    return await saveUsers(users);
+    final recentlyViewedJson = json.encode(recentlyViewed.take(20).toList());
+    return await _prefs.setString(_recentlyViewedKey, recentlyViewedJson);
   }
 
-  // Validate login credentials
-  UserModel? validateLogin(String email, String password) {
-    final users = getUsers();
-    try {
-      return users.firstWhere(
-        (u) => u.email.toLowerCase() == email.toLowerCase() && 
-               u.password == password,
-      );
-    } catch (e) {
-      return null;
-    }
+  Future<bool> clearRecentlyViewed() async {
+    return await _prefs.remove(_recentlyViewedKey);
   }
 
-  // Check if email exists
-  bool emailExists(String email) {
-    final users = getUsers();
-    return users.any((u) => u.email.toLowerCase() == email.toLowerCase());
+  // Search History Management
+  List<String> getSearchHistory({int limit = 10}) {
+    final searchHistoryJson = _prefs.getString(_searchHistoryKey);
+    if (searchHistoryJson == null || searchHistoryJson.isEmpty) return [];
+    
+    final List<dynamic> searchHistory = json.decode(searchHistoryJson);
+    final queries = searchHistory.whereType<String>().toList();
+    return queries.take(limit).toList();
   }
 
-  // Get user by email
-  UserModel? getUserByEmail(String email) {
-    final users = getUsers();
-    try {
-      return users.firstWhere(
-        (u) => u.email.toLowerCase() == email.toLowerCase(),
-      );
-    } catch (e) {
-      return null;
-    }
+  Future<bool> addToSearchHistory(String query) async {
+    if (query.trim().isEmpty) return false;
+    
+    final searchHistory = getSearchHistory(limit: 50);
+    searchHistory.remove(query); // Remove if exists
+    searchHistory.insert(0, query); // Add to front
+    
+    final searchHistoryJson = json.encode(searchHistory.take(10).toList());
+    return await _prefs.setString(_searchHistoryKey, searchHistoryJson);
   }
 
-  // Get user by id
-  UserModel? getUserById(String id) {
-    final users = getUsers();
-    try {
-      return users.firstWhere((u) => u.id == id);
-    } catch (e) {
-      return null;
-    }
+  Future<bool> removeFromSearchHistory(String query) async {
+    final searchHistory = getSearchHistory(limit: 50);
+    searchHistory.remove(query);
+    
+    final searchHistoryJson = json.encode(searchHistory);
+    return await _prefs.setString(_searchHistoryKey, searchHistoryJson);
+  }
+
+  Future<bool> clearSearchHistory() async {
+    return await _prefs.remove(_searchHistoryKey);
+  }
+
+  // Clear all data
+  Future<bool> clearAllData() async {
+    await _prefs.remove(_favoritesKey);
+    await _prefs.remove(_watchlistKey);
+    await _prefs.remove(_recentlyViewedKey);
+    await _prefs.remove(_searchHistoryKey);
+    return true;
   }
 }
 

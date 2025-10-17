@@ -8,9 +8,11 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
+import 'providers/favorites_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
+import 'providers/watchlist_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
@@ -53,6 +55,8 @@ class AllMoviesApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => WatchlistProvider(storageService)),
         ChangeNotifierProvider(
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),

@@ -13,6 +13,8 @@ import '../../widgets/media_image.dart';
 import '../../widgets/image_gallery.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../../core/navigation/deep_link_parser.dart';
+import '../../widgets/share/deep_link_share_sheet.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   static const routeName = '/person-detail';
@@ -96,6 +98,7 @@ class _PersonDetailView extends StatelessWidget {
         sliverScrollWrapper: (scroll) => scroll,
         slivers: [
           _PersonAppBar(
+            personId: provider.personId,
             name: name,
             department: department,
             popularity: popularity,
@@ -118,6 +121,7 @@ class _PersonDetailView extends StatelessWidget {
       ),
       slivers: [
         _PersonAppBar(
+          personId: provider.personId,
           name: name,
           department: department,
           popularity: popularity,
@@ -131,12 +135,14 @@ class _PersonDetailView extends StatelessWidget {
 
 class _PersonAppBar extends StatelessWidget {
   const _PersonAppBar({
+    required this.personId,
     required this.name,
     this.department,
     this.popularity,
     this.profileUrl,
   });
 
+  final int personId;
   final String name;
   final String? department;
   final double? popularity;
@@ -150,6 +156,21 @@ class _PersonAppBar extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 360,
       pinned: true,
+      actions: [
+        IconButton(
+          tooltip: 'Share',
+          icon: const Icon(Icons.share),
+          onPressed: () {
+            final link = DeepLinkBuilder.person(personId);
+            showDeepLinkShareSheet(
+              context,
+              title: name,
+              httpLink: link,
+              customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+            );
+          },
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 16),
         title: Text(name),

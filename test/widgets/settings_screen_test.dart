@@ -44,8 +44,13 @@ void main() {
     await tester.tap(languageRadio);
     await tester.pumpAndSettle();
 
-    // Open region dialog
-    await tester.tap(find.text('Region'));
+    // Open region dialog (ensure visible)
+    final listFinder = find.byType(ListView);
+    if (listFinder.evaluate().isNotEmpty) {
+      await tester.drag(listFinder.first, const Offset(0, -300));
+      await tester.pumpAndSettle();
+    }
+    await tester.tap(find.textContaining('Region'));
     await tester.pumpAndSettle();
     final regionRadio = find.byType(RadioListTile<String>).first;
     await tester.tap(regionRadio);

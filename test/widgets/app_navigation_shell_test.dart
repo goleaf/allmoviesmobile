@@ -1,26 +1,47 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:provider/provider.dart';
 
 import 'package:allmovies_mobile/presentation/navigation/app_navigation_shell.dart';
+import 'package:allmovies_mobile/providers/movies_provider.dart';
+import 'package:allmovies_mobile/providers/series_provider.dart';
+import 'package:allmovies_mobile/providers/search_provider.dart';
+import 'package:allmovies_mobile/data/tmdb_repository.dart';
+import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('Bottom navigation switches destinations', (tester) async {
-    await tester.pumpWidget(const MaterialApp(home: AppNavigationShell()));
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    final prefs = await SharedPreferences.getInstance();
+    final storage = LocalStorageService(prefs);
+    final repo = TmdbRepository();
+
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => MoviesProvider(repo)),
+          ChangeNotifierProvider(create: (_) => SeriesProvider(repo)),
+          ChangeNotifierProvider(create: (_) => SearchProvider(repo, storage)),
+        ],
+        child: const MaterialApp(home: AppNavigationShell()),
+      ),
+    );
     await tester.pumpAndSettle();
 
     // Initially on Home
     expect(find.byType(NavigationBar), findsOneWidget);
 
-    // Tap Movies destination
-    await tester.tap(find.text('Movies'));
+    // Tap Movies destination (use first occurrence to avoid ambiguity)
+    await tester.tap(find.text('Movies').first);
     await tester.pumpAndSettle();
 
     // Tap TV destination
-    await tester.tap(find.text('Series'));
+    await tester.tap(find.text('Series').first);
     await tester.pumpAndSettle();
 
     // Tap Search destination
-    await tester.tap(find.text('Search'));
+    await tester.tap(find.text('Search').first);
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationBar), findsOneWidget);

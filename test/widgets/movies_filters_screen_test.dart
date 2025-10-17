@@ -14,7 +14,7 @@ void main() {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
-    DiscoverFilters? result;
+    final navigatorKey = GlobalKey<NavigatorState>();
 
     await tester.pumpWidget(
       MultiProvider(
@@ -22,6 +22,7 @@ void main() {
           ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
         ],
         child: MaterialApp(
+          navigatorKey: navigatorKey,
           localizationsDelegates: const [
             AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
@@ -29,22 +30,35 @@ void main() {
             GlobalCupertinoLocalizations.delegate,
           ],
           supportedLocales: const [Locale('en')],
-          home: const MoviesFiltersScreen(),
+          home: const Scaffold(body: SizedBox.shrink()),
+          onGenerateRoute: (settings) {
+            if (settings.name == MoviesFiltersScreen.routeName) {
+              return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen());
+            }
+            return null;
+          },
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    // Validate the title exists and interact with decade button
-    expect(find.text('Filters'), findsOneWidget);
+    final future = navigatorKey.currentState!.pushNamed(MoviesFiltersScreen.routeName);
+    await tester.pumpAndSettle();
+
+    // Tap a decade button e.g., 1990s
     await tester.tap(find.text('1990s'));
+    await tester.pump();
+
+    // Apply
+    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
     await tester.pumpAndSettle();
-    // Tap Apply
-    await tester.tap(find.byKey(const ValueKey('moviesApplyFilters')));
-    await tester.pumpAndSettle();
+
+    final result = await future;
+    expect(result, isA<DiscoverFilters>());
+    final filters = result as DiscoverFilters;
+    expect(filters.releaseDateGte, isNotNull);
+    expect(filters.releaseDateLte, isNotNull);
   });
 }
-
-// Duplicate block removed (defined above in this file)
 
 

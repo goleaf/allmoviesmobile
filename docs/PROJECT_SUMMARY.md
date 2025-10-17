@@ -54,7 +54,7 @@ A comprehensive Flutter movie recommendation platform with complete UI/UX, state
 - ✅ `Network` - TV networks
 - ✅ `Video` - Trailers & videos
 - ✅ `ImageModel` - Posters, backdrops
-- ✅ `ExternalIds` - IMDb, TMDb IDs
+- ✅ `ExternalIds` - IMDb, Facebook, Twitter, TVDB, TVRage IDs
 
 #### People & Credits
 - ✅ `Person` - Actor/director details

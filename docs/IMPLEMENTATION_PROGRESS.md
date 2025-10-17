@@ -43,7 +43,7 @@ Created 17+ data models using freezed and json_serializable:
 - ✅ `Network` - TV networks
 - ✅ `Video` - Trailers and videos
 - ✅ `ImageModel` - Posters, backdrops, stills
-- ✅ `ExternalIds` - IMDb, TMDb IDs
+- ✅ `ExternalIds` - IMDb, Facebook, Twitter, TVDB, TVRage IDs
 - ✅ `Company` - Production companies
 
 #### Credit Models

@@ -220,7 +220,16 @@
     "show_more": "Показать Больше",
     "show_less": "Показать Меньше",
     "unknown": "Неизвестно",
-    "not_available": "Н/Д"
+    "not_available": "Н/Д",
+    "external_links": {
+      "title": "Внешние ссылки",
+      "imdb": "IMDb",
+      "homepage": "Веб-сайт",
+      "facebook": "Facebook",
+      "twitter": "Twitter",
+      "tvdb": "TVDB",
+      "tvrage": "TVRage"
+    }
   },
   "errors": {
     "network_error": "Ошибка сети. Проверьте подключение.",

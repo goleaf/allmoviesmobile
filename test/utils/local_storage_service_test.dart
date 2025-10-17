@@ -52,5 +52,59 @@ void main() {
       final recent = storage.getRecentlyViewed();
       expect(recent, containsAll([11, 10]));
     });
+
+    test('watch provider snapshots persist changes', () async {
+      const mediaType = 'movie';
+      const mediaId = 101;
+      const region = 'us';
+
+      expect(
+        storage.hasWatchProviderSnapshot(mediaType, mediaId, region),
+        isFalse,
+      );
+      expect(
+        storage.getWatchProviderSnapshot(mediaType, mediaId, region),
+        isEmpty,
+      );
+
+      await storage.saveWatchProviderSnapshot(
+        mediaType,
+        mediaId,
+        region,
+        const <int>{8, 9},
+      );
+
+      expect(
+        storage.hasWatchProviderSnapshot(mediaType, mediaId, region),
+        isTrue,
+      );
+      expect(
+        storage.getWatchProviderSnapshot(mediaType, mediaId, region),
+        {8, 9},
+      );
+
+      await storage.saveWatchProviderSnapshot(
+        mediaType,
+        mediaId,
+        region,
+        const <int>{9},
+      );
+
+      expect(
+        storage.getWatchProviderSnapshot(mediaType, mediaId, region),
+        {9},
+      );
+
+      await storage.clearWatchProviderSnapshot(mediaType, mediaId, region);
+
+      expect(
+        storage.hasWatchProviderSnapshot(mediaType, mediaId, region),
+        isFalse,
+      );
+      expect(
+        storage.getWatchProviderSnapshot(mediaType, mediaId, region),
+        isEmpty,
+      );
+    });
   });
 }

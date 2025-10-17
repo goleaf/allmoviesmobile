@@ -1,17 +1,13 @@
 import 'package:equatable/equatable.dart';
 
-enum TmdbV4HttpMethod {
-  get,
-  post,
-  delete,
-}
+enum TmdbV4HttpMethod { get, post, delete }
 
 extension TmdbV4HttpMethodExtension on TmdbV4HttpMethod {
   String get name => switch (this) {
-        TmdbV4HttpMethod.get => 'GET',
-        TmdbV4HttpMethod.post => 'POST',
-        TmdbV4HttpMethod.delete => 'DELETE',
-      };
+    TmdbV4HttpMethod.get => 'GET',
+    TmdbV4HttpMethod.post => 'POST',
+    TmdbV4HttpMethod.delete => 'DELETE',
+  };
 }
 
 class TmdbV4Endpoint extends Equatable {
@@ -49,7 +45,11 @@ class TmdbV4Endpoint extends Equatable {
       (key, value) => MapEntry(key, value?.toString()),
     );
 
-    return Uri.https('api.themoviedb.org', '/4$path', filtered.isEmpty ? null : filtered);
+    return Uri.https(
+      'api.themoviedb.org',
+      '/4$path',
+      filtered.isEmpty ? null : filtered,
+    );
   }
 
   @override

@@ -14,4 +14,3 @@ class CountryTranslationEntity {
 
   late String name;
 }
-

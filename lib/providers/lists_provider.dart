@@ -10,16 +10,13 @@ import '../data/models/custom_list.dart';
 import '../data/models/saved_media_item.dart';
 
 class ListsProvider extends ChangeNotifier {
-  ListsProvider(
-    this._storage, {
-    String? currentUserId,
-    String? currentUserName,
-  })  : _currentUserId = (currentUserId ?? _defaultUserId).trim().isEmpty
-            ? _defaultUserId
-            : currentUserId!.trim(),
-        _currentUserName = (currentUserName ?? _defaultUserName).trim().isEmpty
-            ? _defaultUserName
-            : currentUserName!.trim() {
+  ListsProvider(this._storage, {String? currentUserId, String? currentUserName})
+    : _currentUserId = (currentUserId ?? _defaultUserId).trim().isEmpty
+          ? _defaultUserId
+          : currentUserId!.trim(),
+      _currentUserName = (currentUserName ?? _defaultUserName).trim().isEmpty
+          ? _defaultUserName
+          : currentUserName!.trim() {
     unawaited(_loadLists());
   }
 
@@ -45,8 +42,9 @@ class ListsProvider extends ChangeNotifier {
 
   List<UserList> get lists => List.unmodifiable(_lists);
 
-  List<UserList> get myLists =>
-      _lists.where((list) => list.ownerId == _currentUserId).toList(growable: false);
+  List<UserList> get myLists => _lists
+      .where((list) => list.ownerId == _currentUserId)
+      .toList(growable: false);
 
   List<UserList> get discoverableLists => _lists
       .where((list) => list.ownerId != _currentUserId && list.isPublic)
@@ -95,8 +93,9 @@ class ListsProvider extends ChangeNotifier {
     required String displayName,
   }) async {
     final normalizedId = userId.trim().isEmpty ? _defaultUserId : userId.trim();
-    final normalizedName =
-        displayName.trim().isEmpty ? _defaultUserName : displayName.trim();
+    final normalizedName = displayName.trim().isEmpty
+        ? _defaultUserName
+        : displayName.trim();
 
     if (_currentUserId == normalizedId && _currentUserName == normalizedName) {
       return;
@@ -125,8 +124,12 @@ class ListsProvider extends ChangeNotifier {
       name: trimmedName,
       ownerId: _currentUserId,
       ownerName: _currentUserName,
-      description: description?.trim().isNotEmpty == true ? description!.trim() : null,
-      posterPath: posterPath?.trim().isNotEmpty == true ? posterPath!.trim() : null,
+      description: description?.trim().isNotEmpty == true
+          ? description!.trim()
+          : null,
+      posterPath: posterPath?.trim().isNotEmpty == true
+          ? posterPath!.trim()
+          : null,
       isPublic: isPublic,
       isCollaborative: isCollaborative,
       createdAt: now,
@@ -167,16 +170,21 @@ class ListsProvider extends ChangeNotifier {
     String? posterPath,
   }) async {
     await _mutateList(listId, (list) {
-      if (list.ownerId != _currentUserId && !list.allowsEditsBy(_currentUserId)) {
+      if (list.ownerId != _currentUserId &&
+          !list.allowsEditsBy(_currentUserId)) {
         return list;
       }
 
       final updated = list.copyWith(
         name: name?.trim().isNotEmpty == true ? name!.trim() : null,
-        description: description?.trim().isNotEmpty == true ? description!.trim() : null,
+        description: description?.trim().isNotEmpty == true
+            ? description!.trim()
+            : null,
         isPublic: isPublic,
         isCollaborative: isCollaborative,
-        posterPath: posterPath?.trim().isNotEmpty == true ? posterPath!.trim() : null,
+        posterPath: posterPath?.trim().isNotEmpty == true
+            ? posterPath!.trim()
+            : null,
         updatedAt: DateTime.now(),
       );
       return updated;
@@ -211,7 +219,8 @@ class ListsProvider extends ChangeNotifier {
       }
 
       final alreadyExists = list.items.any(
-        (item) => item.mediaId == entry.mediaId && item.mediaType == entry.mediaType,
+        (item) =>
+            item.mediaId == entry.mediaId && item.mediaType == entry.mediaType,
       );
       if (alreadyExists) {
         return list;
@@ -289,11 +298,7 @@ class ListsProvider extends ChangeNotifier {
     return removed;
   }
 
-  Future<void> reorderEntries(
-    String listId,
-    int oldIndex,
-    int newIndex,
-  ) async {
+  Future<void> reorderEntries(String listId, int oldIndex, int newIndex) async {
     await _mutateList(listId, (list) {
       if (list.sortMode != ListSortMode.manual) {
         return list;
@@ -316,10 +321,7 @@ class ListsProvider extends ChangeNotifier {
       items.insert(targetIndex, entry);
 
       final reindexed = _reindex(items);
-      return list.copyWith(
-        items: reindexed,
-        updatedAt: DateTime.now(),
-      );
+      return list.copyWith(items: reindexed, updatedAt: DateTime.now());
     });
     notifyListeners();
   }
@@ -335,10 +337,7 @@ class ListsProvider extends ChangeNotifier {
         followers.remove(_currentUserId);
       }
 
-      return list.copyWith(
-        followerIds: followers,
-        updatedAt: DateTime.now(),
-      );
+      return list.copyWith(followerIds: followers, updatedAt: DateTime.now());
     });
     notifyListeners();
   }
@@ -421,10 +420,7 @@ class ListsProvider extends ChangeNotifier {
       );
       comments.sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-      return list.copyWith(
-        comments: comments,
-        updatedAt: DateTime.now(),
-      );
+      return list.copyWith(comments: comments, updatedAt: DateTime.now());
     });
     notifyListeners();
   }
@@ -439,10 +435,7 @@ class ListsProvider extends ChangeNotifier {
         return list;
       }
 
-      return list.copyWith(
-        comments: comments,
-        updatedAt: DateTime.now(),
-      );
+      return list.copyWith(comments: comments, updatedAt: DateTime.now());
     });
     notifyListeners();
   }
@@ -463,7 +456,9 @@ class ListsProvider extends ChangeNotifier {
       return;
     }
 
-    _lists[index] = updated.copyWith(updatedAt: updated.updatedAt ?? DateTime.now());
+    _lists[index] = updated.copyWith(
+      updatedAt: updated.updatedAt ?? DateTime.now(),
+    );
     await _persist();
   }
 
@@ -504,7 +499,8 @@ class ListsProvider extends ChangeNotifier {
       name: 'Curated Essentials',
       ownerId: 'curator-team',
       ownerName: 'Curator Team',
-      description: 'Critically acclaimed staples to kickstart your movie marathons.',
+      description:
+          'Critically acclaimed staples to kickstart your movie marathons.',
       posterPath: '/d5iIlFn5s0ImszYzBPb8JPIfbXD.jpg',
       isPublic: true,
       isCollaborative: false,
@@ -522,7 +518,8 @@ class ListsProvider extends ChangeNotifier {
       name: 'My First List',
       ownerId: _currentUserId,
       ownerName: _currentUserName,
-      description: 'Save titles you love or plan to watch. Add collaborators anytime.',
+      description:
+          'Save titles you love or plan to watch. Add collaborators anytime.',
       isPublic: false,
       isCollaborative: true,
       createdAt: now,
@@ -541,7 +538,9 @@ class ListsProvider extends ChangeNotifier {
     final release = movie.releaseDate != null && movie.releaseDate!.isNotEmpty
         ? DateTime.tryParse(movie.releaseDate!)
         : null;
-    final type = movie.mediaType == 'tv' ? ListEntryType.tv : ListEntryType.movie;
+    final type = movie.mediaType == 'tv'
+        ? ListEntryType.tv
+        : ListEntryType.movie;
     return ListEntry(
       mediaId: movie.id,
       mediaType: type,
@@ -598,7 +597,9 @@ class ListsProvider extends ChangeNotifier {
         sorted.sort((a, b) => b.addedAt.compareTo(a.addedAt));
         break;
       case ListSortMode.alphabetical:
-        sorted.sort((a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()));
+        sorted.sort(
+          (a, b) => a.title.toLowerCase().compareTo(b.title.toLowerCase()),
+        );
         break;
       case ListSortMode.releaseDate:
         sorted.sort((a, b) {
@@ -633,18 +634,20 @@ CustomList _mapUserListToCustom(UserList list) {
     createdAt: list.createdAt,
     updatedAt: list.updatedAt,
     items: list.items
-        .map((it) => SavedMediaItem(
-              id: it.mediaId,
-              type: it.mediaType == ListEntryType.tv
-                  ? SavedMediaType.tv
-                  : SavedMediaType.movie,
-              title: it.title,
-              overview: it.overview,
-              posterPath: it.posterPath,
-              backdropPath: it.backdropPath,
-              releaseDate: it.releaseDate?.toIso8601String().split('T').first,
-              voteAverage: it.voteAverage,
-            ))
+        .map(
+          (it) => SavedMediaItem(
+            id: it.mediaId,
+            type: it.mediaType == ListEntryType.tv
+                ? SavedMediaType.tv
+                : SavedMediaType.movie,
+            title: it.title,
+            overview: it.overview,
+            posterPath: it.posterPath,
+            backdropPath: it.backdropPath,
+            releaseDate: it.releaseDate?.toIso8601String().split('T').first,
+            voteAverage: it.voteAverage,
+          ),
+        )
         .toList(growable: false),
     isPublic: list.isPublic,
   );
@@ -683,7 +686,7 @@ UserList _mapCustomToUserList(CustomList list) {
           addedAt: list.items[index].addedAt,
           position: index,
           voteAverage: list.items[index].voteAverage,
-        )
+        ),
     ],
     collaborators: const <ListCollaborator>[],
     followerIds: const <String>{},

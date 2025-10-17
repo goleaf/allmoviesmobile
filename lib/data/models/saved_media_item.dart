@@ -4,10 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import 'movie.dart';
 
-enum SavedMediaType {
-  movie,
-  tv,
-}
+enum SavedMediaType { movie, tv }
 
 extension SavedMediaTypeX on SavedMediaType {
   String get storageKey {
@@ -61,8 +58,8 @@ class SavedMediaItem {
     DateTime? updatedAt,
     this.watched = false,
     this.watchedAt,
-  })  : addedAt = addedAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? addedAt ?? DateTime.now();
+  }) : addedAt = addedAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? addedAt ?? DateTime.now();
 
   factory SavedMediaItem.fromMovie(
     Movie movie, {
@@ -103,9 +100,10 @@ class SavedMediaItem {
       episodeRuntimeMinutes: json['episodeRuntimeMinutes'] as int?,
       episodeCount: json['episodeCount'] as int?,
       seasonCount: json['seasonCount'] as int?,
-      genreIds: (json['genreIds'] as List<dynamic>?)
-              ?.whereType<int>()
-              .toList(growable: false) ??
+      genreIds:
+          (json['genreIds'] as List<dynamic>?)?.whereType<int>().toList(
+            growable: false,
+          ) ??
           const <int>[],
       addedAt: _parseDateTime(json['addedAt']),
       updatedAt: _parseDateTime(json['updatedAt']),
@@ -268,8 +266,7 @@ class SavedMediaItem {
   }
 
   static String encodeList(Iterable<SavedMediaItem> items) {
-    final encoded =
-        items.map((item) => item.toJson()).toList(growable: false);
+    final encoded = items.map((item) => item.toJson()).toList(growable: false);
     return json.encode(encoded);
   }
 

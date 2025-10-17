@@ -16,18 +16,21 @@ class PaginatedResponse<T> {
     final resultsRaw = json['results'];
 
     return PaginatedResponse<T>(
-      page: json['page'] is int ? json['page'] as int : int.tryParse('${json['page']}') ?? 1,
+      page: json['page'] is int
+          ? json['page'] as int
+          : int.tryParse('${json['page']}') ?? 1,
       totalPages: json['total_pages'] is int
           ? json['total_pages'] as int
           : int.tryParse('${json['total_pages']}') ?? 1,
       totalResults: json['total_results'] is int
           ? json['total_results'] as int
-          : int.tryParse('${json['total_results']}') ?? (resultsRaw is List ? resultsRaw.length : 0),
+          : int.tryParse('${json['total_results']}') ??
+                (resultsRaw is List ? resultsRaw.length : 0),
       results: resultsRaw is List
           ? resultsRaw
-              .whereType<Map<String, dynamic>>()
-              .map(mapper)
-              .toList(growable: false)
+                .whereType<Map<String, dynamic>>()
+                .map(mapper)
+                .toList(growable: false)
           : const [],
     );
   }

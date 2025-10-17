@@ -48,4 +48,3 @@ class SearchResponse with _$SearchResponse {
   factory SearchResponse.fromJson(Map<String, dynamic> json) =>
       _$SearchResponseFromJson(json);
 }
-

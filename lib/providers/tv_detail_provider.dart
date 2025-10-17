@@ -43,7 +43,8 @@ class TvDetailProvider extends ChangeNotifier {
     return season.episodes;
   }
 
-  bool isSeasonLoading(int seasonNumber) => _loadingSeasons.contains(seasonNumber);
+  bool isSeasonLoading(int seasonNumber) =>
+      _loadingSeasons.contains(seasonNumber);
 
   String? seasonError(int seasonNumber) => _seasonErrors[seasonNumber];
 
@@ -138,12 +139,14 @@ class TvDetailProvider extends ChangeNotifier {
       return;
     }
 
-    final updatedSeasons = currentDetails.seasons.map((existing) {
-      if (existing.seasonNumber == season.seasonNumber) {
-        return season;
-      }
-      return existing;
-    }).toList(growable: false);
+    final updatedSeasons = currentDetails.seasons
+        .map((existing) {
+          if (existing.seasonNumber == season.seasonNumber) {
+            return season;
+          }
+          return existing;
+        })
+        .toList(growable: false);
 
     _details = currentDetails.copyWith(seasons: updatedSeasons);
   }

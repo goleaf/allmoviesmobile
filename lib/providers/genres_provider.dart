@@ -128,16 +128,12 @@ class GenresProvider with ChangeNotifier {
 
   void _applyMovieGenres(List<Genre> genres) {
     _movieGenres = genres;
-    _movieGenreMap = {
-      for (final genre in genres) genre.id: genre,
-    };
+    _movieGenreMap = {for (final genre in genres) genre.id: genre};
   }
 
   void _applyTvGenres(List<Genre> genres) {
     _tvGenres = genres;
-    _tvGenreMap = {
-      for (final genre in genres) genre.id: genre,
-    };
+    _tvGenreMap = {for (final genre in genres) genre.id: genre};
   }
 
   void _applyMovieFallback() {

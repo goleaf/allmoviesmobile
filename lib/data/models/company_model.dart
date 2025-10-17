@@ -14,8 +14,12 @@ class Company with _$Company {
     String? headquarters,
     String? homepage,
     @JsonKey(name: 'parent_company') ParentCompany? parentCompany,
-    @JsonKey(name: 'alternative_names') @Default(<String>[]) List<String> alternativeNames,
-    @JsonKey(name: 'logo_gallery') @Default(<CompanyLogo>[]) List<CompanyLogo> logoGallery,
+    @JsonKey(name: 'alternative_names')
+    @Default(<String>[])
+    List<String> alternativeNames,
+    @JsonKey(name: 'logo_gallery')
+    @Default(<CompanyLogo>[])
+    List<CompanyLogo> logoGallery,
     @JsonKey(name: 'produced_movies') @Default([]) List<dynamic> producedMovies,
     @JsonKey(name: 'produced_series') @Default([]) List<dynamic> producedSeries,
   }) = _Company;
@@ -51,4 +55,3 @@ class CompanyLogo with _$CompanyLogo {
   factory CompanyLogo.fromJson(Map<String, dynamic> json) =>
       _$CompanyLogoFromJson(json);
 }
-

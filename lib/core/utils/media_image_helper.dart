@@ -1,13 +1,7 @@
 import '../config/app_config.dart';
 
 /// Descriptor for TMDB media image categories.
-enum MediaImageType {
-  poster,
-  backdrop,
-  profile,
-  still,
-  logo,
-}
+enum MediaImageType { poster, backdrop, profile, still, logo }
 
 /// Supported TMDB CDN sizes.
 enum MediaImageSize {
@@ -121,8 +115,10 @@ class MediaImageHelper {
     if (sanitized == null) {
       return null;
     }
-    final resolvedSize =
-        _resolveSize(type, size ?? _defaultSizes[type] ?? MediaImageSize.original);
+    final resolvedSize = _resolveSize(
+      type,
+      size ?? _defaultSizes[type] ?? MediaImageSize.original,
+    );
     return '${AppConfig.tmdbImageBaseUrl}/${resolvedSize.value}$sanitized';
   }
 
@@ -136,8 +132,10 @@ class MediaImageHelper {
     if (sanitized == null) {
       return null;
     }
-    final resolvedSize =
-        _resolveSize(type, size ?? _previewSizes[type] ?? MediaImageSize.w92);
+    final resolvedSize = _resolveSize(
+      type,
+      size ?? _previewSizes[type] ?? MediaImageSize.w92,
+    );
     return '${AppConfig.tmdbImageBaseUrl}/${resolvedSize.value}$sanitized';
   }
 

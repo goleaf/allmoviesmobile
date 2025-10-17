@@ -82,14 +82,16 @@ class _MediaImageState extends State<MediaImage> {
       size: widget.previewSize,
     );
 
-    final placeholder = widget.placeholder ??
+    final placeholder =
+        widget.placeholder ??
         _DefaultPlaceholder(
           width: widget.width,
           height: widget.height,
           type: widget.type,
         );
 
-    final errorWidget = widget.errorWidget ??
+    final errorWidget =
+        widget.errorWidget ??
         _DefaultError(
           width: widget.width,
           height: widget.height,
@@ -102,19 +104,14 @@ class _MediaImageState extends State<MediaImage> {
 
     final preview = _buildPreviewLayer(previewUrl, placeholder);
     final image = _buildHighResLayer(highResUrl, errorWidget);
-    final progressIndicator = (_progress != null &&
-            widget.enableProgress &&
-            !_isHighResReady)
+    final progressIndicator =
+        (_progress != null && widget.enableProgress && !_isHighResReady)
         ? _buildProgressOverlay()
         : const SizedBox.shrink();
 
     final stack = Stack(
       fit: StackFit.expand,
-      children: [
-        if (preview != null) preview,
-        image,
-        progressIndicator,
-      ],
+      children: [if (preview != null) preview, image, progressIndicator],
     );
 
     return _wrapWithSize(
@@ -146,10 +143,7 @@ class _MediaImageState extends State<MediaImage> {
         imageFilter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            image: DecorationImage(
-              image: imageProvider,
-              fit: widget.fit,
-            ),
+            image: DecorationImage(image: imageProvider, fit: widget.fit),
           ),
         ),
       ),
@@ -162,7 +156,8 @@ class _MediaImageState extends State<MediaImage> {
       fit: widget.fit,
       fadeInDuration: widget.fadeInDuration,
       fadeOutDuration: Duration.zero,
-      placeholder: (context, _) => const SizedBox.shrink(),
+      // Avoid providing both placeholder and progressIndicatorBuilder to OctoImage
+      placeholder: null,
       progressIndicatorBuilder: (context, _, downloadProgress) {
         _updateProgress(downloadProgress.progress);
         return const SizedBox.shrink();
@@ -178,10 +173,7 @@ class _MediaImageState extends State<MediaImage> {
           duration: widget.crossFadeDuration,
           child: DecoratedBox(
             decoration: BoxDecoration(
-              image: DecorationImage(
-                image: imageProvider,
-                fit: widget.fit,
-              ),
+              image: DecorationImage(image: imageProvider, fit: widget.fit),
             ),
           ),
         );
@@ -198,10 +190,7 @@ class _MediaImageState extends State<MediaImage> {
           child: SizedBox(
             width: 32,
             height: 32,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              value: _progress,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 3, value: _progress),
           ),
         ),
       ),
@@ -212,23 +201,19 @@ class _MediaImageState extends State<MediaImage> {
     if (widget.width == null && widget.height == null) {
       return child;
     }
-    return SizedBox(
-      width: widget.width,
-      height: widget.height,
-      child: child,
-    );
+    return SizedBox(width: widget.width, height: widget.height, child: child);
   }
 
   void _updateProgress(double? value) {
     if (!mounted) return;
-    final nextValue = value == null
-        ? null
-        : value.clamp(0.0, 1.0);
-    if (_progress == nextValue) {
-      return;
-    }
-    setState(() {
-      _progress = nextValue;
+    final nextValue = value == null ? null : value.clamp(0.0, 1.0);
+    if (_progress == nextValue) return;
+    // Defer setState to next frame to avoid setState during build from image progress callback
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      setState(() {
+        _progress = nextValue;
+      });
     });
   }
 
@@ -247,11 +232,7 @@ class _MediaImageState extends State<MediaImage> {
 }
 
 class _DefaultPlaceholder extends StatelessWidget {
-  const _DefaultPlaceholder({
-    required this.type,
-    this.width,
-    this.height,
-  });
+  const _DefaultPlaceholder({required this.type, this.width, this.height});
 
   final MediaImageType type;
   final double? width;
@@ -264,20 +245,13 @@ class _DefaultPlaceholder extends StatelessWidget {
       height: height,
       color: _placeholderColor(type),
       alignment: Alignment.center,
-      child: Icon(
-        _iconForType(type),
-        color: Colors.white70,
-      ),
+      child: Icon(_iconForType(type), color: Colors.white70),
     );
   }
 }
 
 class _DefaultError extends StatelessWidget {
-  const _DefaultError({
-    required this.type,
-    this.width,
-    this.height,
-  });
+  const _DefaultError({required this.type, this.width, this.height});
 
   final MediaImageType type;
   final double? width;
@@ -290,10 +264,7 @@ class _DefaultError extends StatelessWidget {
       height: height,
       color: Colors.grey.shade400,
       alignment: Alignment.center,
-      child: Icon(
-        Icons.broken_image_outlined,
-        color: Colors.grey.shade100,
-      ),
+      child: Icon(Icons.broken_image_outlined, color: Colors.grey.shade100),
     );
   }
 }

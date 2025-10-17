@@ -40,18 +40,14 @@ class MovieCard extends StatelessWidget {
       child: Card(
         clipBehavior: Clip.antiAlias,
         elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Stack(
           children: [
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Poster Image
-                Expanded(
-                  child: _buildPoster(),
-                ),
+                Expanded(child: _buildPoster()),
                 // Movie Info
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -143,11 +139,7 @@ class MovieCard extends StatelessWidget {
       return Container(
         color: Colors.grey[300],
         child: const Center(
-          child: Icon(
-            Icons.movie,
-            size: 48,
-            color: Colors.grey,
-          ),
+          child: Icon(Icons.movie, size: 48, color: Colors.grey),
         ),
       );
     }
@@ -159,21 +151,14 @@ class MovieCard extends StatelessWidget {
       fit: BoxFit.cover,
       placeholder: Container(
         color: Colors.grey[300],
-        child: const Center(
-          child: CircularProgressIndicator(),
-        ),
+        child: const Center(child: CircularProgressIndicator()),
       ),
       errorWidget: Container(
         color: Colors.grey[300],
         child: const Center(
-          child: Icon(
-            Icons.broken_image,
-            size: 48,
-            color: Colors.grey,
-          ),
+          child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
         ),
       ),
     );
   }
 }
-

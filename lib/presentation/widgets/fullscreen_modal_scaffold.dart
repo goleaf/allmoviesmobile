@@ -22,8 +22,10 @@ class FullscreenModalScaffold extends StatelessWidget {
     this.includeAppBarInBodyMode = true,
     this.includeDefaultSliverAppBar = true,
     this.sliverScrollWrapper,
-  }) : assert((body != null) ^ (slivers != null),
-            'Provide either body or slivers');
+  }) : assert(
+         (body != null) ^ (slivers != null),
+         'Provide either body or slivers',
+       );
 
   final Widget? title;
   final List<Widget>? actions;
@@ -85,5 +87,3 @@ class FullscreenModalScaffold extends StatelessWidget {
     );
   }
 }
-
-

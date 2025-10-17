@@ -20,8 +20,11 @@ Future<void> pumpApp(
     onGenerateRoute: onGenerateRoute,
     theme: theme,
     localizationsDelegates: localizationsDelegates,
-    supportedLocales: (supportedLocales ?? const [Locale('en')]).whereType<Locale>(),
-    navigatorObservers: navigatorObserver != null ? [navigatorObserver] : const <NavigatorObserver>[],
+    supportedLocales: (supportedLocales ?? const [Locale('en')])
+        .whereType<Locale>(),
+    navigatorObservers: navigatorObserver != null
+        ? [navigatorObserver]
+        : const <NavigatorObserver>[],
   );
 
   final wrapped = providers != null && providers.isNotEmpty
@@ -31,5 +34,3 @@ Future<void> pumpApp(
   await tester.pumpWidget(wrapped);
   await tester.pumpAndSettle();
 }
-
-

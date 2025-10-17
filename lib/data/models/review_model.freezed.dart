@@ -12,7 +12,8 @@ part of 'review_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 ReviewAuthor _$ReviewAuthorFromJson(Map<String, dynamic> json) {
   return _ReviewAuthor.fromJson(json);
@@ -35,14 +36,16 @@ mixin _$ReviewAuthor {
 /// @nodoc
 abstract class $ReviewAuthorCopyWith<$Res> {
   factory $ReviewAuthorCopyWith(
-          ReviewAuthor value, $Res Function(ReviewAuthor) then) =
-      _$ReviewAuthorCopyWithImpl<$Res, ReviewAuthor>;
+    ReviewAuthor value,
+    $Res Function(ReviewAuthor) then,
+  ) = _$ReviewAuthorCopyWithImpl<$Res, ReviewAuthor>;
   @useResult
-  $Res call(
-      {String name,
-      String username,
-      @JsonKey(name: 'avatar_path') String? avatarPath,
-      double? rating});
+  $Res call({
+    String name,
+    String username,
+    @JsonKey(name: 'avatar_path') String? avatarPath,
+    double? rating,
+  });
 }
 
 /// @nodoc
@@ -63,24 +66,27 @@ class _$ReviewAuthorCopyWithImpl<$Res, $Val extends ReviewAuthor>
     Object? avatarPath = freezed,
     Object? rating = freezed,
   }) {
-    return _then(_value.copyWith(
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      username: null == username
-          ? _value.username
-          : username // ignore: cast_nullable_to_non_nullable
-              as String,
-      avatarPath: freezed == avatarPath
-          ? _value.avatarPath
-          : avatarPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      rating: freezed == rating
-          ? _value.rating
-          : rating // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            username: null == username
+                ? _value.username
+                : username // ignore: cast_nullable_to_non_nullable
+                      as String,
+            avatarPath: freezed == avatarPath
+                ? _value.avatarPath
+                : avatarPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            rating: freezed == rating
+                ? _value.rating
+                : rating // ignore: cast_nullable_to_non_nullable
+                      as double?,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -88,15 +94,17 @@ class _$ReviewAuthorCopyWithImpl<$Res, $Val extends ReviewAuthor>
 abstract class _$$ReviewAuthorImplCopyWith<$Res>
     implements $ReviewAuthorCopyWith<$Res> {
   factory _$$ReviewAuthorImplCopyWith(
-          _$ReviewAuthorImpl value, $Res Function(_$ReviewAuthorImpl) then) =
-      __$$ReviewAuthorImplCopyWithImpl<$Res>;
+    _$ReviewAuthorImpl value,
+    $Res Function(_$ReviewAuthorImpl) then,
+  ) = __$$ReviewAuthorImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String name,
-      String username,
-      @JsonKey(name: 'avatar_path') String? avatarPath,
-      double? rating});
+  $Res call({
+    String name,
+    String username,
+    @JsonKey(name: 'avatar_path') String? avatarPath,
+    double? rating,
+  });
 }
 
 /// @nodoc
@@ -104,8 +112,9 @@ class __$$ReviewAuthorImplCopyWithImpl<$Res>
     extends _$ReviewAuthorCopyWithImpl<$Res, _$ReviewAuthorImpl>
     implements _$$ReviewAuthorImplCopyWith<$Res> {
   __$$ReviewAuthorImplCopyWithImpl(
-      _$ReviewAuthorImpl _value, $Res Function(_$ReviewAuthorImpl) _then)
-      : super(_value, _then);
+    _$ReviewAuthorImpl _value,
+    $Res Function(_$ReviewAuthorImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -115,35 +124,38 @@ class __$$ReviewAuthorImplCopyWithImpl<$Res>
     Object? avatarPath = freezed,
     Object? rating = freezed,
   }) {
-    return _then(_$ReviewAuthorImpl(
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      username: null == username
-          ? _value.username
-          : username // ignore: cast_nullable_to_non_nullable
-              as String,
-      avatarPath: freezed == avatarPath
-          ? _value.avatarPath
-          : avatarPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      rating: freezed == rating
-          ? _value.rating
-          : rating // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ));
+    return _then(
+      _$ReviewAuthorImpl(
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        username: null == username
+            ? _value.username
+            : username // ignore: cast_nullable_to_non_nullable
+                  as String,
+        avatarPath: freezed == avatarPath
+            ? _value.avatarPath
+            : avatarPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        rating: freezed == rating
+            ? _value.rating
+            : rating // ignore: cast_nullable_to_non_nullable
+                  as double?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ReviewAuthorImpl implements _ReviewAuthor {
-  const _$ReviewAuthorImpl(
-      {required this.name,
-      required this.username,
-      @JsonKey(name: 'avatar_path') this.avatarPath,
-      this.rating});
+  const _$ReviewAuthorImpl({
+    required this.name,
+    required this.username,
+    @JsonKey(name: 'avatar_path') this.avatarPath,
+    this.rating,
+  });
 
   factory _$ReviewAuthorImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReviewAuthorImplFromJson(json);
@@ -189,18 +201,17 @@ class _$ReviewAuthorImpl implements _ReviewAuthor {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ReviewAuthorImplToJson(
-      this,
-    );
+    return _$$ReviewAuthorImplToJson(this);
   }
 }
 
 abstract class _ReviewAuthor implements ReviewAuthor {
-  const factory _ReviewAuthor(
-      {required final String name,
-      required final String username,
-      @JsonKey(name: 'avatar_path') final String? avatarPath,
-      final double? rating}) = _$ReviewAuthorImpl;
+  const factory _ReviewAuthor({
+    required final String name,
+    required final String username,
+    @JsonKey(name: 'avatar_path') final String? avatarPath,
+    final double? rating,
+  }) = _$ReviewAuthorImpl;
 
   factory _ReviewAuthor.fromJson(Map<String, dynamic> json) =
       _$ReviewAuthorImpl.fromJson;
@@ -247,14 +258,15 @@ abstract class $ReviewCopyWith<$Res> {
   factory $ReviewCopyWith(Review value, $Res Function(Review) then) =
       _$ReviewCopyWithImpl<$Res, Review>;
   @useResult
-  $Res call(
-      {String id,
-      String author,
-      @JsonKey(name: 'author_details') ReviewAuthor authorDetails,
-      String content,
-      @JsonKey(name: 'created_at') String createdAt,
-      @JsonKey(name: 'updated_at') String? updatedAt,
-      String? url});
+  $Res call({
+    String id,
+    String author,
+    @JsonKey(name: 'author_details') ReviewAuthor authorDetails,
+    String content,
+    @JsonKey(name: 'created_at') String createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    String? url,
+  });
 
   $ReviewAuthorCopyWith<$Res> get authorDetails;
 }
@@ -280,36 +292,39 @@ class _$ReviewCopyWithImpl<$Res, $Val extends Review>
     Object? updatedAt = freezed,
     Object? url = freezed,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      author: null == author
-          ? _value.author
-          : author // ignore: cast_nullable_to_non_nullable
-              as String,
-      authorDetails: null == authorDetails
-          ? _value.authorDetails
-          : authorDetails // ignore: cast_nullable_to_non_nullable
-              as ReviewAuthor,
-      content: null == content
-          ? _value.content
-          : content // ignore: cast_nullable_to_non_nullable
-              as String,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as String,
-      updatedAt: freezed == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as String?,
-      url: freezed == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as String,
+            author: null == author
+                ? _value.author
+                : author // ignore: cast_nullable_to_non_nullable
+                      as String,
+            authorDetails: null == authorDetails
+                ? _value.authorDetails
+                : authorDetails // ignore: cast_nullable_to_non_nullable
+                      as ReviewAuthor,
+            content: null == content
+                ? _value.content
+                : content // ignore: cast_nullable_to_non_nullable
+                      as String,
+            createdAt: null == createdAt
+                ? _value.createdAt
+                : createdAt // ignore: cast_nullable_to_non_nullable
+                      as String,
+            updatedAt: freezed == updatedAt
+                ? _value.updatedAt
+                : updatedAt // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            url: freezed == url
+                ? _value.url
+                : url // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 
   @override
@@ -324,18 +339,20 @@ class _$ReviewCopyWithImpl<$Res, $Val extends Review>
 /// @nodoc
 abstract class _$$ReviewImplCopyWith<$Res> implements $ReviewCopyWith<$Res> {
   factory _$$ReviewImplCopyWith(
-          _$ReviewImpl value, $Res Function(_$ReviewImpl) then) =
-      __$$ReviewImplCopyWithImpl<$Res>;
+    _$ReviewImpl value,
+    $Res Function(_$ReviewImpl) then,
+  ) = __$$ReviewImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {String id,
-      String author,
-      @JsonKey(name: 'author_details') ReviewAuthor authorDetails,
-      String content,
-      @JsonKey(name: 'created_at') String createdAt,
-      @JsonKey(name: 'updated_at') String? updatedAt,
-      String? url});
+  $Res call({
+    String id,
+    String author,
+    @JsonKey(name: 'author_details') ReviewAuthor authorDetails,
+    String content,
+    @JsonKey(name: 'created_at') String createdAt,
+    @JsonKey(name: 'updated_at') String? updatedAt,
+    String? url,
+  });
 
   @override
   $ReviewAuthorCopyWith<$Res> get authorDetails;
@@ -346,8 +363,9 @@ class __$$ReviewImplCopyWithImpl<$Res>
     extends _$ReviewCopyWithImpl<$Res, _$ReviewImpl>
     implements _$$ReviewImplCopyWith<$Res> {
   __$$ReviewImplCopyWithImpl(
-      _$ReviewImpl _value, $Res Function(_$ReviewImpl) _then)
-      : super(_value, _then);
+    _$ReviewImpl _value,
+    $Res Function(_$ReviewImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -360,50 +378,53 @@ class __$$ReviewImplCopyWithImpl<$Res>
     Object? updatedAt = freezed,
     Object? url = freezed,
   }) {
-    return _then(_$ReviewImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as String,
-      author: null == author
-          ? _value.author
-          : author // ignore: cast_nullable_to_non_nullable
-              as String,
-      authorDetails: null == authorDetails
-          ? _value.authorDetails
-          : authorDetails // ignore: cast_nullable_to_non_nullable
-              as ReviewAuthor,
-      content: null == content
-          ? _value.content
-          : content // ignore: cast_nullable_to_non_nullable
-              as String,
-      createdAt: null == createdAt
-          ? _value.createdAt
-          : createdAt // ignore: cast_nullable_to_non_nullable
-              as String,
-      updatedAt: freezed == updatedAt
-          ? _value.updatedAt
-          : updatedAt // ignore: cast_nullable_to_non_nullable
-              as String?,
-      url: freezed == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$ReviewImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as String,
+        author: null == author
+            ? _value.author
+            : author // ignore: cast_nullable_to_non_nullable
+                  as String,
+        authorDetails: null == authorDetails
+            ? _value.authorDetails
+            : authorDetails // ignore: cast_nullable_to_non_nullable
+                  as ReviewAuthor,
+        content: null == content
+            ? _value.content
+            : content // ignore: cast_nullable_to_non_nullable
+                  as String,
+        createdAt: null == createdAt
+            ? _value.createdAt
+            : createdAt // ignore: cast_nullable_to_non_nullable
+                  as String,
+        updatedAt: freezed == updatedAt
+            ? _value.updatedAt
+            : updatedAt // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        url: freezed == url
+            ? _value.url
+            : url // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ReviewImpl implements _Review {
-  const _$ReviewImpl(
-      {required this.id,
-      required this.author,
-      @JsonKey(name: 'author_details') required this.authorDetails,
-      required this.content,
-      @JsonKey(name: 'created_at') required this.createdAt,
-      @JsonKey(name: 'updated_at') this.updatedAt,
-      this.url});
+  const _$ReviewImpl({
+    required this.id,
+    required this.author,
+    @JsonKey(name: 'author_details') required this.authorDetails,
+    required this.content,
+    @JsonKey(name: 'created_at') required this.createdAt,
+    @JsonKey(name: 'updated_at') this.updatedAt,
+    this.url,
+  });
 
   factory _$ReviewImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReviewImplFromJson(json);
@@ -450,8 +471,16 @@ class _$ReviewImpl implements _Review {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, author, authorDetails,
-      content, createdAt, updatedAt, url);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    author,
+    authorDetails,
+    content,
+    createdAt,
+    updatedAt,
+    url,
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -461,22 +490,20 @@ class _$ReviewImpl implements _Review {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ReviewImplToJson(
-      this,
-    );
+    return _$$ReviewImplToJson(this);
   }
 }
 
 abstract class _Review implements Review {
-  const factory _Review(
-      {required final String id,
-      required final String author,
-      @JsonKey(name: 'author_details')
-      required final ReviewAuthor authorDetails,
-      required final String content,
-      @JsonKey(name: 'created_at') required final String createdAt,
-      @JsonKey(name: 'updated_at') final String? updatedAt,
-      final String? url}) = _$ReviewImpl;
+  const factory _Review({
+    required final String id,
+    required final String author,
+    @JsonKey(name: 'author_details') required final ReviewAuthor authorDetails,
+    required final String content,
+    @JsonKey(name: 'created_at') required final String createdAt,
+    @JsonKey(name: 'updated_at') final String? updatedAt,
+    final String? url,
+  }) = _$ReviewImpl;
 
   factory _Review.fromJson(Map<String, dynamic> json) = _$ReviewImpl.fromJson;
 

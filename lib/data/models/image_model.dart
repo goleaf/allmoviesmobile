@@ -17,4 +17,3 @@ class ImageModel with _$ImageModel {
   factory ImageModel.fromJson(Map<String, dynamic> json) =>
       _$ImageModelFromJson(json);
 }
-

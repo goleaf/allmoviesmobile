@@ -54,7 +54,11 @@ abstract class PaginatedSearchProvider<T> extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await performSearch(trimmed, 1, forceRefresh: forceRefresh);
+      final response = await performSearch(
+        trimmed,
+        1,
+        forceRefresh: forceRefresh,
+      );
       _results
         ..clear()
         ..addAll(response.results);
@@ -72,7 +76,10 @@ abstract class PaginatedSearchProvider<T> extends ChangeNotifier {
   }
 
   Future<void> loadMore() async {
-    if (_isLoadingMore || !_hasSearched || !canLoadMore || _query.trim().isEmpty) {
+    if (_isLoadingMore ||
+        !_hasSearched ||
+        !canLoadMore ||
+        _query.trim().isEmpty) {
       return;
     }
 

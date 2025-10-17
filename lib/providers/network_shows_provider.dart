@@ -4,10 +4,7 @@ import '../data/tmdb_repository.dart';
 import 'paginated_resource_provider.dart';
 
 class NetworkShowsProvider extends PaginatedResourceProvider<Movie> {
-  NetworkShowsProvider(
-    this._repository, {
-    required this.networkId,
-  }) {
+  NetworkShowsProvider(this._repository, {required this.networkId}) {
     loadInitial();
   }
 
@@ -58,7 +55,10 @@ class NetworkShowsProvider extends PaginatedResourceProvider<Movie> {
   }
 
   @override
-  Future<PaginatedResponse<Movie>> loadPage(int page, {bool forceRefresh = false}) {
+  Future<PaginatedResponse<Movie>> loadPage(
+    int page, {
+    bool forceRefresh = false,
+  }) {
     return _repository.fetchNetworkTvShows(
       networkId: networkId,
       page: page,

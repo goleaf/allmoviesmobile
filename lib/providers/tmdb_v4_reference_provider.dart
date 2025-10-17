@@ -13,13 +13,14 @@ class EndpointExecutionState {
     this.errorMessage,
   });
 
-  const EndpointExecutionState.idle() : this._(status: EndpointExecutionStatus.idle);
+  const EndpointExecutionState.idle()
+    : this._(status: EndpointExecutionStatus.idle);
   const EndpointExecutionState.loading()
-      : this._(status: EndpointExecutionStatus.loading);
+    : this._(status: EndpointExecutionStatus.loading);
   const EndpointExecutionState.success(String payload)
-      : this._(status: EndpointExecutionStatus.success, payload: payload);
+    : this._(status: EndpointExecutionStatus.success, payload: payload);
   const EndpointExecutionState.error(String message)
-      : this._(status: EndpointExecutionStatus.error, errorMessage: message);
+    : this._(status: EndpointExecutionStatus.error, errorMessage: message);
 
   final EndpointExecutionStatus status;
   final String? payload;
@@ -61,9 +62,7 @@ class TmdbV4ReferenceProvider extends ChangeNotifier {
       final payload = await _repository.execute(endpoint);
       _states[endpoint.id] = EndpointExecutionState.success(payload);
     } on TmdbV4ApiException catch (error) {
-      _states[endpoint.id] = EndpointExecutionState.error(
-        error.message,
-      );
+      _states[endpoint.id] = EndpointExecutionState.error(error.message);
     } catch (error) {
       _states[endpoint.id] = EndpointExecutionState.error(error.toString());
     }

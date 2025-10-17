@@ -2,10 +2,7 @@ import 'package:flutter/foundation.dart';
 
 /// Helper class for managing paginated API responses
 class PaginationHelper<T> with ChangeNotifier {
-  PaginationHelper({
-    required this.fetchPage,
-    this.initialPage = 1,
-  });
+  PaginationHelper({required this.fetchPage, this.initialPage = 1});
 
   final Future<List<T>> Function(int page) fetchPage;
   final int initialPage;
@@ -47,7 +44,7 @@ class PaginationHelper<T> with ChangeNotifier {
     } else {
       _isLoadingMore = true;
     }
-    
+
     _errorMessage = null;
     notifyListeners();
 
@@ -110,9 +107,7 @@ class PaginationHelper<T> with ChangeNotifier {
 
 /// Simple pagination state without ChangeNotifier
 class SimplePagination<T> {
-  SimplePagination({
-    this.initialPage = 1,
-  });
+  SimplePagination({this.initialPage = 1});
 
   final int initialPage;
 
@@ -171,4 +166,3 @@ class PaginationController {
     return _paginators[key] as PaginationHelper<T>?;
   }
 }
-

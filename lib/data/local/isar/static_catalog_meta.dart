@@ -14,4 +14,3 @@ class StaticCatalogMetaEntity {
   /// Stored as comma-separated locales
   String localesCsv = '';
 }
-

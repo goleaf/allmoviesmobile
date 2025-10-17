@@ -26,9 +26,9 @@ class MediaGallerySection extends StatelessWidget {
               children: [
                 Text(
                   loc.t('movie.images'),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 const Center(child: CircularProgressIndicator()),
@@ -56,9 +56,9 @@ class MediaGallerySection extends StatelessWidget {
             children: [
               Text(
                 loc.t('movie.images'),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               if (images.posters.isNotEmpty)
@@ -67,7 +67,8 @@ class MediaGallerySection extends StatelessWidget {
                   images: images.posters,
                   type: _GalleryImageType.poster,
                 ),
-              if (images.posters.isNotEmpty && (images.backdrops.isNotEmpty || images.stills.isNotEmpty))
+              if (images.posters.isNotEmpty &&
+                  (images.backdrops.isNotEmpty || images.stills.isNotEmpty))
                 const SizedBox(height: 16),
               if (images.backdrops.isNotEmpty)
                 _GalleryRow(
@@ -283,10 +284,7 @@ class _GalleryRow extends StatelessWidget {
 }
 
 class _GalleryErrorMessage extends StatelessWidget {
-  const _GalleryErrorMessage({
-    required this.message,
-    required this.onRetry,
-  });
+  const _GalleryErrorMessage({required this.message, required this.onRetry});
 
   final String message;
   final Future<void> Function() onRetry;
@@ -302,9 +300,9 @@ class _GalleryErrorMessage extends StatelessWidget {
         children: [
           Text(
             loc.t('movie.images'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Container(
@@ -320,14 +318,11 @@ class _GalleryErrorMessage extends StatelessWidget {
                 Text(
                   loc.t('errors.load_failed'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  message,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                Text(message, style: Theme.of(context).textTheme.bodyMedium),
                 const SizedBox(height: 12),
                 Align(
                   alignment: Alignment.centerRight,

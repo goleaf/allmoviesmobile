@@ -6,18 +6,18 @@ class ApiConfig {
   // TMDB API Configuration
   static const String tmdbBaseUrl = 'https://api.themoviedb.org/3';
   static const String tmdbImageBaseUrl = 'https://image.tmdb.org/t/p';
-  
+
   // Image sizes
   static const String posterSizeSmall = 'w185';
   static const String posterSizeMedium = 'w342';
   static const String posterSizeLarge = 'w500';
   static const String posterSizeOriginal = 'original';
-  
+
   static const String backdropSizeSmall = 'w300';
   static const String backdropSizeMedium = 'w780';
   static const String backdropSizeLarge = 'w1280';
   static const String backdropSizeOriginal = 'original';
-  
+
   static const String profileSizeSmall = 'w45';
   static const String profileSizeMedium = 'w185';
   static const String profileSizeLarge = 'h632';
@@ -27,20 +27,20 @@ class ApiConfig {
   static const String trendingMovies = '/trending/movie';
   static const String trendingTV = '/trending/tv';
   static const String trendingAll = '/trending/all';
-  
+
   static const String movieDetails = '/movie';
   static const String tvDetails = '/tv';
   static const String personDetails = '/person';
   static const String companyDetails = '/company';
-  
+
   static const String discoverMovie = '/discover/movie';
   static const String discoverTV = '/discover/tv';
-  
+
   static const String searchMovie = '/search/movie';
   static const String searchTV = '/search/tv';
   static const String searchPerson = '/search/person';
   static const String searchMulti = '/search/multi';
-  
+
   static const String genresMovie = '/genre/movie/list';
   static const String genresTV = '/genre/tv/list';
 
@@ -54,7 +54,10 @@ class ApiConfig {
     );
   }
 
-  static String getBackdropUrl(String? path, {String size = backdropSizeMedium}) {
+  static String getBackdropUrl(
+    String? path, {
+    String size = backdropSizeMedium,
+  }) {
     return _buildUrl(
       path,
       type: MediaImageType.backdrop,
@@ -104,11 +107,7 @@ class ApiConfig {
     required String fallback,
   }) {
     final resolvedSize = _sizeFromString(size) ?? _sizeFromString(fallback);
-    final url = MediaImageHelper.buildUrl(
-      path,
-      type: type,
-      size: resolvedSize,
-    );
+    final url = MediaImageHelper.buildUrl(path, type: type, size: resolvedSize);
     return url ?? '';
   }
 

@@ -8,7 +8,10 @@ import '../local/isar/watch_provider.dart';
 import '../local/isar/watch_provider_region.dart';
 
 class StaticCatalogReadService {
-  Future<List<GenreTranslationEntity>> genres(String mediaType, String locale) async {
+  Future<List<GenreTranslationEntity>> genres(
+    String mediaType,
+    String locale,
+  ) async {
     final isar = await IsarDbProvider.instance.isar;
     return isar.genreTranslationEntitys
         .filter()
@@ -18,19 +21,30 @@ class StaticCatalogReadService {
         .findAll();
   }
 
-  Future<List<WatchProviderTranslationEntity>> watchProviders(String locale) async {
+  Future<List<WatchProviderTranslationEntity>> watchProviders(
+    String locale,
+  ) async {
     final isar = await IsarDbProvider.instance.isar;
-    return isar.watchProviderTranslationEntitys.filter().localeEqualTo(locale).findAll();
+    return isar.watchProviderTranslationEntitys
+        .filter()
+        .localeEqualTo(locale)
+        .findAll();
   }
 
   Future<List<CountryTranslationEntity>> countries(String locale) async {
     final isar = await IsarDbProvider.instance.isar;
-    return isar.countryTranslationEntitys.filter().localeEqualTo(locale).findAll();
+    return isar.countryTranslationEntitys
+        .filter()
+        .localeEqualTo(locale)
+        .findAll();
   }
 
   Future<List<LanguageTranslationEntity>> languages(String locale) async {
     final isar = await IsarDbProvider.instance.isar;
-    return isar.languageTranslationEntitys.filter().localeEqualTo(locale).findAll();
+    return isar.languageTranslationEntitys
+        .filter()
+        .localeEqualTo(locale)
+        .findAll();
   }
 
   // ----------------------------------------------
@@ -113,17 +127,25 @@ class StaticCatalogReadService {
     final isar = await IsarDbProvider.instance.isar;
     final regions = await isar.watchProviderRegionEntitys.where().findAll();
     final list = regions
-        .map((r) => RegionUi(
-              code: r.iso3166_1,
-              name: (r.nativeName?.isNotEmpty == true) ? r.nativeName! : r.englishName,
-            ))
+        .map(
+          (r) => RegionUi(
+            code: r.iso3166_1,
+            name: (r.nativeName?.isNotEmpty == true)
+                ? r.nativeName!
+                : r.englishName,
+          ),
+        )
         .toList(growable: false);
     list.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
     return list;
   }
 
   /// Convenience: resolve a genre name for UI, or empty string if not found.
-  Future<String> resolveGenreName(int genreId, String mediaType, String locale) async {
+  Future<String> resolveGenreName(
+    int genreId,
+    String mediaType,
+    String locale,
+  ) async {
     final isar = await IsarDbProvider.instance.isar;
     final item = await isar.genreTranslationEntitys
         .filter()
@@ -177,7 +199,11 @@ class WatchProviderUi {
   final int providerId;
   final String name;
   final int? displayPriority;
-  const WatchProviderUi({required this.providerId, required this.name, required this.displayPriority});
+  const WatchProviderUi({
+    required this.providerId,
+    required this.name,
+    required this.displayPriority,
+  });
 }
 
 class RegionUi {
@@ -185,4 +211,3 @@ class RegionUi {
   final String name;
   const RegionUi({required this.code, required this.name});
 }
-

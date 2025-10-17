@@ -180,9 +180,11 @@
     "search_all": "Искать Всё",
     "recent_searches": "Недавние Поиски",
     "popular_searches": "Популярные Поиски",
+    "trending_searches": "Популярные запросы",
     "clear_history": "Очистить Историю",
     "no_results": "Результаты не найдены",
-    "try_different_keywords": "Попробуйте другие ключевые слова"
+    "try_different_keywords": "Попробуйте другие ключевые слова",
+    "no_suggestions": "Пока нет предложений"
   },
   "keywords": {
     "search_hint": "Введите ключевое слово для поиска",
@@ -199,7 +201,18 @@
     "no_overview": "Описание пока отсутствует.",
     "parts": "Части",
     "release_timeline": "Хронология релизов",
-    "images": "Изображения"
+    "images": "Изображения",
+    "translations": "Переводы",
+    "translation_overview": "Описание перевода",
+    "no_translation_overview": "Описание перевода отсутствует.",
+    "translation_homepage": "Домашняя страница",
+    "no_translation_title": "Заголовок не указан",
+    "total_revenue": "Суммарные сборы",
+    "revenue_label": "Сборы",
+    "no_timeline_data": "Нет данных для хронологии.",
+    "sort_label": "Сортировать части по",
+    "sort_order": "Порядок коллекции",
+    "sort_release_date": "Дате выхода"
   },
   "discover": {
     "title": "Обзор",

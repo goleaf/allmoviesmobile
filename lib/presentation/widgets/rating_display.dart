@@ -19,34 +19,21 @@ class RatingDisplay extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.star,
-          color: Colors.amber,
-          size: size,
-        ),
+        Icon(Icons.star, color: Colors.amber, size: size),
         const SizedBox(width: 4),
         Text(
           rating.toStringAsFixed(1),
-          style: TextStyle(
-            fontSize: size * 0.875,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: size * 0.875, fontWeight: FontWeight.bold),
         ),
         if (showLabel && voteCount != null) ...[
           Text(
             ' / 10',
-            style: TextStyle(
-              fontSize: size * 0.75,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: size * 0.75, color: Colors.grey[600]),
           ),
           const SizedBox(width: 4),
           Text(
             '($voteCount)',
-            style: TextStyle(
-              fontSize: size * 0.75,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: size * 0.75, color: Colors.grey[600]),
           ),
         ],
       ],
@@ -69,7 +56,8 @@ class RatingStars extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final starColor = color ?? Colors.amber;
-    final normalizedRating = rating / 2; // Convert 10-point scale to 5-star scale
+    final normalizedRating =
+        rating / 2; // Convert 10-point scale to 5-star scale
     final fullStars = normalizedRating.floor();
     final hasHalfStar = (normalizedRating - fullStars) >= 0.5;
 
@@ -87,4 +75,3 @@ class RatingStars extends StatelessWidget {
     );
   }
 }
-

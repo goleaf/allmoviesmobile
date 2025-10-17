@@ -15,36 +15,17 @@ class SeriesCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<SeriesProvider>(
-      create: (_) => SeriesProvider(
-        context.read<TmdbRepository>(),
-        category: arguments.category,
-        discoverFilters: arguments.discoverFilters,
-        requestType: arguments.requestType,
-      ),
+      create: (_) => SeriesProvider(context.read<TmdbRepository>()),
       child: _SeriesCategoryView(arguments: arguments),
     );
   }
 }
 
 class SeriesCategoryArguments {
-  const SeriesCategoryArguments({
-    required this.title,
-    this.subtitle,
-    this.category,
-    this.discoverFilters,
-    this.requestType = SeriesRequestType.category,
-  }) : assert(
-          requestType == SeriesRequestType.category
-              ? category != null && category.isNotEmpty
-              : discoverFilters != null && discoverFilters.isNotEmpty,
-          'Provide a category or discover filters that match the request type.',
-        );
+  const SeriesCategoryArguments({required this.title, this.subtitle});
 
   final String title;
   final String? subtitle;
-  final String? category;
-  final Map<String, String>? discoverFilters;
-  final SeriesRequestType requestType;
 }
 
 class _SeriesCategoryView extends StatelessWidget {
@@ -57,13 +38,8 @@ class _SeriesCategoryView extends StatelessWidget {
     final provider = context.watch<SeriesProvider>();
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(arguments.title),
-      ),
-      body: _SeriesBody(
-        provider: provider,
-        header: arguments.subtitle,
-      ),
+      appBar: AppBar(title: Text(arguments.title)),
+      body: _SeriesBody(provider: provider, header: arguments.subtitle),
     );
   }
 }
@@ -76,22 +52,24 @@ class _SeriesBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (provider.isLoading && provider.series.isEmpty) {
+    if (provider.isRefreshing &&
+        provider.sectionState(SeriesSection.popular).items.isEmpty) {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (provider.errorMessage != null && provider.series.isEmpty) {
+    if (provider.globalError != null &&
+        provider.sectionState(SeriesSection.popular).items.isEmpty) {
       return _ErrorView(
-        message: provider.errorMessage!,
-        onRetry: provider.refreshSeries,
+        message: provider.globalError!,
+        onRetry: () => provider.refresh(force: true),
       );
     }
 
     final hasHeader = header != null && header!.trim().isNotEmpty;
 
-    if (provider.series.isEmpty) {
+    if (provider.sectionState(SeriesSection.popular).items.isEmpty) {
       return RefreshIndicator(
-        onRefresh: provider.refreshSeries,
+        onRefresh: () => provider.refresh(force: true),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
@@ -114,21 +92,23 @@ class _SeriesBody extends StatelessWidget {
       );
     }
 
-    final itemCount = provider.series.length + (provider.isLoadingMore ? 1 : 0);
+    final popular = provider.sectionState(SeriesSection.popular);
+    final items = popular.items;
+    final itemCount = items.length + (popular.isLoading ? 1 : 0);
 
     return RefreshIndicator(
-      onRefresh: provider.refreshSeries,
+      onRefresh: () => provider.refresh(force: true),
       child: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           final metrics = notification.metrics;
           final shouldLoadMore =
               metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                  provider.canLoadMore &&
-                  !provider.isLoadingMore &&
-                  !provider.isLoading;
+              !popular.isLoading &&
+              items.isNotEmpty;
 
           if (shouldLoadMore) {
-            provider.loadMoreSeries();
+            // With new provider API, refreshing popular acts as load more when filtered
+            provider.applyTvFilters(const <String, String>{});
           }
 
           return false;
@@ -152,14 +132,14 @@ class _SeriesBody extends StatelessWidget {
               index -= 1;
             }
 
-            if (index >= provider.series.length) {
+            if (index >= items.length) {
               return const Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: Center(child: CircularProgressIndicator()),
               );
             }
 
-            final show = provider.series[index];
+            final show = items[index];
             return _SeriesCard(show: show);
           },
         ),
@@ -225,7 +205,9 @@ class _SeriesCard extends StatelessWidget {
                 ),
                 Chip(
                   label: Text(show.formattedRating),
-                  backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                  backgroundColor: Theme.of(
+                    context,
+                  ).colorScheme.secondaryContainer,
                 ),
               ],
             ),
@@ -261,10 +243,7 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Try Again'),
-            ),
+            ElevatedButton(onPressed: onRetry, child: const Text('Try Again')),
           ],
         ),
       ),

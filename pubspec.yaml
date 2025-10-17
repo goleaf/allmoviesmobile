@@ -166,8 +166,8 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   
-  # Generate localization files
-  generate: true
+  # Disable Flutter gen-l10n (we use custom JSON localization)
+  generate: false
 
   # To add assets to your application, add an assets section, like this:
   assets:

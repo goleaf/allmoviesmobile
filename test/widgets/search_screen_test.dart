@@ -15,7 +15,11 @@ class _FakeRepo extends TmdbRepository {
   _FakeRepo();
 
   @override
-  Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {
+  Future<SearchResponse> searchMulti(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return SearchResponse(
       page: 1,
       totalPages: 1,
@@ -25,13 +29,24 @@ class _FakeRepo extends TmdbRepository {
   }
 
   @override
-  Future<PaginatedResponse<Company>> fetchCompanies({String? query, int page = 1, bool forceRefresh = false}) async {
-    return PaginatedResponse<Company>(page: 1, totalPages: 1, totalResults: 1, results: [Company(id: 1, name: 'C')]);
+  Future<PaginatedResponse<Company>> fetchCompanies({
+    String? query,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return PaginatedResponse<Company>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 1,
+      results: [Company(id: 1, name: 'C')],
+    );
   }
 }
 
 void main() {
-  testWidgets('SearchScreen with initialQuery triggers search and renders', (tester) async {
+  testWidgets('SearchScreen with initialQuery triggers search and renders', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final storage = LocalStorageService(prefs);
@@ -39,11 +54,11 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => SearchProvider(_FakeRepo(), storage)),
+          ChangeNotifierProvider(
+            create: (_) => SearchProvider(_FakeRepo(), storage),
+          ),
         ],
-        child: const MaterialApp(
-          home: SearchScreen(initialQuery: 'test'),
-        ),
+        child: const MaterialApp(home: SearchScreen(initialQuery: 'test')),
       ),
     );
 
@@ -51,5 +66,3 @@ void main() {
     expect(find.byType(SearchScreen), findsOneWidget);
   });
 }
-
-

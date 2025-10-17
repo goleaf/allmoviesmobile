@@ -12,8 +12,8 @@ class GenreStatistics {
     required this.averageVoteCount,
     this.releaseYearRange,
     required List<String> topTitles,
-  })  : genreIds = Set<int>.unmodifiable(Set<int>.from(genreIds)),
-        topTitles = List<String>.unmodifiable(List<String>.from(topTitles));
+  }) : genreIds = Set<int>.unmodifiable(Set<int>.from(genreIds)),
+       topTitles = List<String>.unmodifiable(List<String>.from(topTitles));
 
   final Set<int> genreIds;
   final int sampleSize;
@@ -26,14 +26,14 @@ class GenreStatistics {
   bool get hasData => sampleSize > 0;
 
   static GenreStatistics empty(Set<int> genreIds) => GenreStatistics(
-        genreIds: genreIds,
-        sampleSize: 0,
-        averageRating: 0,
-        averagePopularity: 0,
-        averageVoteCount: 0,
-        releaseYearRange: null,
-        topTitles: const [],
-      );
+    genreIds: genreIds,
+    sampleSize: 0,
+    averageRating: 0,
+    averagePopularity: 0,
+    averageVoteCount: 0,
+    releaseYearRange: null,
+    topTitles: const [],
+  );
 
   factory GenreStatistics.fromMovies(Set<int> genreIds, List<Movie> movies) {
     if (movies.isEmpty) {
@@ -84,19 +84,20 @@ class GenreStatistics {
           : '${years.first}-${years.last}';
     }
 
-    final sortedByRelevance = movies
-      .where((m) => m.voteAverage != null && m.voteAverage! > 0)
-      .toList()
-      ..sort((a, b) {
-        final ratingA = a.voteAverage!;
-        final ratingB = b.voteAverage!;
-        if (ratingA != ratingB) {
-          return ratingB.compareTo(ratingA);
-        }
-        final popularityA = a.popularity ?? 0;
-        final popularityB = b.popularity ?? 0;
-        return popularityB.compareTo(popularityA);
-      });
+    final sortedByRelevance =
+        movies
+            .where((m) => m.voteAverage != null && m.voteAverage! > 0)
+            .toList()
+          ..sort((a, b) {
+            final ratingA = a.voteAverage!;
+            final ratingB = b.voteAverage!;
+            if (ratingA != ratingB) {
+              return ratingB.compareTo(ratingA);
+            }
+            final popularityA = a.popularity ?? 0;
+            final popularityB = b.popularity ?? 0;
+            return popularityB.compareTo(popularityA);
+          });
 
     final topTitles = <String>[];
     for (final movie in sortedByRelevance) {
@@ -112,8 +113,9 @@ class GenreStatistics {
       genreIds: genreIds,
       sampleSize: movies.length,
       averageRating: ratingCount == 0 ? 0 : ratingSum / ratingCount,
-      averagePopularity:
-          popularityCount == 0 ? 0 : popularitySum / popularityCount,
+      averagePopularity: popularityCount == 0
+          ? 0
+          : popularitySum / popularityCount,
       averageVoteCount: voteCountCount == 0 ? 0 : voteCountSum / voteCountCount,
       releaseYearRange: releaseRange,
       topTitles: topTitles,

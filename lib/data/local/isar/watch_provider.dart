@@ -24,4 +24,3 @@ class WatchProviderTranslationEntity {
 
   late String providerName;
 }
-

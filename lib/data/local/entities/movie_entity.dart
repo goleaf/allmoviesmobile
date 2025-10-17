@@ -91,7 +91,8 @@ class MovieEntityAdapter extends TypeAdapter<MovieEntity> {
   @override
   MovieEntity read(BinaryReader reader) {
     final fields = <int, dynamic>{
-      for (var i = 0, count = reader.readByte(); i < count; i++) reader.readByte(): reader.read(),
+      for (var i = 0, count = reader.readByte(); i < count; i++)
+        reader.readByte(): reader.read(),
     };
     return MovieEntity(
       id: fields[0] as int,

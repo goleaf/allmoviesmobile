@@ -9,16 +9,15 @@ import '../person_detail/person_detail_screen.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/rating_display.dart';
+import '../../../core/localization/app_localizations.dart';
+import '../../widgets/app_scaffold.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
 
   final String? initialQuery;
 
-  const SearchScreen({
-    super.key,
-    this.initialQuery,
-  });
+  const SearchScreen({super.key, this.initialQuery});
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -69,43 +68,62 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final searchProvider = context.watch<SearchProvider>();
+    final localization = AppLocalizations.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: TextField(
-          controller: _searchController,
-          focusNode: _focusNode,
-          decoration: InputDecoration(
-            hintText: 'Search movies, TV shows...',
-            border: InputBorder.none,
-            suffixIcon: _searchController.text.isNotEmpty
-                ? IconButton(
-                    icon: const Icon(Icons.clear),
-                    onPressed: () {
-                      _searchController.clear();
-                      searchProvider.clearResults();
-                    },
-                  )
-                : null,
-          ),
-          textInputAction: TextInputAction.search,
-          onSubmitted: (_) => _performSearch(searchProvider),
-          onChanged: (value) {
-            setState(() {});
-          },
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => _performSearch(searchProvider),
-          ),
-        ],
-      ),
+    return AppScaffold(
+      appBar: _buildAppBar(searchProvider, localization),
       body: _buildBody(searchProvider),
     );
   }
 
+  PreferredSizeWidget _buildAppBar(
+    SearchProvider searchProvider,
+    AppLocalizations localization,
+  ) {
+    return AppBar(
+      title: TextField(
+        controller: _searchController,
+        focusNode: _focusNode,
+        decoration: InputDecoration(
+          hintText:
+              localization.search['search_placeholder'] ??
+              'Search movies, TV shows, people...',
+          border: InputBorder.none,
+          suffixIcon: _searchController.text.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _searchController.clear();
+                    searchProvider.clearResults();
+                    searchProvider.clearSuggestions();
+                  },
+                )
+              : null,
+        ),
+        textInputAction: TextInputAction.search,
+        onSubmitted: (_) => _performSearch(searchProvider),
+        onChanged: (value) {
+          searchProvider.updateInputQuery(value);
+          setState(() {});
+        },
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.search),
+          onPressed: () => _performSearch(searchProvider),
+        ),
+      ],
+    );
+  }
+
   Widget _buildBody(SearchProvider provider) {
+    // Suggestions panel while typing before committing a search
+    final isTyping =
+        provider.inputQuery.trim().isNotEmpty && !provider.hasQuery;
+    if (isTyping) {
+      return _buildSuggestions(provider);
+    }
+
     if (provider.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -134,13 +152,52 @@ class _SearchScreenState extends State<SearchScreen> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(
+                context,
+              ).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
-              'Search for movies and TV shows',
+              AppLocalizations.of(context).search['search_placeholder'] ??
+                  'Search movies, TV shows, people...',
               style: Theme.of(context).textTheme.titleMedium,
             ),
+            if (provider.trendingSearches.isNotEmpty) ...[
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    AppLocalizations.of(context).search['trending_searches'] ??
+                        'Trending searches',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: provider.trendingSearches
+                      .map((q) {
+                        return ActionChip(
+                          avatar: const Icon(Icons.trending_up, size: 18),
+                          label: Text(q),
+                          onPressed: () {
+                            _searchController.text = q;
+                            _performSearch(provider, query: q);
+                          },
+                        );
+                      })
+                      .toList(growable: false),
+                ),
+              ),
+            ],
           ],
         ),
       );
@@ -153,16 +210,20 @@ class _SearchScreenState extends State<SearchScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Recent Searches',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              AppLocalizations.of(context).search['recent_searches'] ??
+                  'Recent Searches',
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: () {
                 provider.clearHistory();
               },
-              child: const Text('Clear All'),
+              child: Text(
+                AppLocalizations.of(context).search['clear_history'] ??
+                    'Clear History',
+              ),
             ),
           ],
         ),
@@ -183,21 +244,86 @@ class _SearchScreenState extends State<SearchScreen> {
             },
           );
         }),
+        if (provider.trendingSearches.isNotEmpty) ...[
+          const SizedBox(height: 16),
+          Text(
+            AppLocalizations.of(context).search['trending_searches'] ??
+                'Trending searches',
+            style: Theme.of(
+              context,
+            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: provider.trendingSearches
+                .map((q) {
+                  return InputChip(
+                    label: Text(q),
+                    onPressed: () {
+                      _searchController.text = q;
+                      _performSearch(provider, query: q);
+                    },
+                  );
+                })
+                .toList(growable: false),
+          ),
+        ],
       ],
     );
   }
 
+  Widget _buildSuggestions(SearchProvider provider) {
+    if (provider.isFetchingSuggestions) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final suggestions = provider.suggestions;
+    if (suggestions.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Text(
+            AppLocalizations.of(context).search['no_suggestions'] ??
+                'No suggestions yet',
+            style: Theme.of(context).textTheme.bodyLarge,
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+      itemCount: suggestions.length,
+      separatorBuilder: (_, __) => const Divider(height: 1),
+      itemBuilder: (context, index) {
+        final text = suggestions[index];
+        return ListTile(
+          leading: const Icon(Icons.search),
+          title: Text(text),
+          onTap: () {
+            _searchController.text = text;
+            _performSearch(provider, query: text);
+          },
+        );
+      },
+    );
+  }
+
   Widget _buildResults(SearchProvider provider) {
-    final itemCount = provider.results.length + (provider.isLoadingMore ? 1 : 0);
+    final itemCount =
+        provider.results.length + (provider.isLoadingMore ? 1 : 0);
 
     return NotificationListener<ScrollNotification>(
       onNotification: (notification) {
         final metrics = notification.metrics;
         final shouldLoadMore =
             metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                provider.canLoadMore &&
-                !provider.isLoadingMore &&
-                !provider.isLoading;
+            provider.canLoadMore &&
+            !provider.isLoadingMore &&
+            !provider.isLoading;
 
         if (shouldLoadMore) {
           provider.loadMore();
@@ -238,12 +364,14 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'No results found',
+            AppLocalizations.of(context).search['no_results'] ??
+                'No results found',
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
           Text(
-            'Try a different search term',
+            AppLocalizations.of(context).search['try_different_keywords'] ??
+                'Try a different search term',
             style: Theme.of(context).textTheme.bodyMedium,
           ),
         ],
@@ -276,7 +404,9 @@ class _SearchScreenState extends State<SearchScreen> {
                 _performSearch(provider);
               },
               icon: const Icon(Icons.refresh),
-              label: const Text('Try Again'),
+              label: Text(
+                AppLocalizations.of(context).common['retry'] ?? 'Retry',
+              ),
             ),
           ],
         ),
@@ -306,29 +436,29 @@ class _SearchResultCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-      onTap: switch (result.mediaType) {
-        MediaType.movie => () {
+        onTap: switch (result.mediaType) {
+          MediaType.movie => () {
             Navigator.pushNamed(
               context,
               MovieDetailScreen.routeName,
               arguments: result.id,
             );
           },
-        MediaType.tv => () {
+          MediaType.tv => () {
             Navigator.pushNamed(
               context,
               TVDetailScreen.routeName,
               arguments: result.id,
             );
           },
-        MediaType.person => () {
+          MediaType.person => () {
             Navigator.pushNamed(
               context,
               PersonDetailScreen.routeName,
               arguments: result.id,
             );
           },
-      },
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -346,18 +476,19 @@ class _SearchResultCard extends StatelessWidget {
                       fit: BoxFit.cover,
                     )
                   else
-                    Container(color: Theme.of(context).colorScheme.primaryContainer),
+                    Container(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                    ),
                   if (posterPath == null || posterPath.isEmpty)
                     Center(
                       child: Text(
-                        (title.isNotEmpty ? title[0] : mediaLabel[0]).toUpperCase(),
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
+                        (title.isNotEmpty ? title[0] : mediaLabel[0])
+                            .toUpperCase(),
+                        style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onPrimaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                             ),
                       ),
                     ),
@@ -370,14 +501,16 @@ class _SearchResultCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title.isEmpty ? 'Untitled $mediaLabel' : title,
+                    title.isEmpty
+                        ? '${_mediaLabel(context, result.mediaType, untitled: true)}'
+                        : title,
                     style: Theme.of(context).textTheme.titleMedium,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 6),
                   Text(
-                    mediaLabel,
+                    _mediaLabel(context, result.mediaType),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                   if (overview.isNotEmpty) ...[
@@ -401,5 +534,32 @@ class _SearchResultCard extends StatelessWidget {
   String? get _posterImage {
     return null;
   }
-}
 
+  String _mediaLabel(
+    BuildContext context,
+    MediaType type, {
+    bool untitled = false,
+  }) {
+    final loc = AppLocalizations.of(context);
+    switch (type) {
+      case MediaType.movie:
+        return untitled
+            ? (loc.movie['title'] != null
+                  ? 'Untitled ${loc.movie['title']}'
+                  : 'Untitled Movie')
+            : (loc.movie['title'] ?? 'Movie');
+      case MediaType.tv:
+        return untitled
+            ? (loc.tv['title'] != null
+                  ? 'Untitled ${loc.tv['title']}'
+                  : 'Untitled TV Show')
+            : (loc.tv['title'] ?? 'TV Show');
+      case MediaType.person:
+        return untitled
+            ? (loc.person['title'] != null
+                  ? 'Untitled ${loc.person['title']}'
+                  : 'Untitled Person')
+            : (loc.person['title'] ?? 'Person');
+    }
+  }
+}

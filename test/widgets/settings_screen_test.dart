@@ -2,15 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
-import 'package:allmovies_mobile/l10n/app_localizations.dart';
+import 'package:allmovies_mobile/core/localization/app_localizations.dart';
 import 'package:allmovies_mobile/providers/locale_provider.dart';
 import 'package:allmovies_mobile/providers/theme_provider.dart';
 import 'package:allmovies_mobile/providers/watch_region_provider.dart';
 import 'package:allmovies_mobile/presentation/screens/settings/settings_screen.dart';
+import 'package:allmovies_mobile/providers/preferences_provider.dart';
 
 void main() {
-  testWidgets('SettingsScreen toggles theme, locale, and region', (tester) async {
+  testWidgets('SettingsScreen toggles theme, locale, and region', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
@@ -20,9 +24,15 @@ void main() {
           ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
           ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
           ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
+          ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
         ],
         child: MaterialApp(
-          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
           supportedLocales: AppLocalizations.supportedLocales,
           home: const SettingsScreen(),
         ),
@@ -49,18 +59,11 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    // Region (scroll first)
-    // Scroll until Region tile is visible using the nearest Scrollable
-    final scrollable = find.byType(Scrollable).first;
-    final regionText = find.text('Region');
-    await tester.dragUntilVisible(
-      regionText,
-      scrollable,
-      const Offset(0, -300),
-    );
-    // Tap Region tile and wait for dialog
-    final regionTileFinder = find.ancestor(of: regionText, matching: find.byType(ListTile));
-    await tester.tap(regionTileFinder.first, warnIfMissed: false);
+    // Region: find tile by icon and tap
+    final regionTileFinder = find.widgetWithIcon(ListTile, Icons.public);
+    expect(regionTileFinder, findsOneWidget);
+    await tester.ensureVisible(regionTileFinder);
+    await tester.tap(regionTileFinder);
     await tester.pumpAndSettle();
     final dialogFinder = find.byType(AlertDialog);
     if (dialogFinder.evaluate().isNotEmpty) {
@@ -74,5 +77,3 @@ void main() {
     expect(find.byType(SettingsScreen), findsOneWidget);
   });
 }
-
-

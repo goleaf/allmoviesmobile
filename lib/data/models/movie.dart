@@ -25,15 +25,14 @@ class Movie {
     this.status,
   });
 
-  factory Movie.fromJson(
-    Map<String, dynamic> json, {
-    String? mediaType,
-  }) {
+  factory Movie.fromJson(Map<String, dynamic> json, {String? mediaType}) {
     final resolvedMediaType = mediaType ?? json['media_type'] as String?;
     final title = ((json['title'] ?? json['name']) as String?)?.trim() ?? '';
     final overviewRaw = (json['overview'] as String?)?.trim();
-    final overview = (overviewRaw == null || overviewRaw.isEmpty) ? null : overviewRaw;
-    
+    final overview = (overviewRaw == null || overviewRaw.isEmpty)
+        ? null
+        : overviewRaw;
+
     final genreIdsList = json['genre_ids'] as List?;
     final genreIds = genreIdsList?.whereType<int>().toList();
 
@@ -52,7 +51,8 @@ class Movie {
       voteCount: json['vote_count'] as int?,
       popularity: (json['popularity'] as num?)?.toDouble(),
       originalLanguage: json['original_language'] as String?,
-      originalTitle: (json['original_title'] ?? json['original_name']) as String?,
+      originalTitle:
+          (json['original_title'] ?? json['original_name']) as String?,
       adult: json['adult'] as bool? ?? false,
       genreIds: genreIds,
       status: (json['status'] as String?)?.trim(),
@@ -91,28 +91,28 @@ class Movie {
   }
 
   String? get posterUrl => MediaImageHelper.buildUrl(
-        posterPath,
-        type: MediaImageType.poster,
-        size: MediaImageSize.w500,
-      );
+    posterPath,
+    type: MediaImageType.poster,
+    size: MediaImageSize.w500,
+  );
 
   String? get backdropUrl => MediaImageHelper.buildUrl(
-        backdropPath,
-        type: MediaImageType.backdrop,
-        size: MediaImageSize.w780,
-      );
+    backdropPath,
+    type: MediaImageType.backdrop,
+    size: MediaImageSize.w780,
+  );
 
   String? posterUrlFor(MediaImageSize size) => MediaImageHelper.buildUrl(
-        posterPath,
-        type: MediaImageType.poster,
-        size: size,
-      );
+    posterPath,
+    type: MediaImageType.poster,
+    size: size,
+  );
 
   String? backdropUrlFor(MediaImageSize size) => MediaImageHelper.buildUrl(
-        backdropPath,
-        type: MediaImageType.backdrop,
-        size: size,
-      );
+    backdropPath,
+    type: MediaImageType.backdrop,
+    size: size,
+  );
 
   String? get releaseYear => releaseDate != null && releaseDate!.isNotEmpty
       ? releaseDate!.split('-').first
@@ -199,10 +199,7 @@ class Movie {
     if (genreIds == null || genreIds!.isEmpty) {
       return [];
     }
-    return genreIds!
-        .map((id) => genreMap[id])
-        .whereType<String>()
-        .toList();
+    return genreIds!.map((id) => genreMap[id]).whereType<String>().toList();
   }
 
   String get genresText {

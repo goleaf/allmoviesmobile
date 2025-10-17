@@ -11,10 +11,10 @@ class KeywordDetailsProvider extends ChangeNotifier {
     this._repository, {
     required this.keywordId,
     String? initialName,
-  })  : _initialName = initialName,
-        _details = initialName != null
-            ? KeywordDetails(id: keywordId, name: initialName)
-            : null {
+  }) : _initialName = initialName,
+       _details = initialName != null
+           ? KeywordDetails(id: keywordId, name: initialName)
+           : null {
     fetchDetails();
   }
 
@@ -42,8 +42,10 @@ class KeywordDetailsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final fetched =
-          await _repository.fetchKeywordDetails(keywordId, forceRefresh: forceRefresh);
+      final fetched = await _repository.fetchKeywordDetails(
+        keywordId,
+        forceRefresh: forceRefresh,
+      );
       _details = fetched;
       _errorMessage = null;
     } catch (error) {
@@ -55,14 +57,15 @@ class KeywordDetailsProvider extends ChangeNotifier {
   }
 }
 
-abstract class BaseKeywordMediaProvider extends PaginatedResourceProvider<Movie> {
+abstract class BaseKeywordMediaProvider
+    extends PaginatedResourceProvider<Movie> {
   BaseKeywordMediaProvider(
     this.repository, {
     required this.keywordId,
     String initialSort = 'popularity.desc',
     bool includeAdult = false,
-  })  : _sortBy = initialSort,
-        _includeAdult = includeAdult;
+  }) : _sortBy = initialSort,
+       _includeAdult = includeAdult;
 
   final TmdbRepository repository;
   final int keywordId;
@@ -97,12 +100,11 @@ abstract class BaseKeywordMediaProvider extends PaginatedResourceProvider<Movie>
   });
 
   @override
-  Future<PaginatedResponse<Movie>> loadPage(int page, {bool forceRefresh = false}) {
-    return fetchPage(
-      page: page,
-      sortBy: _sortBy,
-      forceRefresh: forceRefresh,
-    );
+  Future<PaginatedResponse<Movie>> loadPage(
+    int page, {
+    bool forceRefresh = false,
+  }) {
+    return fetchPage(page: page, sortBy: _sortBy, forceRefresh: forceRefresh);
   }
 }
 
@@ -113,11 +115,11 @@ class KeywordMoviesProvider extends BaseKeywordMediaProvider {
     String initialSort = 'popularity.desc',
     bool includeAdult = false,
   }) : super(
-          repository,
-          keywordId: keywordId,
-          initialSort: initialSort,
-          includeAdult: includeAdult,
-        ) {
+         repository,
+         keywordId: keywordId,
+         initialSort: initialSort,
+         includeAdult: includeAdult,
+       ) {
     loadInitial();
   }
 
@@ -142,11 +144,7 @@ class KeywordTvProvider extends BaseKeywordMediaProvider {
     TmdbRepository repository, {
     required int keywordId,
     String initialSort = 'popularity.desc',
-  }) : super(
-          repository,
-          keywordId: keywordId,
-          initialSort: initialSort,
-        ) {
+  }) : super(repository, keywordId: keywordId, initialSort: initialSort) {
     loadInitial();
   }
 

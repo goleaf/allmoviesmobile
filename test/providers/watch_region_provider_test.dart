@@ -6,24 +6,52 @@ import 'package:allmovies_mobile/providers/watch_region_provider.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('WatchRegionProvider initializes from prefs and updates', () async {
-    SharedPreferences.setMockInitialValues(<String, Object>{'watch_region_code': 'gb'});
-    final prefs = await SharedPreferences.getInstance();
-    final provider = WatchRegionProvider(prefs);
-    expect(provider.region.toUpperCase(), 'GB');
-    await provider.setRegion('de');
-    expect(provider.region, 'DE');
-  });
+  group('WatchRegionProvider', () {
+    test('defaults to US when no pref stored or invalid', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
 
-  test('WatchRegionProvider rejects unknown codes and falls back to US', () async {
-    SharedPreferences.setMockInitialValues(<String, Object>{'watch_region_code': 'xx'});
-    final prefs = await SharedPreferences.getInstance();
-    final provider = WatchRegionProvider(prefs);
-    // Constructor uppercases or defaults, existing pref was invalid; should be US
-    expect(provider.region, 'US');
-    await provider.setRegion('  xx  '); // invalid/unknown
-    expect(provider.region, 'US');
+      final provider = WatchRegionProvider(prefs);
+      expect(provider.region, 'US');
+
+      await provider.setRegion('XX');
+      expect(provider.region, 'US');
+    });
+
+    test('sets and persists valid region', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final provider = WatchRegionProvider(prefs);
+
+      await provider.setRegion('GB');
+      expect(provider.region, 'GB');
+
+      final prefs2 = await SharedPreferences.getInstance();
+      final provider2 = WatchRegionProvider(prefs2);
+      expect(provider2.region, 'GB');
+    });
+
+    test('initializes from existing pref and normalizes codes', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'watch_region_code': 'gb',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final provider = WatchRegionProvider(prefs);
+      expect(provider.region.toUpperCase(), 'GB');
+
+      await provider.setRegion('de');
+      expect(provider.region, 'DE');
+    });
+
+    test('rejects unknown codes and falls back to US', () async {
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        'watch_region_code': 'xx',
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final provider = WatchRegionProvider(prefs);
+      expect(provider.region, 'US');
+      await provider.setRegion('  xx  ');
+      expect(provider.region, 'US');
+    });
   });
 }
-
-

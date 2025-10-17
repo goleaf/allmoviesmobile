@@ -39,7 +39,9 @@ class TVDetailed with _$TVDetailed {
     @JsonKey(name: 'production_countries')
     @Default([])
     List<Country> productionCountries,
-    @JsonKey(name: 'spoken_languages') @Default([]) List<Language> spokenLanguages,
+    @JsonKey(name: 'spoken_languages')
+    @Default([])
+    List<Language> spokenLanguages,
     @Default([]) List<Network> networks,
     @JsonKey(name: 'poster_path') String? posterPath,
     @JsonKey(name: 'backdrop_path') String? backdropPath,
@@ -61,4 +63,3 @@ class TVDetailed with _$TVDetailed {
   factory TVDetailed.fromJson(Map<String, dynamic> json) =>
       _$TVDetailedFromJson(json);
 }
-

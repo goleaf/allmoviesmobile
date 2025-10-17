@@ -27,16 +27,16 @@ import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 // duplicate import removed
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../navigation/season_detail_args.dart';
+import '../season_detail/season_detail_screen.dart';
+import '../../widgets/watch_providers_section.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
 
   final Movie tvShow;
 
-  const TVDetailScreen({
-    super.key,
-    required this.tvShow,
-  });
+  const TVDetailScreen({super.key, required this.tvShow});
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +116,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildAppBar(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     final backdropPath = details.backdropPath;
 
     return SliverAppBar(
@@ -161,7 +165,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildHeader(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     final posterPath = details.posterPath;
 
     return Padding(
@@ -189,9 +197,9 @@ class _TVDetailView extends StatelessWidget {
                   Text(
                     details.tagline!,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey[600],
-                        ),
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey[600],
+                    ),
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -206,12 +214,13 @@ class _TVDetailView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                if (details.numberOfSeasons != null && details.numberOfEpisodes != null) ...[
+                if (details.numberOfSeasons != null &&
+                    details.numberOfEpisodes != null) ...[
                   Text(
                     '${details.numberOfSeasons} ${details.numberOfSeasons == 1 ? 'Season' : 'Seasons'} • ${details.numberOfEpisodes} Episodes',
                     style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w500,
-                        ),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                   const SizedBox(height: 8),
                 ],
@@ -225,10 +234,7 @@ class _TVDetailView extends StatelessWidget {
                 if (details.status != null)
                   Chip(
                     label: Text(details.status!),
-                    avatar: Icon(
-                      _getStatusIcon(details.status!),
-                      size: 16,
-                    ),
+                    avatar: Icon(_getStatusIcon(details.status!), size: 16),
                   ),
               ],
             ),
@@ -238,7 +244,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildActions(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
 
@@ -266,10 +276,14 @@ class _TVDetailView extends StatelessWidget {
               },
               icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
               label: Text(
-                isFavorite ? loc.t('tv.remove_from_favorites') : loc.t('tv.add_to_favorites'),
+                isFavorite
+                    ? loc.t('tv.remove_from_favorites')
+                    : loc.t('tv.add_to_favorites'),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isFavorite ? Colors.red.withOpacity(0.1) : null,
+                backgroundColor: isFavorite
+                    ? Colors.red.withOpacity(0.1)
+                    : null,
                 foregroundColor: isFavorite ? Colors.red : null,
               ),
             ),
@@ -290,14 +304,18 @@ class _TVDetailView extends StatelessWidget {
                   ),
                 );
               },
-              icon: Icon(isInWatchlist ? Icons.bookmark : Icons.bookmark_border),
+              icon: Icon(
+                isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
+              ),
               label: Text(
                 isInWatchlist
                     ? loc.t('tv.remove_from_watchlist')
                     : loc.t('tv.add_to_watchlist'),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isInWatchlist ? Colors.blue.withOpacity(0.1) : null,
+                backgroundColor: isInWatchlist
+                    ? Colors.blue.withOpacity(0.1)
+                    : null,
                 foregroundColor: isInWatchlist ? Colors.blue : null,
               ),
             ),
@@ -307,7 +325,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildOverview(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.overview == null || details.overview!.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -319,21 +341,22 @@ class _TVDetailView extends StatelessWidget {
         children: [
           Text(
             loc.t('tv.overview'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
-          Text(
-            details.overview!,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
+          Text(details.overview!, style: Theme.of(context).textTheme.bodyLarge),
         ],
       ),
     );
   }
 
-  Widget _buildMetadata(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildMetadata(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     final metadata = <MapEntry<String, String>>[];
 
     if (details.firstAirDate != null && details.firstAirDate!.isNotEmpty) {
@@ -345,14 +368,15 @@ class _TVDetailView extends StatelessWidget {
     }
 
     if (details.episodeRunTime.isNotEmpty) {
-      metadata.add(MapEntry(
-        'Episode Runtime',
-        '${details.episodeRunTime.first} min',
-      ));
+      metadata.add(
+        MapEntry('Episode Runtime', '${details.episodeRunTime.first} min'),
+      );
     }
 
     if (details.popularity != null) {
-      metadata.add(MapEntry('Popularity', details.popularity!.toStringAsFixed(1)));
+      metadata.add(
+        MapEntry('Popularity', details.popularity!.toStringAsFixed(1)),
+      );
     }
 
     if (metadata.isEmpty) {
@@ -369,32 +393,32 @@ class _TVDetailView extends StatelessWidget {
             children: [
               Text(
                 'Details',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              ...metadata.map((entry) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 140,
-                          child: Text(
-                            entry.key,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
-                            ),
+              ...metadata.map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 140,
+                        child: Text(
+                          entry.key,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
                           ),
                         ),
-                        Expanded(
-                          child: Text(entry.value),
-                        ),
-                      ],
-                    ),
-                  )),
+                      ),
+                      Expanded(child: Text(entry.value)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -402,7 +426,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildGenres(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildGenres(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.genres.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -414,9 +442,9 @@ class _TVDetailView extends StatelessWidget {
         children: [
           Text(
             loc.t('tv.genres'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -437,7 +465,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildNetworks(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildNetworks(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.networks.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -449,9 +481,9 @@ class _TVDetailView extends StatelessWidget {
         children: [
           Text(
             'Networks',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -470,13 +502,20 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildSeasons(BuildContext context, TVDetailed details, AppLocalizations loc, TvDetailProvider provider) {
+  Widget _buildSeasons(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+    TvDetailProvider provider,
+  ) {
     if (details.seasons.isEmpty) {
       return const SizedBox.shrink();
     }
 
     // Filter out specials (season 0) for main list
-    final mainSeasons = details.seasons.where((s) => s.seasonNumber > 0).toList();
+    final mainSeasons = details.seasons
+        .where((s) => s.seasonNumber > 0)
+        .toList();
 
     if (mainSeasons.isEmpty) {
       return const SizedBox.shrink();
@@ -489,9 +528,9 @@ class _TVDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Seasons',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -504,7 +543,13 @@ class _TVDetailView extends StatelessWidget {
               final season = mainSeasons[index];
               return _SeasonCard(
                 season: season,
-                onTap: () => provider.selectSeason(season.seasonNumber),
+                onTap: () => Navigator.of(context).pushNamed(
+                  SeasonDetailScreen.routeName,
+                  arguments: SeasonDetailArgs(
+                    tvId: details.id,
+                    seasonNumber: season.seasonNumber,
+                  ),
+                ),
               );
             },
           ),
@@ -536,9 +581,9 @@ class _TVDetailView extends StatelessWidget {
             children: [
               Text(
                 'Season $seasonNumber',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               if (isLoading)
@@ -549,11 +594,13 @@ class _TVDetailView extends StatelessWidget {
                   onRetry: () => provider.retrySeason(seasonNumber),
                 )
               else if (season != null && season.episodes.isNotEmpty)
-                ...season.episodes.map((episode) => _EpisodeCard(
-                      episode: episode,
-                      tvId: details.id,
-                      seasonNumber: seasonNumber,
-                    ))
+                ...season.episodes.map(
+                  (episode) => _EpisodeCard(
+                    episode: episode,
+                    tvId: details.id,
+                    seasonNumber: seasonNumber,
+                  ),
+                )
               else
                 const Center(child: Text('No episodes available')),
             ],
@@ -563,7 +610,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildCast(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildCast(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.cast.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -577,9 +628,9 @@ class _TVDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Cast',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -598,7 +649,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildVideos(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildVideos(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.videos.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -619,9 +674,9 @@ class _TVDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Videos & Trailers',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -640,7 +695,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildKeywords(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildKeywords(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.keywords.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -652,9 +711,9 @@ class _TVDetailView extends StatelessWidget {
         children: [
           Text(
             'Keywords',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -663,7 +722,9 @@ class _TVDetailView extends StatelessWidget {
             children: details.keywords.take(20).map((keyword) {
               return Chip(
                 label: Text(keyword.name),
-                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.secondaryContainer,
                 labelStyle: TextStyle(
                   color: Theme.of(context).colorScheme.onSecondaryContainer,
                 ),
@@ -679,117 +740,38 @@ class _TVDetailView extends StatelessWidget {
     final region = context.watch<WatchRegionProvider>().region;
     final repository = context.read<TmdbRepository>();
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: FutureBuilder<Map<String, WatchProviderResults>>(
-            future: repository.fetchTvWatchProviders(details.id),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const SizedBox(
-                  height: 48,
-                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                );
-              }
-              if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
-                return const SizedBox.shrink();
-              }
-              final map = snapshot.data!;
-              final providers = map[region] ?? map['US'];
-              if (providers == null) return const SizedBox.shrink();
+    return FutureBuilder<Map<String, WatchProviderResults>>(
+      future: repository.fetchTvWatchProviders(details.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SizedBox(
+              height: 48,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+          );
+        }
+        if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final map = snapshot.data!;
+        final providers = map[region] ?? map['US'];
+        if (providers == null) return const SizedBox.shrink();
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        'Where to Watch ($region)',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                      const Spacer(),
-                      if ((providers.link ?? '').isNotEmpty)
-                        TextButton.icon(
-                          onPressed: () => _launchURL(providers.link!, context),
-                          icon: const Icon(Icons.open_in_new),
-                          label: const Text('Open'),
-                        ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  if (providers.flatrate.isNotEmpty) ...[
-                    const Text('Stream:', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: providers.flatrate
-                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
-                          .toList(),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  if (providers.rent.isNotEmpty) ...[
-                    const Text('Rent:', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: providers.rent
-                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
-                          .toList(),
-                    ),
-                    const SizedBox(height: 12),
-                  ],
-                  if (providers.buy.isNotEmpty) ...[
-                    const Text('Buy:', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: providers.buy
-                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
-                          .toList(),
-                    ),
-                  ],
-                  if (providers.ads.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Text('With Ads:', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: providers.ads
-                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
-                          .toList(),
-                    ),
-                  ],
-                  if (providers.free.isNotEmpty) ...[
-                    const SizedBox(height: 12),
-                    const Text('Free:', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: providers.free
-                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
-                          .toList(),
-                    ),
-                  ],
-                ],
-              );
-            },
-          ),
-        ),
-      ),
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: WatchProvidersSection(region: region, providers: providers),
+        );
+      },
     );
   }
 
-  Widget _buildExternalLinks(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildExternalLinks(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     final links = <MapEntry<String, String>>[];
 
     if (details.homepage != null && details.homepage!.isNotEmpty) {
@@ -797,31 +779,39 @@ class _TVDetailView extends StatelessWidget {
     }
 
     if (details.externalIds.imdbId != null) {
-      links.add(MapEntry(
-        'IMDb',
-        'https://www.imdb.com/title/${details.externalIds.imdbId}',
-      ));
+      links.add(
+        MapEntry(
+          'IMDb',
+          'https://www.imdb.com/title/${details.externalIds.imdbId}',
+        ),
+      );
     }
 
     if (details.externalIds.facebookId != null) {
-      links.add(MapEntry(
-        'Facebook',
-        'https://www.facebook.com/${details.externalIds.facebookId}',
-      ));
+      links.add(
+        MapEntry(
+          'Facebook',
+          'https://www.facebook.com/${details.externalIds.facebookId}',
+        ),
+      );
     }
 
     if (details.externalIds.twitterId != null) {
-      links.add(MapEntry(
-        'Twitter',
-        'https://twitter.com/${details.externalIds.twitterId}',
-      ));
+      links.add(
+        MapEntry(
+          'Twitter',
+          'https://twitter.com/${details.externalIds.twitterId}',
+        ),
+      );
     }
 
     if (details.externalIds.instagramId != null) {
-      links.add(MapEntry(
-        'Instagram',
-        'https://www.instagram.com/${details.externalIds.instagramId}',
-      ));
+      links.add(
+        MapEntry(
+          'Instagram',
+          'https://www.instagram.com/${details.externalIds.instagramId}',
+        ),
+      );
     }
 
     if (links.isEmpty) {
@@ -838,9 +828,9 @@ class _TVDetailView extends StatelessWidget {
             children: [
               Text(
                 'External Links',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -861,7 +851,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendations(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildRecommendations(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.recommendations.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -873,9 +867,9 @@ class _TVDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Recommended TV Shows',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -922,7 +916,11 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildSimilar(BuildContext context, TVDetailed details, AppLocalizations loc) {
+  Widget _buildSimilar(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.similar.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -934,9 +932,9 @@ class _TVDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Similar TV Shows',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -983,8 +981,13 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildProductionInfo(BuildContext context, TVDetailed details, AppLocalizations loc) {
-    if (details.productionCompanies.isEmpty && details.productionCountries.isEmpty) {
+  Widget _buildProductionInfo(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
+    if (details.productionCompanies.isEmpty &&
+        details.productionCountries.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -998,9 +1001,9 @@ class _TVDetailView extends StatelessWidget {
             children: [
               Text(
                 'Production',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               if (details.productionCompanies.isNotEmpty) ...[
@@ -1024,9 +1027,7 @@ class _TVDetailView extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  details.productionCountries.map((c) => c.name).join(', '),
-                ),
+                Text(details.productionCountries.map((c) => c.name).join(', ')),
               ],
             ],
           ),
@@ -1064,9 +1065,9 @@ class _TVDetailView extends StatelessWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to open link: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to open link: $e')));
       }
     }
   }
@@ -1238,7 +1239,8 @@ class _EpisodeCard extends StatelessWidget {
                         episode.airDate!,
                         style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                       ),
-                    if (episode.overview != null && episode.overview!.isNotEmpty) ...[
+                    if (episode.overview != null &&
+                        episode.overview!.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       Text(
                         episode.overview!,

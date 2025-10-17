@@ -15,10 +15,11 @@ class MovieRepository {
     final popularPayload = await apiService.fetchMovieCategory('popular');
 
     return {
-      MovieCollection.trending: (trendingPayload['results'] as List? ?? const [])
-          .whereType<Map<String, dynamic>>()
-          .map((json) => Movie.fromJson(json, mediaType: 'movie'))
-          .toList(growable: false),
+      MovieCollection.trending:
+          (trendingPayload['results'] as List? ?? const [])
+              .whereType<Map<String, dynamic>>()
+              .map((json) => Movie.fromJson(json, mediaType: 'movie'))
+              .toList(growable: false),
       MovieCollection.popular: (popularPayload['results'] as List? ?? const [])
           .whereType<Map<String, dynamic>>()
           .map((json) => Movie.fromJson(json, mediaType: 'movie'))

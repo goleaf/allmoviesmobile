@@ -12,7 +12,8 @@ part of 'person_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Person _$PersonFromJson(Map<String, dynamic> json) {
   return _Person.fromJson(json);
@@ -44,16 +45,17 @@ abstract class $PersonCopyWith<$Res> {
   factory $PersonCopyWith(Person value, $Res Function(Person) then) =
       _$PersonCopyWithImpl<$Res, Person>;
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'profile_path') String? profilePath,
-      String? biography,
-      @JsonKey(name: 'known_for_department') String? knownForDepartment,
-      String? birthday,
-      @JsonKey(name: 'place_of_birth') String? placeOfBirth,
-      @JsonKey(name: 'also_known_as') List<String> alsoKnownAs,
-      double? popularity});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'profile_path') String? profilePath,
+    String? biography,
+    @JsonKey(name: 'known_for_department') String? knownForDepartment,
+    String? birthday,
+    @JsonKey(name: 'place_of_birth') String? placeOfBirth,
+    @JsonKey(name: 'also_known_as') List<String> alsoKnownAs,
+    double? popularity,
+  });
 }
 
 /// @nodoc
@@ -79,64 +81,69 @@ class _$PersonCopyWithImpl<$Res, $Val extends Person>
     Object? alsoKnownAs = null,
     Object? popularity = freezed,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      profilePath: freezed == profilePath
-          ? _value.profilePath
-          : profilePath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      biography: freezed == biography
-          ? _value.biography
-          : biography // ignore: cast_nullable_to_non_nullable
-              as String?,
-      knownForDepartment: freezed == knownForDepartment
-          ? _value.knownForDepartment
-          : knownForDepartment // ignore: cast_nullable_to_non_nullable
-              as String?,
-      birthday: freezed == birthday
-          ? _value.birthday
-          : birthday // ignore: cast_nullable_to_non_nullable
-              as String?,
-      placeOfBirth: freezed == placeOfBirth
-          ? _value.placeOfBirth
-          : placeOfBirth // ignore: cast_nullable_to_non_nullable
-              as String?,
-      alsoKnownAs: null == alsoKnownAs
-          ? _value.alsoKnownAs
-          : alsoKnownAs // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            profilePath: freezed == profilePath
+                ? _value.profilePath
+                : profilePath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            biography: freezed == biography
+                ? _value.biography
+                : biography // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            knownForDepartment: freezed == knownForDepartment
+                ? _value.knownForDepartment
+                : knownForDepartment // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            birthday: freezed == birthday
+                ? _value.birthday
+                : birthday // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            placeOfBirth: freezed == placeOfBirth
+                ? _value.placeOfBirth
+                : placeOfBirth // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            alsoKnownAs: null == alsoKnownAs
+                ? _value.alsoKnownAs
+                : alsoKnownAs // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            popularity: freezed == popularity
+                ? _value.popularity
+                : popularity // ignore: cast_nullable_to_non_nullable
+                      as double?,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$PersonImplCopyWith<$Res> implements $PersonCopyWith<$Res> {
   factory _$$PersonImplCopyWith(
-          _$PersonImpl value, $Res Function(_$PersonImpl) then) =
-      __$$PersonImplCopyWithImpl<$Res>;
+    _$PersonImpl value,
+    $Res Function(_$PersonImpl) then,
+  ) = __$$PersonImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'profile_path') String? profilePath,
-      String? biography,
-      @JsonKey(name: 'known_for_department') String? knownForDepartment,
-      String? birthday,
-      @JsonKey(name: 'place_of_birth') String? placeOfBirth,
-      @JsonKey(name: 'also_known_as') List<String> alsoKnownAs,
-      double? popularity});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'profile_path') String? profilePath,
+    String? biography,
+    @JsonKey(name: 'known_for_department') String? knownForDepartment,
+    String? birthday,
+    @JsonKey(name: 'place_of_birth') String? placeOfBirth,
+    @JsonKey(name: 'also_known_as') List<String> alsoKnownAs,
+    double? popularity,
+  });
 }
 
 /// @nodoc
@@ -144,8 +151,9 @@ class __$$PersonImplCopyWithImpl<$Res>
     extends _$PersonCopyWithImpl<$Res, _$PersonImpl>
     implements _$$PersonImplCopyWith<$Res> {
   __$$PersonImplCopyWithImpl(
-      _$PersonImpl _value, $Res Function(_$PersonImpl) _then)
-      : super(_value, _then);
+    _$PersonImpl _value,
+    $Res Function(_$PersonImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -160,62 +168,64 @@ class __$$PersonImplCopyWithImpl<$Res>
     Object? alsoKnownAs = null,
     Object? popularity = freezed,
   }) {
-    return _then(_$PersonImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      profilePath: freezed == profilePath
-          ? _value.profilePath
-          : profilePath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      biography: freezed == biography
-          ? _value.biography
-          : biography // ignore: cast_nullable_to_non_nullable
-              as String?,
-      knownForDepartment: freezed == knownForDepartment
-          ? _value.knownForDepartment
-          : knownForDepartment // ignore: cast_nullable_to_non_nullable
-              as String?,
-      birthday: freezed == birthday
-          ? _value.birthday
-          : birthday // ignore: cast_nullable_to_non_nullable
-              as String?,
-      placeOfBirth: freezed == placeOfBirth
-          ? _value.placeOfBirth
-          : placeOfBirth // ignore: cast_nullable_to_non_nullable
-              as String?,
-      alsoKnownAs: null == alsoKnownAs
-          ? _value._alsoKnownAs
-          : alsoKnownAs // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-    ));
+    return _then(
+      _$PersonImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        profilePath: freezed == profilePath
+            ? _value.profilePath
+            : profilePath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        biography: freezed == biography
+            ? _value.biography
+            : biography // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        knownForDepartment: freezed == knownForDepartment
+            ? _value.knownForDepartment
+            : knownForDepartment // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        birthday: freezed == birthday
+            ? _value.birthday
+            : birthday // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        placeOfBirth: freezed == placeOfBirth
+            ? _value.placeOfBirth
+            : placeOfBirth // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        alsoKnownAs: null == alsoKnownAs
+            ? _value._alsoKnownAs
+            : alsoKnownAs // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        popularity: freezed == popularity
+            ? _value.popularity
+            : popularity // ignore: cast_nullable_to_non_nullable
+                  as double?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$PersonImpl implements _Person {
-  const _$PersonImpl(
-      {required this.id,
-      required this.name,
-      @JsonKey(name: 'profile_path') this.profilePath,
-      this.biography,
-      @JsonKey(name: 'known_for_department') this.knownForDepartment,
-      this.birthday,
-      @JsonKey(name: 'place_of_birth') this.placeOfBirth,
-      @JsonKey(name: 'also_known_as')
-      final List<String> alsoKnownAs = const <String>[],
-      this.popularity})
-      : _alsoKnownAs = alsoKnownAs;
+  const _$PersonImpl({
+    required this.id,
+    required this.name,
+    @JsonKey(name: 'profile_path') this.profilePath,
+    this.biography,
+    @JsonKey(name: 'known_for_department') this.knownForDepartment,
+    this.birthday,
+    @JsonKey(name: 'place_of_birth') this.placeOfBirth,
+    @JsonKey(name: 'also_known_as')
+    final List<String> alsoKnownAs = const <String>[],
+    this.popularity,
+  }) : _alsoKnownAs = alsoKnownAs;
 
   factory _$PersonImpl.fromJson(Map<String, dynamic> json) =>
       _$$PersonImplFromJson(json);
@@ -271,8 +281,10 @@ class _$PersonImpl implements _Person {
                 other.birthday == birthday) &&
             (identical(other.placeOfBirth, placeOfBirth) ||
                 other.placeOfBirth == placeOfBirth) &&
-            const DeepCollectionEquality()
-                .equals(other._alsoKnownAs, _alsoKnownAs) &&
+            const DeepCollectionEquality().equals(
+              other._alsoKnownAs,
+              _alsoKnownAs,
+            ) &&
             (identical(other.popularity, popularity) ||
                 other.popularity == popularity));
   }
@@ -280,16 +292,17 @@ class _$PersonImpl implements _Person {
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      profilePath,
-      biography,
-      knownForDepartment,
-      birthday,
-      placeOfBirth,
-      const DeepCollectionEquality().hash(_alsoKnownAs),
-      popularity);
+    runtimeType,
+    id,
+    name,
+    profilePath,
+    biography,
+    knownForDepartment,
+    birthday,
+    placeOfBirth,
+    const DeepCollectionEquality().hash(_alsoKnownAs),
+    popularity,
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -299,23 +312,22 @@ class _$PersonImpl implements _Person {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$PersonImplToJson(
-      this,
-    );
+    return _$$PersonImplToJson(this);
   }
 }
 
 abstract class _Person implements Person {
-  const factory _Person(
-      {required final int id,
-      required final String name,
-      @JsonKey(name: 'profile_path') final String? profilePath,
-      final String? biography,
-      @JsonKey(name: 'known_for_department') final String? knownForDepartment,
-      final String? birthday,
-      @JsonKey(name: 'place_of_birth') final String? placeOfBirth,
-      @JsonKey(name: 'also_known_as') final List<String> alsoKnownAs,
-      final double? popularity}) = _$PersonImpl;
+  const factory _Person({
+    required final int id,
+    required final String name,
+    @JsonKey(name: 'profile_path') final String? profilePath,
+    final String? biography,
+    @JsonKey(name: 'known_for_department') final String? knownForDepartment,
+    final String? birthday,
+    @JsonKey(name: 'place_of_birth') final String? placeOfBirth,
+    @JsonKey(name: 'also_known_as') final List<String> alsoKnownAs,
+    final double? popularity,
+  }) = _$PersonImpl;
 
   factory _Person.fromJson(Map<String, dynamic> json) = _$PersonImpl.fromJson;
 

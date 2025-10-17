@@ -39,4 +39,3 @@ class Credits with _$Credits {
   factory Credits.fromJson(Map<String, dynamic> json) =>
       _$CreditsFromJson(json);
 }
-

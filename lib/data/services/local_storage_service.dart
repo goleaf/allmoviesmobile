@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/custom_list.dart';
 import '../models/notification_item.dart';
 import '../models/saved_media_item.dart';
+import '../models/discover_filters_model.dart';
 
 /// Local persistence gateway handling favorites, watchlist, custom lists,
 /// notifications, search history and other lightweight caches.
@@ -17,6 +18,10 @@ class LocalStorageService {
   static const String _searchHistoryKey = 'allmovies_search_history';
   static const String _customListsKey = 'allmovies_custom_lists';
   static const String _notificationsKey = 'allmovies_notifications';
+
+  // Movies browsing persistence
+  static const String _discoverFiltersKey = 'allmovies_discover_filters';
+  static const String _trendingWindowKey = 'allmovies_trending_window';
 
   static const String _favoritesSyncEnabledKey =
       'allmovies_favorites_sync_enabled';
@@ -38,8 +43,7 @@ class LocalStorageService {
     return SavedMediaItem.decodeList(raw);
   }
 
-  Set<int> getFavorites() =>
-      getFavoriteItems().map((item) => item.id).toSet();
+  Set<int> getFavorites() => getFavoriteItems().map((item) => item.id).toSet();
 
   Future<bool> saveFavoriteItems(List<SavedMediaItem> favorites) {
     final encoded = SavedMediaItem.encodeList(favorites);
@@ -66,16 +70,13 @@ class LocalStorageService {
   }) async {
     final favorites = getFavoriteItems().toList();
     final storageId = item?.storageId ?? '${type.storageKey}_$id';
-    final index =
-        favorites.indexWhere((candidate) => candidate.storageId == storageId);
+    final index = favorites.indexWhere(
+      (candidate) => candidate.storageId == storageId,
+    );
 
-    final updatedItem = (item ??
-            SavedMediaItem(
-              id: id,
-              type: type,
-              title: 'Movie #$id',
-            ))
-        .copyWith(updatedAt: DateTime.now());
+    final updatedItem =
+        (item ?? SavedMediaItem(id: id, type: type, title: 'Movie #$id'))
+            .copyWith(updatedAt: DateTime.now());
 
     if (index >= 0) {
       favorites[index] = updatedItem;
@@ -96,12 +97,8 @@ class LocalStorageService {
     return saveFavoriteItems(updated);
   }
 
-  bool isFavorite(
-    int id, {
-    SavedMediaType type = SavedMediaType.movie,
-  }) {
-    return getFavoriteItems()
-        .any((item) => item.id == id && item.type == type);
+  bool isFavorite(int id, {SavedMediaType type = SavedMediaType.movie}) {
+    return getFavoriteItems().any((item) => item.id == id && item.type == type);
   }
 
   Future<bool> clearFavorites() => _prefs.remove(_favoritesKey);
@@ -115,8 +112,7 @@ class LocalStorageService {
     return SavedMediaItem.decodeList(raw);
   }
 
-  Set<int> getWatchlist() =>
-      getWatchlistItems().map((item) => item.id).toSet();
+  Set<int> getWatchlist() => getWatchlistItems().map((item) => item.id).toSet();
 
   Future<bool> saveWatchlistItems(List<SavedMediaItem> watchlist) {
     final encoded = SavedMediaItem.encodeList(watchlist);
@@ -143,16 +139,13 @@ class LocalStorageService {
   }) async {
     final watchlist = getWatchlistItems().toList();
     final storageId = item?.storageId ?? '${type.storageKey}_$id';
-    final index =
-        watchlist.indexWhere((candidate) => candidate.storageId == storageId);
+    final index = watchlist.indexWhere(
+      (candidate) => candidate.storageId == storageId,
+    );
 
-    final updatedItem = (item ??
-            SavedMediaItem(
-              id: id,
-              type: type,
-              title: 'Movie #$id',
-            ))
-        .copyWith(updatedAt: DateTime.now());
+    final updatedItem =
+        (item ?? SavedMediaItem(id: id, type: type, title: 'Movie #$id'))
+            .copyWith(updatedAt: DateTime.now());
 
     if (index >= 0) {
       watchlist[index] = updatedItem;
@@ -173,12 +166,10 @@ class LocalStorageService {
     return saveWatchlistItems(updated);
   }
 
-  bool isInWatchlist(
-    int id, {
-    SavedMediaType type = SavedMediaType.movie,
-  }) {
-    return getWatchlistItems()
-        .any((item) => item.id == id && item.type == type);
+  bool isInWatchlist(int id, {SavedMediaType type = SavedMediaType.movie}) {
+    return getWatchlistItems().any(
+      (item) => item.id == id && item.type == type,
+    );
   }
 
   Future<bool> clearWatchlist() => _prefs.remove(_watchlistKey);
@@ -249,8 +240,9 @@ class LocalStorageService {
   }
 
   Future<bool> saveCustomLists(List<CustomList> lists) {
-    final encoded =
-        json.encode(lists.map((list) => list.toJson()).toList(growable: false));
+    final encoded = json.encode(
+      lists.map((list) => list.toJson()).toList(growable: false),
+    );
     return _prefs.setString(_customListsKey, encoded);
   }
 
@@ -311,17 +303,18 @@ class LocalStorageService {
 
   Future<bool> saveNotifications(List<AppNotification> notifications) {
     final encoded = json.encode(
-      notifications.map((notification) => notification.toJson()).toList(
-            growable: false,
-          ),
+      notifications
+          .map((notification) => notification.toJson())
+          .toList(growable: false),
     );
     return _prefs.setString(_notificationsKey, encoded);
   }
 
   Future<bool> upsertNotification(AppNotification notification) async {
     final notifications = getNotifications();
-    final index =
-        notifications.indexWhere((item) => item.id == notification.id);
+    final index = notifications.indexWhere(
+      (item) => item.id == notification.id,
+    );
     final updated = List<AppNotification>.from(notifications);
 
     if (index >= 0) {
@@ -416,20 +409,51 @@ class LocalStorageService {
     final history = getSearchHistory(limit: limit).toList();
     history.remove(normalized);
     history.insert(0, normalized);
-    final encoded =
-        json.encode(history.take(limit).toList(growable: false));
+    final encoded = json.encode(history.take(limit).toList(growable: false));
     return _prefs.setString(_searchHistoryKey, encoded);
   }
 
   Future<bool> removeFromSearchHistory(String query) {
     final normalized = query.trim();
-    final history = getSearchHistory(limit: 50)
-        .where((entry) => entry != normalized)
-        .toList(growable: false);
+    final history = getSearchHistory(
+      limit: 50,
+    ).where((entry) => entry != normalized).toList(growable: false);
     return _prefs.setString(_searchHistoryKey, json.encode(history));
   }
 
   Future<bool> clearSearchHistory() => _prefs.remove(_searchHistoryKey);
+
+  // ---------------------------------------------------------------------------
+  // Movies browsing persistence (filters + trending window)
+  // ---------------------------------------------------------------------------
+
+  DiscoverFilters? getDiscoverFilters() {
+    final raw = _prefs.getString(_discoverFiltersKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final decoded = json.decode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return DiscoverFilters.fromJson(decoded);
+      }
+    } catch (_) {
+      // ignore malformed data
+    }
+    return null;
+  }
+
+  Future<bool> saveDiscoverFilters(DiscoverFilters filters) {
+    final encoded = json.encode(filters.toJson());
+    return _prefs.setString(_discoverFiltersKey, encoded);
+  }
+
+  String? getTrendingWindow() {
+    final raw = _prefs.getString(_trendingWindowKey);
+    return (raw == null || raw.isEmpty) ? null : raw;
+  }
+
+  Future<bool> setTrendingWindow(String window) {
+    return _prefs.setString(_trendingWindowKey, window);
+  }
 
   // ---------------------------------------------------------------------------
   // Utilities

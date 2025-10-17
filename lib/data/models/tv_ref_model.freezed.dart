@@ -12,7 +12,8 @@ part of 'tv_ref_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 TVRef _$TVRefFromJson(Map<String, dynamic> json) {
   return _TVRef.fromJson(json);
@@ -37,13 +38,14 @@ abstract class $TVRefCopyWith<$Res> {
   factory $TVRefCopyWith(TVRef value, $Res Function(TVRef) then) =
       _$TVRefCopyWithImpl<$Res, TVRef>;
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      String? posterPath,
-      String? backdropPath,
-      double? voteAverage,
-      String? firstAirDate});
+  $Res call({
+    int id,
+    String name,
+    String? posterPath,
+    String? backdropPath,
+    double? voteAverage,
+    String? firstAirDate,
+  });
 }
 
 /// @nodoc
@@ -66,49 +68,54 @@ class _$TVRefCopyWithImpl<$Res, $Val extends TVRef>
     Object? voteAverage = freezed,
     Object? firstAirDate = freezed,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      voteAverage: freezed == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double?,
-      firstAirDate: freezed == firstAirDate
-          ? _value.firstAirDate
-          : firstAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            voteAverage: freezed == voteAverage
+                ? _value.voteAverage
+                : voteAverage // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            firstAirDate: freezed == firstAirDate
+                ? _value.firstAirDate
+                : firstAirDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$TVRefImplCopyWith<$Res> implements $TVRefCopyWith<$Res> {
   factory _$$TVRefImplCopyWith(
-          _$TVRefImpl value, $Res Function(_$TVRefImpl) then) =
-      __$$TVRefImplCopyWithImpl<$Res>;
+    _$TVRefImpl value,
+    $Res Function(_$TVRefImpl) then,
+  ) = __$$TVRefImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      String? posterPath,
-      String? backdropPath,
-      double? voteAverage,
-      String? firstAirDate});
+  $Res call({
+    int id,
+    String name,
+    String? posterPath,
+    String? backdropPath,
+    double? voteAverage,
+    String? firstAirDate,
+  });
 }
 
 /// @nodoc
@@ -116,8 +123,9 @@ class __$$TVRefImplCopyWithImpl<$Res>
     extends _$TVRefCopyWithImpl<$Res, _$TVRefImpl>
     implements _$$TVRefImplCopyWith<$Res> {
   __$$TVRefImplCopyWithImpl(
-      _$TVRefImpl _value, $Res Function(_$TVRefImpl) _then)
-      : super(_value, _then);
+    _$TVRefImpl _value,
+    $Res Function(_$TVRefImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -129,45 +137,48 @@ class __$$TVRefImplCopyWithImpl<$Res>
     Object? voteAverage = freezed,
     Object? firstAirDate = freezed,
   }) {
-    return _then(_$TVRefImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      voteAverage: freezed == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double?,
-      firstAirDate: freezed == firstAirDate
-          ? _value.firstAirDate
-          : firstAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$TVRefImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voteAverage: freezed == voteAverage
+            ? _value.voteAverage
+            : voteAverage // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        firstAirDate: freezed == firstAirDate
+            ? _value.firstAirDate
+            : firstAirDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TVRefImpl implements _TVRef {
-  const _$TVRefImpl(
-      {required this.id,
-      required this.name,
-      this.posterPath,
-      this.backdropPath,
-      this.voteAverage,
-      this.firstAirDate});
+  const _$TVRefImpl({
+    required this.id,
+    required this.name,
+    this.posterPath,
+    this.backdropPath,
+    this.voteAverage,
+    this.firstAirDate,
+  });
 
   factory _$TVRefImpl.fromJson(Map<String, dynamic> json) =>
       _$$TVRefImplFromJson(json);
@@ -209,8 +220,15 @@ class _$TVRefImpl implements _TVRef {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, posterPath,
-      backdropPath, voteAverage, firstAirDate);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    name,
+    posterPath,
+    backdropPath,
+    voteAverage,
+    firstAirDate,
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -220,20 +238,19 @@ class _$TVRefImpl implements _TVRef {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TVRefImplToJson(
-      this,
-    );
+    return _$$TVRefImplToJson(this);
   }
 }
 
 abstract class _TVRef implements TVRef {
-  const factory _TVRef(
-      {required final int id,
-      required final String name,
-      final String? posterPath,
-      final String? backdropPath,
-      final double? voteAverage,
-      final String? firstAirDate}) = _$TVRefImpl;
+  const factory _TVRef({
+    required final int id,
+    required final String name,
+    final String? posterPath,
+    final String? backdropPath,
+    final double? voteAverage,
+    final String? firstAirDate,
+  }) = _$TVRefImpl;
 
   factory _TVRef.fromJson(Map<String, dynamic> json) = _$TVRefImpl.fromJson;
 

@@ -13,17 +13,38 @@ import 'package:allmovies_mobile/presentation/screens/search/search_screen.dart'
 
 class _FakeRepo extends TmdbRepository {
   @override
-  Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {
-    return SearchResponse(page: 1, totalPages: 1, totalResults: 1, results: [SearchResult(id: 1, mediaType: MediaType.movie, title: query)]);
+  Future<SearchResponse> searchMulti(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return SearchResponse(
+      page: 1,
+      totalPages: 1,
+      totalResults: 1,
+      results: [SearchResult(id: 1, mediaType: MediaType.movie, title: query)],
+    );
   }
+
   @override
-  Future<PaginatedResponse<Company>> fetchCompanies({String? query, int page = 1, bool forceRefresh = false}) async {
-    return PaginatedResponse<Company>(page: 1, totalPages: 1, totalResults: 1, results: [Company(id: 1, name: 'C')]);
+  Future<PaginatedResponse<Company>> fetchCompanies({
+    String? query,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return PaginatedResponse<Company>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 1,
+      results: [Company(id: 1, name: 'C')],
+    );
   }
 }
 
 void main() {
-  testWidgets('SearchScreen typing and submit triggers provider search', (tester) async {
+  testWidgets('SearchScreen typing and submit triggers provider search', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final storage = LocalStorageService(prefs);
@@ -31,7 +52,9 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => SearchProvider(_FakeRepo(), storage)),
+          ChangeNotifierProvider(
+            create: (_) => SearchProvider(_FakeRepo(), storage),
+          ),
         ],
         child: const MaterialApp(home: SearchScreen()),
       ),
@@ -47,5 +70,3 @@ void main() {
     expect(find.byType(SearchScreen), findsOneWidget);
   });
 }
-
-

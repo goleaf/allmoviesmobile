@@ -14,19 +14,19 @@ class Person with _$Person {
     @JsonKey(name: 'known_for_department') String? knownForDepartment,
     String? birthday,
     @JsonKey(name: 'place_of_birth') String? placeOfBirth,
-    @JsonKey(name: 'also_known_as') @Default(<String>[]) List<String> alsoKnownAs,
+    @JsonKey(name: 'also_known_as')
+    @Default(<String>[])
+    List<String> alsoKnownAs,
     double? popularity,
   }) = _Person;
 
-  factory Person.fromJson(Map<String, dynamic> json) =>
-      _$PersonFromJson(json);
+  factory Person.fromJson(Map<String, dynamic> json) => _$PersonFromJson(json);
 }
 
 extension PersonExtensions on Person {
   String? get profileUrl => MediaImageHelper.buildUrl(
-        profilePath,
-        type: MediaImageType.profile,
-        size: MediaImageSize.w500,
-      );
+    profilePath,
+    type: MediaImageType.profile,
+    size: MediaImageSize.w500,
+  );
 }
-

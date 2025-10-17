@@ -112,10 +112,7 @@ class PerformanceMonitor {
   }
 
   /// Measure the execution time of a synchronous function
-  static T measureSync<T>(
-    String operationName,
-    T Function() operation,
-  ) {
+  static T measureSync<T>(String operationName, T Function() operation) {
     startTimer(operationName);
     try {
       return operation();
@@ -124,4 +121,3 @@ class PerformanceMonitor {
     }
   }
 }
-

@@ -5,7 +5,9 @@ import 'package:allmovies_mobile/presentation/screens/series/series_filters_scre
 import '../test_utils/pump_app.dart';
 
 void main() {
-  testWidgets('SeriesFiltersScreen returns Map<String,String> on apply', (tester) async {
+  testWidgets('SeriesFiltersScreen returns Map<String,String> on apply', (
+    tester,
+  ) async {
     final navigatorKey = GlobalKey<NavigatorState>();
 
     await pumpApp(
@@ -20,7 +22,9 @@ void main() {
       },
     );
 
-    final future = navigatorKey.currentState!.pushNamed(SeriesFiltersScreen.routeName);
+    final future = navigatorKey.currentState!.pushNamed(
+      SeriesFiltersScreen.routeName,
+    );
     await tester.pumpAndSettle();
 
     // Apply
@@ -31,5 +35,3 @@ void main() {
     expect(result, isA<Map<String, String>>());
   });
 }
-
-

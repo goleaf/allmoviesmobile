@@ -314,8 +314,9 @@ const supportedLanguages = <SupportedLanguage>[
 ];
 
 /// Convenience list of [Locale]s for Flutter widgets.
-final List<Locale> supportedLocales =
-    supportedLanguages.map((language) => language.locale).toList(growable: false);
+final List<Locale> supportedLocales = supportedLanguages
+    .map((language) => language.locale)
+    .toList(growable: false);
 
 /// Language codes that should trigger right-to-left layout.
 final Set<String> rtlLanguageCodes = {

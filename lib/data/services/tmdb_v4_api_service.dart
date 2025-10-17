@@ -18,17 +18,17 @@ class TmdbV4ApiException implements Exception {
 
 class TmdbV4ApiService {
   TmdbV4ApiService({http.Client? client, String? apiKey})
-      : _client = client ?? http.Client(),
-        _apiKey = ApiKeyResolver.resolve(apiKey);
+    : _client = client ?? http.Client(),
+      _apiKey = ApiKeyResolver.resolve(apiKey);
 
   final http.Client _client;
   final String _apiKey;
 
   Map<String, String> get _headers => {
-        'Authorization': 'Bearer $_apiKey',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json;charset=utf-8',
-      };
+    'Authorization': 'Bearer $_apiKey',
+    'Accept': 'application/json',
+    'Content-Type': 'application/json;charset=utf-8',
+  };
 
   Future<dynamic> execute(TmdbV4Endpoint endpoint) async {
     switch (endpoint.method) {
@@ -80,9 +80,7 @@ class TmdbV4ApiService {
     }
 
     throw TmdbV4ApiException(
-      response.body.isEmpty
-          ? 'Unexpected TMDB response'
-          : response.body,
+      response.body.isEmpty ? 'Unexpected TMDB response' : response.body,
       statusCode: response.statusCode,
     );
   }

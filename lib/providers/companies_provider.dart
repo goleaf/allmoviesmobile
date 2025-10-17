@@ -21,8 +21,7 @@ class CompaniesProvider extends ChangeNotifier {
   Future<void> searchCompanies(String query) async {
     final normalized = query.trim();
     if (normalized.isEmpty) {
-      _searchResults
-        ..clear();
+      _searchResults..clear();
       _errorMessage = null;
       _lastQuery = '';
       notifyListeners();
@@ -39,7 +38,10 @@ class CompaniesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _repository.fetchCompanies(query: normalized, page: 1);
+      final response = await _repository.fetchCompanies(
+        query: normalized,
+        page: 1,
+      );
       _searchResults
         ..clear()
         ..addAll(response.results);

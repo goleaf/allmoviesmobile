@@ -8,11 +8,9 @@ import '../models/movie.dart';
 import 'entities/movie_entity.dart';
 
 class LocalDatabaseService {
-  LocalDatabaseService({
-    required AppLogger logger,
-    ErrorMapper? errorMapper,
-  })  : _logger = logger,
-        _errorMapper = errorMapper ?? const ErrorMapper();
+  LocalDatabaseService({required AppLogger logger, ErrorMapper? errorMapper})
+    : _logger = logger,
+      _errorMapper = errorMapper ?? const ErrorMapper();
 
   static const String _moviesBoxName = 'movies';
   static const String _collectionsBoxName = 'movieCollections';
@@ -38,16 +36,25 @@ class LocalDatabaseService {
       }
 
       _moviesBox ??= await Hive.openBox<MovieEntity>(_moviesBoxName);
-      _collectionsBox ??= await Hive.openBox<List<dynamic>>(_collectionsBoxName);
+      _collectionsBox ??= await Hive.openBox<List<dynamic>>(
+        _collectionsBoxName,
+      );
       _favoritesBox ??= await Hive.openBox<bool>(_favoritesBoxName);
       _watchlistBox ??= await Hive.openBox<bool>(_watchlistBoxName);
-      _recentlyViewedBox ??= await Hive.openBox<List<dynamic>>(_recentlyViewedBoxName);
-      _searchHistoryBox ??= await Hive.openBox<List<dynamic>>(_searchHistoryBoxName);
+      _recentlyViewedBox ??= await Hive.openBox<List<dynamic>>(
+        _recentlyViewedBoxName,
+      );
+      _searchHistoryBox ??= await Hive.openBox<List<dynamic>>(
+        _searchHistoryBoxName,
+      );
 
       _logger.debug('Local database initialized.');
     } catch (error, stackTrace) {
-      throw _errorMapper
-          .map(error, stackTrace: stackTrace, endpoint: 'LocalDatabaseService.init');
+      throw _errorMapper.map(
+        error,
+        stackTrace: stackTrace,
+        endpoint: 'LocalDatabaseService.init',
+      );
     }
   }
 
@@ -138,7 +145,8 @@ class LocalDatabaseService {
   Future<void> addRecentlyViewed(int id, {int limit = 20}) async {
     await _ensureInitialized();
 
-    final current = _recentlyViewedBox!.get('items')?.cast<int>().toList() ?? <int>[];
+    final current =
+        _recentlyViewedBox!.get('items')?.cast<int>().toList() ?? <int>[];
     current.remove(id);
     current.insert(0, id);
     await _recentlyViewedBox!.put('items', current.take(limit).toList());
@@ -146,7 +154,8 @@ class LocalDatabaseService {
 
   Future<List<int>> getRecentlyViewed({int limit = 20}) async {
     await _ensureInitialized();
-    final items = _recentlyViewedBox!.get('items')?.cast<int>().toList() ?? <int>[];
+    final items =
+        _recentlyViewedBox!.get('items')?.cast<int>().toList() ?? <int>[];
     return items.take(limit).toList(growable: false);
   }
 
@@ -158,7 +167,8 @@ class LocalDatabaseService {
       return;
     }
 
-    final current = _searchHistoryBox!.get('items')?.cast<String>().toList() ?? <String>[];
+    final current =
+        _searchHistoryBox!.get('items')?.cast<String>().toList() ?? <String>[];
     current.remove(normalized);
     current.insert(0, normalized);
     await _searchHistoryBox!.put('items', current.take(limit).toList());
@@ -166,7 +176,8 @@ class LocalDatabaseService {
 
   Future<List<String>> getSearchHistory({int limit = 10}) async {
     await _ensureInitialized();
-    final items = _searchHistoryBox!.get('items')?.cast<String>().toList() ?? <String>[];
+    final items =
+        _searchHistoryBox!.get('items')?.cast<String>().toList() ?? <String>[];
     return items.take(limit).toList(growable: false);
   }
 

@@ -13,4 +13,3 @@ class WatchProviderRegionEntity {
 
   String? nativeName;
 }
-

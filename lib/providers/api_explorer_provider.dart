@@ -104,8 +104,14 @@ class ApiExplorerProvider extends ChangeNotifier {
         _repository.fetchCountries(forceRefresh: forceRefresh),
         _repository.fetchTimezones(forceRefresh: forceRefresh),
         _repository.fetchWatchProviderRegions(forceRefresh: forceRefresh),
-        _repository.fetchWatchProviders(mediaType: 'movie', forceRefresh: forceRefresh),
-        _repository.fetchWatchProviders(mediaType: 'tv', forceRefresh: forceRefresh),
+        _repository.fetchWatchProviders(
+          mediaType: 'movie',
+          forceRefresh: forceRefresh,
+        ),
+        _repository.fetchWatchProviders(
+          mediaType: 'tv',
+          forceRefresh: forceRefresh,
+        ),
         _repository.fetchMovieCertifications(forceRefresh: forceRefresh),
         _repository.fetchTvCertifications(forceRefresh: forceRefresh),
       ]);
@@ -127,7 +133,8 @@ class ApiExplorerProvider extends ChangeNotifier {
           responses[12] as Map<String, WatchProviderResults>;
       final movieCertifications =
           responses[13] as Map<String, List<Certification>>;
-      final tvCertifications = responses[14] as Map<String, List<Certification>>;
+      final tvCertifications =
+          responses[14] as Map<String, List<Certification>>;
 
       _snapshot = ApiExplorerSnapshot(
         configuration: configuration,
@@ -140,7 +147,9 @@ class ApiExplorerProvider extends ChangeNotifier {
         languages: _takeFirst(languages, 24),
         countries: _takeFirst(countries, 24),
         timezones: _takeFirst(timezones, 24),
-        watchProviderRegions: List<WatchProviderRegion>.unmodifiable(providerRegions),
+        watchProviderRegions: List<WatchProviderRegion>.unmodifiable(
+          providerRegions,
+        ),
         watchProvidersMovie: watchProvidersMovie,
         watchProvidersTv: watchProvidersTv,
         movieCertifications: movieCertifications,

@@ -931,9 +931,11 @@ class TmdbComprehensiveService {
   /// Get countries list
   Future<List<Map<String, dynamic>>> getCountries() async {
     final data = await _client
-        .get(Uri.https('api.themoviedb.org', '/3/configuration/countries', {
-      'api_key': _apiKey,
-    }))
+        .get(
+          Uri.https('api.themoviedb.org', '/3/configuration/countries', {
+            'api_key': _apiKey,
+          }),
+        )
         .timeout(AppConfig.requestTimeout);
     final decoded = jsonDecode(data.body);
     if (decoded is List) {
@@ -955,9 +957,11 @@ class TmdbComprehensiveService {
   /// Get languages list
   Future<List<Map<String, dynamic>>> getLanguages() async {
     final data = await _client
-        .get(Uri.https('api.themoviedb.org', '/3/configuration/languages', {
-      'api_key': _apiKey,
-    }))
+        .get(
+          Uri.https('api.themoviedb.org', '/3/configuration/languages', {
+            'api_key': _apiKey,
+          }),
+        )
         .timeout(AppConfig.requestTimeout);
     final decoded = jsonDecode(data.body);
     if (decoded is List) {
@@ -969,9 +973,13 @@ class TmdbComprehensiveService {
   /// Get primary translations
   Future<List<String>> getPrimaryTranslations() async {
     final data = await _client
-        .get(Uri.https('api.themoviedb.org', '/3/configuration/primary_translations', {
-      'api_key': _apiKey,
-    }))
+        .get(
+          Uri.https(
+            'api.themoviedb.org',
+            '/3/configuration/primary_translations',
+            {'api_key': _apiKey},
+          ),
+        )
         .timeout(AppConfig.requestTimeout);
     final decoded = jsonDecode(data.body);
     if (decoded is List) {
@@ -983,9 +991,11 @@ class TmdbComprehensiveService {
   /// Get timezones
   Future<List<Map<String, dynamic>>> getTimezones() async {
     final data = await _client
-        .get(Uri.https('api.themoviedb.org', '/3/configuration/timezones', {
-      'api_key': _apiKey,
-    }))
+        .get(
+          Uri.https('api.themoviedb.org', '/3/configuration/timezones', {
+            'api_key': _apiKey,
+          }),
+        )
         .timeout(AppConfig.requestTimeout);
     final decoded = jsonDecode(data.body);
     if (decoded is List) {

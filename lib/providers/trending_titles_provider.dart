@@ -66,10 +66,7 @@ class TrendingTitlesProvider extends ChangeNotifier {
 
   bool get isRefreshing => _isRefreshing;
 
-  TrendingState stateFor(
-    TrendingMediaType mediaType,
-    TrendingWindow window,
-  ) =>
+  TrendingState stateFor(TrendingMediaType mediaType, TrendingWindow window) =>
       _states[_TrendingKey(mediaType, window)] ?? const TrendingState();
 
   Future<void> ensureLoaded({
@@ -103,19 +100,21 @@ class TrendingTitlesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final PaginatedResponse<Movie> response =
-          await _repository.fetchTrendingTitles(
-        mediaType: mediaType.value,
-        timeWindow: window.value,
-      );
-      _states[key] = TrendingState(items: response.results
-          .map((m) => SearchResult(
+      final PaginatedResponse<Movie> response = await _repository
+          .fetchTrendingTitles(
+            mediaType: mediaType.value,
+            timeWindow: window.value,
+          );
+      _states[key] = TrendingState(
+        items: response.results
+            .map(
+              (m) => SearchResult(
                 id: m.id,
                 mediaType: mediaType == TrendingMediaType.person
                     ? MediaType.person
                     : (mediaType == TrendingMediaType.tv
-                        ? MediaType.tv
-                        : MediaType.movie),
+                          ? MediaType.tv
+                          : MediaType.movie),
                 title: m.title,
                 name: m.title,
                 overview: m.overview,
@@ -126,8 +125,10 @@ class TrendingTitlesProvider extends ChangeNotifier {
                 voteAverage: m.voteAverage,
                 voteCount: m.voteCount,
                 releaseDate: m.releaseDate,
-              ))
-          .toList());
+              ),
+            )
+            .toList(),
+      );
     } on TmdbException catch (error) {
       _states[key] = TrendingState(
         items: const <SearchResult>[],

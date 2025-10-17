@@ -26,10 +26,8 @@ class MediaGalleryProvider extends ChangeNotifier {
       id: movieId,
       type: MediaGalleryType.movie,
       forceRefresh: forceRefresh,
-      loader: () => _repository.fetchMovieImages(
-        movieId,
-        forceRefresh: forceRefresh,
-      ),
+      loader: () =>
+          _repository.fetchMovieImages(movieId, forceRefresh: forceRefresh),
     );
   }
 
@@ -38,10 +36,7 @@ class MediaGalleryProvider extends ChangeNotifier {
       id: tvId,
       type: MediaGalleryType.tv,
       forceRefresh: forceRefresh,
-      loader: () => _repository.fetchTvImages(
-        tvId,
-        forceRefresh: forceRefresh,
-      ),
+      loader: () => _repository.fetchTvImages(tvId, forceRefresh: forceRefresh),
     );
   }
 
@@ -68,7 +63,10 @@ class MediaGalleryProvider extends ChangeNotifier {
     required bool forceRefresh,
     required Future<MediaImages> Function() loader,
   }) async {
-    if (!forceRefresh && _mediaId == id && _mediaType == type && _images != null) {
+    if (!forceRefresh &&
+        _mediaId == id &&
+        _mediaType == type &&
+        _images != null) {
       return;
     }
 

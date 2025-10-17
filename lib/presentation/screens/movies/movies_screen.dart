@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
 import '../../../providers/movies_provider.dart';
 import '../../../data/models/discover_filters_model.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../movies/movies_filters_screen.dart';
 import '../../widgets/app_drawer.dart';
-import '../../../providers/watch_region_provider.dart';
 
 class MoviesScreen extends StatefulWidget {
   static const routeName = '/movies';
@@ -87,31 +86,33 @@ class _MoviesScreenState extends State<MoviesScreen> {
     final sections = MovieSection.values;
     final hasQuery = _searchController.text.trim().isNotEmpty;
 
+    final l = AppLocalizations.of(context);
     return DefaultTabController(
       length: sections.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(AppStrings.movies),
+          title: Text(l.t('movie.movies')),
           bottom: TabBar(
             isScrollable: true,
             tabs: [
-              for (final section in sections) Tab(text: _labelForSection(section)),
+              for (final section in sections)
+                Tab(text: _labelForSection(section, l)),
             ],
           ),
           actions: [
             IconButton(
-              tooltip: 'Filters',
+              tooltip: l.t('discover.filters'),
               icon: const Icon(Icons.filter_list),
               onPressed: _openFilters,
             ),
             PopupMenuButton<String>(
-              tooltip: 'Trending Window',
+              tooltip: l.t('home.trending'),
               onSelected: (value) {
                 context.read<MoviesProvider>().setTrendingWindow(value);
               },
               itemBuilder: (context) => [
-                const PopupMenuItem(value: 'day', child: Text('Trending: Day')),
-                const PopupMenuItem(value: 'week', child: Text('Trending: Week')),
+                PopupMenuItem(value: 'day', child: Text('${l.t('home.trending')} (Day)')),
+                PopupMenuItem(value: 'week', child: Text('${l.t('home.trending')} (Week)')),
               ],
               icon: const Icon(Icons.schedule),
             ),
@@ -125,7 +126,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
               child: TextField(
                 controller: _searchController,
                 decoration: InputDecoration(
-                  hintText: AppStrings.searchMovies,
+                  hintText: l.t('search.search_movies'),
                   prefixIcon: const Icon(Icons.search),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(28),
@@ -137,11 +138,13 @@ class _MoviesScreenState extends State<MoviesScreen> {
                 onChanged: _handleSearch,
               ),
             ),
-            if (_isSearching)
-              const LinearProgressIndicator(minHeight: 2),
+            if (_isSearching) const LinearProgressIndicator(minHeight: 2),
             if (_searchError != null)
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
@@ -158,7 +161,7 @@ class _MoviesScreenState extends State<MoviesScreen> {
                   onRefresh: () => _handleSearch(_searchController.text),
                   child: _MoviesList(
                     movies: _searchResults,
-                    emptyMessage: AppStrings.noResultsFound,
+                    emptyMessage: l.t('search.no_results'),
                   ),
                 ),
               )
@@ -180,53 +183,56 @@ class _MoviesScreenState extends State<MoviesScreen> {
     );
   }
 
-  String _labelForSection(MovieSection section) {
+  String _labelForSection(MovieSection section, AppLocalizations l) {
     switch (section) {
       case MovieSection.trending:
-        return AppStrings.trending;
+        return l.t('home.trending');
       case MovieSection.nowPlaying:
-        return AppStrings.nowPlaying;
+        return l.t('home.new_releases');
       case MovieSection.popular:
-        return AppStrings.popular;
+        return l.t('home.popular');
       case MovieSection.topRated:
-        return AppStrings.topRated;
+        return l.t('home.top_rated');
       case MovieSection.upcoming:
-        return AppStrings.upcoming;
+        return l.t('discover.year');
       case MovieSection.discover:
-        return AppStrings.discover;
+        return l.t('discover.title');
     }
   }
 }
 
 extension on _MoviesScreenState {
   void _openFilters() {
+    final current = context.read<MoviesProvider>().discoverFilters;
     Navigator.of(context)
-        .pushNamed(
-          MoviesFiltersScreen.routeName,
-          arguments: null,
+        .push(
+          MaterialPageRoute(
+            builder: (_) => MoviesFiltersScreen(initial: current),
+            fullscreenDialog: true,
+          ),
         )
         .then((result) async {
-      if (!mounted) return;
-      if (result is DiscoverFilters) {
-        await context.read<MoviesProvider>().applyFilters(result);
-        if (!mounted) return;
-        final tabCtrl = DefaultTabController.maybeOf(context);
-        if (tabCtrl != null) {
-          final idx = MovieSection.values.indexOf(MovieSection.discover);
-          if (idx >= 0 && idx < tabCtrl.length) {
-            tabCtrl.animateTo(idx);
+          if (!mounted) return;
+          if (result is DiscoverFilters) {
+            await context.read<MoviesProvider>().applyFilters(result);
+            if (!mounted) return;
+            final tabCtrl = DefaultTabController.maybeOf(context);
+            if (tabCtrl != null) {
+              final length = tabCtrl.length;
+              if (length > 0) {
+                final idx = MovieSection.values.indexOf(MovieSection.discover);
+                if (idx >= 0 && idx < length) {
+                  tabCtrl.animateTo(idx);
+                }
+              }
+            }
           }
-        }
-      }
-    });
+        });
   }
 }
 
 class _MoviesSectionView extends StatelessWidget {
-  const _MoviesSectionView({
-    required this.section,
-    required this.onRefreshAll,
-  });
+  const _MoviesSectionView({required this.section, required this.onRefreshAll});
 
   final MovieSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
@@ -247,12 +253,23 @@ class _MoviesSectionView extends StatelessWidget {
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => onRefreshAll(context),
-          child: _MoviesList(
-            movies: state.items,
-            emptyMessage: AppStrings.noResultsFound,
-          ),
+        return Column(
+          children: [
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => onRefreshAll(context),
+                child: _MoviesList(
+                  movies: state.items,
+                  emptyMessage: AppLocalizations.of(context).t('search.no_results'),
+                ),
+              ),
+            ),
+            _PagerControls(
+              section: section,
+              current: state.currentPage,
+              total: state.totalPages,
+            ),
+          ],
         );
       },
     );
@@ -260,10 +277,7 @@ class _MoviesSectionView extends StatelessWidget {
 }
 
 class _MoviesList extends StatelessWidget {
-  const _MoviesList({
-    required this.movies,
-    required this.emptyMessage,
-  });
+  const _MoviesList({required this.movies, required this.emptyMessage});
 
   final List<Movie> movies;
   final String emptyMessage;
@@ -317,9 +331,7 @@ class _MovieCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => MovieDetailScreen(movie: movie),
-            ),
+            MaterialPageRoute(builder: (_) => MovieDetailScreen(movie: movie)),
           );
         },
         child: Padding(
@@ -349,7 +361,7 @@ class _MovieCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          _buildSubtitle(movie),
+                          _buildSubtitle(context, movie),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
@@ -378,7 +390,7 @@ class _MovieCard extends StatelessWidget {
     );
   }
 
-  String _buildSubtitle(Movie movie) {
+  String _buildSubtitle(BuildContext context, Movie movie) {
     final buffer = <String>[];
     if (movie.releaseYear != null && movie.releaseYear!.isNotEmpty) {
       buffer.add(movie.releaseYear!);
@@ -387,17 +399,108 @@ class _MovieCard extends StatelessWidget {
       buffer.add(movie.genresText);
     }
     if (movie.formattedPopularity.isNotEmpty) {
-      buffer.add('Popularity ${movie.formattedPopularity}');
+      buffer.add(
+        '${AppLocalizations.of(context).t('person.popularity')} ${movie.formattedPopularity}',
+      );
     }
     return buffer.join(' • ');
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
+class _PagerControls extends StatelessWidget {
+  const _PagerControls({
+    required this.section,
+    required this.current,
+    required this.total,
   });
+
+  final MovieSection section;
+  final int current;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<MoviesProvider>();
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Row(
+          children: [
+            Text('${AppLocalizations.of(context).t('common.page')} $current ${AppLocalizations.of(context).t('common.of')} $total'),
+            const Spacer(),
+            IconButton(
+              tooltip: '${AppLocalizations.of(context).t('common.page')} ${current - 1}',
+              onPressed: current > 1
+                  ? () => provider.loadPage(section, current - 1)
+                  : null,
+              icon: const Icon(Icons.chevron_left),
+            ),
+            IconButton(
+              tooltip: '${AppLocalizations.of(context).t('common.page')} ${current + 1}',
+              onPressed: current < total
+                  ? () => provider.loadPage(section, current + 1)
+                  : null,
+              icon: const Icon(Icons.chevron_right),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              icon: const Icon(Icons.keyboard),
+              label: Text(AppLocalizations.of(context).t('common.jump')),
+              onPressed: total > 1
+                  ? () async {
+                      final controller = TextEditingController(
+                        text: '$current',
+                      );
+                      final target = await showDialog<int>(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text(AppLocalizations.of(context).t('common.jumpToPage')),
+                          content: TextField(
+                            controller: controller,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              hintText: AppLocalizations.of(context).t('common.enterPageNumber'),
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx),
+                              child: Text(AppLocalizations.of(context).t('common.cancel')),
+                            ),
+                            FilledButton(
+                              onPressed: () {
+                                final value = int.tryParse(
+                                  controller.text.trim(),
+                                );
+                                if (value != null &&
+                                    value >= 1 &&
+                                    value <= total) {
+                                  Navigator.pop(ctx, value);
+                                } else {
+                                  Navigator.pop(ctx);
+                                }
+                              },
+                              child: Text(AppLocalizations.of(context).t('common.go')),
+                            ),
+                          ],
+                        ),
+                      );
+                      if (target != null) {
+                        await provider.jumpToPage(section, target);
+                      }
+                    }
+                  : null,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
 
   final String message;
   final Future<void> Function() onRetry;
@@ -427,7 +530,7 @@ class _ErrorView extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text(AppStrings.retry),
+            label: Text(AppLocalizations.of(context).t('common.retry')),
           ),
         ),
       ],

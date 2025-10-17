@@ -7,7 +7,8 @@ import 'package:allmovies_mobile/data/models/person_detail_model.dart';
 void main() {
   group('PersonDetail mapping', () {
     test('fromJson maps nested structures and defaults', () {
-      final json = jsonDecode('''{
+      final json =
+          jsonDecode('''{
         "id": 42,
         "name": "  Keanu Reeves  ",
         "profile_path": "/path.jpg",
@@ -25,7 +26,8 @@ void main() {
         "movie_credits": {"cast": [], "crew": [{"id": 2, "job": "Director"}]},
         "tv_credits": {"cast": [], "crew": []},
         "translations": {"translations": [{"iso_3166_1": "US", "iso_639_1": "en", "name": "English", "english_name": "English", "data": {"biography": "Bio"}}]}
-      }''') as Map<String, dynamic>;
+      }''')
+              as Map<String, dynamic>;
 
       final detail = PersonDetail.fromJson(json);
       expect(detail.id, 42);
@@ -66,5 +68,3 @@ void main() {
     });
   });
 }
-
-

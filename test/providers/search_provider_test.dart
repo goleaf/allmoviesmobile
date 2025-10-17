@@ -9,19 +9,32 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class FakeRepo extends TmdbRepository {
   @override
-  Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {
+  Future<SearchResponse> searchMulti(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return SearchResponse(
       page: 1,
       totalPages: 1,
       totalResults: 1,
       results: [
-        SearchResult(id: 1, mediaType: MediaType.movie, title: 'Hello', name: 'Hello')
+        SearchResult(
+          id: 1,
+          mediaType: MediaType.movie,
+          title: 'Hello',
+          name: 'Hello',
+        ),
       ],
     );
   }
 
   @override
-  Future<PaginatedResponse<Company>> fetchCompanies({required String query, int page = 1, bool forceRefresh = false}) async {
+  Future<PaginatedResponse<Company>> fetchCompanies({
+    required String query,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return PaginatedResponse<Company>(
       page: 1,
       totalPages: 1,
@@ -49,5 +62,3 @@ void main() {
     expect(provider.results, isNotEmpty);
   });
 }
-
-

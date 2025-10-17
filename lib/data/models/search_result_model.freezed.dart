@@ -12,7 +12,8 @@ part of 'search_result_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 SearchResult _$SearchResultFromJson(Map<String, dynamic> json) {
   return _SearchResult.fromJson(json);
@@ -56,25 +57,27 @@ mixin _$SearchResult {
 /// @nodoc
 abstract class $SearchResultCopyWith<$Res> {
   factory $SearchResultCopyWith(
-          SearchResult value, $Res Function(SearchResult) then) =
-      _$SearchResultCopyWithImpl<$Res, SearchResult>;
+    SearchResult value,
+    $Res Function(SearchResult) then,
+  ) = _$SearchResultCopyWithImpl<$Res, SearchResult>;
   @useResult
-  $Res call(
-      {int id,
-      @JsonKey(name: 'media_type') MediaType mediaType,
-      String? title,
-      String? name,
-      @JsonKey(name: 'original_title') String? originalTitle,
-      @JsonKey(name: 'original_name') String? originalName,
-      String? overview,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      @JsonKey(name: 'profile_path') String? profilePath,
-      @JsonKey(name: 'vote_average') double? voteAverage,
-      @JsonKey(name: 'vote_count') int? voteCount,
-      double? popularity,
-      @JsonKey(name: 'release_date') String? releaseDate,
-      @JsonKey(name: 'first_air_date') String? firstAirDate});
+  $Res call({
+    int id,
+    @JsonKey(name: 'media_type') MediaType mediaType,
+    String? title,
+    String? name,
+    @JsonKey(name: 'original_title') String? originalTitle,
+    @JsonKey(name: 'original_name') String? originalName,
+    String? overview,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'profile_path') String? profilePath,
+    @JsonKey(name: 'vote_average') double? voteAverage,
+    @JsonKey(name: 'vote_count') int? voteCount,
+    double? popularity,
+    @JsonKey(name: 'release_date') String? releaseDate,
+    @JsonKey(name: 'first_air_date') String? firstAirDate,
+  });
 }
 
 /// @nodoc
@@ -106,68 +109,71 @@ class _$SearchResultCopyWithImpl<$Res, $Val extends SearchResult>
     Object? releaseDate = freezed,
     Object? firstAirDate = freezed,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      mediaType: null == mediaType
-          ? _value.mediaType
-          : mediaType // ignore: cast_nullable_to_non_nullable
-              as MediaType,
-      title: freezed == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String?,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      originalTitle: freezed == originalTitle
-          ? _value.originalTitle
-          : originalTitle // ignore: cast_nullable_to_non_nullable
-              as String?,
-      originalName: freezed == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      profilePath: freezed == profilePath
-          ? _value.profilePath
-          : profilePath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      voteAverage: freezed == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double?,
-      voteCount: freezed == voteCount
-          ? _value.voteCount
-          : voteCount // ignore: cast_nullable_to_non_nullable
-              as int?,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-      releaseDate: freezed == releaseDate
-          ? _value.releaseDate
-          : releaseDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      firstAirDate: freezed == firstAirDate
-          ? _value.firstAirDate
-          : firstAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            mediaType: null == mediaType
+                ? _value.mediaType
+                : mediaType // ignore: cast_nullable_to_non_nullable
+                      as MediaType,
+            title: freezed == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            name: freezed == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            originalTitle: freezed == originalTitle
+                ? _value.originalTitle
+                : originalTitle // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            originalName: freezed == originalName
+                ? _value.originalName
+                : originalName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            overview: freezed == overview
+                ? _value.overview
+                : overview // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            profilePath: freezed == profilePath
+                ? _value.profilePath
+                : profilePath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            voteAverage: freezed == voteAverage
+                ? _value.voteAverage
+                : voteAverage // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            voteCount: freezed == voteCount
+                ? _value.voteCount
+                : voteCount // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            popularity: freezed == popularity
+                ? _value.popularity
+                : popularity // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            releaseDate: freezed == releaseDate
+                ? _value.releaseDate
+                : releaseDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            firstAirDate: freezed == firstAirDate
+                ? _value.firstAirDate
+                : firstAirDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -175,26 +181,28 @@ class _$SearchResultCopyWithImpl<$Res, $Val extends SearchResult>
 abstract class _$$SearchResultImplCopyWith<$Res>
     implements $SearchResultCopyWith<$Res> {
   factory _$$SearchResultImplCopyWith(
-          _$SearchResultImpl value, $Res Function(_$SearchResultImpl) then) =
-      __$$SearchResultImplCopyWithImpl<$Res>;
+    _$SearchResultImpl value,
+    $Res Function(_$SearchResultImpl) then,
+  ) = __$$SearchResultImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      @JsonKey(name: 'media_type') MediaType mediaType,
-      String? title,
-      String? name,
-      @JsonKey(name: 'original_title') String? originalTitle,
-      @JsonKey(name: 'original_name') String? originalName,
-      String? overview,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      @JsonKey(name: 'profile_path') String? profilePath,
-      @JsonKey(name: 'vote_average') double? voteAverage,
-      @JsonKey(name: 'vote_count') int? voteCount,
-      double? popularity,
-      @JsonKey(name: 'release_date') String? releaseDate,
-      @JsonKey(name: 'first_air_date') String? firstAirDate});
+  $Res call({
+    int id,
+    @JsonKey(name: 'media_type') MediaType mediaType,
+    String? title,
+    String? name,
+    @JsonKey(name: 'original_title') String? originalTitle,
+    @JsonKey(name: 'original_name') String? originalName,
+    String? overview,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'profile_path') String? profilePath,
+    @JsonKey(name: 'vote_average') double? voteAverage,
+    @JsonKey(name: 'vote_count') int? voteCount,
+    double? popularity,
+    @JsonKey(name: 'release_date') String? releaseDate,
+    @JsonKey(name: 'first_air_date') String? firstAirDate,
+  });
 }
 
 /// @nodoc
@@ -202,8 +210,9 @@ class __$$SearchResultImplCopyWithImpl<$Res>
     extends _$SearchResultCopyWithImpl<$Res, _$SearchResultImpl>
     implements _$$SearchResultImplCopyWith<$Res> {
   __$$SearchResultImplCopyWithImpl(
-      _$SearchResultImpl _value, $Res Function(_$SearchResultImpl) _then)
-      : super(_value, _then);
+    _$SearchResultImpl _value,
+    $Res Function(_$SearchResultImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -224,90 +233,93 @@ class __$$SearchResultImplCopyWithImpl<$Res>
     Object? releaseDate = freezed,
     Object? firstAirDate = freezed,
   }) {
-    return _then(_$SearchResultImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      mediaType: null == mediaType
-          ? _value.mediaType
-          : mediaType // ignore: cast_nullable_to_non_nullable
-              as MediaType,
-      title: freezed == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String?,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-      originalTitle: freezed == originalTitle
-          ? _value.originalTitle
-          : originalTitle // ignore: cast_nullable_to_non_nullable
-              as String?,
-      originalName: freezed == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String?,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      profilePath: freezed == profilePath
-          ? _value.profilePath
-          : profilePath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      voteAverage: freezed == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double?,
-      voteCount: freezed == voteCount
-          ? _value.voteCount
-          : voteCount // ignore: cast_nullable_to_non_nullable
-              as int?,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-      releaseDate: freezed == releaseDate
-          ? _value.releaseDate
-          : releaseDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      firstAirDate: freezed == firstAirDate
-          ? _value.firstAirDate
-          : firstAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$SearchResultImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        mediaType: null == mediaType
+            ? _value.mediaType
+            : mediaType // ignore: cast_nullable_to_non_nullable
+                  as MediaType,
+        title: freezed == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        name: freezed == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        originalTitle: freezed == originalTitle
+            ? _value.originalTitle
+            : originalTitle // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        originalName: freezed == originalName
+            ? _value.originalName
+            : originalName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        overview: freezed == overview
+            ? _value.overview
+            : overview // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        profilePath: freezed == profilePath
+            ? _value.profilePath
+            : profilePath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voteAverage: freezed == voteAverage
+            ? _value.voteAverage
+            : voteAverage // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        voteCount: freezed == voteCount
+            ? _value.voteCount
+            : voteCount // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        popularity: freezed == popularity
+            ? _value.popularity
+            : popularity // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        releaseDate: freezed == releaseDate
+            ? _value.releaseDate
+            : releaseDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        firstAirDate: freezed == firstAirDate
+            ? _value.firstAirDate
+            : firstAirDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SearchResultImpl implements _SearchResult {
-  const _$SearchResultImpl(
-      {required this.id,
-      @JsonKey(name: 'media_type') required this.mediaType,
-      this.title,
-      this.name,
-      @JsonKey(name: 'original_title') this.originalTitle,
-      @JsonKey(name: 'original_name') this.originalName,
-      this.overview,
-      @JsonKey(name: 'poster_path') this.posterPath,
-      @JsonKey(name: 'backdrop_path') this.backdropPath,
-      @JsonKey(name: 'profile_path') this.profilePath,
-      @JsonKey(name: 'vote_average') this.voteAverage,
-      @JsonKey(name: 'vote_count') this.voteCount,
-      this.popularity,
-      @JsonKey(name: 'release_date') this.releaseDate,
-      @JsonKey(name: 'first_air_date') this.firstAirDate});
+  const _$SearchResultImpl({
+    required this.id,
+    @JsonKey(name: 'media_type') required this.mediaType,
+    this.title,
+    this.name,
+    @JsonKey(name: 'original_title') this.originalTitle,
+    @JsonKey(name: 'original_name') this.originalName,
+    this.overview,
+    @JsonKey(name: 'poster_path') this.posterPath,
+    @JsonKey(name: 'backdrop_path') this.backdropPath,
+    @JsonKey(name: 'profile_path') this.profilePath,
+    @JsonKey(name: 'vote_average') this.voteAverage,
+    @JsonKey(name: 'vote_count') this.voteCount,
+    this.popularity,
+    @JsonKey(name: 'release_date') this.releaseDate,
+    @JsonKey(name: 'first_air_date') this.firstAirDate,
+  });
 
   factory _$SearchResultImpl.fromJson(Map<String, dynamic> json) =>
       _$$SearchResultImplFromJson(json);
@@ -319,10 +331,10 @@ class _$SearchResultImpl implements _SearchResult {
   final MediaType mediaType;
   @override
   final String? title;
-// For movies
+  // For movies
   @override
   final String? name;
-// For TV shows and people
+  // For TV shows and people
   @override
   @JsonKey(name: 'original_title')
   final String? originalTitle;
@@ -340,7 +352,7 @@ class _$SearchResultImpl implements _SearchResult {
   @override
   @JsonKey(name: 'profile_path')
   final String? profilePath;
-// For people
+  // For people
   @override
   @JsonKey(name: 'vote_average')
   final double? voteAverage;
@@ -352,7 +364,7 @@ class _$SearchResultImpl implements _SearchResult {
   @override
   @JsonKey(name: 'release_date')
   final String? releaseDate;
-// For movies
+  // For movies
   @override
   @JsonKey(name: 'first_air_date')
   final String? firstAirDate;
@@ -399,22 +411,23 @@ class _$SearchResultImpl implements _SearchResult {
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      mediaType,
-      title,
-      name,
-      originalTitle,
-      originalName,
-      overview,
-      posterPath,
-      backdropPath,
-      profilePath,
-      voteAverage,
-      voteCount,
-      popularity,
-      releaseDate,
-      firstAirDate);
+    runtimeType,
+    id,
+    mediaType,
+    title,
+    name,
+    originalTitle,
+    originalName,
+    overview,
+    posterPath,
+    backdropPath,
+    profilePath,
+    voteAverage,
+    voteCount,
+    popularity,
+    releaseDate,
+    firstAirDate,
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -424,30 +437,28 @@ class _$SearchResultImpl implements _SearchResult {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SearchResultImplToJson(
-      this,
-    );
+    return _$$SearchResultImplToJson(this);
   }
 }
 
 abstract class _SearchResult implements SearchResult {
-  const factory _SearchResult(
-          {required final int id,
-          @JsonKey(name: 'media_type') required final MediaType mediaType,
-          final String? title,
-          final String? name,
-          @JsonKey(name: 'original_title') final String? originalTitle,
-          @JsonKey(name: 'original_name') final String? originalName,
-          final String? overview,
-          @JsonKey(name: 'poster_path') final String? posterPath,
-          @JsonKey(name: 'backdrop_path') final String? backdropPath,
-          @JsonKey(name: 'profile_path') final String? profilePath,
-          @JsonKey(name: 'vote_average') final double? voteAverage,
-          @JsonKey(name: 'vote_count') final int? voteCount,
-          final double? popularity,
-          @JsonKey(name: 'release_date') final String? releaseDate,
-          @JsonKey(name: 'first_air_date') final String? firstAirDate}) =
-      _$SearchResultImpl;
+  const factory _SearchResult({
+    required final int id,
+    @JsonKey(name: 'media_type') required final MediaType mediaType,
+    final String? title,
+    final String? name,
+    @JsonKey(name: 'original_title') final String? originalTitle,
+    @JsonKey(name: 'original_name') final String? originalName,
+    final String? overview,
+    @JsonKey(name: 'poster_path') final String? posterPath,
+    @JsonKey(name: 'backdrop_path') final String? backdropPath,
+    @JsonKey(name: 'profile_path') final String? profilePath,
+    @JsonKey(name: 'vote_average') final double? voteAverage,
+    @JsonKey(name: 'vote_count') final int? voteCount,
+    final double? popularity,
+    @JsonKey(name: 'release_date') final String? releaseDate,
+    @JsonKey(name: 'first_air_date') final String? firstAirDate,
+  }) = _$SearchResultImpl;
 
   factory _SearchResult.fromJson(Map<String, dynamic> json) =
       _$SearchResultImpl.fromJson;
@@ -520,14 +531,16 @@ mixin _$SearchResponse {
 /// @nodoc
 abstract class $SearchResponseCopyWith<$Res> {
   factory $SearchResponseCopyWith(
-          SearchResponse value, $Res Function(SearchResponse) then) =
-      _$SearchResponseCopyWithImpl<$Res, SearchResponse>;
+    SearchResponse value,
+    $Res Function(SearchResponse) then,
+  ) = _$SearchResponseCopyWithImpl<$Res, SearchResponse>;
   @useResult
-  $Res call(
-      {int page,
-      List<SearchResult> results,
-      @JsonKey(name: 'total_pages') int totalPages,
-      @JsonKey(name: 'total_results') int totalResults});
+  $Res call({
+    int page,
+    List<SearchResult> results,
+    @JsonKey(name: 'total_pages') int totalPages,
+    @JsonKey(name: 'total_results') int totalResults,
+  });
 }
 
 /// @nodoc
@@ -548,40 +561,45 @@ class _$SearchResponseCopyWithImpl<$Res, $Val extends SearchResponse>
     Object? totalPages = null,
     Object? totalResults = null,
   }) {
-    return _then(_value.copyWith(
-      page: null == page
-          ? _value.page
-          : page // ignore: cast_nullable_to_non_nullable
-              as int,
-      results: null == results
-          ? _value.results
-          : results // ignore: cast_nullable_to_non_nullable
-              as List<SearchResult>,
-      totalPages: null == totalPages
-          ? _value.totalPages
-          : totalPages // ignore: cast_nullable_to_non_nullable
-              as int,
-      totalResults: null == totalResults
-          ? _value.totalResults
-          : totalResults // ignore: cast_nullable_to_non_nullable
-              as int,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            page: null == page
+                ? _value.page
+                : page // ignore: cast_nullable_to_non_nullable
+                      as int,
+            results: null == results
+                ? _value.results
+                : results // ignore: cast_nullable_to_non_nullable
+                      as List<SearchResult>,
+            totalPages: null == totalPages
+                ? _value.totalPages
+                : totalPages // ignore: cast_nullable_to_non_nullable
+                      as int,
+            totalResults: null == totalResults
+                ? _value.totalResults
+                : totalResults // ignore: cast_nullable_to_non_nullable
+                      as int,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$SearchResponseImplCopyWith<$Res>
     implements $SearchResponseCopyWith<$Res> {
-  factory _$$SearchResponseImplCopyWith(_$SearchResponseImpl value,
-          $Res Function(_$SearchResponseImpl) then) =
-      __$$SearchResponseImplCopyWithImpl<$Res>;
+  factory _$$SearchResponseImplCopyWith(
+    _$SearchResponseImpl value,
+    $Res Function(_$SearchResponseImpl) then,
+  ) = __$$SearchResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int page,
-      List<SearchResult> results,
-      @JsonKey(name: 'total_pages') int totalPages,
-      @JsonKey(name: 'total_results') int totalResults});
+  $Res call({
+    int page,
+    List<SearchResult> results,
+    @JsonKey(name: 'total_pages') int totalPages,
+    @JsonKey(name: 'total_results') int totalResults,
+  });
 }
 
 /// @nodoc
@@ -589,8 +607,9 @@ class __$$SearchResponseImplCopyWithImpl<$Res>
     extends _$SearchResponseCopyWithImpl<$Res, _$SearchResponseImpl>
     implements _$$SearchResponseImplCopyWith<$Res> {
   __$$SearchResponseImplCopyWithImpl(
-      _$SearchResponseImpl _value, $Res Function(_$SearchResponseImpl) _then)
-      : super(_value, _then);
+    _$SearchResponseImpl _value,
+    $Res Function(_$SearchResponseImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -600,36 +619,38 @@ class __$$SearchResponseImplCopyWithImpl<$Res>
     Object? totalPages = null,
     Object? totalResults = null,
   }) {
-    return _then(_$SearchResponseImpl(
-      page: null == page
-          ? _value.page
-          : page // ignore: cast_nullable_to_non_nullable
-              as int,
-      results: null == results
-          ? _value._results
-          : results // ignore: cast_nullable_to_non_nullable
-              as List<SearchResult>,
-      totalPages: null == totalPages
-          ? _value.totalPages
-          : totalPages // ignore: cast_nullable_to_non_nullable
-              as int,
-      totalResults: null == totalResults
-          ? _value.totalResults
-          : totalResults // ignore: cast_nullable_to_non_nullable
-              as int,
-    ));
+    return _then(
+      _$SearchResponseImpl(
+        page: null == page
+            ? _value.page
+            : page // ignore: cast_nullable_to_non_nullable
+                  as int,
+        results: null == results
+            ? _value._results
+            : results // ignore: cast_nullable_to_non_nullable
+                  as List<SearchResult>,
+        totalPages: null == totalPages
+            ? _value.totalPages
+            : totalPages // ignore: cast_nullable_to_non_nullable
+                  as int,
+        totalResults: null == totalResults
+            ? _value.totalResults
+            : totalResults // ignore: cast_nullable_to_non_nullable
+                  as int,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SearchResponseImpl implements _SearchResponse {
-  const _$SearchResponseImpl(
-      {this.page = 1,
-      final List<SearchResult> results = const [],
-      @JsonKey(name: 'total_pages') this.totalPages = 0,
-      @JsonKey(name: 'total_results') this.totalResults = 0})
-      : _results = results;
+  const _$SearchResponseImpl({
+    this.page = 1,
+    final List<SearchResult> results = const [],
+    @JsonKey(name: 'total_pages') this.totalPages = 0,
+    @JsonKey(name: 'total_results') this.totalResults = 0,
+  }) : _results = results;
 
   factory _$SearchResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$SearchResponseImplFromJson(json);
@@ -673,31 +694,36 @@ class _$SearchResponseImpl implements _SearchResponse {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, page,
-      const DeepCollectionEquality().hash(_results), totalPages, totalResults);
+  int get hashCode => Object.hash(
+    runtimeType,
+    page,
+    const DeepCollectionEquality().hash(_results),
+    totalPages,
+    totalResults,
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$SearchResponseImplCopyWith<_$SearchResponseImpl> get copyWith =>
       __$$SearchResponseImplCopyWithImpl<_$SearchResponseImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SearchResponseImplToJson(
-      this,
-    );
+    return _$$SearchResponseImplToJson(this);
   }
 }
 
 abstract class _SearchResponse implements SearchResponse {
-  const factory _SearchResponse(
-          {final int page,
-          final List<SearchResult> results,
-          @JsonKey(name: 'total_pages') final int totalPages,
-          @JsonKey(name: 'total_results') final int totalResults}) =
-      _$SearchResponseImpl;
+  const factory _SearchResponse({
+    final int page,
+    final List<SearchResult> results,
+    @JsonKey(name: 'total_pages') final int totalPages,
+    @JsonKey(name: 'total_results') final int totalResults,
+  }) = _$SearchResponseImpl;
 
   factory _SearchResponse.fromJson(Map<String, dynamic> json) =
       _$SearchResponseImpl.fromJson;

@@ -20,9 +20,9 @@ class CacheManager {
   /// Get cached value
   T? get<T>(String key) {
     final entry = _cache[key];
-    
+
     if (entry == null) return null;
-    
+
     // Check if expired
     if (entry.isExpired) {
       _cache.remove(key);
@@ -40,22 +40,19 @@ class CacheManager {
       _evictLeastRecentlyUsed();
     }
 
-    _cache[key] = _CacheEntry(
-      value: value,
-      ttl: ttl ?? defaultTtl,
-    );
+    _cache[key] = _CacheEntry(value: value, ttl: ttl ?? defaultTtl);
   }
 
   /// Check if key exists and is not expired
   bool has(String key) {
     final entry = _cache[key];
     if (entry == null) return false;
-    
+
     if (entry.isExpired) {
       _cache.remove(key);
       return false;
     }
-    
+
     return true;
   }
 
@@ -98,7 +95,8 @@ class CacheManager {
       'valid': validCount,
       'expired': expiredCount,
       'maxSize': maxCacheSize,
-      'utilizationPercent': (_cache.length / maxCacheSize * 100).toStringAsFixed(1),
+      'utilizationPercent': (_cache.length / maxCacheSize * 100)
+          .toStringAsFixed(1),
     };
   }
 
@@ -118,10 +116,10 @@ class CacheManager {
   Duration? getTimeToExpiration(String key) {
     final entry = _cache[key];
     if (entry == null) return null;
-    
+
     final expiresAt = entry.createdAt.add(entry.ttl);
     final remaining = expiresAt.difference(DateTime.now());
-    
+
     return remaining.isNegative ? Duration.zero : remaining;
   }
 
@@ -133,7 +131,8 @@ class CacheManager {
     DateTime? oldestAccess;
 
     for (final entry in _cache.entries) {
-      if (oldestAccess == null || entry.value.lastAccessTime.isBefore(oldestAccess)) {
+      if (oldestAccess == null ||
+          entry.value.lastAccessTime.isBefore(oldestAccess)) {
         oldestKey = entry.key;
         oldestAccess = entry.value.lastAccessTime;
       }
@@ -196,11 +195,9 @@ class CacheManager {
 
 /// Cache entry with metadata
 class _CacheEntry {
-  _CacheEntry({
-    required this.value,
-    required this.ttl,
-  })  : createdAt = DateTime.now(),
-        lastAccessTime = DateTime.now();
+  _CacheEntry({required this.value, required this.ttl})
+    : createdAt = DateTime.now(),
+      lastAccessTime = DateTime.now();
 
   final dynamic value;
   final Duration ttl;
@@ -217,7 +214,7 @@ class _CacheEntry {
   }
 
   Duration get age => DateTime.now().difference(createdAt);
-  
+
   Duration get timeToExpiration {
     final expiresAt = createdAt.add(ttl);
     final remaining = expiresAt.difference(DateTime.now());
@@ -227,4 +224,3 @@ class _CacheEntry {
 
 /// Global cache manager instance
 final globalCacheManager = CacheManager();
-

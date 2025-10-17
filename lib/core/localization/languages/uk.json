@@ -180,9 +180,11 @@
     "search_all": "Шукати Все",
     "recent_searches": "Останні Пошуки",
     "popular_searches": "Популярні Пошуки",
+    "trending_searches": "Трендові запити",
     "clear_history": "Очистити Історію",
     "no_results": "Результати не знайдені",
-    "try_different_keywords": "Спробуйте інші ключові слова"
+    "try_different_keywords": "Спробуйте інші ключові слова",
+    "no_suggestions": "Поки що немає пропозицій"
   },
   "keywords": {
     "search_hint": "Введіть ключове слово для пошуку",
@@ -199,7 +201,18 @@
     "no_overview": "Опис наразі відсутній.",
     "parts": "Частини",
     "release_timeline": "Хронологія релізів",
-    "images": "Зображення"
+    "images": "Зображення",
+    "translations": "Переклади",
+    "translation_overview": "Опис перекладу",
+    "no_translation_overview": "Опис перекладу відсутній.",
+    "translation_homepage": "Домашня сторінка",
+    "no_translation_title": "Назву не вказано",
+    "total_revenue": "Загальні збори",
+    "revenue_label": "Збори",
+    "no_timeline_data": "Немає даних для хронології.",
+    "sort_label": "Сортувати частини за",
+    "sort_order": "Порядком колекції",
+    "sort_release_date": "Датою виходу"
   },
   "discover": {
     "title": "Огляд",

@@ -24,5 +24,3 @@ Future<T?> pushFullscreenModal<T>(
     ),
   );
 }
-
-

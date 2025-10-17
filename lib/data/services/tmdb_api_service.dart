@@ -6,10 +6,8 @@ import '../models/watch_provider_model.dart';
 import '../models/configuration_model.dart';
 
 class TmdbApiService {
-  TmdbApiService({
-    http.Client? client,
-    required this.apiKey,
-  })  : _client = client ?? http.Client();
+  TmdbApiService({http.Client? client, required this.apiKey})
+    : _client = client ?? http.Client();
 
   static const _baseHost = 'api.themoviedb.org';
   static const _apiVersion = '4';
@@ -133,10 +131,7 @@ class TmdbApiService {
     int tvId, {
     Map<String, String>? queryParameters,
   }) {
-    return _getJson(
-      '/$_apiVersion/tv/$tvId',
-      queryParameters: queryParameters,
-    );
+    return _getJson('/$_apiVersion/tv/$tvId', queryParameters: queryParameters);
   }
 
   Future<Map<String, dynamic>> fetchNetworkDetails(
@@ -207,10 +202,7 @@ class TmdbApiService {
     int keywordId, {
     Map<String, String>? queryParameters,
   }) {
-    return _getJson(
-      '/3/keyword/$keywordId',
-      queryParameters: queryParameters,
-    );
+    return _getJson('/3/keyword/$keywordId', queryParameters: queryParameters);
   }
 
   Future<Map<String, dynamic>> fetchList(
@@ -285,15 +277,11 @@ class TmdbApiService {
     String path, {
     Map<String, String>? queryParameters,
   }) async {
-    final uri = Uri.https(
-      _baseHost,
-      path,
-      {
-        'language': 'en-US',
-        if (_shouldAppendApiKey) 'api_key': apiKey.trim(),
-        if (queryParameters != null) ...queryParameters,
-      },
-    );
+    final uri = Uri.https(_baseHost, path, {
+      'language': 'en-US',
+      if (_shouldAppendApiKey) 'api_key': apiKey.trim(),
+      if (queryParameters != null) ...queryParameters,
+    });
 
     final response = await _client.get(uri, headers: _headers);
 
@@ -317,14 +305,10 @@ class TmdbApiService {
     String path, {
     Map<String, String>? queryParameters,
   }) async {
-    final uri = Uri.https(
-      _baseHost,
-      path,
-      {
-        if (_shouldAppendApiKey) 'api_key': apiKey.trim(),
-        if (queryParameters != null) ...queryParameters,
-      },
-    );
+    final uri = Uri.https(_baseHost, path, {
+      if (_shouldAppendApiKey) 'api_key': apiKey.trim(),
+      if (queryParameters != null) ...queryParameters,
+    });
 
     final response = await _client.get(uri, headers: _headers);
 
@@ -349,9 +333,7 @@ class TmdbApiService {
   Future<List<Genre>> fetchMovieGenresTyped({String? language}) async {
     final json = await _getJson(
       '/3/genre/movie/list',
-      queryParameters: {
-        if (language != null) 'language': language,
-      },
+      queryParameters: {if (language != null) 'language': language},
     );
     final list = json['genres'];
     if (list is! List) return const [];
@@ -364,9 +346,7 @@ class TmdbApiService {
   Future<List<Genre>> fetchTvGenresTyped({String? language}) async {
     final json = await _getJson(
       '/3/genre/tv/list',
-      queryParameters: {
-        if (language != null) 'language': language,
-      },
+      queryParameters: {if (language != null) 'language': language},
     );
     final list = json['genres'];
     if (list is! List) return const [];
@@ -387,9 +367,7 @@ class TmdbApiService {
   Future<List<CountryInfo>> fetchCountriesTyped({String? language}) async {
     final results = await _getJsonList(
       '/3/configuration/countries',
-      queryParameters: {
-        if (language != null) 'language': language,
-      },
+      queryParameters: {if (language != null) 'language': language},
     );
     return results
         .whereType<Map<String, dynamic>>()
@@ -397,7 +375,9 @@ class TmdbApiService {
         .toList(growable: false);
   }
 
-  Future<Map<String, WatchProviderResults>> fetchMovieWatchProvidersTyped(int movieId) async {
+  Future<Map<String, WatchProviderResults>> fetchMovieWatchProvidersTyped(
+    int movieId,
+  ) async {
     final json = await _getJson('/3/movie/$movieId/watch/providers');
     final results = json['results'];
     if (results is! Map<String, dynamic>) return const {};
@@ -409,7 +389,9 @@ class TmdbApiService {
     });
   }
 
-  Future<Map<String, WatchProviderResults>> fetchTvWatchProvidersTyped(int tvId) async {
+  Future<Map<String, WatchProviderResults>> fetchTvWatchProvidersTyped(
+    int tvId,
+  ) async {
     final json = await _getJson('/3/tv/$tvId/watch/providers');
     final results = json['results'];
     if (results is! Map<String, dynamic>) return const {};
@@ -421,12 +403,12 @@ class TmdbApiService {
     });
   }
 
-  Future<List<WatchProviderRegion>> fetchWatchProviderRegionsTyped({String? language}) async {
+  Future<List<WatchProviderRegion>> fetchWatchProviderRegionsTyped({
+    String? language,
+  }) async {
     final json = await _getJson(
       '/3/watch/providers/regions',
-      queryParameters: {
-        if (language != null) 'language': language,
-      },
+      queryParameters: {if (language != null) 'language': language},
     );
     final results = json['results'];
     if (results is! List) return const [];

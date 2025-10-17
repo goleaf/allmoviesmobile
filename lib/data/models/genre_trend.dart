@@ -18,6 +18,8 @@ class GenreTrend {
   final double averagePopularity;
   final List<Movie> topMovies;
 
-  List<String> get topTitles =>
-      topMovies.map((movie) => movie.title).where((title) => title.isNotEmpty).toList(growable: false);
+  List<String> get topTitles => topMovies
+      .map((movie) => movie.title)
+      .where((title) => title.isNotEmpty)
+      .toList(growable: false);
 }

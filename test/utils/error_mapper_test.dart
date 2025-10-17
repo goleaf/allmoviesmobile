@@ -8,12 +8,13 @@ void main() {
     final mapper = const ErrorMapper();
     final dio = DioException(
       requestOptions: RequestOptions(path: '/x'),
-      response: Response(requestOptions: RequestOptions(path: '/x'), statusCode: 404),
+      response: Response(
+        requestOptions: RequestOptions(path: '/x'),
+        statusCode: 404,
+      ),
       type: DioExceptionType.badResponse,
     );
     final ex = mapper.map(dio);
     expect(ex, isA<AppApiException>());
   });
 }
-
-

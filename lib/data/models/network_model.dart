@@ -15,4 +15,3 @@ class Network with _$Network {
   factory Network.fromJson(Map<String, dynamic> json) =>
       _$NetworkFromJson(json);
 }
-

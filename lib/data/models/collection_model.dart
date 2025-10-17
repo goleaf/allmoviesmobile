@@ -33,4 +33,3 @@ class CollectionDetails with _$CollectionDetails {
   factory CollectionDetails.fromJson(Map<String, dynamic> json) =>
       _$CollectionDetailsFromJson(json);
 }
-

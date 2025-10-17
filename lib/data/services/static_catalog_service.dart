@@ -32,7 +32,10 @@ class StaticCatalogService {
     if (meta == null) return true;
     final last = DateTime.fromMillisecondsSinceEpoch(meta.lastUpdatedMs);
     if (DateTime.now().difference(last) > _refreshInterval) return true;
-    final cached = meta.localesCsv.split(',').where((e) => e.isNotEmpty).toSet();
+    final cached = meta.localesCsv
+        .split(',')
+        .where((e) => e.isNotEmpty)
+        .toSet();
     final requiredLocales = locales.map((e) => e.languageCode).toSet();
     return !cached.containsAll(requiredLocales);
   }
@@ -48,7 +51,8 @@ class StaticCatalogService {
   }) async {
     final isar = await IsarDbProvider.instance.isar;
 
-    final unitsPerLocale = 6; // genres(movie,tv), providers(movie,tv), countries, languages
+    final unitsPerLocale =
+        6; // genres(movie,tv), providers(movie,tv), countries, languages
     final regionsUnits = 1;
     final total = regionsUnits + (locales.length * unitsPerLocale);
     var done = 0;
@@ -59,13 +63,17 @@ class StaticCatalogService {
     final regions = await _tmdb.fetchWatchProviderRegions(forceRefresh: true);
     await isar.writeTxn(() async {
       await isar.watchProviderRegionEntitys.clear();
-      await isar.watchProviderRegionEntitys.putAll(regions.map((e) {
-        final ent = WatchProviderRegionEntity()
-          ..iso3166_1 = e.countryCode
-          ..englishName = e.englishName
-          ..nativeName = e.nativeName;
-        return ent;
-      }).toList(growable: false));
+      await isar.watchProviderRegionEntitys.putAll(
+        regions
+            .map((e) {
+              final ent = WatchProviderRegionEntity()
+                ..iso3166_1 = e.countryCode
+                ..englishName = e.englishName
+                ..nativeName = e.nativeName;
+              return ent;
+            })
+            .toList(growable: false),
+      );
     });
     tick('Regions loaded');
 
@@ -76,76 +84,131 @@ class StaticCatalogService {
       // Genres movie
       final movieGenres = await _tmdb.fetchMovieGenresLocalized(lang);
       await isar.writeTxn(() async {
-        await isar.genreTranslationEntitys.filter().localeEqualTo(lang).mediaTypeEqualTo('movie').deleteAll();
-        await isar.genreTranslationEntitys.putAll(movieGenres.map((g) {
-          final ent = GenreTranslationEntity()
-            ..genreId = g.id
-            ..mediaType = 'movie'
-            ..locale = lang
-            ..name = g.name;
-          return ent;
-        }).toList(growable: false));
+        await isar.genreTranslationEntitys
+            .filter()
+            .localeEqualTo(lang)
+            .mediaTypeEqualTo('movie')
+            .deleteAll();
+        await isar.genreTranslationEntitys.putAll(
+          movieGenres
+              .map((g) {
+                final ent = GenreTranslationEntity()
+                  ..genreId = g.id
+                  ..mediaType = 'movie'
+                  ..locale = lang
+                  ..name = g.name;
+                return ent;
+              })
+              .toList(growable: false),
+        );
       });
       tick('Movie genres ($lang)');
 
       // Genres TV
       final tvGenres = await _tmdb.fetchTVGenresLocalized(lang);
       await isar.writeTxn(() async {
-        await isar.genreTranslationEntitys.filter().localeEqualTo(lang).mediaTypeEqualTo('tv').deleteAll();
-        await isar.genreTranslationEntitys.putAll(tvGenres.map((g) {
-          final ent = GenreTranslationEntity()
-            ..genreId = g.id
-            ..mediaType = 'tv'
-            ..locale = lang
-            ..name = g.name;
-          return ent;
-        }).toList(growable: false));
+        await isar.genreTranslationEntitys
+            .filter()
+            .localeEqualTo(lang)
+            .mediaTypeEqualTo('tv')
+            .deleteAll();
+        await isar.genreTranslationEntitys.putAll(
+          tvGenres
+              .map((g) {
+                final ent = GenreTranslationEntity()
+                  ..genreId = g.id
+                  ..mediaType = 'tv'
+                  ..locale = lang
+                  ..name = g.name;
+                return ent;
+              })
+              .toList(growable: false),
+        );
       });
       tick('TV genres ($lang)');
 
       // Providers movie
-      final providersMovie = await _tmdb.fetchProvidersCatalog(mediaType: 'movie', language: lang);
+      final providersMovie = await _tmdb.fetchProvidersCatalog(
+        mediaType: 'movie',
+        language: lang,
+      );
       final movieProviders = providersMovie
-          .map((p) => _ProviderLite(providerId: p.providerId ?? p.id, displayPriority: p.displayPriority, name: p.providerName ?? ''))
+          .map(
+            (p) => _ProviderLite(
+              providerId: p.providerId ?? p.id,
+              displayPriority: p.displayPriority,
+              name: p.providerName ?? '',
+            ),
+          )
           .toList(growable: false);
       await _upsertProviders(isar, movieProviders, lang);
       tick('Movie providers ($lang)');
 
       // Providers tv
-      final providersTv = await _tmdb.fetchProvidersCatalog(mediaType: 'tv', language: lang);
+      final providersTv = await _tmdb.fetchProvidersCatalog(
+        mediaType: 'tv',
+        language: lang,
+      );
       final tvProviders = providersTv
-          .map((p) => _ProviderLite(providerId: p.providerId ?? p.id, displayPriority: p.displayPriority, name: p.providerName ?? ''))
+          .map(
+            (p) => _ProviderLite(
+              providerId: p.providerId ?? p.id,
+              displayPriority: p.displayPriority,
+              name: p.providerName ?? '',
+            ),
+          )
           .toList(growable: false);
       await _upsertProviders(isar, tvProviders, lang);
       tick('TV providers ($lang)');
 
       // Countries
-      final countries = await _tmdb.fetchCountriesLocalized(lang, forceRefresh: true);
+      final countries = await _tmdb.fetchCountriesLocalized(
+        lang,
+        forceRefresh: true,
+      );
       await isar.writeTxn(() async {
-        await isar.countryTranslationEntitys.filter().localeEqualTo(lang).deleteAll();
-        await isar.countryTranslationEntitys.putAll(countries.map((c) {
-          final name = c.nativeName?.isNotEmpty == true ? c.nativeName! : c.englishName;
-          final ent = CountryTranslationEntity()
-            ..iso3166_1 = c.code
-            ..locale = lang
-            ..name = name;
-          return ent;
-        }).toList(growable: false));
+        await isar.countryTranslationEntitys
+            .filter()
+            .localeEqualTo(lang)
+            .deleteAll();
+        await isar.countryTranslationEntitys.putAll(
+          countries
+              .map((c) {
+                final name = c.nativeName?.isNotEmpty == true
+                    ? c.nativeName!
+                    : c.englishName;
+                final ent = CountryTranslationEntity()
+                  ..iso3166_1 = c.code
+                  ..locale = lang
+                  ..name = name;
+                return ent;
+              })
+              .toList(growable: false),
+        );
       });
       tick('Countries ($lang)');
 
       // Languages
       final languages = await _tmdb.fetchLanguages(forceRefresh: true);
       await isar.writeTxn(() async {
-        await isar.languageTranslationEntitys.filter().localeEqualTo(lang).deleteAll();
-        await isar.languageTranslationEntitys.putAll(languages.map((l) {
-          final name = l.name?.isNotEmpty == true ? l.name! : l.englishName;
-          final ent = LanguageTranslationEntity()
-            ..iso639_1 = l.code
-            ..locale = lang
-            ..name = name;
-          return ent;
-        }).toList(growable: false));
+        await isar.languageTranslationEntitys
+            .filter()
+            .localeEqualTo(lang)
+            .deleteAll();
+        await isar.languageTranslationEntitys.putAll(
+          languages
+              .map((l) {
+                final name = l.name?.isNotEmpty == true
+                    ? l.name!
+                    : l.englishName;
+                final ent = LanguageTranslationEntity()
+                  ..iso639_1 = l.code
+                  ..locale = lang
+                  ..name = name;
+                return ent;
+              })
+              .toList(growable: false),
+        );
       });
       tick('Languages ($lang)');
     }
@@ -170,12 +233,20 @@ class StaticCatalogService {
 
   // Provider fetch now uses repository public method
 
-  Future<void> _upsertProviders(Isar isar, List<_ProviderLite> providers, String locale) async {
+  Future<void> _upsertProviders(
+    Isar isar,
+    List<_ProviderLite> providers,
+    String locale,
+  ) async {
     await isar.writeTxn(() async {
       for (final p in providers) {
         // base
-        final existing = await isar.watchProviderEntitys.filter().providerIdEqualTo(p.providerId).findFirst();
-        final base = existing ?? WatchProviderEntity()..providerId = p.providerId;
+        final existing = await isar.watchProviderEntitys
+            .filter()
+            .providerIdEqualTo(p.providerId)
+            .findFirst();
+        final base = existing ?? WatchProviderEntity()
+          ..providerId = p.providerId;
         base.displayPriority = p.displayPriority;
         await isar.watchProviderEntitys.put(base);
 
@@ -194,6 +265,9 @@ class _ProviderLite {
   final int providerId;
   final int? displayPriority;
   final String name;
-  const _ProviderLite({required this.providerId, this.displayPriority, required this.name});
+  const _ProviderLite({
+    required this.providerId,
+    this.displayPriority,
+    required this.name,
+  });
 }
-

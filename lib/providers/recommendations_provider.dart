@@ -34,7 +34,7 @@ class RecommendationsProvider with ChangeNotifier {
     try {
       // Get user's favorite movies
       final favoriteIds = _storage.getFavorites();
-      
+
       if (favoriteIds.isEmpty) {
         // No favorites yet → start from popular, dedupe/sort/limit for determinism
         final items = await _repository.fetchPopularMovies();
@@ -42,10 +42,11 @@ class RecommendationsProvider with ChangeNotifier {
         for (final m in items) {
           byId[m.id] = m;
         }
-        _recommendedMovies = (byId.values.toList(growable: false)
-              ..sort((a, b) => a.id.compareTo(b.id)))
-            .take(20)
-            .toList(growable: false);
+        _recommendedMovies =
+            (byId.values.toList(growable: false)
+                  ..sort((a, b) => a.id.compareTo(b.id)))
+                .take(20)
+                .toList(growable: false);
       } else {
         // Base from trending, then deterministically filter and sort
         _recommendedMovies = await _repository.fetchTrendingMovies();
@@ -79,10 +80,9 @@ class RecommendationsProvider with ChangeNotifier {
     try {
       final items = await _repository.fetchPopularMovies();
       // Deterministic ordering and limit
-      _popularMovies = (items.toList(growable: false)
-            ..sort((a, b) => a.id.compareTo(b.id)))
-          .take(20)
-          .toList(growable: false);
+      _popularMovies = (items.toList(
+        growable: false,
+      )..sort((a, b) => a.id.compareTo(b.id))).take(20).toList(growable: false);
     } catch (error) {
       _errorMessage = 'Failed to fetch popular movies: $error';
       _popularMovies = [];
@@ -101,15 +101,16 @@ class RecommendationsProvider with ChangeNotifier {
     try {
       final items = await _repository.fetchSimilarMovies(movieId);
       // Filter out the current movie, dedupe and sort by id for determinism
-      final filtered = items.where((m) => m.id != movieId).toList(growable: false);
+      final filtered = items
+          .where((m) => m.id != movieId)
+          .toList(growable: false);
       final byId = <int, Movie>{};
       for (final m in filtered) {
         byId[m.id] = m;
       }
-      _similarMovies = (byId.values.toList(growable: false)
-            ..sort((a, b) => a.id.compareTo(b.id)))
-          .take(10)
-          .toList(growable: false);
+      _similarMovies = (byId.values.toList(
+        growable: false,
+      )..sort((a, b) => a.id.compareTo(b.id))).take(10).toList(growable: false);
     } catch (error) {
       _errorMessage = 'Failed to fetch similar movies: $error';
       _similarMovies = [];
@@ -130,10 +131,9 @@ class RecommendationsProvider with ChangeNotifier {
         filters: {'with_genres': '$genreId'},
       );
       final items = response.results;
-      _recommendedMovies = (items.toList(growable: false)
-            ..sort((a, b) => a.id.compareTo(b.id)))
-          .take(20)
-          .toList(growable: false);
+      _recommendedMovies = (items.toList(
+        growable: false,
+      )..sort((a, b) => a.id.compareTo(b.id))).take(20).toList(growable: false);
     } catch (error) {
       _errorMessage = 'Failed to fetch movies by genre: $error';
       _recommendedMovies = [];
@@ -151,13 +151,14 @@ class RecommendationsProvider with ChangeNotifier {
 
     try {
       final recentlyViewed = _storage.getRecentlyViewed(limit: 5);
-      
+
       if (recentlyViewed.isEmpty) {
         final items = await _repository.fetchPopularMovies();
-        _recommendedMovies = (items.toList(growable: false)
-              ..sort((a, b) => a.id.compareTo(b.id)))
-            .take(20)
-            .toList(growable: false);
+        _recommendedMovies =
+            (items.toList(growable: false)
+                  ..sort((a, b) => a.id.compareTo(b.id)))
+                .take(20)
+                .toList(growable: false);
       } else {
         final items = await _repository.fetchTrendingMovies();
         final filtered = items
@@ -167,10 +168,11 @@ class RecommendationsProvider with ChangeNotifier {
         for (final m in filtered) {
           byId[m.id] = m;
         }
-        _recommendedMovies = (byId.values.toList(growable: false)
-              ..sort((a, b) => a.id.compareTo(b.id)))
-            .take(20)
-            .toList(growable: false);
+        _recommendedMovies =
+            (byId.values.toList(growable: false)
+                  ..sort((a, b) => a.id.compareTo(b.id)))
+                .take(20)
+                .toList(growable: false);
       }
     } catch (error) {
       _errorMessage = 'Failed to fetch recommendations: $error';
@@ -200,26 +202,25 @@ class RecommendationsProvider with ChangeNotifier {
   Map<int, int> analyzePreferences() {
     final favoriteIds = _storage.getFavorites();
     final recentlyViewed = _storage.getRecentlyViewed(limit: 20);
-    
+
     // This would ideally fetch actual movie data and count genre frequencies
     // For now, return empty map - can be enhanced when API is connected
     final genreFrequency = <int, int>{};
-    
+
     return genreFrequency;
   }
 
   /// Get top genres from user preferences
   List<int> getTopGenres({int limit = 3}) {
     final preferences = analyzePreferences();
-    
+
     if (preferences.isEmpty) {
       return [];
     }
-    
+
     final sortedGenres = preferences.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
-    
+
     return sortedGenres.take(limit).map((e) => e.key).toList();
   }
 }
-

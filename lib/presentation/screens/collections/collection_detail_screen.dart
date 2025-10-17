@@ -42,7 +42,7 @@ class CollectionDetailScreen extends StatelessWidget {
   }
 }
 
-class _CollectionDetailView extends StatelessWidget {
+class _CollectionDetailView extends StatefulWidget {
   const _CollectionDetailView({
     required this.collectionId,
     this.initialName,
@@ -54,6 +54,15 @@ class _CollectionDetailView extends StatelessWidget {
   final String? initialName;
   final String? initialPosterPath;
   final String? initialBackdropPath;
+
+  @override
+  State<_CollectionDetailView> createState() => _CollectionDetailViewState();
+}
+
+enum _PartsSortMode { order, releaseDate }
+
+class _CollectionDetailViewState extends State<_CollectionDetailView> {
+  _PartsSortMode _sortMode = _PartsSortMode.order;
 
   @override
   Widget build(BuildContext context) {
@@ -90,8 +99,9 @@ class _CollectionDetailView extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton.icon(
-                  onPressed: () =>
-                      context.read<CollectionDetailsProvider>().loadCollection(collectionId),
+                  onPressed: () => context
+                      .read<CollectionDetailsProvider>()
+                      .loadCollection(widget.collectionId),
                   icon: const Icon(Icons.refresh),
                   label: Text(loc.t('common.retry')),
                 ),
@@ -102,23 +112,24 @@ class _CollectionDetailView extends StatelessWidget {
       );
     }
 
-    final backdropPath = data?.backdropPath ?? initialBackdropPath;
-    final posterPath = data?.posterPath ?? initialPosterPath;
-    final displayName = data?.name ?? initialName ?? loc.t('collection.title');
+    final backdropPath = data?.backdropPath ?? widget.initialBackdropPath;
+    final posterPath = data?.posterPath ?? widget.initialPosterPath;
+    final displayName =
+        data?.name ?? widget.initialName ?? loc.t('collection.title');
     final overview = data?.overview;
 
     return FullscreenModalScaffold(
       includeDefaultSliverAppBar: false,
       sliverScrollWrapper: (scroll) => RefreshIndicator(
-        onRefresh: () => context.read<CollectionDetailsProvider>().loadCollection(collectionId),
+        onRefresh: () => context
+            .read<CollectionDetailsProvider>()
+            .loadCollection(widget.collectionId),
         child: scroll,
       ),
       slivers: [
         _buildAppBar(context, backdropPath, displayName),
         if (provider.isLoading && data != null)
-          const SliverToBoxAdapter(
-            child: LinearProgressIndicator(),
-          ),
+          const SliverToBoxAdapter(child: LinearProgressIndicator()),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -143,13 +154,21 @@ class _CollectionDetailView extends StatelessWidget {
                 ),
                 if (data != null && data.parts.isNotEmpty) ...[
                   const SizedBox(height: 24),
-                  _SectionTitle(text: loc.t('collection.parts')),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _SectionTitle(text: loc.t('collection.parts')),
+                      ),
+                      const SizedBox(width: 12),
+                      _buildSortToggle(context, loc),
+                    ],
+                  ),
                   const SizedBox(height: 12),
-                  _buildPartsList(context, loc, data.parts),
+                  _buildPartsList(context, loc, _sortedParts(data.parts)),
                   const SizedBox(height: 24),
                   _SectionTitle(text: loc.t('collection.release_timeline')),
                   const SizedBox(height: 12),
-                  _buildTimeline(context, loc, data.parts),
+                  _buildTimeline(context, loc, _sortedParts(data.parts)),
                 ],
                 if (data != null && data.images.isNotEmpty) ...[
                   const SizedBox(height: 24),
@@ -172,7 +191,72 @@ class _CollectionDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, String? backdropPath, String title) {
+  List<CollectionPartItem> _sortedParts(List<CollectionPartItem> parts) {
+    final list = List<CollectionPartItem>.from(parts);
+    if (_sortMode == _PartsSortMode.order) {
+      list.sort((a, b) {
+        if (a.order != null && b.order != null && a.order != b.order) {
+          return a.order!.compareTo(b.order!);
+        }
+        final dateA = a.releaseDateTime;
+        final dateB = b.releaseDateTime;
+        if (dateA != null && dateB != null) {
+          return dateA.compareTo(dateB);
+        }
+        if (dateA != null) return -1;
+        if (dateB != null) return 1;
+        return a.title.compareTo(b.title);
+      });
+      return list;
+    }
+    list.sort((a, b) {
+      final dateA = a.releaseDateTime;
+      final dateB = b.releaseDateTime;
+      if (dateA != null && dateB != null) {
+        return dateA.compareTo(dateB);
+      }
+      if (dateA != null) return -1;
+      if (dateB != null) return 1;
+      return a.title.compareTo(b.title);
+    });
+    return list;
+  }
+
+  Widget _buildSortToggle(BuildContext context, AppLocalizations loc) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          loc.t('collection.sort_label'),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+        const SizedBox(width: 8),
+        DropdownButton<_PartsSortMode>(
+          value: _sortMode,
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() => _sortMode = value);
+          },
+          items: [
+            DropdownMenuItem(
+              value: _PartsSortMode.order,
+              child: Text(loc.t('collection.sort_order')),
+            ),
+            DropdownMenuItem(
+              value: _PartsSortMode.releaseDate,
+              child: Text(loc.t('collection.sort_release_date')),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAppBar(
+    BuildContext context,
+    String? backdropPath,
+    String title,
+  ) {
     final backdropUrl = backdropPath;
 
     return SliverAppBar(
@@ -275,23 +359,23 @@ class _CollectionDetailView extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
                 loc.t('collection.total_revenue'),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 revenueText,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ],
           ),
@@ -325,7 +409,9 @@ class _CollectionDetailView extends StatelessWidget {
         return Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.4),
+            color: Theme.of(
+              context,
+            ).colorScheme.surfaceVariant.withOpacity(0.4),
           ),
           padding: const EdgeInsets.all(12),
           child: Row(
@@ -368,8 +454,8 @@ class _CollectionDetailView extends StatelessWidget {
                     Text(
                       part.title,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     if (releaseText.isNotEmpty) ...[
                       const SizedBox(height: 4),
@@ -395,7 +481,8 @@ class _CollectionDetailView extends StatelessWidget {
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
-                    if (part.overview != null && part.overview!.trim().isNotEmpty) ...[
+                    if (part.overview != null &&
+                        part.overview!.trim().isNotEmpty) ...[
                       const SizedBox(height: 8),
                       Text(
                         part.overview!,
@@ -423,9 +510,7 @@ class _CollectionDetailView extends StatelessWidget {
     return SizedBox(
       height: 140,
       child: parts.isEmpty
-          ? Center(
-              child: Text(loc.t('collection.no_timeline_data')),
-            )
+          ? Center(child: Text(loc.t('collection.no_timeline_data')))
           : ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: parts.length,
@@ -442,8 +527,8 @@ class _CollectionDetailView extends StatelessWidget {
                     Text(
                       releaseLabel,
                       style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Expanded(
@@ -457,11 +542,14 @@ class _CollectionDetailView extends StatelessWidget {
                           const SizedBox(height: 8),
                           CircleAvatar(
                             radius: 28,
-                            backgroundColor:
-                                Theme.of(context).colorScheme.primaryContainer,
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
                             child: Icon(
                               Icons.movie,
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onPrimaryContainer,
                             ),
                           ),
                         ],
@@ -485,7 +573,10 @@ class _CollectionDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildImagesGallery(BuildContext context, List<CollectionImageItem> images) {
+  Widget _buildImagesGallery(
+    BuildContext context,
+    List<CollectionImageItem> images,
+  ) {
     return SizedBox(
       height: 180,
       child: ListView.separated(
@@ -500,8 +591,12 @@ class _CollectionDetailView extends StatelessWidget {
             borderRadius: BorderRadius.circular(12),
             child: MediaImage(
               path: imageUrl,
-              type: image.type == 'poster' ? MediaImageType.poster : MediaImageType.backdrop,
-              size: image.type == 'poster' ? MediaImageSize.w342 : MediaImageSize.w780,
+              type: image.type == 'poster'
+                  ? MediaImageType.poster
+                  : MediaImageType.backdrop,
+              size: image.type == 'poster'
+                  ? MediaImageSize.w342
+                  : MediaImageSize.w780,
               width: image.type == 'poster' ? 120 : 240,
               height: 180,
               fit: BoxFit.cover,
@@ -536,14 +631,25 @@ class _CollectionDetailView extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ExpansionTile(
-                tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                childrenPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                title: Text('${translation.englishName} (${translation.iso6391.toUpperCase()})'),
-                subtitle: Text(translation.title.isNotEmpty
-                    ? translation.title
-                    : loc.t('collection.no_translation_title')),
+                tilePadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                childrenPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                title: Text(
+                  '${translation.englishName} (${translation.iso6391.toUpperCase()})',
+                ),
+                subtitle: Text(
+                  translation.title.isNotEmpty
+                      ? translation.title
+                      : loc.t('collection.no_translation_title'),
+                ),
                 children: [
-                  if (translation.overview != null && translation.overview!.trim().isNotEmpty)
+                  if (translation.overview != null &&
+                      translation.overview!.trim().isNotEmpty)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -560,7 +666,8 @@ class _CollectionDetailView extends StatelessWidget {
                     )
                   else
                     Text(loc.t('collection.no_translation_overview')),
-                  if (translation.homepage != null && translation.homepage!.isNotEmpty) ...[
+                  if (translation.homepage != null &&
+                      translation.homepage!.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     Text(
                       '${loc.t('collection.translation_homepage')}: ${translation.homepage}',
@@ -585,9 +692,9 @@ class _SectionTitle extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       text,
-      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-          ),
+      style: Theme.of(
+        context,
+      ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 }

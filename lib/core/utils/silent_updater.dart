@@ -29,13 +29,8 @@ class SilentUpdater {
       if (runOverride != null) {
         await runOverride();
       } else {
-        await _catalogService.preloadAll(
-          locales: locales,
-          onProgress: (_) {},
-        );
+        await _catalogService.preloadAll(locales: locales, onProgress: (_) {});
       }
     } catch (_) {}
   }
 }
-
-

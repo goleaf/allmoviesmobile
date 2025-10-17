@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_strings.dart';
 import '../../../core/localization/app_localizations.dart';
+// removed unused AppStrings import
 import '../../../data/models/discover_filters_model.dart';
 import '../../../providers/watch_region_provider.dart';
 
@@ -97,15 +97,17 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
       releaseDateGte: releaseFrom != null
           ? releaseFrom!.toIso8601String().split('T').first
           : null,
-      releaseDateLte:
-          releaseTo != null ? releaseTo!.toIso8601String().split('T').first : null,
+      releaseDateLte: releaseTo != null
+          ? releaseTo!.toIso8601String().split('T').first
+          : null,
       voteAverageGte: voteMin,
       voteAverageLte: voteMax,
       runtimeGte: runtimeMin,
       runtimeLte: runtimeMax,
       voteCountGte: voteCountMin,
-      withWatchMonetizationTypes:
-          monetization.isNotEmpty ? monetization.join('|') : null,
+      withWatchMonetizationTypes: monetization.isNotEmpty
+          ? monetization.join('|')
+          : null,
       withWatchProviders: watchProviders.isNotEmpty ? watchProviders : null,
       withReleaseType: releaseType != null ? '$releaseType' : null,
       withCast: withCast.isNotEmpty ? withCast : null,
@@ -118,20 +120,18 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     final region = context.watch<WatchRegionProvider?>()?.region;
     return Scaffold(
       key: const ValueKey('moviesFiltersScaffold'),
       appBar: AppBar(
-        title: const Text(AppStrings.filters),
+        title: Text(l.t('discover.filters')),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          TextButton(
-            onPressed: _reset,
-            child: const Text(AppStrings.reset),
-          ),
+          TextButton(onPressed: _reset, child: Text(l.t('common.reset'))),
         ],
       ),
       body: ListView(
@@ -141,16 +141,13 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             children: [
               const Icon(Icons.filter_list),
               const SizedBox(width: 8),
-              Text(
-                AppStrings.discover,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text(l.t('discover.title'), style: Theme.of(context).textTheme.titleLarge),
               const Spacer(),
-              if (region != null) Chip(label: Text('Region: $region')),
+              if (region != null) Chip(label: Text('${AppStrings.region}: $region')),
             ],
           ),
           const SizedBox(height: 12),
-          Text('By Decade', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.byDecade, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -169,7 +166,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Certification', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.certification, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -185,20 +182,20 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Release Date Range', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.releaseDateRange, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.date_range),
-                  label: Text(releaseFrom == null
-                      ? 'From'
-                      : releaseFrom!.toIso8601String().split('T').first),
+                  label: Text(releaseFrom == null ? AppStrings.from : releaseFrom!.toIso8601String().split('T').first),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: context,
-                      initialDate: releaseFrom ?? DateTime.now().subtract(const Duration(days: 3650)),
+                      initialDate:
+                          releaseFrom ??
+                          DateTime.now().subtract(const Duration(days: 3650)),
                       firstDate: DateTime(1950),
                       lastDate: DateTime.now(),
                     );
@@ -210,9 +207,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.event),
-                  label: Text(releaseTo == null
-                      ? 'To'
-                      : releaseTo!.toIso8601String().split('T').first),
+                  label: Text(releaseTo == null ? AppStrings.to : releaseTo!.toIso8601String().split('T').first),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: context,
@@ -227,13 +222,16 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Vote Average', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.voteAverage, style: Theme.of(context).textTheme.titleMedium),
           RangeSlider(
             values: RangeValues(voteMin, voteMax),
             min: 0,
             max: 10,
             divisions: 20,
-            labels: RangeLabels(voteMin.toStringAsFixed(1), voteMax.toStringAsFixed(1)),
+            labels: RangeLabels(
+              voteMin.toStringAsFixed(1),
+              voteMax.toStringAsFixed(1),
+            ),
             onChanged: (values) {
               setState(() {
                 voteMin = values.start;
@@ -242,7 +240,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             },
           ),
           const SizedBox(height: 8),
-          Text('Runtime (minutes)', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.runtimeMinutes, style: Theme.of(context).textTheme.titleMedium),
           RangeSlider(
             values: RangeValues(runtimeMin.toDouble(), runtimeMax.toDouble()),
             min: 0,
@@ -257,7 +255,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             },
           ),
           const SizedBox(height: 8),
-          Text('Vote Count Minimum', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.voteCountMinimum, style: Theme.of(context).textTheme.titleMedium),
           Row(
             children: [
               Expanded(
@@ -277,7 +275,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text('Monetization Types', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.monetizationTypes, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -299,19 +297,20 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text('Watch Providers (IDs)', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.watchProvidersIds, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: 'Comma-separated provider IDs, e.g., 8,9,337'),
-            onChanged: (v) => setState(() => watchProviders = v.replaceAll(' ', '')),
+            decoration: const InputDecoration(hintText: AppStrings.watchProvidersHint),
+            onChanged: (v) =>
+                setState(() => watchProviders = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 12),
-          Text('Release Type', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.releaseType, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [
-              for (final entry in const [
+              for (final entry in [
                 {'id': 1, 'name': 'Premiere'},
                 {'id': 2, 'name': 'Theatrical (Limited)'},
                 {'id': 3, 'name': 'Theatrical'},
@@ -323,7 +322,9 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
                   label: Text(entry['name'] as String),
                   selected: releaseType == entry['id'],
                   onSelected: (val) {
-                    setState(() => releaseType = val ? entry['id'] as int : null);
+                    setState(
+                      () => releaseType = val ? entry['id'] as int : null,
+                    );
                   },
                 ),
             ],
@@ -331,31 +332,33 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
           const SizedBox(height: 8),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text('Include Adult Content'),
+            title: const Text(AppStrings.includeAdultContent),
             value: includeAdult,
             onChanged: (v) => setState(() => includeAdult = v),
           ),
           const SizedBox(height: 12),
-          Text('People & Companies & Keywords', style: Theme.of(context).textTheme.titleMedium),
+          Text(AppStrings.peopleCompaniesKeywords, style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: 'With Cast (comma-separated person IDs)'),
+            decoration: const InputDecoration(hintText: AppStrings.hintWithCast),
             onChanged: (v) => setState(() => withCast = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: 'With Crew (comma-separated person IDs)'),
+            decoration: const InputDecoration(hintText: AppStrings.hintWithCrew),
             onChanged: (v) => setState(() => withCrew = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: 'With Companies (comma-separated company IDs)'),
-            onChanged: (v) => setState(() => withCompanies = v.replaceAll(' ', '')),
+            decoration: const InputDecoration(hintText: AppStrings.hintWithCompanies),
+            onChanged: (v) =>
+                setState(() => withCompanies = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: 'With Keywords (comma-separated keyword IDs)'),
-            onChanged: (v) => setState(() => withKeywords = v.replaceAll(' ', '')),
+            decoration: const InputDecoration(hintText: AppStrings.hintWithKeywords),
+            onChanged: (v) =>
+                setState(() => withKeywords = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 24),
         ],
@@ -369,7 +372,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
               key: const ValueKey('moviesApplyFilters'),
               onPressed: _apply,
               icon: const Icon(Icons.check),
-              label: const Text(AppStrings.apply),
+              label: Text(AppLocalizations.of(context).t('common.apply')),
             ),
           ),
         ),
@@ -377,5 +380,3 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
     );
   }
 }
-
-

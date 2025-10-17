@@ -13,7 +13,8 @@ class ListCollaborator {
   factory ListCollaborator.fromJson(Map<String, dynamic> json) {
     return ListCollaborator(
       userId: (json['user_id'] ?? json['userId'] ?? '') as String,
-      displayName: (json['display_name'] ?? json['displayName'] ?? '') as String,
+      displayName:
+          (json['display_name'] ?? json['displayName'] ?? '') as String,
       addedAt: _parseDateTime(json['added_at'] ?? json['addedAt']),
     );
   }
@@ -23,10 +24,10 @@ class ListCollaborator {
   final DateTime addedAt;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'user_id': userId,
-        'display_name': displayName,
-        'added_at': addedAt.toIso8601String(),
-      };
+    'user_id': userId,
+    'display_name': displayName,
+    'added_at': addedAt.toIso8601String(),
+  };
 }
 
 enum ListSortMode { manual, recentlyAdded, alphabetical, releaseDate }
@@ -94,10 +95,13 @@ class ListEntry {
       ),
       title: (json['title'] ?? json['name'] ?? '') as String,
       overview: json['overview'] as String?,
-      posterPath: json['poster_path'] as String? ?? json['posterPath'] as String?,
+      posterPath:
+          json['poster_path'] as String? ?? json['posterPath'] as String?,
       backdropPath:
           json['backdrop_path'] as String? ?? json['backdropPath'] as String?,
-      releaseDate: _parseOptionalDate(json['release_date'] ?? json['releaseDate']),
+      releaseDate: _parseOptionalDate(
+        json['release_date'] ?? json['releaseDate'],
+      ),
       addedBy: (json['added_by'] ?? json['addedBy'] ?? '') as String,
       addedAt: _parseDateTime(json['added_at'] ?? json['addedAt']),
       position: json['position'] is int
@@ -106,8 +110,8 @@ class ListEntry {
       voteAverage: json['vote_average'] is num
           ? (json['vote_average'] as num).toDouble()
           : json['voteAverage'] is num
-              ? (json['voteAverage'] as num).toDouble()
-              : null,
+          ? (json['voteAverage'] as num).toDouble()
+          : null,
     );
   }
 
@@ -124,18 +128,18 @@ class ListEntry {
   final double? voteAverage;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'media_id': mediaId,
-        'media_type': mediaType.name,
-        'title': title,
-        'overview': overview,
-        'poster_path': posterPath,
-        'backdrop_path': backdropPath,
-        'release_date': releaseDate?.toIso8601String(),
-        'added_by': addedBy,
-        'added_at': addedAt.toIso8601String(),
-        'position': position,
-        'vote_average': voteAverage,
-      };
+    'media_id': mediaId,
+    'media_type': mediaType.name,
+    'title': title,
+    'overview': overview,
+    'poster_path': posterPath,
+    'backdrop_path': backdropPath,
+    'release_date': releaseDate?.toIso8601String(),
+    'added_by': addedBy,
+    'added_at': addedAt.toIso8601String(),
+    'position': position,
+    'vote_average': voteAverage,
+  };
 
   ListEntry copyWith({
     int? mediaId,
@@ -193,12 +197,12 @@ class ListComment {
   final DateTime createdAt;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'id': id,
-        'user_id': userId,
-        'user_name': userName,
-        'message': message,
-        'created_at': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'user_id': userId,
+    'user_name': userName,
+    'message': message,
+    'created_at': createdAt.toIso8601String(),
+  };
 }
 
 @immutable
@@ -240,11 +244,12 @@ class UserList {
             .toList()
           ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
-    final followers = (json['followers'] as List<dynamic>? ??
-            json['follower_ids'] as List<dynamic>? ??
-            const <dynamic>[])
-        .whereType<String>()
-        .toSet();
+    final followers =
+        (json['followers'] as List<dynamic>? ??
+                json['follower_ids'] as List<dynamic>? ??
+                const <dynamic>[])
+            .whereType<String>()
+            .toSet();
 
     return UserList(
       id: (json['id'] ?? '') as String,
@@ -252,15 +257,16 @@ class UserList {
       ownerId: (json['owner_id'] ?? json['ownerId'] ?? '') as String,
       ownerName: (json['owner_name'] ?? json['ownerName'] ?? '') as String,
       description: json['description'] as String?,
-      posterPath: json['poster_path'] as String? ?? json['posterPath'] as String?,
+      posterPath:
+          json['poster_path'] as String? ?? json['posterPath'] as String?,
       isPublic: json['is_public'] is bool
           ? json['is_public'] as bool
           : json['public'] is bool
-              ? json['public'] as bool
-              : (json['is_public'] ?? json['public'] ?? true) == true,
+          ? json['public'] as bool
+          : (json['is_public'] ?? json['public'] ?? true) == true,
       isCollaborative: json['is_collaborative'] is bool
           ? json['is_collaborative'] as bool
-          : (json['is_collaborative'] ?? json['collaborative'] ?? false) == true,
+          : ((json['is_collaborative'] ?? json['collaborative']) == true),
       createdAt: _parseOptionalDate(json['created_at'] ?? json['createdAt']),
       updatedAt: _parseOptionalDate(json['updated_at'] ?? json['updatedAt']),
       items: items,
@@ -293,25 +299,26 @@ class UserList {
 
   bool allowsEditsBy(String userId) =>
       ownerId == userId ||
-      (isCollaborative && collaborators.any((collab) => collab.userId == userId));
+      (isCollaborative &&
+          collaborators.any((collab) => collab.userId == userId));
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'id': id,
-        'name': name,
-        'owner_id': ownerId,
-        'owner_name': ownerName,
-        'description': description,
-        'poster_path': posterPath,
-        'is_public': isPublic,
-        'is_collaborative': isCollaborative,
-        'created_at': createdAt?.toIso8601String(),
-        'updated_at': updatedAt?.toIso8601String(),
-        'sort_mode': sortMode.name,
-        'items': items.map((item) => item.toJson()).toList(),
-        'collaborators': collaborators.map((item) => item.toJson()).toList(),
-        'followers': followerIds.toList(),
-        'comments': comments.map((item) => item.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'owner_id': ownerId,
+    'owner_name': ownerName,
+    'description': description,
+    'poster_path': posterPath,
+    'is_public': isPublic,
+    'is_collaborative': isCollaborative,
+    'created_at': createdAt?.toIso8601String(),
+    'updated_at': updatedAt?.toIso8601String(),
+    'sort_mode': sortMode.name,
+    'items': items.map((item) => item.toJson()).toList(),
+    'collaborators': collaborators.map((item) => item.toJson()).toList(),
+    'followers': followerIds.toList(),
+    'comments': comments.map((item) => item.toJson()).toList(),
+  };
 
   UserList copyWith({
     String? id,
@@ -360,20 +367,22 @@ extension UserListPersistenceX on UserList {
       updatedAt: updatedAt,
       isPublic: isPublic,
       items: items
-          .map((e) => SavedMediaItem(
-                id: e.mediaId,
-                type: e.mediaType == ListEntryType.tv
-                    ? SavedMediaType.tv
-                    : SavedMediaType.movie,
-                title: e.title,
-                posterPath: e.posterPath,
-                backdropPath: e.backdropPath,
-                overview: e.overview,
-                releaseDate: e.releaseDate != null
-                    ? e.releaseDate!.toIso8601String()
-                    : null,
-                voteAverage: e.voteAverage,
-              ))
+          .map(
+            (e) => SavedMediaItem(
+              id: e.mediaId,
+              type: e.mediaType == ListEntryType.tv
+                  ? SavedMediaType.tv
+                  : SavedMediaType.movie,
+              title: e.title,
+              posterPath: e.posterPath,
+              backdropPath: e.backdropPath,
+              overview: e.overview,
+              releaseDate: e.releaseDate != null
+                  ? e.releaseDate!.toIso8601String()
+                  : null,
+              voteAverage: e.voteAverage,
+            ),
+          )
           .toList(growable: false),
     );
   }
@@ -407,7 +416,7 @@ extension UserListPersistenceX on UserList {
             addedAt: list.updatedAt ?? DateTime.now(),
             position: index,
             voteAverage: list.items[index].voteAverage,
-          )
+          ),
       ],
       collaborators: const <ListCollaborator>[],
       followerIds: const <String>{},

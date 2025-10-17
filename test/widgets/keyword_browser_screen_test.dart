@@ -15,7 +15,9 @@ void main() {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => KeywordBrowserProvider(_FakeRepo())),
+          ChangeNotifierProvider(
+            create: (_) => KeywordBrowserProvider(_FakeRepo()),
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: const [
@@ -34,5 +36,3 @@ void main() {
     expect(find.byType(KeywordBrowserScreen), findsOneWidget);
   });
 }
-
-

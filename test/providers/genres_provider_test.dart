@@ -5,9 +5,13 @@ import 'package:flutter_test/flutter_test.dart';
 
 class FakeRepo extends TmdbRepository {
   @override
-  Future<List<Genre>> fetchMovieGenres({bool forceRefresh = false}) async => [const Genre(id: 1, name: 'Action')];
+  Future<List<Genre>> fetchMovieGenres({bool forceRefresh = false}) async => [
+    const Genre(id: 1, name: 'Action'),
+  ];
   @override
-  Future<List<Genre>> fetchTVGenres({bool forceRefresh = false}) async => [const Genre(id: 2, name: 'Drama')];
+  Future<List<Genre>> fetchTVGenres({bool forceRefresh = false}) async => [
+    const Genre(id: 2, name: 'Drama'),
+  ];
 }
 
 void main() {
@@ -23,5 +27,3 @@ void main() {
     expect(provider.getGenreName(2, isTv: true), 'Drama');
   });
 }
-
-

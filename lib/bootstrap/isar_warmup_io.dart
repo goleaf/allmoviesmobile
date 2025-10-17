@@ -5,5 +5,3 @@ Future<void> warmupIsar() async {
   // ignore: unawaited_futures
   IsarDbProvider.instance.isar;
 }
-
-

@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/collection_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../widgets/media_image.dart';
+import '../../../core/utils/media_image_helper.dart';
 import '../../../providers/collections_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../collections/collection_detail_screen.dart';
@@ -17,7 +18,8 @@ class CollectionsBrowserScreen extends StatefulWidget {
   const CollectionsBrowserScreen({super.key});
 
   @override
-  State<CollectionsBrowserScreen> createState() => _CollectionsBrowserScreenState();
+  State<CollectionsBrowserScreen> createState() =>
+      _CollectionsBrowserScreenState();
 }
 
 class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
@@ -82,9 +84,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.browseCollections),
-      ),
+      appBar: AppBar(title: Text(AppLocalizations.of(context).t('collection.title'))),
       drawer: const AppDrawer(),
       body: RefreshIndicator(
         onRefresh: provider.refreshAll,
@@ -123,7 +123,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: _SectionError(
-              message: provider.searchError ?? AppStrings.collectionsUnavailable,
+              message: provider.searchError ?? AppLocalizations.of(context).t('collection.no_overview'),
               onRetry: () => provider.searchCollections(provider.searchQuery),
             ),
           ),
@@ -138,7 +138,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
             child: Center(
               child: Text(
-                AppStrings.noCollectionsFound,
+                AppLocalizations.of(context).t('collection.no_timeline_data'),
                 style: theme.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
@@ -156,28 +156,25 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
       SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Text(
-            'Search results',
-            style: theme.textTheme.titleMedium,
-          ),
+          child: Text(AppLocalizations.of(context).t('keywords.search_results_title'), style: theme.textTheme.titleMedium),
         ),
       ),
       SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (context, index) {
-            final collection = provider.searchResults[index];
-            return _CollectionSearchResultTile(
-              collection: collection,
-              onTap: () => _openCollectionPreview(collection),
-            );
-          },
-          childCount: provider.searchResults.length,
-        ),
+        delegate: SliverChildBuilderDelegate((context, index) {
+          final collection = provider.searchResults[index];
+          return _CollectionSearchResultTile(
+            collection: collection,
+            onTap: () => _openCollectionPreview(collection),
+          );
+        }, childCount: provider.searchResults.length),
       ),
     ];
   }
 
-  List<Widget> _buildCuratedSlivers(CollectionsProvider provider, ThemeData theme) {
+  List<Widget> _buildCuratedSlivers(
+    CollectionsProvider provider,
+    ThemeData theme,
+  ) {
     final slivers = <Widget>[];
 
     slivers.add(
@@ -185,7 +182,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Text(
-            AppStrings.popularCollections,
+            AppLocalizations.of(context).t('collection.title'),
             style: theme.textTheme.titleMedium,
           ),
         ),
@@ -194,13 +191,14 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
 
     if (provider.isPopularLoading && provider.popularCollections.isEmpty) {
       slivers.add(const SliverToBoxAdapter(child: _SectionLoader()));
-    } else if (provider.popularError != null && provider.popularCollections.isEmpty) {
+    } else if (provider.popularError != null &&
+        provider.popularCollections.isEmpty) {
       slivers.add(
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: _SectionError(
-              message: provider.popularError ?? AppStrings.collectionsUnavailable,
+              message: provider.popularError ?? AppLocalizations.of(context).t('collection.no_overview'),
               onRetry: provider.loadPopularCollections,
             ),
           ),
@@ -234,7 +232,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
           child: Text(
-            AppStrings.collectionsByGenre,
+            AppLocalizations.of(context).t('genres.title'),
             style: theme.textTheme.titleMedium,
           ),
         ),
@@ -243,13 +241,14 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
 
     if (provider.isGenresLoading && provider.collectionsByGenre.isEmpty) {
       slivers.add(const SliverToBoxAdapter(child: _SectionLoader()));
-    } else if (provider.genresError != null && provider.collectionsByGenre.isEmpty) {
+    } else if (provider.genresError != null &&
+        provider.collectionsByGenre.isEmpty) {
       slivers.add(
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: _SectionError(
-              message: provider.genresError ?? AppStrings.collectionsUnavailable,
+              message: provider.genresError ?? AppLocalizations.of(context).t('collection.no_overview'),
               onRetry: provider.loadCollectionsByGenre,
             ),
           ),
@@ -263,7 +262,9 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
               padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
               child: Text(
                 genre,
-                style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -302,7 +303,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
             padding: const EdgeInsets.all(24),
             child: Center(
               child: Text(
-                AppStrings.collectionsUnavailable,
+                AppLocalizations.of(context).t('errors.load_failed'),
                 style: theme.textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
@@ -341,19 +342,19 @@ class _SearchHeader extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppStrings.searchCollections,
+            AppLocalizations.of(context).t('collection.title'),
             style: theme.textTheme.titleMedium,
           ),
           const SizedBox(height: 12),
           TextField(
             controller: controller,
             decoration: InputDecoration(
-              hintText: AppStrings.searchCollections,
+              hintText: AppLocalizations.of(context).t('collection.title'),
               prefixIcon: const Icon(Icons.search),
               suffixIcon: hasQuery
                   ? IconButton(
                       icon: const Icon(Icons.clear),
-                      tooltip: AppStrings.clearSearch,
+                      tooltip: AppLocalizations.of(context).t('common.clear'),
                       onPressed: onClear,
                     )
                   : null,
@@ -363,7 +364,10 @@ class _SearchHeader extends StatelessWidget {
               ),
               filled: true,
               isDense: true,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 0,
+              ),
             ),
             onChanged: onChanged,
             onSubmitted: onSubmitted,
@@ -373,7 +377,7 @@ class _SearchHeader extends StatelessWidget {
             TextButton.icon(
               onPressed: onClear,
               icon: const Icon(Icons.close),
-              label: const Text(AppStrings.clearSearch),
+              label: Text(AppLocalizations.of(context).t('common.clear')),
             ),
         ],
       ),
@@ -415,7 +419,7 @@ class _SectionError extends StatelessWidget {
           ElevatedButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text(AppStrings.retry),
+            label: Text(AppLocalizations.of(context).t('common.retry')),
           ),
         ],
       ],
@@ -432,7 +436,10 @@ class _CollectionShowcaseCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final posterUrl = ApiConfig.getPosterUrl(details.posterPath, size: ApiConfig.posterSizeLarge);
+    final posterUrl = ApiConfig.getPosterUrl(
+      details.posterPath,
+      size: ApiConfig.posterSizeLarge,
+    );
 
     return SizedBox(
       width: 200,
@@ -470,7 +477,7 @@ class _CollectionShowcaseCard extends StatelessWidget {
                     Text(
                       (details.overview ?? '').isNotEmpty
                           ? details.overview!
-                          : AppStrings.noOverviewAvailable,
+                          : AppLocalizations.of(context).t('collection.no_overview'),
                       style: theme.textTheme.bodySmall,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
@@ -505,7 +512,10 @@ class _PosterFallbackIcon extends StatelessWidget {
 }
 
 class _CollectionSearchResultTile extends StatelessWidget {
-  const _CollectionSearchResultTile({required this.collection, required this.onTap});
+  const _CollectionSearchResultTile({
+    required this.collection,
+    required this.onTap,
+  });
 
   final Collection collection;
   final VoidCallback onTap;
@@ -513,7 +523,10 @@ class _CollectionSearchResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final posterUrl = ApiConfig.getPosterUrl(collection.posterPath, size: ApiConfig.posterSizeSmall);
+    final posterUrl = ApiConfig.getPosterUrl(
+      collection.posterPath,
+      size: ApiConfig.posterSizeSmall,
+    );
 
     return ListTile(
       leading: posterUrl.isNotEmpty
@@ -528,10 +541,7 @@ class _CollectionSearchResultTile extends StatelessWidget {
                 errorWidget: _PosterFallbackIcon(theme: theme),
               ),
             )
-          : SizedBox(
-              width: 56,
-              child: _PosterFallbackIcon(theme: theme),
-            ),
+          : SizedBox(width: 56, child: _PosterFallbackIcon(theme: theme)),
       title: Text(collection.name),
       subtitle: Text('Collection ID: ${collection.id}'),
       trailing: const Icon(Icons.chevron_right),
@@ -541,7 +551,10 @@ class _CollectionSearchResultTile extends StatelessWidget {
 }
 
 class _CollectionPreviewSheet extends StatelessWidget {
-  const _CollectionPreviewSheet({required this.future, required this.fallbackName});
+  const _CollectionPreviewSheet({
+    required this.future,
+    required this.fallbackName,
+  });
 
   final Future<CollectionDetails?> future;
   final String fallbackName;
@@ -575,7 +588,7 @@ class _CollectionPreviewSheet extends StatelessWidget {
           return Padding(
             padding: const EdgeInsets.all(24),
             child: _SectionError(
-              message: AppStrings.collectionsUnavailable,
+              message: AppLocalizations.of(context).t('errors.load_failed'),
               onRetry: () {
                 Navigator.pop(context);
               },
@@ -597,7 +610,10 @@ class _CollectionDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final posterUrl = ApiConfig.getPosterUrl(details.posterPath, size: ApiConfig.posterSizeLarge);
+    final posterUrl = ApiConfig.getPosterUrl(
+      details.posterPath,
+      size: ApiConfig.posterSizeLarge,
+    );
     final overview = details.overview?.trim();
 
     return SafeArea(
@@ -618,7 +634,9 @@ class _CollectionDetailsSheet extends StatelessWidget {
                 Expanded(
                   child: Text(
                     details.name,
-                    style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -644,13 +662,13 @@ class _CollectionDetailsSheet extends StatelessWidget {
             Text(
               (overview != null && overview.isNotEmpty)
                   ? overview
-                  : AppStrings.noOverviewAvailable,
+                  : AppLocalizations.of(context).t('collection.no_overview'),
               style: theme.textTheme.bodyMedium,
             ),
             if (details.parts.isNotEmpty) ...[
               const SizedBox(height: 24),
               Text(
-                AppStrings.includedTitles,
+                AppLocalizations.of(context).t('collection.parts'),
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 12),

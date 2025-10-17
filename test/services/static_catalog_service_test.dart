@@ -59,7 +59,9 @@ void main() {
 
       // seed meta: last updated 8 days ago, locale en
       await isar.writeTxn(() async {
-        final old = DateTime.now().subtract(const Duration(days: 8)).millisecondsSinceEpoch;
+        final old = DateTime.now()
+            .subtract(const Duration(days: 8))
+            .millisecondsSinceEpoch;
         final meta = StaticCatalogMetaEntity()
           ..lastUpdatedMs = old
           ..localesCsv = 'en';
@@ -88,33 +90,38 @@ void main() {
       });
 
       final service = StaticCatalogService(_FakeRepo());
-      final should = await service.needsRefresh(isar, const [Locale('en'), Locale('es')]);
+      final should = await service.needsRefresh(isar, const [
+        Locale('en'),
+        Locale('es'),
+      ]);
       expect(should, isTrue);
     } catch (_) {
       expect(true, isTrue);
     }
   });
 
-  test('isFirstRun returns true when no meta, false when meta exists', () async {
-    try {
-      final isar = await IsarDbProvider.instance.isar;
-      await isar.writeTxn(() async => isar.clear());
+  test(
+    'isFirstRun returns true when no meta, false when meta exists',
+    () async {
+      try {
+        final isar = await IsarDbProvider.instance.isar;
+        await isar.writeTxn(() async => isar.clear());
 
-      final service = StaticCatalogService(_FakeRepo());
-      expect(await service.isFirstRun(isar), isTrue);
+        final service = StaticCatalogService(_FakeRepo());
+        expect(await service.isFirstRun(isar), isTrue);
 
-      await isar.writeTxn(() async {
-        final nowMs = DateTime.now().millisecondsSinceEpoch;
-        final meta = StaticCatalogMetaEntity()
-          ..lastUpdatedMs = nowMs
-          ..localesCsv = 'en';
-        await isar.staticCatalogMetaEntitys.put(meta);
-      });
+        await isar.writeTxn(() async {
+          final nowMs = DateTime.now().millisecondsSinceEpoch;
+          final meta = StaticCatalogMetaEntity()
+            ..lastUpdatedMs = nowMs
+            ..localesCsv = 'en';
+          await isar.staticCatalogMetaEntitys.put(meta);
+        });
 
-      expect(await service.isFirstRun(isar), isFalse);
-    } catch (_) {
-      expect(true, isTrue);
-    }
-  });
+        expect(await service.isFirstRun(isar), isFalse);
+      } catch (_) {
+        expect(true, isTrue);
+      }
+    },
+  );
 }
-

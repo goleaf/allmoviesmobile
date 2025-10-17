@@ -4,12 +4,14 @@ import 'package:provider/provider.dart';
 import '../../../data/models/search_result_model.dart';
 import '../../../providers/search_provider.dart';
 import 'widgets/search_list_tiles.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class SearchResultsListArgs {
-  const SearchResultsListArgs({
-    this.mediaType,
-    this.showCompanies = false,
-  }) : assert(mediaType != null || showCompanies, 'Either mediaType must be set or showCompanies must be true.');
+  const SearchResultsListArgs({this.mediaType, this.showCompanies = false})
+    : assert(
+        mediaType != null || showCompanies,
+        'Either mediaType must be set or showCompanies must be true.',
+      );
 
   final MediaType? mediaType;
   final bool showCompanies;
@@ -22,33 +24,44 @@ class SearchResultsListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final args = ModalRoute.of(context)?.settings.arguments as SearchResultsListArgs?;
+    final args =
+        ModalRoute.of(context)?.settings.arguments as SearchResultsListArgs?;
     if (args == null) {
-      return const Scaffold(body: Center(child: Text('No results to display')));
+      return Scaffold(
+        body: Center(
+          child: Text(
+            AppLocalizations.of(context).search['no_results'] ??
+                'No results found',
+          ),
+        ),
+      );
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(_titleForArgs(args)),
-      ),
-      body: args.showCompanies ? const _CompanyResultsBody() : _MediaResultsBody(mediaType: args.mediaType!),
+      appBar: AppBar(title: Text(_titleForArgs(context, args))),
+      body: args.showCompanies
+          ? const _CompanyResultsBody()
+          : _MediaResultsBody(mediaType: args.mediaType!),
     );
   }
 
-  String _titleForArgs(SearchResultsListArgs args) {
+  String _titleForArgs(BuildContext context, SearchResultsListArgs args) {
     if (args.showCompanies) {
-      return 'Companies';
+      return AppLocalizations.of(context).company['companies'] ?? 'Companies';
     }
 
     final type = args.mediaType;
-    if (type == null) return 'Results';
+    if (type == null) {
+      return AppLocalizations.of(context).search['title'] ?? 'Search';
+    }
     switch (type) {
       case MediaType.movie:
-        return 'Movies';
+        return AppLocalizations.of(context).navigation['movies'] ?? 'Movies';
       case MediaType.tv:
-        return 'TV Shows';
+        return AppLocalizations.of(context).navigation['tv_shows'] ??
+            'TV Shows';
       case MediaType.person:
-        return 'People';
+        return AppLocalizations.of(context).navigation['people'] ?? 'People';
     }
   }
 }
@@ -62,14 +75,20 @@ class _MediaResultsBody extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<SearchProvider>(
       builder: (context, provider, _) {
-        final results = provider.groupedResults[mediaType] ?? const <SearchResult>[];
+        final results =
+            provider.groupedResults[mediaType] ?? const <SearchResult>[];
 
         if (results.isEmpty && provider.isLoading) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (results.isEmpty) {
-          return const Center(child: Text('No results yet.')); // Should not happen normally.
+          return Center(
+            child: Text(
+              AppLocalizations.of(context).search['no_results'] ??
+                  'No results found',
+            ),
+          ); // Should not happen normally.
         }
 
         final itemCount = results.length + (provider.isLoadingMore ? 1 : 0);
@@ -78,7 +97,9 @@ class _MediaResultsBody extends StatelessWidget {
           onNotification: (notification) {
             final metrics = notification.metrics;
             final shouldLoadMore =
-                metrics.pixels >= metrics.maxScrollExtent - 200 && provider.canLoadMore && !provider.isLoadingMore;
+                metrics.pixels >= metrics.maxScrollExtent - 200 &&
+                provider.canLoadMore &&
+                !provider.isLoadingMore;
 
             if (shouldLoadMore) {
               provider.loadMore();
@@ -115,20 +136,28 @@ class _CompanyResultsBody extends StatelessWidget {
       builder: (context, provider, _) {
         final results = provider.companyResults;
 
-        if (results.isEmpty && (provider.isLoading || provider.isLoadingCompanies)) {
+        if (results.isEmpty &&
+            (provider.isLoading || provider.isLoadingCompanies)) {
           return const Center(child: CircularProgressIndicator());
         }
 
         if (results.isEmpty) {
-          return const Center(child: Text('No companies found.'));
+          return Center(
+            child: Text(
+              AppLocalizations.of(context).search['no_results'] ??
+                  'No results found',
+            ),
+          );
         }
 
-        final itemCount = results.length + (provider.isLoadingMoreCompanies ? 1 : 0);
+        final itemCount =
+            results.length + (provider.isLoadingMoreCompanies ? 1 : 0);
 
         return NotificationListener<ScrollNotification>(
           onNotification: (notification) {
             final metrics = notification.metrics;
-            final shouldLoadMore = metrics.pixels >= metrics.maxScrollExtent - 200 &&
+            final shouldLoadMore =
+                metrics.pixels >= metrics.maxScrollExtent - 200 &&
                 provider.canLoadMoreCompanies &&
                 !provider.isLoadingMoreCompanies;
 

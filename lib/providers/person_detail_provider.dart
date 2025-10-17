@@ -6,7 +6,7 @@ import '../data/tmdb_repository.dart';
 
 class PersonDetailProvider extends ChangeNotifier {
   PersonDetailProvider(this._repository, this.personId, {Person? seedPerson})
-      : _summary = seedPerson;
+    : _summary = seedPerson;
 
   final TmdbRepository _repository;
   final int personId;
@@ -52,4 +52,3 @@ class PersonDetailProvider extends ChangeNotifier {
     }
   }
 }
-

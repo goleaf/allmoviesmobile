@@ -18,12 +18,15 @@ _$CompanyImpl _$$CompanyImplFromJson(Map<String, dynamic> json) =>
       parentCompany: json['parent_company'] == null
           ? null
           : ParentCompany.fromJson(
-              json['parent_company'] as Map<String, dynamic>),
-      alternativeNames: (json['alternative_names'] as List<dynamic>?)
+              json['parent_company'] as Map<String, dynamic>,
+            ),
+      alternativeNames:
+          (json['alternative_names'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const <String>[],
-      logoGallery: (json['logo_gallery'] as List<dynamic>?)
+      logoGallery:
+          (json['logo_gallery'] as List<dynamic>?)
               ?.map((e) => CompanyLogo.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const <CompanyLogo>[],

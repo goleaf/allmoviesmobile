@@ -40,6 +40,7 @@ class SearchProvider with ChangeNotifier {
   int _companyTotalPages = 1;
 
   Timer? _suggestionsDebounce;
+  Timer? _searchDebounce;
 
   String get query => _query;
   String get inputQuery => _inputQuery;
@@ -90,6 +91,7 @@ class SearchProvider with ChangeNotifier {
   void updateInputQuery(String value) {
     _inputQuery = value;
     _scheduleSuggestionsFetch(value);
+    _scheduleSearch(value);
     notifyListeners();
   }
 
@@ -105,6 +107,23 @@ class SearchProvider with ChangeNotifier {
 
     _suggestionsDebounce = Timer(const Duration(milliseconds: 350), () {
       unawaited(_fetchSuggestions(trimmed));
+    });
+  }
+
+  void _scheduleSearch(String rawQuery) {
+    _searchDebounce?.cancel();
+    final trimmed = rawQuery.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+
+    // Only trigger a debounced search if it differs from the committed query
+    if (trimmed.toLowerCase() == _query.toLowerCase()) {
+      return;
+    }
+
+    _searchDebounce = Timer(const Duration(milliseconds: 500), () {
+      unawaited(search(trimmed));
     });
   }
 
@@ -234,7 +253,9 @@ class SearchProvider with ChangeNotifier {
   }
 
   Future<void> loadMoreCompanies() async {
-    if (_isLoadingMoreCompanies || !canLoadMoreCompanies || _query.trim().isEmpty) {
+    if (_isLoadingMoreCompanies ||
+        !canLoadMoreCompanies ||
+        _query.trim().isEmpty) {
       return;
     }
 
@@ -319,10 +340,7 @@ class SearchProvider with ChangeNotifier {
     };
 
     for (final result in results) {
-      grouped[result.mediaType] = [
-        ...grouped[result.mediaType]!,
-        result,
-      ];
+      grouped[result.mediaType] = [...grouped[result.mediaType]!, result];
     }
 
     return grouped;
@@ -331,6 +349,7 @@ class SearchProvider with ChangeNotifier {
   @override
   void dispose() {
     _suggestionsDebounce?.cancel();
+    _searchDebounce?.cancel();
     super.dispose();
   }
 }

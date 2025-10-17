@@ -23,16 +23,8 @@ const LanguageTranslationEntitySchema = CollectionSchema(
       name: r'iso639_1',
       type: IsarType.string,
     ),
-    r'locale': PropertySchema(
-      id: 1,
-      name: r'locale',
-      type: IsarType.string,
-    ),
-    r'name': PropertySchema(
-      id: 2,
-      name: r'name',
-      type: IsarType.string,
-    )
+    r'locale': PropertySchema(id: 1, name: r'locale', type: IsarType.string),
+    r'name': PropertySchema(id: 2, name: r'name', type: IsarType.string),
   },
   estimateSize: _languageTranslationEntityEstimateSize,
   serialize: _languageTranslationEntitySerialize,
@@ -55,7 +47,7 @@ const LanguageTranslationEntitySchema = CollectionSchema(
           name: r'locale',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
     ),
     r'locale': IndexSchema(
@@ -68,9 +60,9 @@ const LanguageTranslationEntitySchema = CollectionSchema(
           name: r'locale',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
@@ -140,24 +132,32 @@ Id _languageTranslationEntityGetId(LanguageTranslationEntity object) {
 }
 
 List<IsarLinkBase<dynamic>> _languageTranslationEntityGetLinks(
-    LanguageTranslationEntity object) {
+  LanguageTranslationEntity object,
+) {
   return [];
 }
 
 void _languageTranslationEntityAttach(
-    IsarCollection<dynamic> col, Id id, LanguageTranslationEntity object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  LanguageTranslationEntity object,
+) {
   object.id = id;
 }
 
 extension LanguageTranslationEntityByIndex
     on IsarCollection<LanguageTranslationEntity> {
   Future<LanguageTranslationEntity?> getByIso639_1Locale(
-      String iso639_1, String locale) {
+    String iso639_1,
+    String locale,
+  ) {
     return getByIndex(r'iso639_1_locale', [iso639_1, locale]);
   }
 
   LanguageTranslationEntity? getByIso639_1LocaleSync(
-      String iso639_1, String locale) {
+    String iso639_1,
+    String locale,
+  ) {
     return getByIndexSync(r'iso639_1_locale', [iso639_1, locale]);
   }
 
@@ -170,10 +170,14 @@ extension LanguageTranslationEntityByIndex
   }
 
   Future<List<LanguageTranslationEntity?>> getAllByIso639_1Locale(
-      List<String> iso639_1Values, List<String> localeValues) {
+    List<String> iso639_1Values,
+    List<String> localeValues,
+  ) {
     final len = iso639_1Values.length;
-    assert(localeValues.length == len,
-        'All index values must have the same length');
+    assert(
+      localeValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([iso639_1Values[i], localeValues[i]]);
@@ -183,10 +187,14 @@ extension LanguageTranslationEntityByIndex
   }
 
   List<LanguageTranslationEntity?> getAllByIso639_1LocaleSync(
-      List<String> iso639_1Values, List<String> localeValues) {
+    List<String> iso639_1Values,
+    List<String> localeValues,
+  ) {
     final len = iso639_1Values.length;
-    assert(localeValues.length == len,
-        'All index values must have the same length');
+    assert(
+      localeValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([iso639_1Values[i], localeValues[i]]);
@@ -196,10 +204,14 @@ extension LanguageTranslationEntityByIndex
   }
 
   Future<int> deleteAllByIso639_1Locale(
-      List<String> iso639_1Values, List<String> localeValues) {
+    List<String> iso639_1Values,
+    List<String> localeValues,
+  ) {
     final len = iso639_1Values.length;
-    assert(localeValues.length == len,
-        'All index values must have the same length');
+    assert(
+      localeValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([iso639_1Values[i], localeValues[i]]);
@@ -209,10 +221,14 @@ extension LanguageTranslationEntityByIndex
   }
 
   int deleteAllByIso639_1LocaleSync(
-      List<String> iso639_1Values, List<String> localeValues) {
+    List<String> iso639_1Values,
+    List<String> localeValues,
+  ) {
     final len = iso639_1Values.length;
-    assert(localeValues.length == len,
-        'All index values must have the same length');
+    assert(
+      localeValues.length == len,
+      'All index values must have the same length',
+    );
     final values = <List<dynamic>>[];
     for (var i = 0; i < len; i++) {
       values.add([iso639_1Values[i], localeValues[i]]);
@@ -225,46 +241,70 @@ extension LanguageTranslationEntityByIndex
     return putByIndex(r'iso639_1_locale', object);
   }
 
-  Id putByIso639_1LocaleSync(LanguageTranslationEntity object,
-      {bool saveLinks = true}) {
+  Id putByIso639_1LocaleSync(
+    LanguageTranslationEntity object, {
+    bool saveLinks = true,
+  }) {
     return putByIndexSync(r'iso639_1_locale', object, saveLinks: saveLinks);
   }
 
   Future<List<Id>> putAllByIso639_1Locale(
-      List<LanguageTranslationEntity> objects) {
+    List<LanguageTranslationEntity> objects,
+  ) {
     return putAllByIndex(r'iso639_1_locale', objects);
   }
 
-  List<Id> putAllByIso639_1LocaleSync(List<LanguageTranslationEntity> objects,
-      {bool saveLinks = true}) {
+  List<Id> putAllByIso639_1LocaleSync(
+    List<LanguageTranslationEntity> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllByIndexSync(r'iso639_1_locale', objects, saveLinks: saveLinks);
   }
 }
 
-extension LanguageTranslationEntityQueryWhereSort on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QWhere> {
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhere> anyId() {
+extension LanguageTranslationEntityQueryWhereSort
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QWhere
+        > {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhere
+  >
+  anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension LanguageTranslationEntityQueryWhere on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QWhereClause> {
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> idEqualTo(Id id) {
+extension LanguageTranslationEntityQueryWhere
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QWhereClause
+        > {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -286,8 +326,12 @@ extension LanguageTranslationEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> idGreaterThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -295,8 +339,12 @@ extension LanguageTranslationEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> idLessThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -304,266 +352,361 @@ extension LanguageTranslationEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> idBetween(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> iso639_1EqualToAnyLocale(String iso639_1) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  iso639_1EqualToAnyLocale(String iso639_1) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'iso639_1_locale',
-        value: [iso639_1],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'iso639_1_locale',
+          value: [iso639_1],
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> iso639_1NotEqualToAnyLocale(String iso639_1) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  iso639_1NotEqualToAnyLocale(String iso639_1) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [],
-              upper: [iso639_1],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [iso639_1],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [],
+                upper: [iso639_1],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [iso639_1],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [iso639_1],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [],
-              upper: [iso639_1],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [iso639_1],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [],
+                upper: [iso639_1],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> iso639_1LocaleEqualTo(String iso639_1, String locale) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  iso639_1LocaleEqualTo(String iso639_1, String locale) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'iso639_1_locale',
-        value: [iso639_1, locale],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(
+          indexName: r'iso639_1_locale',
+          value: [iso639_1, locale],
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-          QAfterWhereClause>
-      iso639_1EqualToLocaleNotEqualTo(String iso639_1, String locale) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  iso639_1EqualToLocaleNotEqualTo(String iso639_1, String locale) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [iso639_1],
-              upper: [iso639_1, locale],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [iso639_1, locale],
-              includeLower: false,
-              upper: [iso639_1],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [iso639_1],
+                upper: [iso639_1, locale],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [iso639_1, locale],
+                includeLower: false,
+                upper: [iso639_1],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [iso639_1, locale],
-              includeLower: false,
-              upper: [iso639_1],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso639_1_locale',
-              lower: [iso639_1],
-              upper: [iso639_1, locale],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [iso639_1, locale],
+                includeLower: false,
+                upper: [iso639_1],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso639_1_locale',
+                lower: [iso639_1],
+                upper: [iso639_1, locale],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> localeEqualTo(String locale) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  localeEqualTo(String locale) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'locale',
-        value: [locale],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'locale', value: [locale]),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterWhereClause> localeNotEqualTo(String locale) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterWhereClause
+  >
+  localeNotEqualTo(String locale) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'locale',
-              lower: [],
-              upper: [locale],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'locale',
-              lower: [locale],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'locale',
+                lower: [],
+                upper: [locale],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'locale',
+                lower: [locale],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'locale',
-              lower: [locale],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'locale',
-              lower: [],
-              upper: [locale],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'locale',
+                lower: [locale],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'locale',
+                lower: [],
+                upper: [locale],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 }
 
-extension LanguageTranslationEntityQueryFilter on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QFilterCondition> {
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> idEqualTo(Id value) {
+extension LanguageTranslationEntityQueryFilter
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> idBetween(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1EqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1EqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'iso639_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'iso639_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1GreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'iso639_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1LessThan(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1GreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'iso639_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'iso639_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1Between(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1LessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'iso639_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1Between(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -571,137 +714,180 @@ extension LanguageTranslationEntityQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'iso639_1',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'iso639_1',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1StartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1StartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'iso639_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'iso639_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1EndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1EndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'iso639_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'iso639_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-          QAfterFilterCondition>
-      iso639_1Contains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1Contains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'iso639_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'iso639_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-          QAfterFilterCondition>
-      iso639_1Matches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1Matches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'iso639_1',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'iso639_1',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1IsEmpty() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1IsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'iso639_1',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'iso639_1', value: ''),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> iso639_1IsNotEmpty() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  iso639_1IsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'iso639_1',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'iso639_1', value: ''),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'locale',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'locale',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeGreaterThan(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'locale',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'locale',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeLessThan(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'locale',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'locale',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeBetween(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -709,137 +895,180 @@ extension LanguageTranslationEntityQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'locale',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'locale',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'locale',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'locale',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'locale',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'locale',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-          QAfterFilterCondition>
-      localeContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'locale',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'locale',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-          QAfterFilterCondition>
-      localeMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'locale',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'locale',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeIsEmpty() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'locale',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'locale', value: ''),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> localeIsNotEmpty() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  localeIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'locale',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'locale', value: ''),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameGreaterThan(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameLessThan(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameLessThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameBetween(
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -847,226 +1076,336 @@ extension LanguageTranslationEntityQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'name',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'name',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-          QAfterFilterCondition>
-      nameContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'name',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'name',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-          QAfterFilterCondition>
-      nameMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'name',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'name',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameIsEmpty() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'name', value: ''),
+      );
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterFilterCondition> nameIsNotEmpty() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterFilterCondition
+  >
+  nameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'name',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'name', value: ''),
+      );
     });
   }
 }
 
-extension LanguageTranslationEntityQueryObject on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QFilterCondition> {}
+extension LanguageTranslationEntityQueryObject
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QFilterCondition
+        > {}
 
-extension LanguageTranslationEntityQueryLinks on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QFilterCondition> {}
+extension LanguageTranslationEntityQueryLinks
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QFilterCondition
+        > {}
 
-extension LanguageTranslationEntityQuerySortBy on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QSortBy> {
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> sortByIso639_1() {
+extension LanguageTranslationEntityQuerySortBy
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QSortBy
+        > {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  sortByIso639_1() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso639_1', Sort.asc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> sortByIso639_1Desc() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  sortByIso639_1Desc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso639_1', Sort.desc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> sortByLocale() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  sortByLocale() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locale', Sort.asc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> sortByLocaleDesc() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  sortByLocaleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locale', Sort.desc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> sortByName() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  sortByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> sortByNameDesc() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  sortByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 }
 
-extension LanguageTranslationEntityQuerySortThenBy on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QSortThenBy> {
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenById() {
+extension LanguageTranslationEntityQuerySortThenBy
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QSortThenBy
+        > {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenByIso639_1() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenByIso639_1() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso639_1', Sort.asc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenByIso639_1Desc() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenByIso639_1Desc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso639_1', Sort.desc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenByLocale() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenByLocale() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locale', Sort.asc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenByLocaleDesc() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenByLocaleDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'locale', Sort.desc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenByName() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenByName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.asc);
     });
   }
 
-  QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity,
-      QAfterSortBy> thenByNameDesc() {
+  QueryBuilder<
+    LanguageTranslationEntity,
+    LanguageTranslationEntity,
+    QAfterSortBy
+  >
+  thenByNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'name', Sort.desc);
     });
   }
 }
 
-extension LanguageTranslationEntityQueryWhereDistinct on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QDistinct> {
+extension LanguageTranslationEntityQueryWhereDistinct
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QDistinct
+        > {
   QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity, QDistinct>
-      distinctByIso639_1({bool caseSensitive = true}) {
+  distinctByIso639_1({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'iso639_1', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity, QDistinct>
-      distinctByLocale({bool caseSensitive = true}) {
+  distinctByLocale({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'locale', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<LanguageTranslationEntity, LanguageTranslationEntity, QDistinct>
-      distinctByName({bool caseSensitive = true}) {
+  distinctByName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'name', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension LanguageTranslationEntityQueryProperty on QueryBuilder<
-    LanguageTranslationEntity, LanguageTranslationEntity, QQueryProperty> {
+extension LanguageTranslationEntityQueryProperty
+    on
+        QueryBuilder<
+          LanguageTranslationEntity,
+          LanguageTranslationEntity,
+          QQueryProperty
+        > {
   QueryBuilder<LanguageTranslationEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
@@ -1074,21 +1413,21 @@ extension LanguageTranslationEntityQueryProperty on QueryBuilder<
   }
 
   QueryBuilder<LanguageTranslationEntity, String, QQueryOperations>
-      iso639_1Property() {
+  iso639_1Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'iso639_1');
     });
   }
 
   QueryBuilder<LanguageTranslationEntity, String, QQueryOperations>
-      localeProperty() {
+  localeProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'locale');
     });
   }
 
   QueryBuilder<LanguageTranslationEntity, String, QQueryOperations>
-      nameProperty() {
+  nameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'name');
     });

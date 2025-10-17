@@ -34,7 +34,10 @@ class StoredMovieTile extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 8,
+          ),
           leading: _PosterImage(posterPath: movie.posterPath),
           title: Text(
             movie.title,
@@ -60,7 +63,9 @@ class StoredMovieTile extends StatelessWidget {
               IconButton(
                 icon: Icon(
                   isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
-                  color: isInWatchlist ? Theme.of(context).colorScheme.primary : null,
+                  color: isInWatchlist
+                      ? Theme.of(context).colorScheme.primary
+                      : null,
                 ),
                 tooltip: isInWatchlist
                     ? loc.t('movie.remove_from_watchlist')
@@ -85,20 +90,16 @@ class StoredMovieTile extends StatelessWidget {
     }
 
     final subtitleStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
-          color: Theme.of(context).colorScheme.onSurfaceVariant,
-        );
+      color: Theme.of(context).colorScheme.onSurfaceVariant,
+    );
     final secondaryStyle = Theme.of(context).textTheme.bodySmall?.copyWith(
-          color: Theme.of(context).colorScheme.primary,
-        );
+      color: Theme.of(context).colorScheme.primary,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (details.isNotEmpty)
-          Text(
-            details.join(' • '),
-            style: subtitleStyle,
-          ),
+        if (details.isNotEmpty) Text(details.join(' • '), style: subtitleStyle),
         if (movie.genresText.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(top: 4),

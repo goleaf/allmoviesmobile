@@ -24,16 +24,14 @@ import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../widgets/watch_providers_section.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
-  
+
   final Movie movie;
 
-  const MovieDetailScreen({
-    super.key,
-    required this.movie,
-  });
+  const MovieDetailScreen({super.key, required this.movie});
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +78,7 @@ class _MovieDetailView extends StatelessWidget {
         body: const Center(child: Text('No details available')),
       );
     }
-    
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
@@ -103,7 +101,8 @@ class _MovieDetailView extends StatelessWidget {
                 _buildTranslations(context, details),
                 _buildWatchProviders(context, details, loc),
                 _buildExternalLinks(context, details, loc),
-                if (details.collection != null) _buildCollection(context, details, loc),
+                if (details.collection != null)
+                  _buildCollection(context, details, loc),
                 _buildRecommendations(context, details, loc),
                 _buildSimilar(context, details, loc),
                 _buildProductionInfo(context, details, loc),
@@ -116,9 +115,13 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildAppBar(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     final backdropUrl = details.backdropUrl;
-    
+
     return SliverAppBar(
       expandedHeight: 250,
       pinned: true,
@@ -173,9 +176,13 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildHeader(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     final posterUrl = details.posterUrl;
-    
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -200,21 +207,22 @@ class _MovieDetailView extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (details.tagline != null && details.tagline!.isNotEmpty) ...[
-                Text(
+                  Text(
                     details.tagline!,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontStyle: FontStyle.italic,
-                          color: Colors.grey[600],
-                      ),
-                ),
-                const SizedBox(height: 8),
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                 ],
-                if (details.releaseYear != null && details.releaseYear!.isNotEmpty)
+                if (details.releaseYear != null &&
+                    details.releaseYear!.isNotEmpty)
                   Row(
                     children: [
                       const Icon(Icons.calendar_today, size: 16),
                       const SizedBox(width: 4),
-                  Text(
+                      Text(
                         details.releaseYear!,
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
@@ -241,7 +249,9 @@ class _MovieDetailView extends StatelessWidget {
                   Chip(
                     label: Text(details.status!),
                     avatar: Icon(
-                      details.status == 'Released' ? Icons.check_circle : Icons.schedule,
+                      details.status == 'Released'
+                          ? Icons.check_circle
+                          : Icons.schedule,
                       size: 16,
                     ),
                   ),
@@ -253,10 +263,14 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildActions(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
-    
+
     final isFavorite = favoritesProvider.isFavorite(details.id);
     final isInWatchlist = watchlistProvider.isInWatchlist(details.id);
 
@@ -279,14 +293,16 @@ class _MovieDetailView extends StatelessWidget {
                   ),
                 );
               },
-              icon: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-              ),
+              icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
               label: Text(
-                isFavorite ? loc.t('movie.remove_from_favorites') : loc.t('movie.add_to_favorites'),
+                isFavorite
+                    ? loc.t('movie.remove_from_favorites')
+                    : loc.t('movie.add_to_favorites'),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isFavorite ? Colors.red.withOpacity(0.1) : null,
+                backgroundColor: isFavorite
+                    ? Colors.red.withOpacity(0.1)
+                    : null,
                 foregroundColor: isFavorite ? Colors.red : null,
               ),
             ),
@@ -316,7 +332,9 @@ class _MovieDetailView extends StatelessWidget {
                     : loc.t('movie.add_to_watchlist'),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isInWatchlist ? Colors.blue.withOpacity(0.1) : null,
+                backgroundColor: isInWatchlist
+                    ? Colors.blue.withOpacity(0.1)
+                    : null,
                 foregroundColor: isInWatchlist ? Colors.blue : null,
               ),
             ),
@@ -326,7 +344,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildOverview(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.overview == null || details.overview!.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -340,16 +362,18 @@ class _MovieDetailView extends StatelessWidget {
         children: [
           Text(
             loc.t('movie.overview'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Text(
             details.overview!,
             style: Theme.of(context).textTheme.bodyLarge,
             maxLines: provider.isOverviewExpanded ? null : 4,
-            overflow: provider.isOverviewExpanded ? null : TextOverflow.ellipsis,
+            overflow: provider.isOverviewExpanded
+                ? null
+                : TextOverflow.ellipsis,
           ),
           if (details.overview!.length > 200)
             TextButton(
@@ -357,21 +381,29 @@ class _MovieDetailView extends StatelessWidget {
               child: Text(
                 provider.isOverviewExpanded ? 'Show less' : 'Show more',
               ),
-          ),
+            ),
         ],
       ),
     );
   }
 
-  Widget _buildMetadata(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildMetadata(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     final metadata = <MapEntry<String, String>>[];
 
     if (details.formattedReleaseDate.isNotEmpty) {
-      metadata.add(MapEntry(loc.t('movie.release_date'), details.formattedReleaseDate));
+      metadata.add(
+        MapEntry(loc.t('movie.release_date'), details.formattedReleaseDate),
+      );
     }
 
     if (details.originalLanguage != null) {
-      metadata.add(MapEntry('Original Language', details.originalLanguage!.toUpperCase()));
+      metadata.add(
+        MapEntry('Original Language', details.originalLanguage!.toUpperCase()),
+      );
     }
 
     if (details.budget != null && details.budget! > 0) {
@@ -379,11 +411,15 @@ class _MovieDetailView extends StatelessWidget {
     }
 
     if (details.revenue != null && details.revenue! > 0) {
-      metadata.add(MapEntry('Revenue', details.formatCurrency(details.revenue)));
+      metadata.add(
+        MapEntry('Revenue', details.formatCurrency(details.revenue)),
+      );
     }
 
     if (details.popularity != null) {
-      metadata.add(MapEntry('Popularity', details.popularity!.toStringAsFixed(1)));
+      metadata.add(
+        MapEntry('Popularity', details.popularity!.toStringAsFixed(1)),
+      );
     }
 
     if (metadata.isEmpty) {
@@ -395,45 +431,49 @@ class _MovieDetailView extends StatelessWidget {
       child: Card(
         child: Padding(
           padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Details',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          ...metadata.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Text(
-                        entry.key,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Details',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              ...metadata.map(
+                (entry) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        child: Text(
+                          entry.key,
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
                         ),
                       ),
-                    ),
-                    Expanded(
-                      child: Text(entry.value),
-                    ),
-                  ],
+                      Expanded(child: Text(entry.value)),
+                    ],
+                  ),
                 ),
-              )),
-        ],
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildGenres(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildGenres(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.genres.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -445,9 +485,9 @@ class _MovieDetailView extends StatelessWidget {
         children: [
           Text(
             loc.t('movie.genres'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -468,7 +508,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildCast(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildCast(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.cast.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -482,9 +526,9 @@ class _MovieDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Cast',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -503,19 +547,25 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildCrew(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildCrew(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.crew.isEmpty) {
       return const SizedBox.shrink();
     }
 
     // Filter important crew members (Director, Writer, Producer)
     final importantCrew = details.crew
-        .where((member) =>
-            member.job == 'Director' ||
-            member.job == 'Writer' ||
-            member.job == 'Screenplay' ||
-            member.job == 'Producer' ||
-            member.job == 'Executive Producer')
+        .where(
+          (member) =>
+              member.job == 'Director' ||
+              member.job == 'Writer' ||
+              member.job == 'Screenplay' ||
+              member.job == 'Producer' ||
+              member.job == 'Executive Producer',
+        )
         .take(8)
         .toList();
 
@@ -533,32 +583,32 @@ class _MovieDetailView extends StatelessWidget {
             children: [
               Text(
                 'Crew',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              ...importantCrew.map((member) => Padding(
-                    padding: const EdgeInsets.only(bottom: 8),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 120,
-                          child: Text(
-                            member.job ?? '',
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[700],
-                            ),
+              ...importantCrew.map(
+                (member) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 120,
+                        child: Text(
+                          member.job ?? '',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
                           ),
                         ),
-                        Expanded(
-                          child: Text(member.name),
-                        ),
-                      ],
-                    ),
-                  )),
+                      ),
+                      Expanded(child: Text(member.name)),
+                    ],
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -566,7 +616,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildVideos(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildVideos(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.videos.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -588,16 +642,16 @@ class _MovieDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Videos & Trailers',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
           height: 140,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: trailers.length,
             itemBuilder: (context, index) {
               final video = trailers[index];
@@ -609,7 +663,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildKeywords(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildKeywords(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.keywords.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -621,9 +679,9 @@ class _MovieDetailView extends StatelessWidget {
         children: [
           Text(
             'Keywords',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
           Wrap(
@@ -632,7 +690,9 @@ class _MovieDetailView extends StatelessWidget {
             children: details.keywords.take(20).map((keyword) {
               return Chip(
                 label: Text(keyword.name),
-                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                backgroundColor: Theme.of(
+                  context,
+                ).colorScheme.secondaryContainer,
                 labelStyle: TextStyle(
                   color: Theme.of(context).colorScheme.onSecondaryContainer,
                 ),
@@ -644,7 +704,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildReviews(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildReviews(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.reviews.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -656,9 +720,9 @@ class _MovieDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Reviews',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         ...details.reviews.take(3).map((review) => _ReviewCard(review: review)),
@@ -677,9 +741,13 @@ class _MovieDetailView extends StatelessWidget {
     if (dates == null || dates.isEmpty) return const SizedBox.shrink();
 
     final items = dates.take(3).map((d) {
-      final label = d.note?.isNotEmpty == true ? d.note! : 'Type ${d.type ?? ''}';
+      final label = d.note?.isNotEmpty == true
+          ? d.note!
+          : 'Type ${d.type ?? ''}';
       final dateStr = d.releaseDate?.split('T').first ?? '';
-      final cert = (d.certification ?? '').isNotEmpty ? ' • ${d.certification}' : '';
+      final cert = (d.certification ?? '').isNotEmpty
+          ? ' • ${d.certification}'
+          : '';
       return '$dateStr • $label$cert';
     }).toList();
 
@@ -697,17 +765,22 @@ class _MovieDetailView extends StatelessWidget {
                   const SizedBox(width: 8),
                   Text(
                     'Release Dates ($region)',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
-              ...items.map((e) => Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text(e),
-                  )),
+              ...items.map(
+                (e) => Padding(
+                  padding: const EdgeInsets.only(bottom: 6),
+                  child: Text(e),
+                ),
+              ),
             ],
-          )),
+          ),
+        ),
       ),
     );
   }
@@ -721,7 +794,9 @@ class _MovieDetailView extends StatelessWidget {
         children: [
           Text(
             'Translations',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Wrap(
@@ -729,7 +804,9 @@ class _MovieDetailView extends StatelessWidget {
             runSpacing: 8,
             children: details.translations.take(24).map((t) {
               final code = t.iso6391?.toUpperCase() ?? '';
-              final name = t.englishName?.isNotEmpty == true ? t.englishName! : t.name ?? code;
+              final name = t.englishName?.isNotEmpty == true
+                  ? t.englishName!
+                  : t.name ?? code;
               return Chip(label: Text(name));
             }).toList(),
           ),
@@ -738,14 +815,71 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildWatchProviders(BuildContext context, MovieDetailed details, AppLocalizations loc) {
-    if (!details.hasWatchProviders) {
-      return const SizedBox.shrink();
+  Widget _buildWatchProviders(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
+    if (!details.hasWatchProviders) return const SizedBox.shrink();
+    final region = context.watch<WatchRegionProvider>().region;
+    final providers =
+        details.watchProviders[region] ?? details.watchProviders['US'];
+    if (providers == null) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: WatchProvidersSection(region: region, providers: providers),
+    );
+  }
+
+  Widget _buildExternalLinks(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
+    final links = <MapEntry<String, String>>[];
+
+    if (details.homepage != null && details.homepage!.isNotEmpty) {
+      links.add(MapEntry('Homepage', details.homepage!));
     }
 
-    final region = context.watch<WatchRegionProvider>().region;
-    final providers = details.watchProviders[region] ?? details.watchProviders['US'];
-    if (providers == null) {
+    if (details.externalIds.imdbId != null) {
+      links.add(
+        MapEntry(
+          'IMDb',
+          'https://www.imdb.com/title/${details.externalIds.imdbId}',
+        ),
+      );
+    }
+
+    if (details.externalIds.facebookId != null) {
+      links.add(
+        MapEntry(
+          'Facebook',
+          'https://www.facebook.com/${details.externalIds.facebookId}',
+        ),
+      );
+    }
+
+    if (details.externalIds.twitterId != null) {
+      links.add(
+        MapEntry(
+          'Twitter',
+          'https://twitter.com/${details.externalIds.twitterId}',
+        ),
+      );
+    }
+
+    if (details.externalIds.instagramId != null) {
+      links.add(
+        MapEntry(
+          'Instagram',
+          'https://www.instagram.com/${details.externalIds.instagramId}',
+        ),
+      );
+    }
+
+    if (links.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -757,87 +891,24 @@ class _MovieDetailView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Text(
-                    'Where to Watch ($region)',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const Spacer(),
-                  if ((providers.link ?? '').isNotEmpty)
-                    TextButton.icon(
-                      onPressed: () {
-                        final url = providers.link!;
-                        final uri = Uri.parse(url);
-                        launchUrl(uri, mode: LaunchMode.externalApplication);
-                      },
-                      icon: const Icon(Icons.open_in_new),
-                      label: const Text('Open'),
-                    ),
-                ],
+              Text(
+                'External Links',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
-              if (providers.flatrate.isNotEmpty) ...[
-                Text('Stream:', style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: providers.flatrate
-                      .map((provider) => _ProviderLogo(logoPath: provider.logoPath ?? ''))
-                .toList(),
-          ),
-                const SizedBox(height: 12),
-              ],
-              if (providers.rent.isNotEmpty) ...[
-                Text('Rent:', style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: providers.rent
-                      .map((provider) => _ProviderLogo(logoPath: provider.logoPath ?? ''))
-                      .toList(),
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (providers.buy.isNotEmpty) ...[
-                Text('Buy:', style: const TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: providers.buy
-                      .map((provider) => _ProviderLogo(logoPath: provider.logoPath ?? ''))
-                      .toList(),
-                ),
-              ],
-              if (providers.ads.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                const Text('With Ads:', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: providers.ads
-                      .map((provider) => _ProviderLogo(logoPath: provider.logoPath ?? ''))
-                      .toList(),
-                ),
-              ],
-              if (providers.free.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                const Text('Free:', style: TextStyle(fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: providers.free
-                      .map((provider) => _ProviderLogo(logoPath: provider.logoPath ?? ''))
-                      .toList(),
-                ),
-              ],
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: links.map((link) {
+                  return OutlinedButton.icon(
+                    onPressed: () => _launchURL(link.value),
+                    icon: Icon(_getIconForLink(link.key)),
+                    label: Text(link.key),
+                  );
+                }).toList(),
+              ),
             ],
           ),
         ),
@@ -845,79 +916,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildExternalLinks(BuildContext context, MovieDetailed details, AppLocalizations loc) {
-    final links = <MapEntry<String, String>>[];
-
-    if (details.homepage != null && details.homepage!.isNotEmpty) {
-      links.add(MapEntry('Homepage', details.homepage!));
-    }
-
-    if (details.externalIds.imdbId != null) {
-      links.add(MapEntry(
-        'IMDb',
-        'https://www.imdb.com/title/${details.externalIds.imdbId}',
-      ));
-    }
-
-    if (details.externalIds.facebookId != null) {
-      links.add(MapEntry(
-        'Facebook',
-        'https://www.facebook.com/${details.externalIds.facebookId}',
-      ));
-    }
-
-    if (details.externalIds.twitterId != null) {
-      links.add(MapEntry(
-        'Twitter',
-        'https://twitter.com/${details.externalIds.twitterId}',
-      ));
-    }
-
-    if (details.externalIds.instagramId != null) {
-      links.add(MapEntry(
-        'Instagram',
-        'https://www.instagram.com/${details.externalIds.instagramId}',
-      ));
-    }
-
-    if (links.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Card(
-        child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-                'External Links',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-                children: links.map((link) {
-                  return OutlinedButton.icon(
-                    onPressed: () => _launchURL(link.value),
-                    icon: Icon(_getIconForLink(link.key)),
-                    label: Text(link.key),
-              );
-            }).toList(),
-          ),
-        ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCollection(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildCollection(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     final collection = details.collection!;
 
     return Padding(
@@ -947,8 +950,8 @@ class _MovieDetailView extends StatelessWidget {
                     Text(
                       'Part of Collection',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -970,7 +973,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildRecommendations(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildRecommendations(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.recommendations.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -982,9 +989,9 @@ class _MovieDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Recommended Movies',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -1032,7 +1039,11 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildSimilar(BuildContext context, MovieDetailed details, AppLocalizations loc) {
+  Widget _buildSimilar(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
     if (details.similar.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -1044,9 +1055,9 @@ class _MovieDetailView extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Text(
             'Similar Movies',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         SizedBox(
@@ -1093,8 +1104,13 @@ class _MovieDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildProductionInfo(BuildContext context, MovieDetailed details, AppLocalizations loc) {
-    if (details.productionCompanies.isEmpty && details.productionCountries.isEmpty) {
+  Widget _buildProductionInfo(
+    BuildContext context,
+    MovieDetailed details,
+    AppLocalizations loc,
+  ) {
+    if (details.productionCompanies.isEmpty &&
+        details.productionCountries.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -1108,9 +1124,9 @@ class _MovieDetailView extends StatelessWidget {
             children: [
               Text(
                 'Production',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
               if (details.productionCompanies.isNotEmpty) ...[
@@ -1146,9 +1162,7 @@ class _MovieDetailView extends StatelessWidget {
                   style: const TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
-                Text(
-                  details.productionCountries.map((c) => c.name).join(', '),
-                ),
+                Text(details.productionCountries.map((c) => c.name).join(', ')),
               ],
             ],
           ),
@@ -1328,7 +1342,10 @@ class _ReviewCard extends StatelessWidget {
                 ),
                 if (review.authorDetails?.rating != null)
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Theme.of(context).colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(12),

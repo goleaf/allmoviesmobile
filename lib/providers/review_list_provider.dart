@@ -5,10 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../data/models/review_model.dart';
 import '../data/services/review_service.dart';
 
-enum ReviewSortOption {
-  newest,
-  highestRated,
-}
+enum ReviewSortOption { newest, highestRated }
 
 enum ReviewRatingFilter {
   all(null, 'All ratings'),
@@ -24,10 +21,7 @@ enum ReviewRatingFilter {
   final String label;
 }
 
-enum ReviewVote {
-  helpful,
-  notHelpful,
-}
+enum ReviewVote { helpful, notHelpful }
 
 class ReviewHelpfulState {
   const ReviewHelpfulState({
@@ -40,8 +34,7 @@ class ReviewHelpfulState {
   final int totalVotes;
   final ReviewVote? userVote;
 
-  double get helpfulRatio =>
-      totalVotes == 0 ? 0 : helpfulCount / totalVotes;
+  double get helpfulRatio => totalVotes == 0 ? 0 : helpfulCount / totalVotes;
 
   ReviewHelpfulState copyWith({
     int? helpfulCount,
@@ -101,17 +94,19 @@ class ReviewListProvider extends ChangeNotifier {
   }
 
   List<Review> get visibleReviews {
-    final filtered = _sortedReviews.where((review) {
-      final threshold = _ratingFilter.minRating;
-      if (threshold == null) {
-        return true;
-      }
-      final rating = review.authorDetails.rating;
-      if (rating == null) {
-        return false;
-      }
-      return rating >= threshold;
-    }).toList(growable: false);
+    final filtered = _sortedReviews
+        .where((review) {
+          final threshold = _ratingFilter.minRating;
+          if (threshold == null) {
+            return true;
+          }
+          final rating = review.authorDetails.rating;
+          if (rating == null) {
+            return false;
+          }
+          return rating >= threshold;
+        })
+        .toList(growable: false);
 
     return filtered;
   }
@@ -124,9 +119,7 @@ class ReviewListProvider extends ChangeNotifier {
   ReviewRatingFilter get ratingFilter => _ratingFilter;
   int get totalReviews => _reviews.length;
   bool get canLoadMore =>
-      !_isLoadingMore &&
-      !_isLoading &&
-      _currentPage < _totalPages;
+      !_isLoadingMore && !_isLoading && _currentPage < _totalPages;
 
   ReviewHelpfulState helpfulStateFor(String reviewId) {
     return _helpfulStates[reviewId] ??

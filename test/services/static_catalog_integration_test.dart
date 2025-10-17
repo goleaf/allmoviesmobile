@@ -14,8 +14,12 @@ class _StubRepo extends TmdbRepository {
   _StubRepo();
 
   @override
-  Future<List<m.WatchProviderRegion>> fetchWatchProviderRegions({bool forceRefresh = false}) async {
-    return const [m.WatchProviderRegion(countryCode: 'US', englishName: 'United States')];
+  Future<List<m.WatchProviderRegion>> fetchWatchProviderRegions({
+    bool forceRefresh = false,
+  }) async {
+    return const [
+      m.WatchProviderRegion(countryCode: 'US', englishName: 'United States'),
+    ];
   }
 
   @override
@@ -29,7 +33,10 @@ class _StubRepo extends TmdbRepository {
   }
 
   @override
-  Future<List<CountryInfo>> fetchCountriesLocalized(String language, {bool forceRefresh = false}) async {
+  Future<List<CountryInfo>> fetchCountriesLocalized(
+    String language, {
+    bool forceRefresh = false,
+  }) async {
     return const [CountryInfo(code: 'US', englishName: 'United States')];
   }
 
@@ -39,7 +46,11 @@ class _StubRepo extends TmdbRepository {
   }
 
   @override
-  Future<List<m.WatchProvider>> fetchProvidersCatalog({required String mediaType, required String language, bool forceRefresh = false}) async {
+  Future<List<m.WatchProvider>> fetchProvidersCatalog({
+    required String mediaType,
+    required String language,
+    bool forceRefresh = false,
+  }) async {
     return [m.WatchProvider(id: 8, providerId: 8, providerName: 'Netflix')];
   }
 }
@@ -72,4 +83,3 @@ void main() {
     }
   });
 }
-

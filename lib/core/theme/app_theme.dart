@@ -26,7 +26,9 @@ class AppTheme {
   static ThemeData _buildTheme(ColorScheme colorScheme) {
     final isDark = colorScheme.brightness == Brightness.dark;
     // Avoid runtime font fetching during tests or when fonts are unavailable
-    final baseTextTheme = ThemeData(brightness: colorScheme.brightness).textTheme;
+    final baseTextTheme = ThemeData(
+      brightness: colorScheme.brightness,
+    ).textTheme;
     final textTheme = baseTextTheme.apply(
       bodyColor: colorScheme.onBackground,
       displayColor: colorScheme.onBackground,
@@ -36,8 +38,10 @@ class AppTheme {
       borderRadius: BorderRadius.circular(20),
     );
 
-    Color surfaceTint(double opacity) =>
-        Color.alphaBlend(colorScheme.primary.withOpacity(opacity), colorScheme.surface);
+    Color surfaceTint(double opacity) => Color.alphaBlend(
+      colorScheme.primary.withOpacity(opacity),
+      colorScheme.surface,
+    );
 
     final surfaceMuted = surfaceTint(isDark ? 0.24 : 0.08);
     final surfaceElevated = surfaceTint(isDark ? 0.32 : 0.12);
@@ -67,9 +71,7 @@ class AppTheme {
               ? colorScheme.primary
               : colorScheme.outlineVariant,
         ),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       chipTheme: ChipThemeData(
         backgroundColor: surfaceMuted,
@@ -95,9 +97,7 @@ class AppTheme {
         backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onPrimaryContainer,
         elevation: 0,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
       // dialogTheme removed to avoid SDK type conflicts; rely on defaults
       inputDecorationTheme: InputDecorationTheme(
@@ -105,20 +105,24 @@ class AppTheme {
         fillColor: surfaceElevated,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.4)),
+          borderSide: BorderSide(
+            color: colorScheme.outlineVariant.withOpacity(0.4),
+          ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: colorScheme.outlineVariant.withOpacity(0.4)),
+          borderSide: BorderSide(
+            color: colorScheme.outlineVariant.withOpacity(0.4),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(
-            color: colorScheme.primary,
-            width: 2,
-          ),
+          borderSide: BorderSide(color: colorScheme.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 20,
+          vertical: 18,
+        ),
         hintStyle: textTheme.bodyMedium?.copyWith(
           color: colorScheme.onSurfaceVariant,
         ),
@@ -138,7 +142,9 @@ class AppTheme {
           backgroundColor: colorScheme.primary,
           foregroundColor: colorScheme.onPrimary,
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 16),
-          textStyle: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          textStyle: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
@@ -148,7 +154,9 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: colorScheme.primary,
-          textStyle: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          textStyle: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
           side: BorderSide(color: colorScheme.outline),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
@@ -182,9 +190,7 @@ class AppTheme {
       listTileTheme: ListTileThemeData(
         selectedColor: colorScheme.primary,
         iconColor: colorScheme.onSurfaceVariant,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(20),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       ),
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: colorScheme.surface,

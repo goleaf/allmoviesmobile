@@ -29,9 +29,7 @@ class MovieSearchFilters {
   }
 
   Map<String, String> toQueryParameters() {
-    final params = <String, String>{
-      'include_adult': includeAdult.toString(),
-    };
+    final params = <String, String>{'include_adult': includeAdult.toString()};
 
     void addIfNotEmpty(String key, String? value) {
       final trimmed = value?.trim();
@@ -80,9 +78,7 @@ class TvSearchFilters {
   }
 
   Map<String, String> toQueryParameters() {
-    final params = <String, String>{
-      'include_adult': includeAdult.toString(),
-    };
+    final params = <String, String>{'include_adult': includeAdult.toString()};
 
     void addIfNotEmpty(String key, String? value) {
       final trimmed = value?.trim();

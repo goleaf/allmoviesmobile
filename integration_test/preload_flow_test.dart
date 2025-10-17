@@ -1,6 +1,6 @@
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
-import 'package:allmovies_mobile/data/services/static_catalog_service.dart';
+// static_catalog_service removed from app; tests no longer inject it
 import 'package:allmovies_mobile/main.dart';
 import 'package:allmovies_mobile/presentation/screens/movies/movies_screen.dart';
 import 'package:allmovies_mobile/presentation/screens/splash_preload/splash_preload_screen.dart';
@@ -12,20 +12,14 @@ import 'package:isar/isar.dart';
 
 class _FakeRepo extends TmdbRepository {}
 
-class _FakeCatalogServiceFirstRun extends StaticCatalogService {
-  _FakeCatalogServiceFirstRun(TmdbRepository repo) : super(repo);
-  @override
-  Future<bool> isFirstRun(Isar isar) async => true;
-  @override
-  Future<bool> needsRefresh(Isar isar, List<Locale> locales) async => true;
-  @override
-  Future<void> preloadAll({required List<Locale> locales, required void Function(PreloadProgress p) onProgress}) async {}
-}
+class _FakeCatalogServiceFirstRun {}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('First run shows SplashPreload then navigates to MoviesScreen', (tester) async {
+  testWidgets('First run shows SplashPreload then navigates to MoviesScreen', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final prefs = await SharedPreferences.getInstance();
     final repo = _FakeRepo();
@@ -33,7 +27,7 @@ void main() {
       storageService: LocalStorageService(prefs),
       prefs: prefs,
       tmdbRepository: repo,
-      catalogService: _FakeCatalogServiceFirstRun(repo),
+      // catalogService no longer accepted
     );
 
     await tester.pumpWidget(app);
@@ -43,7 +37,11 @@ void main() {
     expect(find.byType(SplashPreloadScreen), findsOneWidget);
 
     // After preload completes, should navigate to MoviesScreen
-    await _pumpUntilFound(tester, find.byType(MoviesScreen), timeout: const Duration(seconds: 5));
+    await _pumpUntilFound(
+      tester,
+      find.byType(MoviesScreen),
+      timeout: const Duration(seconds: 5),
+    );
     expect(find.byType(MoviesScreen), findsOneWidget);
   });
 }
@@ -61,7 +59,7 @@ Future<void> _pumpUntilFound(
   }
   await tester.pump();
   if (finder.evaluate().isNotEmpty) return;
-  throw TestFailure('Widget not found within ${timeout.inMilliseconds}ms: $finder');
+  throw TestFailure(
+    'Widget not found within ${timeout.inMilliseconds}ms: $finder',
+  );
 }
-
-

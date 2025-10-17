@@ -57,9 +57,9 @@ class AppDrawer extends StatelessWidget {
                   Text(
                     AppLocalizations.of(context).t('app.name'),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onPrimary,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -97,7 +97,9 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.sell_outlined),
-            title: Text(AppLocalizations.of(context).t('search.popular_searches')),
+            title: Text(
+              AppLocalizations.of(context).t('search.popular_searches'),
+            ),
             selected: currentRoute == KeywordBrowserScreen.routeName,
             onTap: () => _navigateTo(context, KeywordBrowserScreen.routeName),
           ),

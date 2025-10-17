@@ -12,7 +12,8 @@ part of 'external_ids_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 ExternalIds _$ExternalIdsFromJson(Map<String, dynamic> json) {
   return _ExternalIds.fromJson(json);
@@ -38,14 +39,16 @@ mixin _$ExternalIds {
 /// @nodoc
 abstract class $ExternalIdsCopyWith<$Res> {
   factory $ExternalIdsCopyWith(
-          ExternalIds value, $Res Function(ExternalIds) then) =
-      _$ExternalIdsCopyWithImpl<$Res, ExternalIds>;
+    ExternalIds value,
+    $Res Function(ExternalIds) then,
+  ) = _$ExternalIdsCopyWithImpl<$Res, ExternalIds>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'imdb_id') String? imdbId,
-      @JsonKey(name: 'facebook_id') String? facebookId,
-      @JsonKey(name: 'instagram_id') String? instagramId,
-      @JsonKey(name: 'twitter_id') String? twitterId});
+  $Res call({
+    @JsonKey(name: 'imdb_id') String? imdbId,
+    @JsonKey(name: 'facebook_id') String? facebookId,
+    @JsonKey(name: 'instagram_id') String? instagramId,
+    @JsonKey(name: 'twitter_id') String? twitterId,
+  });
 }
 
 /// @nodoc
@@ -66,24 +69,27 @@ class _$ExternalIdsCopyWithImpl<$Res, $Val extends ExternalIds>
     Object? instagramId = freezed,
     Object? twitterId = freezed,
   }) {
-    return _then(_value.copyWith(
-      imdbId: freezed == imdbId
-          ? _value.imdbId
-          : imdbId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      facebookId: freezed == facebookId
-          ? _value.facebookId
-          : facebookId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      instagramId: freezed == instagramId
-          ? _value.instagramId
-          : instagramId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      twitterId: freezed == twitterId
-          ? _value.twitterId
-          : twitterId // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            imdbId: freezed == imdbId
+                ? _value.imdbId
+                : imdbId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            facebookId: freezed == facebookId
+                ? _value.facebookId
+                : facebookId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            instagramId: freezed == instagramId
+                ? _value.instagramId
+                : instagramId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            twitterId: freezed == twitterId
+                ? _value.twitterId
+                : twitterId // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -91,15 +97,17 @@ class _$ExternalIdsCopyWithImpl<$Res, $Val extends ExternalIds>
 abstract class _$$ExternalIdsImplCopyWith<$Res>
     implements $ExternalIdsCopyWith<$Res> {
   factory _$$ExternalIdsImplCopyWith(
-          _$ExternalIdsImpl value, $Res Function(_$ExternalIdsImpl) then) =
-      __$$ExternalIdsImplCopyWithImpl<$Res>;
+    _$ExternalIdsImpl value,
+    $Res Function(_$ExternalIdsImpl) then,
+  ) = __$$ExternalIdsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: 'imdb_id') String? imdbId,
-      @JsonKey(name: 'facebook_id') String? facebookId,
-      @JsonKey(name: 'instagram_id') String? instagramId,
-      @JsonKey(name: 'twitter_id') String? twitterId});
+  $Res call({
+    @JsonKey(name: 'imdb_id') String? imdbId,
+    @JsonKey(name: 'facebook_id') String? facebookId,
+    @JsonKey(name: 'instagram_id') String? instagramId,
+    @JsonKey(name: 'twitter_id') String? twitterId,
+  });
 }
 
 /// @nodoc
@@ -107,8 +115,9 @@ class __$$ExternalIdsImplCopyWithImpl<$Res>
     extends _$ExternalIdsCopyWithImpl<$Res, _$ExternalIdsImpl>
     implements _$$ExternalIdsImplCopyWith<$Res> {
   __$$ExternalIdsImplCopyWithImpl(
-      _$ExternalIdsImpl _value, $Res Function(_$ExternalIdsImpl) _then)
-      : super(_value, _then);
+    _$ExternalIdsImpl _value,
+    $Res Function(_$ExternalIdsImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -118,35 +127,38 @@ class __$$ExternalIdsImplCopyWithImpl<$Res>
     Object? instagramId = freezed,
     Object? twitterId = freezed,
   }) {
-    return _then(_$ExternalIdsImpl(
-      imdbId: freezed == imdbId
-          ? _value.imdbId
-          : imdbId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      facebookId: freezed == facebookId
-          ? _value.facebookId
-          : facebookId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      instagramId: freezed == instagramId
-          ? _value.instagramId
-          : instagramId // ignore: cast_nullable_to_non_nullable
-              as String?,
-      twitterId: freezed == twitterId
-          ? _value.twitterId
-          : twitterId // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$ExternalIdsImpl(
+        imdbId: freezed == imdbId
+            ? _value.imdbId
+            : imdbId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        facebookId: freezed == facebookId
+            ? _value.facebookId
+            : facebookId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        instagramId: freezed == instagramId
+            ? _value.instagramId
+            : instagramId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        twitterId: freezed == twitterId
+            ? _value.twitterId
+            : twitterId // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ExternalIdsImpl implements _ExternalIds {
-  const _$ExternalIdsImpl(
-      {@JsonKey(name: 'imdb_id') this.imdbId,
-      @JsonKey(name: 'facebook_id') this.facebookId,
-      @JsonKey(name: 'instagram_id') this.instagramId,
-      @JsonKey(name: 'twitter_id') this.twitterId});
+  const _$ExternalIdsImpl({
+    @JsonKey(name: 'imdb_id') this.imdbId,
+    @JsonKey(name: 'facebook_id') this.facebookId,
+    @JsonKey(name: 'instagram_id') this.instagramId,
+    @JsonKey(name: 'twitter_id') this.twitterId,
+  });
 
   factory _$ExternalIdsImpl.fromJson(Map<String, dynamic> json) =>
       _$$ExternalIdsImplFromJson(json);
@@ -196,19 +208,17 @@ class _$ExternalIdsImpl implements _ExternalIds {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ExternalIdsImplToJson(
-      this,
-    );
+    return _$$ExternalIdsImplToJson(this);
   }
 }
 
 abstract class _ExternalIds implements ExternalIds {
-  const factory _ExternalIds(
-          {@JsonKey(name: 'imdb_id') final String? imdbId,
-          @JsonKey(name: 'facebook_id') final String? facebookId,
-          @JsonKey(name: 'instagram_id') final String? instagramId,
-          @JsonKey(name: 'twitter_id') final String? twitterId}) =
-      _$ExternalIdsImpl;
+  const factory _ExternalIds({
+    @JsonKey(name: 'imdb_id') final String? imdbId,
+    @JsonKey(name: 'facebook_id') final String? facebookId,
+    @JsonKey(name: 'instagram_id') final String? instagramId,
+    @JsonKey(name: 'twitter_id') final String? twitterId,
+  }) = _$ExternalIdsImpl;
 
   factory _ExternalIds.fromJson(Map<String, dynamic> json) =
       _$ExternalIdsImpl.fromJson;

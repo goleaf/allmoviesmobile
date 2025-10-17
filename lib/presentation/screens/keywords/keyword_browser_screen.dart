@@ -37,9 +37,7 @@ class _KeywordBrowserScreenState extends State<KeywordBrowserScreen> {
     final localizations = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.keywords),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.keywords)),
       drawer: const AppDrawer(),
       body: Consumer<KeywordBrowserProvider>(
         builder: (context, provider, _) {
@@ -137,9 +135,7 @@ class _KeywordSearchField extends StatelessWidget {
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search),
             hintText: hintText,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             suffixIcon: provider.isSearching
                 ? const Padding(
                     padding: EdgeInsets.all(12),
@@ -150,16 +146,17 @@ class _KeywordSearchField extends StatelessWidget {
                     ),
                   )
                 : hasText
-                    ? IconButton(
-                        tooltip:
-                            MaterialLocalizations.of(context).deleteButtonTooltip,
-                        onPressed: () {
-                          controller.clear();
-                          provider.clearSearch();
-                        },
-                        icon: const Icon(Icons.clear),
-                      )
-                    : null,
+                ? IconButton(
+                    tooltip: MaterialLocalizations.of(
+                      context,
+                    ).deleteButtonTooltip,
+                    onPressed: () {
+                      controller.clear();
+                      provider.clearSearch();
+                    },
+                    icon: const Icon(Icons.clear),
+                  )
+                : null,
           ),
           onChanged: (text) {
             if (text.isEmpty && provider.hasQuery) {
@@ -199,10 +196,7 @@ class _TrendingKeywordsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 4),
-        Text(
-          subtitle,
-          style: theme.textTheme.bodyMedium,
-        ),
+        Text(subtitle, style: theme.textTheme.bodyMedium),
         const SizedBox(height: 16),
         if (provider.isLoadingTrending)
           const Center(child: CircularProgressIndicator())

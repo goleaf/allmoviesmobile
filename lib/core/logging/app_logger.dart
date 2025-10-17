@@ -21,7 +21,9 @@ class AppLogger {
   Future<void> init({bool enableFileLogging = false}) async {
     final outputs = <LogOutput>[ConsoleOutput()];
 
-    if (enableFileLogging && !kIsWeb && (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
+    if (enableFileLogging &&
+        !kIsWeb &&
+        (Platform.isAndroid || Platform.isIOS || Platform.isMacOS)) {
       final directory = await getApplicationDocumentsDirectory();
       final logFile = File('${directory.path}/app.log');
       _fileSink = logFile.openWrite(mode: FileMode.append);

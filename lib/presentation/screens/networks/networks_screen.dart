@@ -44,9 +44,7 @@ class _NetworksScreenState extends State<NetworksScreen> {
     final localization = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.networks),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.networks)),
       drawer: const AppDrawer(),
       body: _NetworksBody(
         provider: provider,
@@ -98,10 +96,10 @@ class _NetworksBody extends StatelessWidget {
           final metrics = notification.metrics;
           final shouldLoadMore =
               metrics.axis == Axis.vertical &&
-                  metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                  provider.canLoadMore &&
-                  !provider.isLoadingMore &&
-                  !provider.isLoading;
+              metrics.pixels >= metrics.maxScrollExtent - 200 &&
+              provider.canLoadMore &&
+              !provider.isLoadingMore &&
+              !provider.isLoading;
 
           if (shouldLoadMore) {
             provider.loadMoreNetworks();
@@ -183,9 +181,7 @@ class _SearchField extends StatelessWidget {
                 icon: const Icon(Icons.search),
                 onPressed: () => onSearch(controller.text),
               ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
       onSubmitted: onSearch,
     );
@@ -365,10 +361,7 @@ class _SearchResultsSection extends StatelessWidget {
 }
 
 class _SectionCard extends StatelessWidget {
-  const _SectionCard({
-    required this.title,
-    required this.child,
-  });
+  const _SectionCard({required this.title, required this.child});
 
   final String title;
   final Widget child;
@@ -426,8 +419,9 @@ class _PopularNetworkTile extends StatelessWidget {
           CircleAvatar(
             radius: 32,
             backgroundColor: theme.colorScheme.surface,
-            backgroundImage:
-                logoUrl.isNotEmpty ? CachedNetworkImageProvider(logoUrl) : null,
+            backgroundImage: logoUrl.isNotEmpty
+                ? CachedNetworkImageProvider(logoUrl)
+                : null,
             child: logoUrl.isEmpty
                 ? Icon(Icons.live_tv, color: theme.colorScheme.primary)
                 : null,
@@ -492,8 +486,9 @@ class _NetworkCard extends StatelessWidget {
             CircleAvatar(
               radius: 30,
               backgroundColor: theme.colorScheme.surfaceVariant,
-              backgroundImage:
-                  logoUrl.isNotEmpty ? CachedNetworkImageProvider(logoUrl) : null,
+              backgroundImage: logoUrl.isNotEmpty
+                  ? CachedNetworkImageProvider(logoUrl)
+                  : null,
               child: logoUrl.isEmpty
                   ? Icon(Icons.live_tv, color: theme.colorScheme.primary)
                   : null,
@@ -589,7 +584,9 @@ class _ErrorView extends StatelessWidget {
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: Text(AppLocalizations.of(context).common['retry'] ?? 'Retry'),
+              label: Text(
+                AppLocalizations.of(context).common['retry'] ?? 'Retry',
+              ),
             ),
           ],
         ),
@@ -597,4 +594,3 @@ class _ErrorView extends StatelessWidget {
     );
   }
 }
-

@@ -11,11 +11,23 @@ class _Prefs implements SharedPreferences {
   @override
   bool containsKey(String key) => _data.containsKey(key);
   @override
-  Future<bool> setString(String key, String value) async { _data[key] = value; return true; }
+  Future<bool> setString(String key, String value) async {
+    _data[key] = value;
+    return true;
+  }
+
   @override
-  Future<bool> clear() async { _data.clear(); return true; }
+  Future<bool> clear() async {
+    _data.clear();
+    return true;
+  }
+
   @override
-  Future<bool> remove(String key) async { _data.remove(key); return true; }
+  Future<bool> remove(String key) async {
+    _data.remove(key);
+    return true;
+  }
+
   @override
   String? getString(String key) => _data[key] as String?;
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -37,5 +49,3 @@ void main() {
     expect(provider.materialThemeMode.name, 'system');
   });
 }
-
-

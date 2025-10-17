@@ -16,4 +16,3 @@ class Video with _$Video {
 
   factory Video.fromJson(Map<String, dynamic> json) => _$VideoFromJson(json);
 }
-

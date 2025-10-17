@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'app_drawer.dart';
 import 'section_navigation_actions.dart';
+import '../../core/localization/app_localizations.dart';
 
 class MediaItem {
   final String title;
@@ -44,8 +45,13 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
-    _visibleItemIndices = List<int>.generate(widget.items.length, (index) => index);
-    _normalizedTitles = widget.items.map((item) => item.title.toLowerCase()).toList();
+    _visibleItemIndices = List<int>.generate(
+      widget.items.length,
+      (index) => index,
+    );
+    _normalizedTitles = widget.items
+        .map((item) => item.title.toLowerCase())
+        .toList();
   }
 
   @override
@@ -58,7 +64,10 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
     final normalizedQuery = query.trim().toLowerCase();
     if (normalizedQuery.isEmpty) {
       setState(() {
-        _visibleItemIndices = List<int>.generate(widget.items.length, (index) => index);
+        _visibleItemIndices = List<int>.generate(
+          widget.items.length,
+          (index) => index,
+        );
       });
       return;
     }
@@ -89,9 +98,7 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
             Text(widget.title),
           ],
         ),
-        actions: [
-          SectionNavigationActions(currentRoute: currentRoute),
-        ],
+        actions: [SectionNavigationActions(currentRoute: currentRoute)],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(64),
           child: Padding(
@@ -99,7 +106,7 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search ${widget.title.toLowerCase()}',
+                hintText: '${AppLocalizations.of(context).t('search.title')} ${widget.title.toLowerCase()}',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
@@ -107,7 +114,10 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
                 ),
                 filled: true,
                 isDense: true,
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 0,
+                  horizontal: 16,
+                ),
               ),
               onChanged: _handleSearch,
             ),
@@ -120,7 +130,7 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
         child: _visibleItemIndices.isEmpty
             ? Center(
                 child: Text(
-                  'No results found',
+                  AppLocalizations.of(context).t('search.no_results'),
                   style: theme.textTheme.titleMedium,
                 ),
               )

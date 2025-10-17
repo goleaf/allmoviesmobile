@@ -28,8 +28,9 @@ class PeopleSectionState {
     return PeopleSectionState(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage:
-          errorMessage == _sentinel ? this.errorMessage : errorMessage as String?,
+      errorMessage: errorMessage == _sentinel
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 }
@@ -44,7 +45,8 @@ class PeopleProvider extends ChangeNotifier {
   final TmdbRepository _repository;
 
   final Map<PeopleSection, PeopleSectionState> _sections = {
-    for (final section in PeopleSection.values) section: const PeopleSectionState(),
+    for (final section in PeopleSection.values)
+      section: const PeopleSectionState(),
   };
 
   bool _isInitialized = false;
@@ -78,8 +80,10 @@ class PeopleProvider extends ChangeNotifier {
     _isRefreshing = true;
     _globalError = null;
     for (final section in PeopleSection.values) {
-      _sections[section] =
-          _sections[section]!.copyWith(isLoading: true, errorMessage: null);
+      _sections[section] = _sections[section]!.copyWith(
+        isLoading: true,
+        errorMessage: null,
+      );
     }
     notifyListeners();
 

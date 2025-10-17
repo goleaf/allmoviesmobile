@@ -8,15 +8,14 @@ class NetworksProvider extends PaginatedResourceProvider<Network> {
     this._repository, {
     String initialQuery = 'netflix',
     Map<String, String>? featuredCountries,
-  })  : _query =
-            initialQuery.trim().isEmpty ? 'netflix' : initialQuery.trim(),
-        _featuredCountries = featuredCountries != null &&
-                featuredCountries.isNotEmpty
-            ? Map.unmodifiable({
-                for (final entry in featuredCountries.entries)
-                  entry.key.toUpperCase(): entry.value,
-              })
-            : _defaultFeaturedCountries {
+  }) : _query = initialQuery.trim().isEmpty ? 'netflix' : initialQuery.trim(),
+       _featuredCountries =
+           featuredCountries != null && featuredCountries.isNotEmpty
+           ? Map.unmodifiable({
+               for (final entry in featuredCountries.entries)
+                 entry.key.toUpperCase(): entry.value,
+             })
+           : _defaultFeaturedCountries {
     loadInitial();
     _loadStaticData();
   }
@@ -71,8 +70,7 @@ class NetworksProvider extends PaginatedResourceProvider<Network> {
       return;
     }
 
-    if (sanitized.toLowerCase() == _query.toLowerCase() &&
-        items.isNotEmpty) {
+    if (sanitized.toLowerCase() == _query.toLowerCase() && items.isNotEmpty) {
       return;
     }
 
@@ -81,8 +79,10 @@ class NetworksProvider extends PaginatedResourceProvider<Network> {
   }
 
   @override
-  Future<PaginatedResponse<Network>> loadPage(int page,
-      {bool forceRefresh = false}) {
+  Future<PaginatedResponse<Network>> loadPage(
+    int page, {
+    bool forceRefresh = false,
+  }) {
     return _repository.fetchNetworks(
       query: _query,
       page: page,
@@ -132,4 +132,3 @@ class NetworksProvider extends PaginatedResourceProvider<Network> {
     notifyListeners();
   }
 }
-

@@ -13,16 +13,16 @@ class CustomList {
     DateTime? updatedAt,
     this.items = const <SavedMediaItem>[],
     this.isPublic = false,
-  })  : createdAt = createdAt ?? DateTime.now(),
-        updatedAt = updatedAt ?? createdAt ?? DateTime.now();
+  }) : createdAt = createdAt ?? DateTime.now(),
+       updatedAt = updatedAt ?? createdAt ?? DateTime.now();
 
   factory CustomList.fromJson(Map<String, dynamic> json) {
     final rawItems = json['items'];
     final items = rawItems is List
         ? rawItems
-            .whereType<Map<String, dynamic>>()
-            .map(SavedMediaItem.fromJson)
-            .toList(growable: false)
+              .whereType<Map<String, dynamic>>()
+              .map(SavedMediaItem.fromJson)
+              .toList(growable: false)
         : const <SavedMediaItem>[];
 
     return CustomList(

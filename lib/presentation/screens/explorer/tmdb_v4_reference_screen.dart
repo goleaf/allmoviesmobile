@@ -15,9 +15,7 @@ class TmdbV4ReferenceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => TmdbV4ReferenceProvider(
-        context.read<TmdbV4Repository>(),
-      ),
+      create: (_) => TmdbV4ReferenceProvider(context.read<TmdbV4Repository>()),
       child: const _TmdbV4ReferenceView(),
     );
   }
@@ -32,9 +30,7 @@ class _TmdbV4ReferenceView extends StatelessWidget {
     final groups = provider.groups;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.tmdbV4Reference),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.tmdbV4Reference)),
       drawer: const AppDrawer(),
       body: ListView.builder(
         padding: const EdgeInsets.only(bottom: 24),
@@ -188,18 +184,22 @@ class _EndpointTile extends StatelessWidget {
                           : null,
                       icon: switch (state.status) {
                         EndpointExecutionStatus.loading => const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        EndpointExecutionStatus.success => const Icon(Icons.check_circle_outline),
-                        EndpointExecutionStatus.error => const Icon(Icons.error_outline),
-                        EndpointExecutionStatus.idle => const Icon(Icons.play_arrow_rounded),
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        EndpointExecutionStatus.success => const Icon(
+                          Icons.check_circle_outline,
+                        ),
+                        EndpointExecutionStatus.error => const Icon(
+                          Icons.error_outline,
+                        ),
+                        EndpointExecutionStatus.idle => const Icon(
+                          Icons.play_arrow_rounded,
+                        ),
                       },
                       label: Text(
-                        endpoint.supportsExecution
-                            ? 'Run'
-                            : 'Docs only',
+                        endpoint.supportsExecution ? 'Run' : 'Docs only',
                       ),
                     ),
                   ],
@@ -208,8 +208,7 @@ class _EndpointTile extends StatelessWidget {
                   const SizedBox(height: 12),
                   _PayloadPreview(
                     title: 'Query parameters',
-                    lines: endpoint.sampleQuery!
-                        .entries
+                    lines: endpoint.sampleQuery!.entries
                         .map((entry) => '${entry.key}: ${entry.value}')
                         .toList(),
                   ),
@@ -218,8 +217,7 @@ class _EndpointTile extends StatelessWidget {
                   const SizedBox(height: 12),
                   _PayloadPreview(
                     title: 'Sample body',
-                    lines: endpoint.sampleBody!
-                        .entries
+                    lines: endpoint.sampleBody!.entries
                         .map((entry) => '${entry.key}: ${entry.value}')
                         .toList(),
                   ),
@@ -288,10 +286,7 @@ class _MethodChip extends StatelessWidget {
 }
 
 class _PayloadPreview extends StatelessWidget {
-  const _PayloadPreview({
-    required this.title,
-    required this.lines,
-  });
+  const _PayloadPreview({required this.title, required this.lines});
 
   final String title;
   final List<String> lines;
@@ -310,10 +305,7 @@ class _PayloadPreview extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: theme.textTheme.labelLarge,
-          ),
+          Text(title, style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
           ...lines.map(
             (line) => Text(
@@ -360,9 +352,9 @@ class _ResultBanner extends StatelessWidget {
             child: SelectableText(
               text,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: textColor,
-                    fontFamily: 'RobotoMono',
-                  ),
+                color: textColor,
+                fontFamily: 'RobotoMono',
+              ),
             ),
           ),
         ],

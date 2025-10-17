@@ -22,13 +22,13 @@ class PersonDetail {
     PersonCredits? movieCredits,
     PersonCredits? tvCredits,
     List<PersonTranslation>? translations,
-  })  : alsoKnownAs = alsoKnownAs ?? const <String>[],
-        profiles = profiles ?? const <ImageModel>[],
-        taggedImages = taggedImages ?? const <PersonTaggedImage>[],
-        combinedCredits = combinedCredits ?? const PersonCredits(),
-        movieCredits = movieCredits ?? const PersonCredits(),
-        tvCredits = tvCredits ?? const PersonCredits(),
-        translations = translations ?? const <PersonTranslation>[];
+  }) : alsoKnownAs = alsoKnownAs ?? const <String>[],
+       profiles = profiles ?? const <ImageModel>[],
+       taggedImages = taggedImages ?? const <PersonTaggedImage>[],
+       combinedCredits = combinedCredits ?? const PersonCredits(),
+       movieCredits = movieCredits ?? const PersonCredits(),
+       tvCredits = tvCredits ?? const PersonCredits(),
+       translations = translations ?? const <PersonTranslation>[];
 
   final int id;
   final String name;
@@ -50,18 +50,19 @@ class PersonDetail {
   final List<PersonTranslation> translations;
 
   factory PersonDetail.fromJson(Map<String, dynamic> json) {
-    final alsoKnownAs = (json['also_known_as'] as List?)
-            ?.whereType<String>()
-            .toList() ??
+    final alsoKnownAs =
+        (json['also_known_as'] as List?)?.whereType<String>().toList() ??
         const <String>[];
     final imagesJson = json['images'] as Map<String, dynamic>?;
-    final profiles = (imagesJson?['profiles'] as List?)
+    final profiles =
+        (imagesJson?['profiles'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map(ImageModel.fromJson)
             .toList() ??
         const <ImageModel>[];
     final taggedJson = json['tagged_images'] as Map<String, dynamic>?;
-    final taggedImages = (taggedJson?['results'] as List?)
+    final taggedImages =
+        (taggedJson?['results'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map(PersonTaggedImage.fromJson)
             .toList() ??
@@ -70,7 +71,8 @@ class PersonDetail {
     final movie = json['movie_credits'] as Map<String, dynamic>?;
     final tv = json['tv_credits'] as Map<String, dynamic>?;
     final translationsJson = json['translations'] as Map<String, dynamic>?;
-    final translations = (translationsJson?['translations'] as List?)
+    final translations =
+        (translationsJson?['translations'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map(PersonTranslation.fromJson)
             .toList() ??
@@ -98,34 +100,37 @@ class PersonDetail {
       combinedCredits: combined == null
           ? const PersonCredits()
           : PersonCredits.fromJson(combined),
-      movieCredits:
-          movie == null ? const PersonCredits() : PersonCredits.fromJson(movie),
-      tvCredits: tv == null ? const PersonCredits() : PersonCredits.fromJson(tv),
+      movieCredits: movie == null
+          ? const PersonCredits()
+          : PersonCredits.fromJson(movie),
+      tvCredits: tv == null
+          ? const PersonCredits()
+          : PersonCredits.fromJson(tv),
       translations: translations,
     );
   }
 
   String? get profileUrl => MediaImageHelper.buildUrl(
-        profilePath,
-        type: MediaImageType.profile,
-        size: MediaImageSize.w500,
-      );
+    profilePath,
+    type: MediaImageType.profile,
+    size: MediaImageSize.w500,
+  );
 }
 
 class PersonCredits {
-  const PersonCredits({
-    List<PersonCredit>? cast,
-    List<PersonCredit>? crew,
-  })  : cast = cast ?? const <PersonCredit>[],
-        crew = crew ?? const <PersonCredit>[];
+  const PersonCredits({List<PersonCredit>? cast, List<PersonCredit>? crew})
+    : cast = cast ?? const <PersonCredit>[],
+      crew = crew ?? const <PersonCredit>[];
 
   factory PersonCredits.fromJson(Map<String, dynamic> json) {
-    final cast = (json['cast'] as List?)
+    final cast =
+        (json['cast'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map(PersonCredit.fromJson)
             .toList() ??
         const <PersonCredit>[];
-    final crew = (json['crew'] as List?)
+    final crew =
+        (json['crew'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map(PersonCredit.fromJson)
             .toList() ??
@@ -208,10 +213,10 @@ class PersonCredit {
   }
 
   String? get posterUrl => MediaImageHelper.buildUrl(
-        posterPath,
-        type: MediaImageType.poster,
-        size: MediaImageSize.w342,
-      );
+    posterPath,
+    type: MediaImageType.poster,
+    size: MediaImageSize.w342,
+  );
 
   DateTime? get parsedDate {
     final raw = (releaseDate?.isNotEmpty ?? false) == true
@@ -352,4 +357,3 @@ extension PersonTaggedMediaX on PersonTaggedMedia {
     return nameTrimmed.isNotEmpty ? nameTrimmed : null;
   }
 }
-

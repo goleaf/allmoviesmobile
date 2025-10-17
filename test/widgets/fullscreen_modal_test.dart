@@ -4,7 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:allmovies_mobile/presentation/navigation/fullscreen_modal.dart';
 
 void main() {
-  testWidgets('pushFullscreenModal shows close button and pops', (tester) async {
+  testWidgets('pushFullscreenModal shows close button and pops', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MaterialApp(
         home: Builder(
@@ -12,7 +14,11 @@ void main() {
             body: Center(
               child: ElevatedButton(
                 onPressed: () async {
-                  await pushFullscreenModal(context, builder: (_) => const Text('Content'), title: 'Title');
+                  await pushFullscreenModal(
+                    context,
+                    builder: (_) => const Text('Content'),
+                    title: 'Title',
+                  );
                 },
                 child: const Text('Open'),
               ),
@@ -32,5 +38,3 @@ void main() {
     expect(find.text('Content'), findsNothing);
   });
 }
-
-

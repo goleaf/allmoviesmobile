@@ -12,7 +12,8 @@ part of 'season_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Season _$SeasonFromJson(Map<String, dynamic> json) {
   return _Season.fromJson(json);
@@ -48,19 +49,20 @@ abstract class $SeasonCopyWith<$Res> {
   factory $SeasonCopyWith(Season value, $Res Function(Season) then) =
       _$SeasonCopyWithImpl<$Res, Season>;
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'season_number') int seasonNumber,
-      String? overview,
-      @JsonKey(name: 'air_date') String? airDate,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      @JsonKey(name: 'episode_count') int? episodeCount,
-      List<Cast> cast,
-      List<Crew> crew,
-      List<Episode> episodes,
-      List<Video> videos});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'season_number') int seasonNumber,
+    String? overview,
+    @JsonKey(name: 'air_date') String? airDate,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'episode_count') int? episodeCount,
+    List<Cast> cast,
+    List<Crew> crew,
+    List<Episode> episodes,
+    List<Video> videos,
+  });
 }
 
 /// @nodoc
@@ -89,79 +91,84 @@ class _$SeasonCopyWithImpl<$Res, $Val extends Season>
     Object? episodes = null,
     Object? videos = null,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      seasonNumber: null == seasonNumber
-          ? _value.seasonNumber
-          : seasonNumber // ignore: cast_nullable_to_non_nullable
-              as int,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      airDate: freezed == airDate
-          ? _value.airDate
-          : airDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      episodeCount: freezed == episodeCount
-          ? _value.episodeCount
-          : episodeCount // ignore: cast_nullable_to_non_nullable
-              as int?,
-      cast: null == cast
-          ? _value.cast
-          : cast // ignore: cast_nullable_to_non_nullable
-              as List<Cast>,
-      crew: null == crew
-          ? _value.crew
-          : crew // ignore: cast_nullable_to_non_nullable
-              as List<Crew>,
-      episodes: null == episodes
-          ? _value.episodes
-          : episodes // ignore: cast_nullable_to_non_nullable
-              as List<Episode>,
-      videos: null == videos
-          ? _value.videos
-          : videos // ignore: cast_nullable_to_non_nullable
-              as List<Video>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            seasonNumber: null == seasonNumber
+                ? _value.seasonNumber
+                : seasonNumber // ignore: cast_nullable_to_non_nullable
+                      as int,
+            overview: freezed == overview
+                ? _value.overview
+                : overview // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            airDate: freezed == airDate
+                ? _value.airDate
+                : airDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            episodeCount: freezed == episodeCount
+                ? _value.episodeCount
+                : episodeCount // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            cast: null == cast
+                ? _value.cast
+                : cast // ignore: cast_nullable_to_non_nullable
+                      as List<Cast>,
+            crew: null == crew
+                ? _value.crew
+                : crew // ignore: cast_nullable_to_non_nullable
+                      as List<Crew>,
+            episodes: null == episodes
+                ? _value.episodes
+                : episodes // ignore: cast_nullable_to_non_nullable
+                      as List<Episode>,
+            videos: null == videos
+                ? _value.videos
+                : videos // ignore: cast_nullable_to_non_nullable
+                      as List<Video>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$SeasonImplCopyWith<$Res> implements $SeasonCopyWith<$Res> {
   factory _$$SeasonImplCopyWith(
-          _$SeasonImpl value, $Res Function(_$SeasonImpl) then) =
-      __$$SeasonImplCopyWithImpl<$Res>;
+    _$SeasonImpl value,
+    $Res Function(_$SeasonImpl) then,
+  ) = __$$SeasonImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'season_number') int seasonNumber,
-      String? overview,
-      @JsonKey(name: 'air_date') String? airDate,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      @JsonKey(name: 'episode_count') int? episodeCount,
-      List<Cast> cast,
-      List<Crew> crew,
-      List<Episode> episodes,
-      List<Video> videos});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'season_number') int seasonNumber,
+    String? overview,
+    @JsonKey(name: 'air_date') String? airDate,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'episode_count') int? episodeCount,
+    List<Cast> cast,
+    List<Crew> crew,
+    List<Episode> episodes,
+    List<Video> videos,
+  });
 }
 
 /// @nodoc
@@ -169,8 +176,9 @@ class __$$SeasonImplCopyWithImpl<$Res>
     extends _$SeasonCopyWithImpl<$Res, _$SeasonImpl>
     implements _$$SeasonImplCopyWith<$Res> {
   __$$SeasonImplCopyWithImpl(
-      _$SeasonImpl _value, $Res Function(_$SeasonImpl) _then)
-      : super(_value, _then);
+    _$SeasonImpl _value,
+    $Res Function(_$SeasonImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -188,80 +196,82 @@ class __$$SeasonImplCopyWithImpl<$Res>
     Object? episodes = null,
     Object? videos = null,
   }) {
-    return _then(_$SeasonImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      seasonNumber: null == seasonNumber
-          ? _value.seasonNumber
-          : seasonNumber // ignore: cast_nullable_to_non_nullable
-              as int,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      airDate: freezed == airDate
-          ? _value.airDate
-          : airDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      episodeCount: freezed == episodeCount
-          ? _value.episodeCount
-          : episodeCount // ignore: cast_nullable_to_non_nullable
-              as int?,
-      cast: null == cast
-          ? _value._cast
-          : cast // ignore: cast_nullable_to_non_nullable
-              as List<Cast>,
-      crew: null == crew
-          ? _value._crew
-          : crew // ignore: cast_nullable_to_non_nullable
-              as List<Crew>,
-      episodes: null == episodes
-          ? _value._episodes
-          : episodes // ignore: cast_nullable_to_non_nullable
-              as List<Episode>,
-      videos: null == videos
-          ? _value._videos
-          : videos // ignore: cast_nullable_to_non_nullable
-              as List<Video>,
-    ));
+    return _then(
+      _$SeasonImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        seasonNumber: null == seasonNumber
+            ? _value.seasonNumber
+            : seasonNumber // ignore: cast_nullable_to_non_nullable
+                  as int,
+        overview: freezed == overview
+            ? _value.overview
+            : overview // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        airDate: freezed == airDate
+            ? _value.airDate
+            : airDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        episodeCount: freezed == episodeCount
+            ? _value.episodeCount
+            : episodeCount // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        cast: null == cast
+            ? _value._cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                  as List<Cast>,
+        crew: null == crew
+            ? _value._crew
+            : crew // ignore: cast_nullable_to_non_nullable
+                  as List<Crew>,
+        episodes: null == episodes
+            ? _value._episodes
+            : episodes // ignore: cast_nullable_to_non_nullable
+                  as List<Episode>,
+        videos: null == videos
+            ? _value._videos
+            : videos // ignore: cast_nullable_to_non_nullable
+                  as List<Video>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$SeasonImpl extends _Season {
-  const _$SeasonImpl(
-      {required this.id,
-      required this.name,
-      @JsonKey(name: 'season_number') required this.seasonNumber,
-      this.overview,
-      @JsonKey(name: 'air_date') this.airDate,
-      @JsonKey(name: 'poster_path') this.posterPath,
-      @JsonKey(name: 'backdrop_path') this.backdropPath,
-      @JsonKey(name: 'episode_count') this.episodeCount,
-      final List<Cast> cast = const [],
-      final List<Crew> crew = const [],
-      final List<Episode> episodes = const [],
-      final List<Video> videos = const []})
-      : _cast = cast,
-        _crew = crew,
-        _episodes = episodes,
-        _videos = videos,
-        super._();
+  const _$SeasonImpl({
+    required this.id,
+    required this.name,
+    @JsonKey(name: 'season_number') required this.seasonNumber,
+    this.overview,
+    @JsonKey(name: 'air_date') this.airDate,
+    @JsonKey(name: 'poster_path') this.posterPath,
+    @JsonKey(name: 'backdrop_path') this.backdropPath,
+    @JsonKey(name: 'episode_count') this.episodeCount,
+    final List<Cast> cast = const [],
+    final List<Crew> crew = const [],
+    final List<Episode> episodes = const [],
+    final List<Video> videos = const [],
+  }) : _cast = cast,
+       _crew = crew,
+       _episodes = episodes,
+       _videos = videos,
+       super._();
 
   factory _$SeasonImpl.fromJson(Map<String, dynamic> json) =>
       _$$SeasonImplFromJson(json);
@@ -355,19 +365,20 @@ class _$SeasonImpl extends _Season {
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      id,
-      name,
-      seasonNumber,
-      overview,
-      airDate,
-      posterPath,
-      backdropPath,
-      episodeCount,
-      const DeepCollectionEquality().hash(_cast),
-      const DeepCollectionEquality().hash(_crew),
-      const DeepCollectionEquality().hash(_episodes),
-      const DeepCollectionEquality().hash(_videos));
+    runtimeType,
+    id,
+    name,
+    seasonNumber,
+    overview,
+    airDate,
+    posterPath,
+    backdropPath,
+    episodeCount,
+    const DeepCollectionEquality().hash(_cast),
+    const DeepCollectionEquality().hash(_crew),
+    const DeepCollectionEquality().hash(_episodes),
+    const DeepCollectionEquality().hash(_videos),
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -377,26 +388,25 @@ class _$SeasonImpl extends _Season {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$SeasonImplToJson(
-      this,
-    );
+    return _$$SeasonImplToJson(this);
   }
 }
 
 abstract class _Season extends Season {
-  const factory _Season(
-      {required final int id,
-      required final String name,
-      @JsonKey(name: 'season_number') required final int seasonNumber,
-      final String? overview,
-      @JsonKey(name: 'air_date') final String? airDate,
-      @JsonKey(name: 'poster_path') final String? posterPath,
-      @JsonKey(name: 'backdrop_path') final String? backdropPath,
-      @JsonKey(name: 'episode_count') final int? episodeCount,
-      final List<Cast> cast,
-      final List<Crew> crew,
-      final List<Episode> episodes,
-      final List<Video> videos}) = _$SeasonImpl;
+  const factory _Season({
+    required final int id,
+    required final String name,
+    @JsonKey(name: 'season_number') required final int seasonNumber,
+    final String? overview,
+    @JsonKey(name: 'air_date') final String? airDate,
+    @JsonKey(name: 'poster_path') final String? posterPath,
+    @JsonKey(name: 'backdrop_path') final String? backdropPath,
+    @JsonKey(name: 'episode_count') final int? episodeCount,
+    final List<Cast> cast,
+    final List<Crew> crew,
+    final List<Episode> episodes,
+    final List<Video> videos,
+  }) = _$SeasonImpl;
   const _Season._() : super._();
 
   factory _Season.fromJson(Map<String, dynamic> json) = _$SeasonImpl.fromJson;

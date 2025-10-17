@@ -11,12 +11,18 @@ class _FakeRepo extends TmdbRepository {
   _FakeRepo();
 
   @override
-  Future<List<Movie>> fetchTrendingMovies({String timeWindow = 'day', bool forceRefresh = false}) async {
+  Future<List<Movie>> fetchTrendingMovies({
+    String timeWindow = 'day',
+    bool forceRefresh = false,
+  }) async {
     return [Movie(id: 101, title: 'Trend')];
   }
 
   @override
-  Future<List<Movie>> fetchPopularMovies({int page = 1, bool forceRefresh = false}) async {
+  Future<List<Movie>> fetchPopularMovies({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     return [Movie(id: 201, title: 'Popular')];
   }
 
@@ -26,7 +32,10 @@ class _FakeRepo extends TmdbRepository {
   }
 
   @override
-  Future<List<Movie>> fetchRecommendedMovies(int movieId, {int page = 1}) async {
+  Future<List<Movie>> fetchRecommendedMovies(
+    int movieId, {
+    int page = 1,
+  }) async {
     return [Movie(id: 401, title: 'Recommended for $movieId')];
   }
 }
@@ -43,34 +52,42 @@ void main() {
       provider = RecommendationsProvider(_FakeRepo(), storage);
     });
 
-    test('when no favorites, returns popular deterministically (deduped/sorted/limited)', () async {
-      await provider.fetchPersonalizedRecommendations();
-      expect(provider.recommendedMovies, isNotEmpty);
-      final ids = provider.recommendedMovies.map((m) => m.id).toList(growable: false);
-      // Sorted ascending by id
-      final sorted = [...ids]..sort();
-      expect(ids, sorted);
-      // No duplicates
-      expect(ids.toSet().length, ids.length);
-      // Limited to <= 20
-      expect(ids.length <= 20, isTrue);
-    });
+    test(
+      'when no favorites, returns popular deterministically (deduped/sorted/limited)',
+      () async {
+        await provider.fetchPersonalizedRecommendations();
+        expect(provider.recommendedMovies, isNotEmpty);
+        final ids = provider.recommendedMovies
+            .map((m) => m.id)
+            .toList(growable: false);
+        // Sorted ascending by id
+        final sorted = [...ids]..sort();
+        expect(ids, sorted);
+        // No duplicates
+        expect(ids.toSet().length, ids.length);
+        // Limited to <= 20
+        expect(ids.length <= 20, isTrue);
+      },
+    );
 
-    test('when favorites exist, filters favorites and returns deterministic list', () async {
-      // Add a favorite
-      await storage.addToFavorites(101);
+    test(
+      'when favorites exist, filters favorites and returns deterministic list',
+      () async {
+        // Add a favorite
+        await storage.addToFavorites(101);
 
-      await provider.fetchPersonalizedRecommendations();
-      // Should not include favorite id 101
-      expect(provider.recommendedMovies.where((m) => m.id == 101), isEmpty);
-      // Sorted ascending by id and unique
-      final ids = provider.recommendedMovies.map((m) => m.id).toList(growable: false);
-      final sorted = [...ids]..sort();
-      expect(ids, sorted);
-      expect(ids.toSet().length, ids.length);
-      expect(ids.length <= 20, isTrue);
-    });
+        await provider.fetchPersonalizedRecommendations();
+        // Should not include favorite id 101
+        expect(provider.recommendedMovies.where((m) => m.id == 101), isEmpty);
+        // Sorted ascending by id and unique
+        final ids = provider.recommendedMovies
+            .map((m) => m.id)
+            .toList(growable: false);
+        final sorted = [...ids]..sort();
+        expect(ids, sorted);
+        expect(ids.toSet().length, ids.length);
+        expect(ids.length <= 20, isTrue);
+      },
+    );
   });
 }
-
-

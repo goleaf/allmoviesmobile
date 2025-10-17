@@ -12,16 +12,18 @@ final GetIt getIt = GetIt.instance;
 /// Initialize all services and repositories
 Future<void> setupServiceLocator() async {
   // Logger
-  getIt.registerLazySingleton<Logger>(() => Logger(
-    printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      printTime: true,
+  getIt.registerLazySingleton<Logger>(
+    () => Logger(
+      printer: PrettyPrinter(
+        methodCount: 2,
+        errorMethodCount: 8,
+        lineLength: 120,
+        colors: true,
+        printEmojis: true,
+        printTime: true,
+      ),
     ),
-  ));
+  );
 
   // HTTP Client
   getIt.registerLazySingleton<http.Client>(() => http.Client());
@@ -54,4 +56,3 @@ Future<void> setupServiceLocator() async {
 Future<void> cleanupServiceLocator() async {
   await getIt.reset();
 }
-

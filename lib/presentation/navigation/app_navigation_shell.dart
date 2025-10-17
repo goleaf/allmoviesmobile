@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../core/constants/app_strings.dart';
+import '../../core/localization/app_localizations.dart';
 // Home/More removed in this app variant; keep movies/search/series only
 import '../screens/movies/movies_screen.dart';
 import '../screens/search/search_screen.dart';
@@ -63,15 +63,16 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   }
 
   Widget _buildBottomNavigationBar() {
+    final l = AppLocalizations.of(context);
     return NavigationBar(
       selectedIndex: _currentDestination.index,
       onDestinationSelected: (index) {
         final selected = AppDestination.values[index];
 
         if (_currentDestination == selected) {
-          _navigatorKeys[selected]!
-              .currentState
-              ?.popUntil((route) => route.isFirst);
+          _navigatorKeys[selected]!.currentState?.popUntil(
+            (route) => route.isFirst,
+          );
           return;
         }
 
@@ -79,21 +80,21 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           _currentDestination = selected;
         });
       },
-      destinations: const [
+      destinations: [
         NavigationDestination(
           icon: Icon(Icons.movie_outlined),
           selectedIcon: Icon(Icons.movie),
-          label: AppStrings.movies,
+          label: l.t('navigation.movies'),
         ),
         NavigationDestination(
           icon: Icon(Icons.tv_outlined),
           selectedIcon: Icon(Icons.tv),
-          label: AppStrings.series,
+          label: l.t('navigation.series'),
         ),
         NavigationDestination(
           icon: Icon(Icons.search),
           selectedIcon: Icon(Icons.search),
-          label: AppStrings.search,
+          label: l.t('navigation.search'),
         ),
       ],
     );
@@ -130,7 +131,9 @@ class _DestinationNavigator extends StatelessWidget {
         break;
       case AppDestination.search:
         if (isInitialRoute || settings.name == SearchScreen.routeName) {
-          final initialQuery = settings.arguments is String ? settings.arguments as String : null;
+          final initialQuery = settings.arguments is String
+              ? settings.arguments as String
+              : null;
           page = SearchScreen(initialQuery: initialQuery);
           break;
         }
@@ -138,10 +141,7 @@ class _DestinationNavigator extends StatelessWidget {
         break;
     }
 
-    return MaterialPageRoute(
-      builder: (_) => page,
-      settings: settings,
-    );
+    return MaterialPageRoute(builder: (_) => page, settings: settings);
   }
 
   Widget _buildSharedRoute(RouteSettings settings) {
@@ -155,7 +155,9 @@ class _DestinationNavigator extends StatelessWidget {
       case SeriesFiltersScreen.routeName:
         return const SeriesFiltersScreen();
       case SearchScreen.routeName:
-        final initialQuery = settings.arguments is String ? settings.arguments as String : null;
+        final initialQuery = settings.arguments is String
+            ? settings.arguments as String
+            : null;
         return SearchScreen(initialQuery: initialQuery);
       default:
         return const SizedBox.shrink();
@@ -164,9 +166,6 @@ class _DestinationNavigator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(
-      key: navigatorKey,
-      onGenerateRoute: _onGenerateRoute,
-    );
+    return Navigator(key: navigatorKey, onGenerateRoute: _onGenerateRoute);
   }
 }

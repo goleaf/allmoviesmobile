@@ -8,6 +8,7 @@ import '../../../data/models/person_detail_model.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';
@@ -39,11 +40,12 @@ class _PeopleScreenState extends State<PeopleScreen> {
       length: sections.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(AppStrings.people),
+          title: Text(AppLocalizations.of(context).t('person.people')),
           bottom: TabBar(
             isScrollable: true,
             tabs: [
-              for (final section in sections) Tab(text: _labelForSection(section)),
+              for (final section in sections)
+                Tab(text: _labelForSection(section, AppLocalizations.of(context))),
             ],
           ),
         ),
@@ -51,31 +53,25 @@ class _PeopleScreenState extends State<PeopleScreen> {
         body: TabBarView(
           children: [
             for (final section in sections)
-              _PeopleSectionView(
-                section: section,
-                onRefreshAll: _refreshAll,
-              ),
+              _PeopleSectionView(section: section, onRefreshAll: _refreshAll),
           ],
         ),
       ),
     );
   }
 
-  String _labelForSection(PeopleSection section) {
+  String _labelForSection(PeopleSection section, AppLocalizations l) {
     switch (section) {
       case PeopleSection.trending:
-        return AppStrings.trending;
+        return l.t('home.trending');
       case PeopleSection.popular:
-        return AppStrings.popular;
+        return l.t('home.popular');
     }
   }
 }
 
 class _PeopleSectionView extends StatelessWidget {
-  const _PeopleSectionView({
-    required this.section,
-    required this.onRefreshAll,
-  });
+  const _PeopleSectionView({required this.section, required this.onRefreshAll});
 
   final PeopleSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
@@ -102,7 +98,9 @@ class _PeopleSectionView extends StatelessWidget {
             people: state.items,
             onPersonSelected: (person) async {
               try {
-                final PersonDetail details = await provider.loadDetails(person.id);
+                final PersonDetail details = await provider.loadDetails(
+                  person.id,
+                );
                 // ignore: use_build_context_synchronously
                 if (context.mounted) {
                   _showPersonDetails(context, details.id);
@@ -110,9 +108,7 @@ class _PeopleSectionView extends StatelessWidget {
               } catch (error) {
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Failed to load details: $error'),
-                    ),
+                    SnackBar(content: Text('Failed to load details: $error')),
                   );
                 }
               }
@@ -129,10 +125,7 @@ class _PeopleSectionView extends StatelessWidget {
 }
 
 class _PeopleList extends StatelessWidget {
-  const _PeopleList({
-    required this.people,
-    required this.onPersonSelected,
-  });
+  const _PeopleList({required this.people, required this.onPersonSelected});
 
   final List<Person> people;
   final ValueChanged<Person> onPersonSelected;
@@ -152,7 +145,7 @@ class _PeopleList extends StatelessWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              AppStrings.noResultsFound,
+              AppLocalizations.of(context).t('search.no_results'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -176,10 +169,7 @@ class _PeopleList extends StatelessWidget {
 }
 
 class _PersonCard extends StatelessWidget {
-  const _PersonCard({
-    required this.person,
-    required this.onTap,
-  });
+  const _PersonCard({required this.person, required this.onTap});
 
   final Person person;
   final VoidCallback onTap;
@@ -229,7 +219,7 @@ class _PersonCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     if (person.popularity != null)
                       Text(
-                        'Popularity ${person.popularity!.toStringAsFixed(1)}',
+                        '${AppLocalizations.of(context).person['popularity'] ?? 'Popularity'} ${person.popularity!.toStringAsFixed(1)}',
                         style: Theme.of(context).textTheme.bodySmall,
                       ),
                   ],
@@ -247,10 +237,7 @@ class _PersonCard extends StatelessWidget {
 // Removed inline bottom sheet; detail now uses dedicated screen via routing
 
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorView({required this.message, required this.onRetry});
 
   final String message;
   final Future<void> Function() onRetry;
@@ -280,7 +267,7 @@ class _ErrorView extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text(AppStrings.retry),
+            label: Text(AppLocalizations.of(context).t('common.retry')),
           ),
         ),
       ],

@@ -28,9 +28,9 @@ class EpisodeGroup {
       type: (json['type'] as num?)?.toInt() ?? 0,
       groups: rawGroups is List
           ? rawGroups
-              .whereType<Map<String, dynamic>>()
-              .map(EpisodeGroupNode.fromJson)
-              .toList()
+                .whereType<Map<String, dynamic>>()
+                .map(EpisodeGroupNode.fromJson)
+                .toList()
           : const <EpisodeGroupNode>[],
     );
   }
@@ -45,15 +45,15 @@ class EpisodeGroup {
   final List<EpisodeGroupNode> groups;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'episode_count': episodeCount,
-        'group_count': groupCount,
-        'network': network?.toJson(),
-        'type': type,
-        'groups': groups.map((group) => group.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'description': description,
+    'episode_count': episodeCount,
+    'group_count': groupCount,
+    'network': network?.toJson(),
+    'type': type,
+    'groups': groups.map((group) => group.toJson()).toList(),
+  };
 
   static const _listEquality = DeepCollectionEquality();
 
@@ -73,15 +73,15 @@ class EpisodeGroup {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        name,
-        description,
-        episodeCount,
-        groupCount,
-        network,
-        type,
-        _listEquality.hash(groups),
-      );
+    id,
+    name,
+    description,
+    episodeCount,
+    groupCount,
+    network,
+    type,
+    _listEquality.hash(groups),
+  );
 }
 
 class EpisodeGroupNode {
@@ -104,9 +104,9 @@ class EpisodeGroupNode {
       overview: json['overview'] as String?,
       episodes: rawEpisodes is List
           ? rawEpisodes
-              .whereType<Map<String, dynamic>>()
-              .map(EpisodeGroupEpisode.fromJson)
-              .toList()
+                .whereType<Map<String, dynamic>>()
+                .map(EpisodeGroupEpisode.fromJson)
+                .toList()
           : const <EpisodeGroupEpisode>[],
     );
   }
@@ -119,13 +119,13 @@ class EpisodeGroupNode {
   final List<EpisodeGroupEpisode> episodes;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'order': order,
-        'lock_order': lockOrder,
-        'overview': overview,
-        'episodes': episodes.map((episode) => episode.toJson()).toList(),
-      };
+    'id': id,
+    'name': name,
+    'order': order,
+    'lock_order': lockOrder,
+    'overview': overview,
+    'episodes': episodes.map((episode) => episode.toJson()).toList(),
+  };
 
   static const _listEquality = DeepCollectionEquality();
 
@@ -143,13 +143,13 @@ class EpisodeGroupNode {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        name,
-        order,
-        lockOrder,
-        overview,
-        _listEquality.hash(episodes),
-      );
+    id,
+    name,
+    order,
+    lockOrder,
+    overview,
+    _listEquality.hash(episodes),
+  );
 }
 
 class EpisodeGroupEpisode {
@@ -196,18 +196,18 @@ class EpisodeGroupEpisode {
   final int? order;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'episode_number': episodeNumber,
-        'season_number': seasonNumber,
-        'air_date': airDate,
-        'overview': overview,
-        'production_code': productionCode,
-        'still_path': stillPath,
-        'vote_average': voteAverage,
-        'vote_count': voteCount,
-        'order': order,
-      };
+    'id': id,
+    'name': name,
+    'episode_number': episodeNumber,
+    'season_number': seasonNumber,
+    'air_date': airDate,
+    'overview': overview,
+    'production_code': productionCode,
+    'still_path': stillPath,
+    'vote_average': voteAverage,
+    'vote_count': voteCount,
+    'order': order,
+  };
 
   @override
   bool operator ==(Object other) {
@@ -228,16 +228,16 @@ class EpisodeGroupEpisode {
 
   @override
   int get hashCode => Object.hash(
-        id,
-        name,
-        episodeNumber,
-        seasonNumber,
-        airDate,
-        overview,
-        productionCode,
-        stillPath,
-        voteAverage,
-        voteCount,
-        order,
-      );
+    id,
+    name,
+    episodeNumber,
+    seasonNumber,
+    airDate,
+    overview,
+    productionCode,
+    stillPath,
+    voteAverage,
+    voteCount,
+    order,
+  );
 }

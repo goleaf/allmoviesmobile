@@ -11,7 +11,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../test_utils/pump_app.dart';
 
 void main() {
-  testWidgets('MoviesFiltersScreen renders and is interactable', (tester) async {
+  testWidgets('MoviesFiltersScreen renders and is interactable', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
 
@@ -40,7 +42,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    final future = navigatorKey.currentState!.pushNamed(MoviesFiltersScreen.routeName);
+    final future = navigatorKey.currentState!.pushNamed(
+      MoviesFiltersScreen.routeName,
+    );
     await tester.pumpAndSettle();
 
     // Tap a decade button e.g., 1990s
@@ -58,5 +62,3 @@ void main() {
     expect(filters.releaseDateLte, isNotNull);
   });
 }
-
-

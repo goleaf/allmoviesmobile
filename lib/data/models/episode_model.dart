@@ -27,4 +27,3 @@ class Episode with _$Episode {
   factory Episode.fromJson(Map<String, dynamic> json) =>
       _$EpisodeFromJson(json);
 }
-

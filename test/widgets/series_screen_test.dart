@@ -9,15 +9,26 @@ import 'package:allmovies_mobile/presentation/screens/series/series_screen.dart'
 
 class _FakeRepo extends TmdbRepository {
   @override
-  Future<List<Movie>> fetchTrendingTv({String timeWindow = 'day', bool forceRefresh = false}) async => [Movie(id: 10, title: 'TV-T')];
+  Future<List<Movie>> fetchTrendingTv({
+    String timeWindow = 'day',
+    bool forceRefresh = false,
+  }) async => [Movie(id: 10, title: 'TV-T')];
   @override
-  Future<List<Movie>> fetchPopularTv({int page = 1}) async => [Movie(id: 11, title: 'TV-P')];
+  Future<List<Movie>> fetchPopularTv({int page = 1}) async => [
+    Movie(id: 11, title: 'TV-P'),
+  ];
   @override
-  Future<List<Movie>> fetchTopRatedTv({int page = 1}) async => [Movie(id: 12, title: 'TV-TR')];
+  Future<List<Movie>> fetchTopRatedTv({int page = 1}) async => [
+    Movie(id: 12, title: 'TV-TR'),
+  ];
   @override
-  Future<List<Movie>> fetchAiringTodayTv({int page = 1}) async => [Movie(id: 13, title: 'TV-AT')];
+  Future<List<Movie>> fetchAiringTodayTv({int page = 1}) async => [
+    Movie(id: 13, title: 'TV-AT'),
+  ];
   @override
-  Future<List<Movie>> fetchOnTheAirTv({int page = 1}) async => [Movie(id: 14, title: 'TV-OTA')];
+  Future<List<Movie>> fetchOnTheAirTv({int page = 1}) async => [
+    Movie(id: 14, title: 'TV-OTA'),
+  ];
 }
 
 void main() {
@@ -35,5 +46,3 @@ void main() {
     expect(find.byType(TabBar), findsOneWidget);
   });
 }
-
-

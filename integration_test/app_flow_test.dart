@@ -1,7 +1,7 @@
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 // Use a minimal fake defined locally to avoid external test support imports
-import 'package:allmovies_mobile/data/services/static_catalog_service.dart';
+// static_catalog_service removed from app; tests no longer inject it
 import 'package:allmovies_mobile/main.dart';
 import 'package:allmovies_mobile/presentation/screens/movies/movies_screen.dart';
 import 'package:flutter/material.dart';
@@ -12,27 +12,21 @@ import 'package:isar/isar.dart';
 
 class FakeRepo extends TmdbRepository {}
 
-class FakeCatalogService extends StaticCatalogService {
-  FakeCatalogService(TmdbRepository repo) : super(repo);
-  @override
-  Future<bool> isFirstRun(Isar isar) async => false;
-  @override
-  Future<bool> needsRefresh(Isar isar, List<Locale> locales) async => false;
-  @override
-  Future<void> preloadAll({required List<Locale> locales, required void Function(PreloadProgress p) onProgress}) async {}
-}
+class FakeCatalogService {}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  testWidgets('Boot navigates to MoviesScreen when not first run', (tester) async {
+  testWidgets('Boot navigates to MoviesScreen when not first run', (
+    tester,
+  ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final prefs = await SharedPreferences.getInstance();
     final app = AllMoviesApp(
       storageService: LocalStorageService(prefs),
       prefs: prefs,
       tmdbRepository: FakeRepo(),
-      catalogService: FakeCatalogService(FakeRepo()),
+      // catalogService no longer accepted
     );
     await tester.pumpWidget(app);
     await _pumpUntilFound(
@@ -44,7 +38,6 @@ void main() {
     expect(find.byType(MoviesScreen), findsOneWidget);
   });
 }
-
 
 Future<void> _pumpUntilFound(
   WidgetTester tester,
@@ -60,7 +53,7 @@ Future<void> _pumpUntilFound(
   // One final pump to flush pending microtasks, then check again
   await tester.pump();
   if (finder.evaluate().isNotEmpty) return;
-  throw TestFailure('Widget not found within ${timeout.inMilliseconds}ms: $finder');
+  throw TestFailure(
+    'Widget not found within ${timeout.inMilliseconds}ms: $finder',
+  );
 }
-
-

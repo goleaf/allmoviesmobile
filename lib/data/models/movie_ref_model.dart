@@ -24,28 +24,28 @@ class MovieRef with _$MovieRef {
 
 extension MovieRefX on MovieRef {
   String? get posterUrl => MediaImageHelper.buildUrl(
-        posterPath,
-        type: MediaImageType.poster,
-        size: MediaImageSize.w342,
-      );
+    posterPath,
+    type: MediaImageType.poster,
+    size: MediaImageSize.w342,
+  );
 
   String? get backdropUrl => MediaImageHelper.buildUrl(
-        backdropPath,
-        type: MediaImageType.backdrop,
-        size: MediaImageSize.w780,
-      );
+    backdropPath,
+    type: MediaImageType.backdrop,
+    size: MediaImageSize.w780,
+  );
 
   String? posterUrlFor(MediaImageSize size) => MediaImageHelper.buildUrl(
-        posterPath,
-        type: MediaImageType.poster,
-        size: size,
-      );
+    posterPath,
+    type: MediaImageType.poster,
+    size: size,
+  );
 
   String? backdropUrlFor(MediaImageSize size) => MediaImageHelper.buildUrl(
-        backdropPath,
-        type: MediaImageType.backdrop,
-        size: size,
-      );
+    backdropPath,
+    type: MediaImageType.backdrop,
+    size: size,
+  );
 
   String? get releaseYear => releaseDate != null && releaseDate!.isNotEmpty
       ? releaseDate!.split('-').first

@@ -9,7 +9,12 @@ class SplashPreloadScreen extends StatefulWidget {
   final List<Locale> locales;
   final VoidCallback onDone;
 
-  const SplashPreloadScreen({super.key, required this.service, required this.locales, required this.onDone});
+  const SplashPreloadScreen({
+    super.key,
+    required this.service,
+    required this.locales,
+    required this.onDone,
+  });
 
   @override
   State<SplashPreloadScreen> createState() => _SplashPreloadScreenState();
@@ -63,7 +68,9 @@ class _SplashPreloadScreenState extends State<SplashPreloadScreen> {
               const SizedBox(height: 8),
               Text(message.isEmpty ? t.t('common.loading') : message),
               const SizedBox(height: 16),
-              if (message.isNotEmpty && message == AppLocalizations.of(context).t('errors.load_failed'))
+              if (message.isNotEmpty &&
+                  message ==
+                      AppLocalizations.of(context).t('errors.load_failed'))
                 ElevatedButton(
                   onPressed: _run,
                   child: Text(t.t('common.retry')),
@@ -75,4 +82,3 @@ class _SplashPreloadScreenState extends State<SplashPreloadScreen> {
     );
   }
 }
-

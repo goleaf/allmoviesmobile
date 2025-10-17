@@ -45,9 +45,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     final companies = provider.searchResults;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.companies),
-      ),
+      appBar: AppBar(title: const Text(AppStrings.companies)),
       drawer: const AppDrawer(),
       body: Column(
         children: [
@@ -73,8 +71,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               },
             ),
           ),
-          if (provider.isSearching)
-            const LinearProgressIndicator(minHeight: 2),
+          if (provider.isSearching) const LinearProgressIndicator(minHeight: 2),
           if (provider.errorMessage != null)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -92,13 +89,17 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               child: _CompanyList(
                 companies: companies,
                 onCompanySelected: (company) async {
-                  final details = await provider.fetchCompanyDetails(company.id);
+                  final details = await provider.fetchCompanyDetails(
+                    company.id,
+                  );
                   if (!context.mounted) return;
                   if (details != null) {
                     _showCompanyDetails(context, details);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Unable to load company details')), 
+                      const SnackBar(
+                        content: Text('Unable to load company details'),
+                      ),
                     );
                   }
                 },
@@ -168,10 +169,7 @@ class _CompanyList extends StatelessWidget {
 }
 
 class _CompanyCard extends StatelessWidget {
-  const _CompanyCard({
-    required this.company,
-    required this.onTap,
-  });
+  const _CompanyCard({required this.company, required this.onTap});
 
   final Company company;
   final VoidCallback onTap;
@@ -215,7 +213,10 @@ class _CompanyCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.keyboard_arrow_right, color: colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.keyboard_arrow_right,
+                color: colorScheme.onSurfaceVariant,
+              ),
             ],
           ),
         ),
@@ -280,10 +281,7 @@ class _CompanyDetailSheet extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        company.name,
-                        style: theme.textTheme.headlineSmall,
-                      ),
+                      Text(company.name, style: theme.textTheme.headlineSmall),
                       if ((company.originCountry ?? '').isNotEmpty)
                         Text(
                           'Country: ${company.originCountry}',
@@ -308,15 +306,9 @@ class _CompanyDetailSheet extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             if ((company.description ?? '').isNotEmpty) ...[
-              Text(
-                'Description',
-                style: theme.textTheme.titleMedium,
-              ),
+              Text('Description', style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(
-                company.description!,
-                style: theme.textTheme.bodyMedium,
-              ),
+              Text(company.description!, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 16),
             ],
             if (company.producedMovies.isNotEmpty) ...[

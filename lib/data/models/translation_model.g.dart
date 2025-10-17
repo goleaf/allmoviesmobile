@@ -7,22 +7,22 @@ part of 'translation_model.dart';
 // **************************************************************************
 
 _$TranslationDataImpl _$$TranslationDataImplFromJson(
-        Map<String, dynamic> json) =>
-    _$TranslationDataImpl(
-      title: json['title'] as String?,
-      overview: json['overview'] as String?,
-      homepage: json['homepage'] as String?,
-      tagline: json['tagline'] as String?,
-    );
+  Map<String, dynamic> json,
+) => _$TranslationDataImpl(
+  title: json['title'] as String?,
+  overview: json['overview'] as String?,
+  homepage: json['homepage'] as String?,
+  tagline: json['tagline'] as String?,
+);
 
 Map<String, dynamic> _$$TranslationDataImplToJson(
-        _$TranslationDataImpl instance) =>
-    <String, dynamic>{
-      'title': instance.title,
-      'overview': instance.overview,
-      'homepage': instance.homepage,
-      'tagline': instance.tagline,
-    };
+  _$TranslationDataImpl instance,
+) => <String, dynamic>{
+  'title': instance.title,
+  'overview': instance.overview,
+  'homepage': instance.homepage,
+  'tagline': instance.tagline,
+};
 
 _$TranslationImpl _$$TranslationImplFromJson(Map<String, dynamic> json) =>
     _$TranslationImpl(

@@ -42,4 +42,3 @@ class ReleaseDatesResult with _$ReleaseDatesResult {
   factory ReleaseDatesResult.fromJson(Map<String, dynamic> json) =>
       _$ReleaseDatesResultFromJson(json);
 }
-

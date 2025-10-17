@@ -50,16 +50,11 @@ class NetworkDetailScreen extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider<NetworkDetailsProvider>(
-          create: (_) => NetworkDetailsProvider(
-            repository,
-            networkId: networkId,
-          ),
+          create: (_) =>
+              NetworkDetailsProvider(repository, networkId: networkId),
         ),
         ChangeNotifierProvider<NetworkShowsProvider>(
-          create: (_) => NetworkShowsProvider(
-            repository,
-            networkId: networkId,
-          ),
+          create: (_) => NetworkShowsProvider(repository, networkId: networkId),
         ),
       ],
       child: _NetworkDetailContent(
@@ -87,7 +82,9 @@ class _NetworkDetailContent extends StatelessWidget {
       title: Consumer<NetworkDetailsProvider>(
         builder: (context, provider, _) {
           return Text(
-            provider.network?.name ?? initialName ?? loc.t('network.details_title'),
+            provider.network?.name ??
+                initialName ??
+                loc.t('network.details_title'),
             overflow: TextOverflow.ellipsis,
           );
         },
@@ -114,7 +111,8 @@ class _NetworkDetailContent extends StatelessWidget {
                     hasScrollBody: false,
                     child: _ErrorView(
                       message: provider.errorMessage!,
-                      onRetry: () => context.read<NetworkDetailsProvider>().refresh(),
+                      onRetry: () =>
+                          context.read<NetworkDetailsProvider>().refresh(),
                     ),
                   )
                 else ...[
@@ -134,21 +132,16 @@ class _NetworkDetailContent extends StatelessWidget {
                     ),
                   SliverToBoxAdapter(
                     child: _AlternativeNamesSection(
-                      alternativeNames: provider.network?.alternativeNames ?? const [],
+                      alternativeNames:
+                          provider.network?.alternativeNames ?? const [],
                     ),
                   ),
                   SliverToBoxAdapter(
                     child: _LogoVariationsSection(logos: provider.logos),
                   ),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 16),
-                  ),
-                  const SliverToBoxAdapter(
-                    child: _NetworkShowsSection(),
-                  ),
-                  const SliverToBoxAdapter(
-                    child: SizedBox(height: 24),
-                  ),
+                  const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                  const SliverToBoxAdapter(child: _NetworkShowsSection()),
+                  const SliverToBoxAdapter(child: SizedBox(height: 24)),
                 ],
               ],
             );
@@ -160,10 +153,7 @@ class _NetworkDetailContent extends StatelessWidget {
 }
 
 class _HeaderSection extends StatelessWidget {
-  const _HeaderSection({
-    required this.logoPath,
-    required this.networkName,
-  });
+  const _HeaderSection({required this.logoPath, required this.networkName});
 
   final String? logoPath;
   final String? networkName;
@@ -200,16 +190,15 @@ class _HeaderSection extends StatelessWidget {
                       size: 56,
                     ),
                   )
-                : const Icon(
-                    Icons.apartment,
-                    size: 72,
-                  ),
+                : const Icon(Icons.apartment, size: 72),
           ),
           const SizedBox(height: 16),
           if (networkName != null && networkName!.isNotEmpty)
             Text(
               networkName!,
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
               textAlign: TextAlign.center,
             ),
         ],
@@ -231,18 +220,22 @@ class _InfoSection extends StatelessWidget {
     final infoTiles = <Widget>[];
 
     if (network.headquarters != null && network.headquarters!.isNotEmpty) {
-      infoTiles.add(_InfoTile(
-        icon: Icons.location_city,
-        label: loc.t('network.headquarters'),
-        value: network.headquarters!,
-      ));
+      infoTiles.add(
+        _InfoTile(
+          icon: Icons.location_city,
+          label: loc.t('network.headquarters'),
+          value: network.headquarters!,
+        ),
+      );
     }
 
-    infoTiles.add(_InfoTile(
-      icon: Icons.flag,
-      label: loc.t('network.origin_country'),
-      value: network.originCountry,
-    ));
+    infoTiles.add(
+      _InfoTile(
+        icon: Icons.flag,
+        label: loc.t('network.origin_country'),
+        value: network.originCountry,
+      ),
+    );
 
     if (network.homepage != null && network.homepage!.isNotEmpty) {
       infoTiles.add(_HomepageTile(homepage: network.homepage!));
@@ -261,7 +254,9 @@ class _InfoSection extends StatelessWidget {
             children: [
               Text(
                 loc.t('network.details_title'),
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 12),
               ...infoTiles,
@@ -301,7 +296,9 @@ class _InfoTile extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(value, style: theme.textTheme.bodyMedium),
@@ -337,15 +334,17 @@ class _HomepageTile extends StatelessWidget {
               children: [
                 Text(
                   loc.t('network.homepage'),
-                  style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 SelectableText(
                   homepage,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.primary,
-                        decoration: TextDecoration.underline,
-                      ),
+                    color: theme.colorScheme.primary,
+                    decoration: TextDecoration.underline,
+                  ),
                 ),
               ],
             ),
@@ -385,13 +384,17 @@ class _AlternativeNamesSection extends StatelessWidget {
         children: [
           Text(
             loc.t('network.alternative_names'),
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 12),
           if (alternativeNames.isEmpty)
             Text(
               loc.t('network.no_alternative_names'),
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             )
           else
             Wrap(
@@ -440,13 +443,17 @@ class _LogoVariationsSection extends StatelessWidget {
         children: [
           Text(
             loc.t('network.logo_variations'),
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 12),
           if (logos.isEmpty)
             Text(
               loc.t('network.no_logo_variations'),
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             )
           else
             SizedBox(
@@ -468,7 +475,9 @@ class _LogoVariationsSection extends StatelessWidget {
                       type: MediaImageType.logo,
                       size: MediaImageSize.w185,
                       fit: BoxFit.contain,
-                      placeholder: const Center(child: CircularProgressIndicator()),
+                      placeholder: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
                       errorWidget: const Icon(Icons.broken_image_outlined),
                     ),
                   );
@@ -499,7 +508,9 @@ class _NetworkShowsSection extends StatelessWidget {
             children: [
               Text(
                 loc.t('network.tv_shows'),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 12),
               _ShowsFilters(provider: provider),
@@ -570,11 +581,7 @@ class _ShowsFilters extends StatelessWidget {
       'ko': loc.t('network.filters.language_ko'),
     };
 
-    final ratingChips = <double?>[
-      null,
-      7.0,
-      8.0,
-    ];
+    final ratingChips = <double?>[null, 7.0, 8.0];
 
     final ratingLabels = {
       null: loc.t('network.filters.rating_any'),
@@ -592,7 +599,10 @@ class _ShowsFilters extends StatelessWidget {
                 decoration: InputDecoration(
                   labelText: loc.t('network.sort_label'),
                   border: const OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String>(
@@ -623,7 +633,10 @@ class _ShowsFilters extends StatelessWidget {
                 decoration: InputDecoration(
                   labelText: loc.t('network.filters.language_label'),
                   border: const OutlineInputBorder(),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
                 ),
                 child: DropdownButtonHideUnderline(
                   child: DropdownButton<String?>(
@@ -727,10 +740,7 @@ class _ErrorView extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(
-            message,
-            textAlign: TextAlign.center,
-          ),
+          Text(message, textAlign: TextAlign.center),
           const SizedBox(height: 16),
           ElevatedButton(
             onPressed: onRetry,

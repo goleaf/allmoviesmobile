@@ -17,9 +17,7 @@ class WatchlistScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Watchlist'),
-      ),
+      appBar: AppBar(title: const Text('Watchlist')),
       body: Consumer2<WatchlistProvider, FavoritesProvider>(
         builder: (context, watchlistProvider, favoritesProvider, _) {
           final watchlistIds = watchlistProvider.watchlist;
@@ -32,7 +30,8 @@ class WatchlistScreen extends StatelessWidget {
             );
           }
 
-          final sortedIds = watchlistIds.toList()..sort((a, b) => b.compareTo(a));
+          final sortedIds = watchlistIds.toList()
+            ..sort((a, b) => b.compareTo(a));
 
           return _CollectionMoviesList(
             movieIds: sortedIds,
@@ -138,8 +137,9 @@ class _CollectionMoviesListState extends State<_CollectionMoviesList> {
             separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final movie = movies[index];
-              final isInWatchlist =
-                  widget.watchlistProvider.isInWatchlist(movie.id);
+              final isInWatchlist = widget.watchlistProvider.isInWatchlist(
+                movie.id,
+              );
               final isFavorite = widget.favoritesProvider.isFavorite(movie.id);
 
               return _CollectionMovieTile(
@@ -199,11 +199,13 @@ class _CollectionMovieTile extends StatelessWidget {
             IconButton(
               icon: Icon(
                 isFavorite ? Icons.favorite : Icons.favorite_border,
-                color:
-                    isFavorite ? Theme.of(context).colorScheme.primary : null,
+                color: isFavorite
+                    ? Theme.of(context).colorScheme.primary
+                    : null,
               ),
-              tooltip:
-                  isFavorite ? 'Remove from favorites' : 'Add to favorites',
+              tooltip: isFavorite
+                  ? 'Remove from favorites'
+                  : 'Add to favorites',
               onPressed: onToggleFavorite,
             ),
           ],
@@ -226,7 +228,9 @@ class _CollectionMovieTile extends StatelessWidget {
     if (showing != null && showing.isNotEmpty) {
       parts.add(showing);
     }
-    return parts.isEmpty ? 'No additional details available.' : parts.join(' • ');
+    return parts.isEmpty
+        ? 'No additional details available.'
+        : parts.join(' • ');
   }
 }
 
@@ -268,10 +272,7 @@ class _PosterPlaceholder extends StatelessWidget {
         color: Colors.grey[300],
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Icon(
-        Icons.movie,
-        color: Colors.grey,
-      ),
+      child: const Icon(Icons.movie, color: Colors.grey),
     );
   }
 }
@@ -312,10 +313,7 @@ class _EmptyCollectionMessage extends StatelessWidget {
   final IconData icon;
   final String message;
 
-  const _EmptyCollectionMessage({
-    required this.icon,
-    required this.message,
-  });
+  const _EmptyCollectionMessage({required this.icon, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -325,7 +323,11 @@ class _EmptyCollectionMessage extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 64, color: Theme.of(context).colorScheme.secondary),
+            Icon(
+              icon,
+              size: 64,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
             const SizedBox(height: 16),
             Text(
               message,
@@ -338,4 +340,3 @@ class _EmptyCollectionMessage extends StatelessWidget {
     );
   }
 }
-

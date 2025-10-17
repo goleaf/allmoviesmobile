@@ -7,10 +7,7 @@ abstract class CrashReportingService {
     Map<String, Object?>? context,
   });
 
-  Future<void> recordMessage(
-    String message, {
-    Map<String, Object?>? context,
-  });
+  Future<void> recordMessage(String message, {Map<String, Object?>? context});
 }
 
 class DebugCrashReportingService implements CrashReportingService {
@@ -24,11 +21,7 @@ class DebugCrashReportingService implements CrashReportingService {
     StackTrace stackTrace, {
     Map<String, Object?>? context,
   }) async {
-    _logger.error(
-      'Crash captured: $error',
-      error,
-      stackTrace,
-    );
+    _logger.error('Crash captured: $error', error, stackTrace);
     if (context != null && context.isNotEmpty) {
       _logger.debug('Crash context: $context');
     }
@@ -39,9 +32,6 @@ class DebugCrashReportingService implements CrashReportingService {
     String message, {
     Map<String, Object?>? context,
   }) async {
-    _logger.warning(
-      'Crashlytics message: $message',
-      context,
-    );
+    _logger.warning('Crashlytics message: $message', context);
   }
 }

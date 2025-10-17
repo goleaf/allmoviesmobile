@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/movie.dart';
 import '../../../providers/series_provider.dart';
@@ -35,15 +36,17 @@ class _SeriesScreenState extends State<SeriesScreen> {
   Widget build(BuildContext context) {
     final sections = SeriesSection.values;
 
+    final l = AppLocalizations.of(context);
     return DefaultTabController(
       length: sections.length,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(AppStrings.series),
+          title: Text(l.t('tv.series')),
           bottom: TabBar(
             isScrollable: true,
             tabs: [
-              for (final section in sections) Tab(text: _labelForSection(section)),
+              for (final section in sections)
+                Tab(text: _labelForSection(section, l)),
             ],
           ),
           actions: [
@@ -58,43 +61,41 @@ class _SeriesScreenState extends State<SeriesScreen> {
         body: TabBarView(
           children: [
             for (final section in sections)
-              _SeriesSectionView(
-                section: section,
-                onRefreshAll: _refreshAll,
-              ),
+              _SeriesSectionView(section: section, onRefreshAll: _refreshAll),
           ],
         ),
       ),
     );
   }
 
-  String _labelForSection(SeriesSection section) {
+  String _labelForSection(SeriesSection section, AppLocalizations l) {
     switch (section) {
       case SeriesSection.trending:
-        return AppStrings.trending;
+        return l.t('home.trending');
       case SeriesSection.popular:
-        return AppStrings.popular;
+        return l.t('home.popular');
       case SeriesSection.topRated:
-        return AppStrings.topRated;
+        return l.t('home.top_rated');
       case SeriesSection.airingToday:
-        return AppStrings.airingToday;
+        return l.t('tv.title');
       case SeriesSection.onTheAir:
-        return AppStrings.onTheAir;
+        return l.t('tv.tv_shows');
     }
   }
 }
 
 extension on _SeriesScreenState {
   void _openNetworkFilter() {
-    Navigator.of(context)
-        .pushNamed(SeriesFiltersScreen.routeName)
-        .then((result) async {
+    Navigator.of(context).pushNamed(SeriesFiltersScreen.routeName).then((
+      result,
+    ) async {
       if (!mounted) return;
       if (result is Map<String, String>) {
         await context.read<SeriesProvider>().applyTvFilters(result);
         if (!mounted) return;
-        DefaultTabController.of(context)
-            .animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
+        DefaultTabController.of(
+          context,
+        ).animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
       }
     });
   }
@@ -114,7 +115,9 @@ class _NetworkChip extends StatelessWidget {
         await context.read<SeriesProvider>().applyNetworkFilter(id);
         final controller = DefaultTabController.of(context);
         if (controller != null) {
-          controller.animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
+          controller.animateTo(
+            SeriesSection.values.indexOf(SeriesSection.popular),
+          );
         }
       },
       icon: const Icon(Icons.tv),
@@ -124,10 +127,7 @@ class _NetworkChip extends StatelessWidget {
 }
 
 class _SeriesSectionView extends StatelessWidget {
-  const _SeriesSectionView({
-    required this.section,
-    required this.onRefreshAll,
-  });
+  const _SeriesSectionView({required this.section, required this.onRefreshAll});
 
   final SeriesSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
@@ -138,7 +138,7 @@ class _SeriesSectionView extends StatelessWidget {
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
         if (state.isLoading && state.items.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const _SeriesListSkeleton();
         }
 
         if (state.errorMessage != null && state.items.isEmpty) {
@@ -150,9 +150,7 @@ class _SeriesSectionView extends StatelessWidget {
 
         return RefreshIndicator(
           onRefresh: () => onRefreshAll(context),
-          child: _SeriesList(
-            series: state.items,
-          ),
+          child: _SeriesList(series: state.items),
         );
       },
     );
@@ -179,7 +177,7 @@ class _SeriesList extends StatelessWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              AppStrings.noResultsFound,
+              AppLocalizations.of(context).t('search.no_results'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -199,6 +197,91 @@ class _SeriesList extends StatelessWidget {
   }
 }
 
+class _SeriesListSkeleton extends StatelessWidget {
+  const _SeriesListSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardColor = theme.colorScheme.surfaceVariant;
+    final chipColor = theme.colorScheme.secondaryContainer;
+
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: 8,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 20,
+                      backgroundColor: cardColor,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _SkeletonBox(width: double.infinity, height: 16, color: cardColor),
+                          const SizedBox(height: 8),
+                          _SkeletonBox(width: 140, height: 12, color: cardColor),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: chipColor,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: _SkeletonBox(width: 28, height: 12, color: chipColor.withOpacity(0.6)),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                _SkeletonBox(width: double.infinity, height: 12, color: cardColor),
+                const SizedBox(height: 6),
+                _SkeletonBox(width: double.infinity, height: 12, color: cardColor),
+                const SizedBox(height: 6),
+                _SkeletonBox(width: 180, height: 12, color: cardColor),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SkeletonBox extends StatelessWidget {
+  const _SkeletonBox({required this.width, required this.height, required this.color});
+
+  final double width;
+  final double height;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(6),
+      ),
+    );
+  }
+}
+
 class _SeriesCard extends StatelessWidget {
   const _SeriesCard({required this.show});
 
@@ -213,9 +296,7 @@ class _SeriesCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => MovieDetailScreen(movie: show),
-            ),
+            MaterialPageRoute(builder: (_) => MovieDetailScreen(movie: show)),
           );
         },
         child: Padding(
@@ -287,10 +368,7 @@ class _SeriesCard extends StatelessWidget {
 }
 
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.onRetry,
-  });
+  const _ErrorView({required this.message, required this.onRetry});
 
   final String message;
   final Future<void> Function() onRetry;
@@ -320,7 +398,7 @@ class _ErrorView extends StatelessWidget {
           child: FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text(AppStrings.retry),
+            label: Text(AppLocalizations.of(context).t('common.retry')),
           ),
         ),
       ],
@@ -336,5 +414,5 @@ class _TvFilterState {
   static bool screenedTheatrically = false;
   static String timezone = '';
   static String watchProviders = '';
-  static final Set<String> monetization = <String>{'flatrate','rent','buy'};
+  static final Set<String> monetization = <String>{'flatrate', 'rent', 'buy'};
 }

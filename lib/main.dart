@@ -16,7 +16,9 @@ import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
-import 'package:provider/provider.dart' show Provider; // add Provider for repo injection
+import 'package:provider/provider.dart'
+    show Provider; // add Provider for repo injection
+import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/splash_preload/boot_gate.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
@@ -31,6 +33,13 @@ import 'presentation/screens/network_detail/network_detail_screen.dart';
 import 'presentation/screens/episode_detail/episode_detail_screen.dart';
 import 'presentation/screens/collections/collection_detail_screen.dart';
 import 'presentation/screens/keywords/keyword_detail_screen.dart';
+import 'presentation/navigation/season_detail_args.dart';
+import 'presentation/screens/season_detail/season_detail_screen.dart';
+import 'presentation/screens/collections/browse_collections_screen.dart';
+import 'presentation/screens/networks/networks_screen.dart';
+import 'presentation/screens/lists/lists_screen.dart';
+import 'presentation/screens/videos/videos_screen.dart';
+import 'presentation/screens/search/search_results_list_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
 import 'data/models/company_model.dart';
@@ -48,6 +57,10 @@ import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/series_provider.dart';
 import 'providers/watch_region_provider.dart';
+import 'providers/networks_provider.dart';
+import 'providers/collections_provider.dart';
+import 'providers/lists_provider.dart';
+import 'providers/preferences_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -56,24 +69,20 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
 
-  runApp(AllMoviesApp(
-    storageService: storageService,
-    prefs: prefs,
-  ));
+  runApp(AllMoviesApp(storageService: storageService, prefs: prefs));
 }
 
 class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
   final TmdbRepository? tmdbRepository;
-  final StaticCatalogService? catalogService;
+  // Removed unused StaticCatalogService stub (no longer present)
 
   const AllMoviesApp({
     super.key,
     required this.storageService,
     required this.prefs,
     this.tmdbRepository,
-    this.catalogService,
   });
 
   @override
@@ -85,25 +94,42 @@ class AllMoviesApp extends StatelessWidget {
         Provider<TmdbRepository>.value(value: repo),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
-        ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => WatchlistProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => SearchProvider(repo, storageService)),
         ChangeNotifierProvider(
-          create: (_) => TrendingTitlesProvider(repo),
+          create: (_) => FavoritesProvider(storageService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => WatchlistProvider(storageService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => SearchProvider(repo, storageService),
+        ),
+        ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(repo)),
         ChangeNotifierProvider(create: (_) => GenresProvider(repo)),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
-        ChangeNotifierProxyProvider<WatchRegionProvider, MoviesProvider>(
-          create: (_) => MoviesProvider(repo),
-          update: (_, watchRegion, movies) {
-            movies ??= MoviesProvider(repo);
+        ChangeNotifierProxyProvider2<WatchRegionProvider, PreferencesProvider,
+            MoviesProvider>(
+          create: (_) => MoviesProvider(repo, storageService: storageService),
+          update: (_, watchRegion, preferences, movies) {
+            movies ??= MoviesProvider(repo, storageService: storageService);
             movies.bindRegionProvider(watchRegion);
+            movies.bindPreferencesProvider(preferences);
             return movies;
           },
         ),
-        ChangeNotifierProvider(create: (_) => SeriesProvider(repo)),
+        ChangeNotifierProxyProvider<PreferencesProvider, SeriesProvider>(
+          create: (_) => SeriesProvider(repo),
+          update: (_, prefsProvider, series) {
+            series ??= SeriesProvider(repo);
+            // We can't bind later; re-create with prefs when needed
+            return SeriesProvider(repo, preferencesProvider: prefsProvider);
+          },
+        ),
         ChangeNotifierProvider(create: (_) => PeopleProvider(repo)),
         ChangeNotifierProvider(create: (_) => CompaniesProvider(repo)),
+        ChangeNotifierProvider(create: (_) => NetworksProvider(repo)),
+        ChangeNotifierProvider(create: (_) => CollectionsProvider(repo)),
+        ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
         builder: (context, localeProvider, themeProvider, _) {
@@ -113,7 +139,7 @@ class AllMoviesApp extends StatelessWidget {
               final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
 
               return MaterialApp(
-                title: AppStrings.appName,
+                title: AppLocalizations.of(context).t('app.name'),
                 theme: lightTheme,
                 darkTheme: darkTheme,
                 themeMode: themeProvider.materialThemeMode,
@@ -126,25 +152,52 @@ class AllMoviesApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
-                initialRoute: MoviesScreen.routeName,
+                home: const AppNavigationShell(),
                 routes: {
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
-                  MoviesFiltersScreen.routeName: (context) => const MoviesFiltersScreen(),
+                  MoviesFiltersScreen.routeName: (context) =>
+                      const MoviesFiltersScreen(),
                   SearchScreen.routeName: (context) => const SearchScreen(),
                   SeriesScreen.routeName: (context) => const SeriesScreen(),
-                  SeriesFiltersScreen.routeName: (context) => const SeriesFiltersScreen(),
+                  SeriesFiltersScreen.routeName: (context) =>
+                      const SeriesFiltersScreen(),
                   PeopleScreen.routeName: (context) => const PeopleScreen(),
-                  CompaniesScreen.routeName: (context) => const CompaniesScreen(),
-                  FavoritesScreen.routeName: (context) => const FavoritesScreen(),
-                  WatchlistScreen.routeName: (context) => const WatchlistScreen(),
+                  CompaniesScreen.routeName: (context) =>
+                      const CompaniesScreen(),
+                  FavoritesScreen.routeName: (context) =>
+                      const FavoritesScreen(),
+                  WatchlistScreen.routeName: (context) =>
+                      const WatchlistScreen(),
                   SettingsScreen.routeName: (context) => const SettingsScreen(),
-                  ApiExplorerScreen.routeName: (context) => const ApiExplorerScreen(),
-                  KeywordBrowserScreen.routeName: (context) => const KeywordBrowserScreen(),
+                  ApiExplorerScreen.routeName: (context) =>
+                      const ApiExplorerScreen(),
+                  KeywordBrowserScreen.routeName: (context) =>
+                      const KeywordBrowserScreen(),
+                  NetworksScreen.routeName: (context) => const NetworksScreen(),
+                  CollectionsBrowserScreen.routeName: (context) =>
+                      const CollectionsBrowserScreen(),
+                  SearchResultsListScreen.routeName: (context) =>
+                      const SearchResultsListScreen(),
+                  VideosScreen.routeName: (context) => const VideosScreen(),
+                  ListsScreen.routeName: (context) => const ListsScreen(),
                 },
                 onGenerateRoute: (settings) {
                   switch (settings.name) {
+                    case SeasonDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is SeasonDetailArgs) {
+                        return MaterialPageRoute(
+                          builder: (_) => SeasonDetailScreen(args: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
                     case '/tv':
-                      settings = RouteSettings(name: TVDetailScreen.routeName, arguments: settings.arguments);
+                      settings = RouteSettings(
+                        name: TVDetailScreen.routeName,
+                        arguments: settings.arguments,
+                      );
                     // fall through
                     case MovieDetailScreen.routeName:
                       final args = settings.arguments;
@@ -163,6 +216,30 @@ class AllMoviesApp extends StatelessWidget {
                           settings: settings,
                           fullscreenDialog: true,
                         );
+                      }
+                      return null;
+                    case KeywordDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) => KeywordDetailScreen(keywordId: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      if (args is Map) {
+                        final id = args['id'];
+                        final name = args['name'];
+                        if (id is int) {
+                          return MaterialPageRoute(
+                            builder: (_) => KeywordDetailScreen(
+                              keywordId: id,
+                              keywordName: name is String ? name : null,
+                            ),
+                            settings: settings,
+                            fullscreenDialog: true,
+                          );
+                        }
                       }
                       return null;
                     case TVDetailScreen.routeName:
@@ -185,7 +262,10 @@ class AllMoviesApp extends StatelessWidget {
                       }
                       return null;
                     case '/person':
-                      settings = RouteSettings(name: PersonDetailScreen.routeName, arguments: settings.arguments);
+                      settings = RouteSettings(
+                        name: PersonDetailScreen.routeName,
+                        arguments: settings.arguments,
+                      );
                     // fall through
                     case PersonDetailScreen.routeName:
                       final args = settings.arguments;
@@ -211,7 +291,8 @@ class AllMoviesApp extends StatelessWidget {
                       final args = settings.arguments;
                       if (args is Company) {
                         return MaterialPageRoute(
-                          builder: (_) => CompanyDetailScreen(initialCompany: args),
+                          builder: (_) =>
+                              CompanyDetailScreen(initialCompany: args),
                           settings: settings,
                           fullscreenDialog: true,
                         );
@@ -241,7 +322,8 @@ class AllMoviesApp extends StatelessWidget {
                       final args = settings.arguments;
                       if (args is int) {
                         return MaterialPageRoute(
-                          builder: (_) => CollectionDetailScreen(collectionId: args),
+                          builder: (_) =>
+                              CollectionDetailScreen(collectionId: args),
                           settings: settings,
                           fullscreenDialog: true,
                         );

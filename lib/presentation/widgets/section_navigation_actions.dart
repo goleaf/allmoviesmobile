@@ -18,7 +18,11 @@ class SectionNavigationActions extends StatelessWidget {
     return routeName;
   }
 
-  void _navigateTo(BuildContext context, String targetRoute, String currentRoute) {
+  void _navigateTo(
+    BuildContext context,
+    String targetRoute,
+    String currentRoute,
+  ) {
     if (currentRoute == targetRoute) {
       return;
     }
@@ -66,14 +70,19 @@ class SectionNavigationActions extends StatelessWidget {
           icon: const Icon(Icons.apartment_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.companies)
               ? null
-              : () => _navigateTo(context, AppRoutes.companies, normalizedRoute),
+              : () =>
+                    _navigateTo(context, AppRoutes.companies, normalizedRoute),
         ),
         IconButton(
           tooltip: 'Collections',
           icon: const Icon(Icons.collections_bookmark_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.collections)
               ? null
-              : () => _navigateTo(context, AppRoutes.collections, normalizedRoute),
+              : () => _navigateTo(
+                  context,
+                  AppRoutes.collections,
+                  normalizedRoute,
+                ),
         ),
       ],
     );

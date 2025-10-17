@@ -12,7 +12,8 @@ part of 'alternative_title_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 AlternativeTitle _$AlternativeTitleFromJson(Map<String, dynamic> json) {
   return _AlternativeTitle.fromJson(json);
@@ -34,13 +35,15 @@ mixin _$AlternativeTitle {
 /// @nodoc
 abstract class $AlternativeTitleCopyWith<$Res> {
   factory $AlternativeTitleCopyWith(
-          AlternativeTitle value, $Res Function(AlternativeTitle) then) =
-      _$AlternativeTitleCopyWithImpl<$Res, AlternativeTitle>;
+    AlternativeTitle value,
+    $Res Function(AlternativeTitle) then,
+  ) = _$AlternativeTitleCopyWithImpl<$Res, AlternativeTitle>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_3166_1') String iso31661,
-      String title,
-      String? type});
+  $Res call({
+    @JsonKey(name: 'iso_3166_1') String iso31661,
+    String title,
+    String? type,
+  });
 }
 
 /// @nodoc
@@ -60,44 +63,50 @@ class _$AlternativeTitleCopyWithImpl<$Res, $Val extends AlternativeTitle>
     Object? title = null,
     Object? type = freezed,
   }) {
-    return _then(_value.copyWith(
-      iso31661: null == iso31661
-          ? _value.iso31661
-          : iso31661 // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: freezed == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            iso31661: null == iso31661
+                ? _value.iso31661
+                : iso31661 // ignore: cast_nullable_to_non_nullable
+                      as String,
+            title: null == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String,
+            type: freezed == type
+                ? _value.type
+                : type // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$AlternativeTitleImplCopyWith<$Res>
     implements $AlternativeTitleCopyWith<$Res> {
-  factory _$$AlternativeTitleImplCopyWith(_$AlternativeTitleImpl value,
-          $Res Function(_$AlternativeTitleImpl) then) =
-      __$$AlternativeTitleImplCopyWithImpl<$Res>;
+  factory _$$AlternativeTitleImplCopyWith(
+    _$AlternativeTitleImpl value,
+    $Res Function(_$AlternativeTitleImpl) then,
+  ) = __$$AlternativeTitleImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_3166_1') String iso31661,
-      String title,
-      String? type});
+  $Res call({
+    @JsonKey(name: 'iso_3166_1') String iso31661,
+    String title,
+    String? type,
+  });
 }
 
 /// @nodoc
 class __$$AlternativeTitleImplCopyWithImpl<$Res>
     extends _$AlternativeTitleCopyWithImpl<$Res, _$AlternativeTitleImpl>
     implements _$$AlternativeTitleImplCopyWith<$Res> {
-  __$$AlternativeTitleImplCopyWithImpl(_$AlternativeTitleImpl _value,
-      $Res Function(_$AlternativeTitleImpl) _then)
-      : super(_value, _then);
+  __$$AlternativeTitleImplCopyWithImpl(
+    _$AlternativeTitleImpl _value,
+    $Res Function(_$AlternativeTitleImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -106,30 +115,33 @@ class __$$AlternativeTitleImplCopyWithImpl<$Res>
     Object? title = null,
     Object? type = freezed,
   }) {
-    return _then(_$AlternativeTitleImpl(
-      iso31661: null == iso31661
-          ? _value.iso31661
-          : iso31661 // ignore: cast_nullable_to_non_nullable
-              as String,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      type: freezed == type
-          ? _value.type
-          : type // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$AlternativeTitleImpl(
+        iso31661: null == iso31661
+            ? _value.iso31661
+            : iso31661 // ignore: cast_nullable_to_non_nullable
+                  as String,
+        title: null == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String,
+        type: freezed == type
+            ? _value.type
+            : type // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$AlternativeTitleImpl implements _AlternativeTitle {
-  const _$AlternativeTitleImpl(
-      {@JsonKey(name: 'iso_3166_1') required this.iso31661,
-      required this.title,
-      this.type});
+  const _$AlternativeTitleImpl({
+    @JsonKey(name: 'iso_3166_1') required this.iso31661,
+    required this.title,
+    this.type,
+  });
 
   factory _$AlternativeTitleImpl.fromJson(Map<String, dynamic> json) =>
       _$$AlternativeTitleImplFromJson(json);
@@ -167,21 +179,22 @@ class _$AlternativeTitleImpl implements _AlternativeTitle {
   @pragma('vm:prefer-inline')
   _$$AlternativeTitleImplCopyWith<_$AlternativeTitleImpl> get copyWith =>
       __$$AlternativeTitleImplCopyWithImpl<_$AlternativeTitleImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AlternativeTitleImplToJson(
-      this,
-    );
+    return _$$AlternativeTitleImplToJson(this);
   }
 }
 
 abstract class _AlternativeTitle implements AlternativeTitle {
-  const factory _AlternativeTitle(
-      {@JsonKey(name: 'iso_3166_1') required final String iso31661,
-      required final String title,
-      final String? type}) = _$AlternativeTitleImpl;
+  const factory _AlternativeTitle({
+    @JsonKey(name: 'iso_3166_1') required final String iso31661,
+    required final String title,
+    final String? type,
+  }) = _$AlternativeTitleImpl;
 
   factory _AlternativeTitle.fromJson(Map<String, dynamic> json) =
       _$AlternativeTitleImpl.fromJson;

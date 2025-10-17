@@ -47,7 +47,8 @@ class CollectionsProvider extends ChangeNotifier {
 
   Map<String, List<CollectionDetails>> get collectionsByGenre =>
       _collectionsByGenre.map(
-        (key, value) => MapEntry(key, List<CollectionDetails>.unmodifiable(value)),
+        (key, value) =>
+            MapEntry(key, List<CollectionDetails>.unmodifiable(value)),
       );
 
   bool get isPopularLoading => _isPopularLoading;
@@ -86,8 +87,10 @@ class CollectionsProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final collections =
-          await _fetchCollections(_popularCollectionIds, forceRefresh: forceRefresh);
+      final collections = await _fetchCollections(
+        _popularCollectionIds,
+        forceRefresh: forceRefresh,
+      );
       _popularCollections
         ..clear()
         ..addAll(collections);
@@ -115,8 +118,10 @@ class CollectionsProvider extends ChangeNotifier {
 
     try {
       for (final entry in _genreCollectionIds.entries) {
-        final collections =
-            await _fetchCollections(entry.value, forceRefresh: forceRefresh);
+        final collections = await _fetchCollections(
+          entry.value,
+          forceRefresh: forceRefresh,
+        );
         if (collections.isNotEmpty) {
           updated[entry.key] = collections;
         }
@@ -165,8 +170,7 @@ class CollectionsProvider extends ChangeNotifier {
     await Future.wait<void>([
       loadPopularCollections(forceRefresh: true),
       loadCollectionsByGenre(forceRefresh: true),
-      if (hasSearchQuery)
-        searchCollections(_searchQuery, forceRefresh: true),
+      if (hasSearchQuery) searchCollections(_searchQuery, forceRefresh: true),
     ]);
   }
 
@@ -234,7 +238,9 @@ class CollectionsProvider extends ChangeNotifier {
     try {
       return await _repository.fetchCollectionDetails(collectionId);
     } catch (error) {
-      debugPrint('Failed to fetch preview for collection $collectionId: $error');
+      debugPrint(
+        'Failed to fetch preview for collection $collectionId: $error',
+      );
       return null;
     }
   }

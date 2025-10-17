@@ -26,9 +26,7 @@ class DeepLinkConfig {
   static const String host = 'allmovies.app';
 
   /// Additional host variants that we should recognise.
-  static const List<String> additionalHosts = <String>[
-    'www.allmovies.app',
-  ];
+  static const List<String> additionalHosts = <String>['www.allmovies.app'];
 
   /// Builds a fully qualified deep link URI.
   static Uri buildUri(
@@ -36,13 +34,13 @@ class DeepLinkConfig {
     Map<String, String>? queryParameters,
     bool useAlternateScheme = false,
   }) {
-    final sanitizedSegments = pathSegments.where((segment) => segment.isNotEmpty);
+    final sanitizedSegments = pathSegments.where(
+      (segment) => segment.isNotEmpty,
+    );
     final sanitizedQuery = queryParameters == null || queryParameters.isEmpty
         ? null
         : Map<String, String>.fromEntries(
-            queryParameters.entries.where(
-              (entry) => entry.key.isNotEmpty,
-            ),
+            queryParameters.entries.where((entry) => entry.key.isNotEmpty),
           );
 
     return Uri(
@@ -104,27 +102,19 @@ class DeepLinkData {
   /// Search query for search deep links.
   final String? searchQuery;
 
-  factory DeepLinkData.movie(int movieId) => DeepLinkData._(
-        type: DeepLinkType.movie,
-        id: movieId,
-      );
+  factory DeepLinkData.movie(int movieId) =>
+      DeepLinkData._(type: DeepLinkType.movie, id: movieId);
 
-  factory DeepLinkData.tvShow(int tvId) => DeepLinkData._(
-        type: DeepLinkType.tvShow,
-        id: tvId,
-      );
+  factory DeepLinkData.tvShow(int tvId) =>
+      DeepLinkData._(type: DeepLinkType.tvShow, id: tvId);
 
   factory DeepLinkData.season(int tvId, int seasonNumber) => DeepLinkData._(
-        type: DeepLinkType.season,
-        id: tvId,
-        seasonNumber: seasonNumber,
-      );
+    type: DeepLinkType.season,
+    id: tvId,
+    seasonNumber: seasonNumber,
+  );
 
-  factory DeepLinkData.episode(
-    int tvId,
-    int seasonNumber,
-    int episodeNumber,
-  ) =>
+  factory DeepLinkData.episode(int tvId, int seasonNumber, int episodeNumber) =>
       DeepLinkData._(
         type: DeepLinkType.episode,
         id: tvId,
@@ -132,25 +122,17 @@ class DeepLinkData {
         episodeNumber: episodeNumber,
       );
 
-  factory DeepLinkData.person(int personId) => DeepLinkData._(
-        type: DeepLinkType.person,
-        id: personId,
-      );
+  factory DeepLinkData.person(int personId) =>
+      DeepLinkData._(type: DeepLinkType.person, id: personId);
 
-  factory DeepLinkData.company(int companyId) => DeepLinkData._(
-        type: DeepLinkType.company,
-        id: companyId,
-      );
+  factory DeepLinkData.company(int companyId) =>
+      DeepLinkData._(type: DeepLinkType.company, id: companyId);
 
-  factory DeepLinkData.collection(int collectionId) => DeepLinkData._(
-        type: DeepLinkType.collection,
-        id: collectionId,
-      );
+  factory DeepLinkData.collection(int collectionId) =>
+      DeepLinkData._(type: DeepLinkType.collection, id: collectionId);
 
-  factory DeepLinkData.search(String query) => DeepLinkData._(
-        type: DeepLinkType.search,
-        searchQuery: query,
-      );
+  factory DeepLinkData.search(String query) =>
+      DeepLinkData._(type: DeepLinkType.search, searchQuery: query);
 }
 
 /// Parses incoming deep link URIs into strongly typed data.
@@ -221,11 +203,9 @@ class DeepLinkParser {
     }
   }
 
-  static DeepLinkData? _matchSearch(
-    Uri uri, {
-    List<String>? fallbackSegments,
-  }) {
-    final query = uri.queryParameters['q'] ??
+  static DeepLinkData? _matchSearch(Uri uri, {List<String>? fallbackSegments}) {
+    final query =
+        uri.queryParameters['q'] ??
         (fallbackSegments != null && fallbackSegments.length > 1
             ? fallbackSegments.sublist(1).join(' ').trim()
             : null);
@@ -261,24 +241,18 @@ class DeepLinkBuilder {
       DeepLinkConfig.buildUri(<String>['tv', '$tvId']);
 
   static Uri season(int tvId, int seasonNumber) => DeepLinkConfig.buildUri(
-        <String>['tv', '$tvId', 'season', '$seasonNumber'],
-      );
+    <String>['tv', '$tvId', 'season', '$seasonNumber'],
+  );
 
-  static Uri episode(
-    int tvId,
-    int seasonNumber,
-    int episodeNumber,
-  ) =>
-      DeepLinkConfig.buildUri(
-        <String>[
-          'tv',
-          '$tvId',
-          'season',
-          '$seasonNumber',
-          'episode',
-          '$episodeNumber',
-        ],
-      );
+  static Uri episode(int tvId, int seasonNumber, int episodeNumber) =>
+      DeepLinkConfig.buildUri(<String>[
+        'tv',
+        '$tvId',
+        'season',
+        '$seasonNumber',
+        'episode',
+        '$episodeNumber',
+      ]);
 
   static Uri person(int personId) =>
       DeepLinkConfig.buildUri(<String>['person', '$personId']);
@@ -290,9 +264,9 @@ class DeepLinkBuilder {
       DeepLinkConfig.buildUri(<String>['collection', '$collectionId']);
 
   static Uri search(String query) => DeepLinkConfig.buildUri(
-        const <String>['search'],
-        queryParameters: <String, String>{'q': query},
-      );
+    const <String>['search'],
+    queryParameters: <String, String>{'q': query},
+  );
 
   /// Builds a custom-scheme variant of the provided deep link [uri].
   static Uri asCustomScheme(Uri uri) {

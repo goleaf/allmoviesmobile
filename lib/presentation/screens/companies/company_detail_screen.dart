@@ -29,10 +29,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   }
 
   Future<void> _refresh() async {
-    final future = _repository.fetchCompanyDetails(
-      widget.company.id,
-      forceRefresh: true,
-    );
+    final future = _repository.fetchCompanyDetails(widget.company.id);
     setState(() {
       _future = future;
     });
@@ -43,7 +40,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
     final uri = Uri.tryParse(url);
     if (uri == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.errors['load_failed'] ?? 'Unable to open link.')),
+        SnackBar(
+          content: Text(loc.errors['load_failed'] ?? 'Unable to open link.'),
+        ),
       );
       return;
     }
@@ -51,7 +50,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
     final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!launched && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(loc.errors['load_failed'] ?? 'Unable to open link.')),
+        SnackBar(
+          content: Text(loc.errors['load_failed'] ?? 'Unable to open link.'),
+        ),
       );
     }
   }
@@ -72,10 +73,7 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
               error: snapshot.error.toString(),
               onRetry: () {
                 setState(() {
-                  _future = _repository.fetchCompanyDetails(
-                    widget.company.id,
-                    forceRefresh: true,
-                  );
+                  _future = _repository.fetchCompanyDetails(widget.company.id);
                 });
               },
             );
@@ -93,10 +91,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   isLoading: isLoading && !snapshot.hasData,
                   onRefreshPressed: () {
                     setState(() {
-                      _future = _repository.fetchCompanyDetails(
-                        widget.company.id,
-                        forceRefresh: true,
-                      );
+                    _future = _repository.fetchCompanyDetails(
+                      widget.company.id,
+                    );
                     });
                   },
                 ),
@@ -116,15 +113,29 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                         _AlternativeNamesSection(company: company),
                         const SizedBox(height: 24),
                         _ProducedTitlesSection(
-                          title: loc.company['produced_movies'] ?? 'Produced Movies',
-                          emptyMessage: loc.company['no_produced_movies'] ?? 'No produced movies available.',
-                          titles: _parseProducedTitles(company.producedMovies, isSeries: false),
+                          title:
+                              loc.company['produced_movies'] ??
+                              'Produced Movies',
+                          emptyMessage:
+                              loc.company['no_produced_movies'] ??
+                              'No produced movies available.',
+                          titles: _parseProducedTitles(
+                            company.producedMovies,
+                            isSeries: false,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         _ProducedTitlesSection(
-                          title: loc.company['produced_series'] ?? 'Produced Series',
-                          emptyMessage: loc.company['no_produced_series'] ?? 'No produced TV shows available.',
-                          titles: _parseProducedTitles(company.producedSeries, isSeries: true),
+                          title:
+                              loc.company['produced_series'] ??
+                              'Produced Series',
+                          emptyMessage:
+                              loc.company['no_produced_series'] ??
+                              'No produced TV shows available.',
+                          titles: _parseProducedTitles(
+                            company.producedSeries,
+                            isSeries: true,
+                          ),
                         ),
                         const SizedBox(height: 24),
                         _LogoGallerySection(company: company),
@@ -167,11 +178,7 @@ class _CompanyDetailAppBar extends StatelessWidget {
         ),
       ],
       flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          company.name,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: Text(company.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         background: Stack(
           fit: StackFit.expand,
           children: [
@@ -188,18 +195,10 @@ class _CompanyDetailAppBar extends StatelessWidget {
                         placeholder: const Center(
                           child: CircularProgressIndicator(),
                         ),
-                        errorWidget: const Icon(
-                          Icons.business,
-                          size: 96,
-                        ),
+                        errorWidget: const Icon(Icons.business, size: 96),
                       ),
                     )
-                  : const Center(
-                      child: Icon(
-                        Icons.business,
-                        size: 96,
-                      ),
-                    ),
+                  : const Center(child: Icon(Icons.business, size: 96)),
             ),
             Positioned(
               bottom: 0,
@@ -236,7 +235,9 @@ class _CompanyDescriptionSection extends StatelessWidget {
       children: [
         Text(
           loc.company['description'] ?? 'Description',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         Card(
@@ -245,7 +246,8 @@ class _CompanyDescriptionSection extends StatelessWidget {
             child: Text(
               (description != null && description.isNotEmpty)
                   ? description
-                  : loc.company['no_description'] ?? 'No description available.',
+                  : loc.company['no_description'] ??
+                        'No description available.',
               style: theme.textTheme.bodyMedium,
             ),
           ),
@@ -281,7 +283,9 @@ class _CompanyInfoSection extends StatelessWidget {
       children: [
         Text(
           loc.company['title'] ?? 'Company',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         Card(
@@ -343,7 +347,9 @@ class _InfoRow extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 4),
               Text(value, style: theme.textTheme.bodyMedium),
@@ -390,13 +396,12 @@ class _ParentCompanyRow extends StatelessWidget {
             children: [
               Text(
                 loc.company['parent_company'] ?? 'Parent Company',
-                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 4),
-              Text(
-                parent.name,
-                style: theme.textTheme.bodyMedium,
-              ),
+              Text(parent.name, style: theme.textTheme.bodyMedium),
               if (subtitleParts.isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(
@@ -413,10 +418,7 @@ class _ParentCompanyRow extends StatelessWidget {
 }
 
 class _HomepageRow extends StatelessWidget {
-  const _HomepageRow({
-    required this.homepage,
-    required this.onOpenHomepage,
-  });
+  const _HomepageRow({required this.homepage, required this.onOpenHomepage});
 
   final String? homepage;
   final ValueChanged<String> onOpenHomepage;
@@ -445,7 +447,9 @@ class _HomepageRow extends StatelessWidget {
             children: [
               Text(
                 loc.company['homepage'] ?? 'Homepage',
-                style: theme.textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 4),
               InkWell(
@@ -481,12 +485,15 @@ class _AlternativeNamesSection extends StatelessWidget {
       children: [
         Text(
           loc.company['alternative_names'] ?? 'Alternative Names',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         if (company.alternativeNames.isEmpty)
           Text(
-            loc.company['no_alternative_names'] ?? 'No alternative names available.',
+            loc.company['no_alternative_names'] ??
+                'No alternative names available.',
             style: theme.textTheme.bodyMedium,
           )
         else
@@ -494,11 +501,7 @@ class _AlternativeNamesSection extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: company.alternativeNames
-                .map(
-                  (name) => Chip(
-                    label: Text(name),
-                  ),
-                )
+                .map((name) => Chip(label: Text(name)))
                 .toList(growable: false),
           ),
       ],
@@ -521,7 +524,9 @@ class _LogoGallerySection extends StatelessWidget {
       children: [
         Text(
           loc.company['logo_gallery'] ?? 'Logo Gallery',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         if (company.logoGallery.isEmpty)
@@ -601,21 +606,22 @@ class _ProducedTitlesSectionState extends State<_ProducedTitlesSection> {
         children: [
           Text(
             widget.title,
-            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
           const SizedBox(height: 8),
-          Text(
-            widget.emptyMessage,
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(widget.emptyMessage, style: theme.textTheme.bodyMedium),
         ],
       );
     }
 
-    final filteredTitles = widget.titles.where((title) {
-      if (_query.isEmpty) return true;
-      return title.title.toLowerCase().contains(_query.toLowerCase());
-    }).toList(growable: false);
+    final filteredTitles = widget.titles
+        .where((title) {
+          if (_query.isEmpty) return true;
+          return title.title.toLowerCase().contains(_query.toLowerCase());
+        })
+        .toList(growable: false);
 
     filteredTitles.sort((a, b) {
       switch (_sortOption) {
@@ -641,7 +647,9 @@ class _ProducedTitlesSectionState extends State<_ProducedTitlesSection> {
             Expanded(
               child: Text(
                 widget.title,
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
             const SizedBox(width: 8),
@@ -655,7 +663,9 @@ class _ProducedTitlesSectionState extends State<_ProducedTitlesSection> {
               items: [
                 DropdownMenuItem(
                   value: _ProducedSortOption.newest,
-                  child: Text(loc.company['sort_release_date'] ?? 'Release Date'),
+                  child: Text(
+                    loc.company['sort_release_date'] ?? 'Release Date',
+                  ),
                 ),
                 DropdownMenuItem(
                   value: _ProducedSortOption.rating,
@@ -686,7 +696,11 @@ class _ProducedTitlesSectionState extends State<_ProducedTitlesSection> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final title = filteredTitles[index];
-            final posterUrl = MediaImageHelper.getPosterUrl(title.posterPath);
+            final posterUrl = MediaImageHelper.buildUrl(
+              title.posterPath,
+              type: MediaImageType.poster,
+              size: MediaImageSize.w185,
+            );
             final subtitleParts = <String>[];
             if (title.releaseDate != null) {
               subtitleParts.add(title.formattedYear);
@@ -697,7 +711,7 @@ class _ProducedTitlesSectionState extends State<_ProducedTitlesSection> {
 
             return Card(
               child: ListTile(
-                leading: posterUrl.isNotEmpty
+                leading: (posterUrl != null && posterUrl.isNotEmpty)
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: MediaImage(
@@ -808,7 +822,10 @@ class _ProducedTitle {
   String get formattedYear => releaseDate?.year.toString() ?? '';
 }
 
-List<_ProducedTitle> _parseProducedTitles(List<dynamic> items, {required bool isSeries}) {
+List<_ProducedTitle> _parseProducedTitles(
+  List<dynamic> items, {
+  required bool isSeries,
+}) {
   return items
       .whereType<Map<String, dynamic>>()
       .map((item) {
@@ -820,8 +837,9 @@ List<_ProducedTitle> _parseProducedTitles(List<dynamic> items, {required bool is
         final dateString = isSeries
             ? (item['first_air_date'] as String?)
             : (item['release_date'] as String?);
-        final releaseDate =
-            (dateString != null && dateString.isNotEmpty) ? DateTime.tryParse(dateString) : null;
+        final releaseDate = (dateString != null && dateString.isNotEmpty)
+            ? DateTime.tryParse(dateString)
+            : null;
 
         double? rating;
         final voteAverage = item['vote_average'];
@@ -829,7 +847,8 @@ List<_ProducedTitle> _parseProducedTitles(List<dynamic> items, {required bool is
           rating = voteAverage.toDouble();
         }
 
-        final posterPath = (item['poster_path'] ?? item['backdrop_path']) as String?;
+        final posterPath =
+            (item['poster_path'] ?? item['backdrop_path']) as String?;
 
         return _ProducedTitle(
           id: item['id'] as int?,

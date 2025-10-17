@@ -8,40 +8,45 @@ import '../../person_detail/person_detail_screen.dart';
 import '../../../widgets/media_image.dart';
 import '../../../../core/utils/media_image_helper.dart';
 import '../../../../core/config/app_config.dart';
+import '../../../../core/localization/app_localizations.dart';
 
 class SearchResultListTile extends StatelessWidget {
-  const SearchResultListTile({
-    required this.result,
-    this.showDivider = true,
-  });
+  const SearchResultListTile({required this.result, this.showDivider = true});
 
   final SearchResult result;
   final bool showDivider;
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final title = (result.title ?? result.name ?? '').trim();
     final overview = (result.overview ?? '').trim();
     final mediaLabel = switch (result.mediaType) {
-      MediaType.movie => 'Movie',
-      MediaType.tv => 'TV Show',
-      MediaType.person => 'Person',
+      MediaType.movie => (loc.movie['title'] ?? 'Movie'),
+      MediaType.tv => (loc.tv['title'] ?? 'TV Show'),
+      MediaType.person => (loc.person['title'] ?? 'Person'),
     };
 
     final tile = ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8),
       leading: ResultThumbnail(imageUrl: _posterImageUrl),
-      title: Text(title.isEmpty ? 'Untitled $mediaLabel' : title),
+      title: Text(
+        title.isEmpty
+            ? ((result.mediaType == MediaType.movie && loc.movie['title'] != null)
+                ? 'Untitled ${loc.movie['title']}'
+                : (result.mediaType == MediaType.tv && loc.tv['title'] != null)
+                    ? 'Untitled ${loc.tv['title']}'
+                    : (result.mediaType == MediaType.person && loc.person['title'] != null)
+                        ? 'Untitled ${loc.person['title']}'
+                        : 'Untitled $mediaLabel')
+            : title,
+      ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(mediaLabel),
           if (overview.isNotEmpty)
-            Text(
-              overview,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
+            Text(overview, maxLines: 2, overflow: TextOverflow.ellipsis),
         ],
       ),
       onTap: () {
@@ -75,46 +80,49 @@ class SearchResultListTile extends StatelessWidget {
       return tile;
     }
 
-    return Column(
-      children: [
-        tile,
-        const Divider(height: 0),
-      ],
-    );
+    return Column(children: [tile, const Divider(height: 0)]);
   }
 
   String? get _posterImageUrl {
     if (result.posterPath != null && result.posterPath!.isNotEmpty) {
-      return AppConfig.tmdbImageBaseUrl + '/w185' + (result.posterPath!.startsWith('/') ? '' : '/') + result.posterPath!;
+      return AppConfig.tmdbImageBaseUrl +
+          '/w185' +
+          (result.posterPath!.startsWith('/') ? '' : '/') +
+          result.posterPath!;
     }
     if (result.profilePath != null && result.profilePath!.isNotEmpty) {
-      return AppConfig.tmdbImageBaseUrl + '/w185' + (result.profilePath!.startsWith('/') ? '' : '/') + result.profilePath!;
+      return AppConfig.tmdbImageBaseUrl +
+          '/w185' +
+          (result.profilePath!.startsWith('/') ? '' : '/') +
+          result.profilePath!;
     }
     return null;
   }
 }
 
 class CompanyResultTile extends StatelessWidget {
-  const CompanyResultTile({
-    required this.company,
-    this.showDivider = true,
-  });
+  const CompanyResultTile({required this.company, this.showDivider = true});
 
   final Company company;
   final bool showDivider;
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     final tile = ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8),
       leading: ResultThumbnail(
         imageUrl: _logoUrl,
         isCircular: true,
-        fallbackLabel: company.name.isNotEmpty ? company.name[0].toUpperCase() : 'C',
+        fallbackLabel: company.name.isNotEmpty
+            ? company.name[0].toUpperCase()
+            : 'C',
       ),
       title: Text(company.name),
       subtitle: Text(
-        company.originCountry?.isNotEmpty == true ? company.originCountry! : 'Company',
+        company.originCountry?.isNotEmpty == true
+            ? company.originCountry!
+            : (loc.company['title'] ?? 'Company'),
       ),
     );
 
@@ -122,17 +130,15 @@ class CompanyResultTile extends StatelessWidget {
       return tile;
     }
 
-    return Column(
-      children: [
-        tile,
-        const Divider(height: 0),
-      ],
-    );
+    return Column(children: [tile, const Divider(height: 0)]);
   }
 
   String? get _logoUrl {
     if (company.logoPath != null && company.logoPath!.isNotEmpty) {
-      return AppConfig.tmdbImageBaseUrl + '/w185' + (company.logoPath!.startsWith('/') ? '' : '/') + company.logoPath!;
+      return AppConfig.tmdbImageBaseUrl +
+          '/w185' +
+          (company.logoPath!.startsWith('/') ? '' : '/') +
+          company.logoPath!;
     }
     return null;
   }
@@ -163,8 +169,8 @@ class ResultThumbnail extends StatelessWidget {
       child: Text(
         (fallbackLabel ?? '?').toUpperCase(),
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onPrimaryContainer,
-            ),
+          color: Theme.of(context).colorScheme.onPrimaryContainer,
+        ),
       ),
     );
 

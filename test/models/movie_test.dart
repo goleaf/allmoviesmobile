@@ -50,125 +50,73 @@ void main() {
     });
 
     test('should generate correct poster URL', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        posterPath: '/test.jpg',
-      );
+      final movie = Movie(id: 1, title: 'Test', posterPath: '/test.jpg');
 
-      expect(
-        movie.posterUrl,
-        'https://image.tmdb.org/t/p/w500/test.jpg',
-      );
+      expect(movie.posterUrl, 'https://image.tmdb.org/t/p/w500/test.jpg');
     });
 
     test('should return null poster URL when path is null', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-      );
+      final movie = Movie(id: 1, title: 'Test');
 
       expect(movie.posterUrl, null);
     });
 
     test('should generate correct backdrop URL', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        backdropPath: '/backdrop.jpg',
-      );
+      final movie = Movie(id: 1, title: 'Test', backdropPath: '/backdrop.jpg');
 
-      expect(
-        movie.backdropUrl,
-        'https://image.tmdb.org/t/p/w780/backdrop.jpg',
-      );
+      expect(movie.backdropUrl, 'https://image.tmdb.org/t/p/w780/backdrop.jpg');
     });
 
     test('should extract release year from date', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        releaseDate: '2024-03-15',
-      );
+      final movie = Movie(id: 1, title: 'Test', releaseDate: '2024-03-15');
 
       expect(movie.releaseYear, '2024');
     });
 
     test('should return null year when date is null', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-      );
+      final movie = Movie(id: 1, title: 'Test');
 
       expect(movie.releaseYear, null);
     });
 
     test('should return correct media label for TV', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        mediaType: 'tv',
-      );
+      final movie = Movie(id: 1, title: 'Test', mediaType: 'tv');
 
       expect(movie.mediaLabel, 'TV');
     });
 
     test('should return correct media label for Movie', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        mediaType: 'movie',
-      );
+      final movie = Movie(id: 1, title: 'Test', mediaType: 'movie');
 
       expect(movie.mediaLabel, 'Movie');
     });
 
     test('should format rating correctly', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        voteAverage: 8.567,
-      );
+      final movie = Movie(id: 1, title: 'Test', voteAverage: 8.567);
 
       expect(movie.formattedRating, '8.6 ★');
     });
 
     test('should return N/A for zero rating', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        voteAverage: 0,
-      );
+      final movie = Movie(id: 1, title: 'Test', voteAverage: 0);
 
       expect(movie.formattedRating, 'N/A');
     });
 
     test('should format vote count with K suffix for thousands', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        voteCount: 5432,
-      );
+      final movie = Movie(id: 1, title: 'Test', voteCount: 5432);
 
       expect(movie.formattedVoteCount, '5.4K votes');
     });
 
     test('should format vote count without K for hundreds', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        voteCount: 500,
-      );
+      final movie = Movie(id: 1, title: 'Test', voteCount: 500);
 
       expect(movie.formattedVoteCount, '500 votes');
     });
 
     test('should return genre names from genre IDs', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        genreIds: [28, 12, 16],
-      );
+      final movie = Movie(id: 1, title: 'Test', genreIds: [28, 12, 16]);
 
       final genres = movie.genres;
 
@@ -179,45 +127,27 @@ void main() {
     });
 
     test('should handle empty genre list', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-      );
+      final movie = Movie(id: 1, title: 'Test');
 
       expect(movie.genres, isEmpty);
     });
 
     test('should handle unknown genre IDs', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-        genreIds: [99999],
-      );
+      final movie = Movie(id: 1, title: 'Test', genreIds: [99999]);
 
       expect(movie.genres, isEmpty);
     });
 
     test('should default adult to false', () {
-      final movie = Movie(
-        id: 1,
-        title: 'Test',
-      );
+      final movie = Movie(id: 1, title: 'Test');
 
       expect(movie.adult, false);
     });
 
     test('should handle empty or whitespace-only overview as null', () {
-      final json1 = {
-        'id': 1,
-        'title': 'Test',
-        'overview': '',
-      };
+      final json1 = {'id': 1, 'title': 'Test', 'overview': ''};
 
-      final json2 = {
-        'id': 1,
-        'title': 'Test',
-        'overview': '   ',
-      };
+      final json2 = {'id': 1, 'title': 'Test', 'overview': '   '};
 
       final movie1 = Movie.fromJson(json1);
       final movie2 = Movie.fromJson(json2);
@@ -240,4 +170,3 @@ void main() {
     });
   });
 }
-

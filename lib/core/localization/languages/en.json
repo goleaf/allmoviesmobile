@@ -196,9 +196,11 @@
     "search_all": "Search All",
     "recent_searches": "Recent Searches",
     "popular_searches": "Popular Searches",
+    "trending_searches": "Trending searches",
     "clear_history": "Clear History",
     "no_results": "No results found",
-    "try_different_keywords": "Try different keywords"
+    "try_different_keywords": "Try different keywords",
+    "no_suggestions": "No suggestions yet"
   },
   "keywords": {
     "search_hint": "Type a keyword to search",
@@ -215,7 +217,18 @@
     "no_overview": "No overview available yet.",
     "parts": "Parts",
     "release_timeline": "Release timeline",
-    "images": "Images"
+    "images": "Images",
+    "translations": "Translations",
+    "translation_overview": "Translation overview",
+    "no_translation_overview": "No translation overview available.",
+    "translation_homepage": "Homepage",
+    "no_translation_title": "No title provided",
+    "total_revenue": "Total revenue",
+    "revenue_label": "Revenue",
+    "no_timeline_data": "No timeline data available.",
+    "sort_label": "Sort parts by",
+    "sort_order": "Collection order",
+    "sort_release_date": "Release date"
   },
   "discover": {
     "title": "Discover",

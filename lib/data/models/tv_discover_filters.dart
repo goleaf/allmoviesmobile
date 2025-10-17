@@ -113,17 +113,14 @@ class TvDiscoverFilters {
       screenedTheatrically: screenedTheatrically == _sentinel
           ? this.screenedTheatrically
           : screenedTheatrically as bool?,
-      timezone:
-          timezone == _sentinel ? this.timezone : timezone as String?,
+      timezone: timezone == _sentinel ? this.timezone : timezone as String?,
       statuses: statuses ?? this.statuses,
       types: types ?? this.types,
     );
   }
 
   Map<String, String> toQueryParameters({bool includePage = false}) {
-    final params = <String, String>{
-      'sort_by': sortBy.value,
-    };
+    final params = <String, String>{'sort_by': sortBy.value};
 
     if (includePage) {
       params['page'] = '$page';
@@ -143,11 +140,7 @@ class TvDiscoverFilters {
       params['first_air_date_year'] = '$firstAirDateYear';
     }
 
-    void addIntList(
-      String key,
-      List<int> values, {
-      String separator = ',',
-    }) {
+    void addIntList(String key, List<int> values, {String separator = ','}) {
       if (values.isEmpty) return;
       final deduplicated = LinkedHashSet<int>.from(values);
       params[key] = deduplicated.join(separator);
@@ -191,8 +184,9 @@ class TvDiscoverFilters {
     if (monetizationTypes.isNotEmpty) {
       final values = monetizationTypes.toList()
         ..sort((a, b) => a.index.compareTo(b.index));
-      params['with_watch_monetization_types'] =
-          values.map((type) => type.value).join('|');
+      params['with_watch_monetization_types'] = values
+          .map((type) => type.value)
+          .join('|');
     }
 
     if (includeNullFirstAirDates) {
@@ -208,14 +202,12 @@ class TvDiscoverFilters {
     }
 
     if (statuses.isNotEmpty) {
-      final codes = statuses.toList()
-        ..sort((a, b) => a.code.compareTo(b.code));
+      final codes = statuses.toList()..sort((a, b) => a.code.compareTo(b.code));
       params['with_status'] = codes.map((status) => status.code).join('|');
     }
 
     if (types.isNotEmpty) {
-      final codes = types.toList()
-        ..sort((a, b) => a.code.compareTo(b.code));
+      final codes = types.toList()..sort((a, b) => a.code.compareTo(b.code));
       params['with_type'] = codes.map((type) => type.code).join('|');
     }
 
@@ -232,7 +224,10 @@ class TvDiscoverFilters {
   static String _formatDouble(double value) {
     final asString = value.toString();
     if (asString.contains('.') && asString.endsWith('0')) {
-      return value.toStringAsFixed(1).replaceAll(RegExp(r'0+$'), '').replaceAll(RegExp(r'\.$'), '');
+      return value
+          .toStringAsFixed(1)
+          .replaceAll(RegExp(r'0+$'), '')
+          .replaceAll(RegExp(r'\.$'), '');
     }
     return asString;
   }

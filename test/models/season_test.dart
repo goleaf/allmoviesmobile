@@ -19,7 +19,10 @@ void main() {
       final season = Season.fromJson(json);
 
       expect(season.posterUrl, 'https://image.tmdb.org/t/p/w500/poster.jpg');
-      expect(season.backdropUrl, 'https://image.tmdb.org/t/p/w780/backdrop.jpg');
+      expect(
+        season.backdropUrl,
+        'https://image.tmdb.org/t/p/w780/backdrop.jpg',
+      );
     });
 
     test('handles missing poster/backdrop paths', () {

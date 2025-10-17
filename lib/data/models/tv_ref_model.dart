@@ -17,4 +17,3 @@ class TVRef with _$TVRef {
 
   factory TVRef.fromJson(Map<String, dynamic> json) => _$TVRefFromJson(json);
 }
-

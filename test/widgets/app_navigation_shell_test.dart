@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
 import 'package:allmovies_mobile/presentation/navigation/app_navigation_shell.dart';
+import 'package:allmovies_mobile/core/localization/app_localizations.dart';
 import 'package:allmovies_mobile/providers/movies_provider.dart';
 import 'package:allmovies_mobile/providers/series_provider.dart';
 import 'package:allmovies_mobile/providers/search_provider.dart';
@@ -24,7 +26,16 @@ void main() {
           ChangeNotifierProvider(create: (_) => SeriesProvider(repo)),
           ChangeNotifierProvider(create: (_) => SearchProvider(repo, storage)),
         ],
-        child: const MaterialApp(home: AppNavigationShell()),
+        child: MaterialApp(
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const AppNavigationShell(),
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -48,7 +59,9 @@ void main() {
       final navBar = find.byType(NavigationBar);
       expect(navBar, findsOneWidget);
       // Tap by index using widget tree order
-      await tester.tap(find.descendant(of: navBar, matching: find.byIcon(Icons.search)).first);
+      await tester.tap(
+        find.descendant(of: navBar, matching: find.byIcon(Icons.search)).first,
+      );
     } else {
       await tester.tap(searchTextFinder.first);
     }
@@ -57,5 +70,3 @@ void main() {
     expect(find.byType(NavigationBar), findsOneWidget);
   });
 }
-
-

@@ -66,11 +66,7 @@ class TmdbV4Catalog {
               'Perform a blended search across movies, TV shows, and people.',
           category: 'Search',
           path: '/search/multi',
-          sampleQuery: {
-            'query': 'Inception',
-            'language': 'en-US',
-            'page': '1',
-          },
+          sampleQuery: {'query': 'Inception', 'language': 'en-US', 'page': '1'},
         ),
       ],
     ),
@@ -139,7 +135,8 @@ class TmdbV4Catalog {
         TmdbV4Endpoint(
           id: 'tv-watch-providers',
           title: 'TV watch providers',
-          description: 'Streaming partner availability by region for a TV show.',
+          description:
+              'Streaming partner availability by region for a TV show.',
           category: 'Television',
           path: '/tv/1399/watch/providers',
         ),
@@ -189,7 +186,8 @@ class TmdbV4Catalog {
         TmdbV4Endpoint(
           id: 'person-external-ids',
           title: 'Person external IDs',
-          description: 'External identifiers (IMDB, Twitter, etc.) for a person.',
+          description:
+              'External identifiers (IMDB, Twitter, etc.) for a person.',
           category: 'People',
           path: '/person/500/external_ids',
         ),
@@ -277,8 +275,7 @@ class TmdbV4Catalog {
         TmdbV4Endpoint(
           id: 'account-favorites',
           title: 'Favorite movies and TV',
-          description:
-              'Combined favorites for an authenticated account.',
+          description: 'Combined favorites for an authenticated account.',
           category: 'Account',
           path: '/account/{account_id}/favorites',
           supportsExecution: false,

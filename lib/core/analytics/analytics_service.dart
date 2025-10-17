@@ -17,8 +17,13 @@ class DebugAnalyticsService implements AnalyticsService {
   final AppLogger _logger;
 
   @override
-  Future<void> logEvent(String name, {Map<String, Object?> parameters = const <String, Object?>{}}) async {
-    _logger.debug('Analytics event: $name ${parameters.isNotEmpty ? parameters : ''}');
+  Future<void> logEvent(
+    String name, {
+    Map<String, Object?> parameters = const <String, Object?>{},
+  }) async {
+    _logger.debug(
+      'Analytics event: $name ${parameters.isNotEmpty ? parameters : ''}',
+    );
   }
 
   @override

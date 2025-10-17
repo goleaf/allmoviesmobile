@@ -6,8 +6,17 @@ import 'package:flutter_test/flutter_test.dart';
 
 class FakeRepo extends TmdbRepository {
   @override
-  Future<PaginatedResponse<Company>> fetchCompanies({required String query, int page = 1, bool forceRefresh = false}) async {
-    return PaginatedResponse<Company>(page: 1, totalPages: 1, totalResults: 1, results: [Company(id: 1, name: 'Acme')]);
+  Future<PaginatedResponse<Company>> fetchCompanies({
+    required String query,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return PaginatedResponse<Company>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 1,
+      results: [Company(id: 1, name: 'Acme')],
+    );
   }
 }
 
@@ -23,5 +32,3 @@ void main() {
     expect(provider.searchResults, isEmpty);
   });
 }
-
-

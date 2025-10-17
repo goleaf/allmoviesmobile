@@ -18,4 +18,3 @@ class GenreTranslationEntity {
 
   late String name;
 }
-

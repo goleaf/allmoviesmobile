@@ -93,9 +93,12 @@ class CollectionImageItem {
       width: (json['width'] as num).toInt(),
       height: (json['height'] as num).toInt(),
       type: type,
-      voteAverage:
-          (json['vote_average'] is num) ? (json['vote_average'] as num).toDouble() : null,
-      voteCount: (json['vote_count'] is num) ? (json['vote_count'] as num).toInt() : null,
+      voteAverage: (json['vote_average'] is num)
+          ? (json['vote_average'] as num).toDouble()
+          : null,
+      voteCount: (json['vote_count'] is num)
+          ? (json['vote_count'] as num).toInt()
+          : null,
     );
   }
 
@@ -186,10 +189,11 @@ class CollectionDetailViewData {
         .whereType<Map<String, dynamic>>()
         .map((e) => CollectionImageItem.fromJson(e, type: 'backdrop'));
 
-    final translationItems = (translations['translations'] as List<dynamic>? ?? [])
-        .whereType<Map<String, dynamic>>()
-        .map(CollectionTranslationItem.fromJson)
-        .toList();
+    final translationItems =
+        (translations['translations'] as List<dynamic>? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(CollectionTranslationItem.fromJson)
+            .toList();
 
     return CollectionDetailViewData(
       id: (details['id'] as num).toInt(),

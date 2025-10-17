@@ -115,10 +115,7 @@ class KeywordBrowserProvider extends ChangeNotifier {
 
     try {
       final nextPage = _currentPage + 1;
-      final response = await _repository.searchKeywords(
-        _query,
-        page: nextPage,
-      );
+      final response = await _repository.searchKeywords(_query, page: nextPage);
 
       _searchResults.addAll(response.results);
       _currentPage = response.page;
@@ -134,11 +131,7 @@ class KeywordBrowserProvider extends ChangeNotifier {
   Future<void> refreshAll() async {
     await Future.wait([
       loadTrendingKeywords(forceRefresh: true),
-      if (_query.isNotEmpty)
-        search(
-          _query,
-          forceRefresh: true,
-        ),
+      if (_query.isNotEmpty) search(_query, forceRefresh: true),
     ]);
   }
 

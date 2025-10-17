@@ -10,14 +10,25 @@ import 'package:allmovies_mobile/providers/companies_provider.dart';
 
 class _FakeRepo extends TmdbRepository {
   @override
-  Future<PaginatedResponse<Company>> fetchCompanies({String? query, int page = 1, bool forceRefresh = false}) async =>
-      PaginatedResponse<Company>(page: 1, totalPages: 1, totalResults: 0, results: const []);
+  Future<PaginatedResponse<Company>> fetchCompanies({
+    String? query,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async => PaginatedResponse<Company>(
+    page: 1,
+    totalPages: 1,
+    totalResults: 0,
+    results: const [],
+  );
   @override
-  Future<Company> fetchCompanyDetails(int companyId) async => const Company(id: 1, name: 'Comp');
+  Future<Company> fetchCompanyDetails(int companyId) async =>
+      const Company(id: 1, name: 'Comp');
 }
 
 void main() {
-  testWidgets('CompaniesScreen builds with search field and empty state', (tester) async {
+  testWidgets('CompaniesScreen builds with search field and empty state', (
+    tester,
+  ) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
@@ -31,5 +42,3 @@ void main() {
     expect(find.byType(TextField), findsOneWidget);
   });
 }
-
-

@@ -17,9 +17,7 @@ class ListsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Lists'),
-      ),
+      appBar: AppBar(title: const Text('Lists')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _openEditorSheet(context),
         icon: const Icon(Icons.add),
@@ -31,7 +29,7 @@ class ListsScreen extends StatelessWidget {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (provider.errorMessage != null) {
             return _ErrorState(
               message: provider.errorMessage!,
@@ -73,11 +71,7 @@ class ListsScreen extends StatelessWidget {
               if (following.isNotEmpty) ...[
                 const _SectionHeader(label: 'Following'),
                 ...following.map(
-                  (list) => _ListCard(
-                    list: list,
-                    isOwner: false,
-                    onEdit: null,
-                  ),
+                  (list) => _ListCard(list: list, isOwner: false, onEdit: null),
                 ),
                 const SizedBox(height: 24),
               ],
@@ -125,20 +119,16 @@ class _SectionHeader extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: Text(
         label,
-        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
       ),
     );
   }
 }
 
 class _ListCard extends StatelessWidget {
-  const _ListCard({
-    required this.list,
-    required this.isOwner,
-    this.onEdit,
-  });
+  const _ListCard({required this.list, required this.isOwner, this.onEdit});
 
   final UserList list;
   final bool isOwner;
@@ -188,7 +178,8 @@ class _ListCard extends StatelessWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    if (list.description != null && list.description!.isNotEmpty)
+                    if (list.description != null &&
+                        list.description!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 8),
                         child: Text(
@@ -220,7 +211,10 @@ class _ListCard extends StatelessWidget {
                         ),
                         if (followerCount > 0)
                           Chip(
-                            avatar: const Icon(Icons.favorite_outline, size: 16),
+                            avatar: const Icon(
+                              Icons.favorite_outline,
+                              size: 16,
+                            ),
                             label: Text('$followerCount followers'),
                           ),
                       ],
@@ -254,11 +248,8 @@ class _ListCard extends StatelessWidget {
                 ),
               ),
               PopupMenuButton<_ListMenuAction>(
-                onSelected: (action) => _handleMenuAction(
-                  context,
-                  provider,
-                  action,
-                ),
+                onSelected: (action) =>
+                    _handleMenuAction(context, provider, action),
                 itemBuilder: (context) => [
                   if (isOwner && onEdit != null)
                     const PopupMenuItem<_ListMenuAction>(
@@ -351,11 +342,16 @@ class _ListCard extends StatelessWidget {
     final description = list.description?.isNotEmpty == true
         ? '\n\n${list.description!.trim()}'
         : '';
-    final topItems = list.items.take(5).map((item) => '• ${item.title}').join('\n');
+    final topItems = list.items
+        .take(5)
+        .map((item) => '• ${item.title}')
+        .join('\n');
     final summary = topItems.isEmpty ? '' : '\n\nTop picks:\n$topItems';
 
     final visibility = list.isPublic ? 'Public' : 'Private';
-    final collaborative = list.isCollaborative ? 'Collaborative' : 'Solo curated';
+    final collaborative = list.isCollaborative
+        ? 'Collaborative'
+        : 'Solo curated';
 
     Share.share(
       'Check out the "${list.name}" list on AllMovies.\n'
@@ -378,8 +374,7 @@ class _ListPoster extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: borderRadius,
-      child: Container
-      (
+      child: Container(
         width: 80,
         height: 120,
         color: Theme.of(context).colorScheme.surfaceVariant,
@@ -490,8 +485,9 @@ class _ListEditorSheetState extends State<ListEditorSheet> {
     super.initState();
     final initial = widget.initialList;
     _nameController = TextEditingController(text: initial?.name ?? '');
-    _descriptionController =
-        TextEditingController(text: initial?.description ?? '');
+    _descriptionController = TextEditingController(
+      text: initial?.description ?? '',
+    );
     _posterController = TextEditingController(text: initial?.posterPath ?? '');
     _isPublic = initial?.isPublic ?? true;
     _isCollaborative = initial?.isCollaborative ?? false;
@@ -519,9 +515,9 @@ class _ListEditorSheetState extends State<ListEditorSheet> {
           children: [
             Text(
               isEditing ? 'Edit list' : 'Create a new list',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -570,7 +566,9 @@ class _ListEditorSheetState extends State<ListEditorSheet> {
               value: _isCollaborative,
               contentPadding: EdgeInsets.zero,
               title: const Text('Collaborative'),
-              subtitle: const Text('Allow collaborators to add and reorder items'),
+              subtitle: const Text(
+                'Allow collaborators to add and reorder items',
+              ),
               onChanged: (value) => setState(() => _isCollaborative = value),
             ),
             const SizedBox(height: 16),
@@ -578,7 +576,9 @@ class _ListEditorSheetState extends State<ListEditorSheet> {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 TextButton(
-                  onPressed: _isSubmitting ? null : () => Navigator.pop(context),
+                  onPressed: _isSubmitting
+                      ? null
+                      : () => Navigator.pop(context),
                   child: const Text('Cancel'),
                 ),
                 const SizedBox(width: 8),
@@ -620,9 +620,9 @@ class _ListEditorSheetState extends State<ListEditorSheet> {
 
         if (list != null && mounted) {
           Navigator.pop(context);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Created "${list.name}"')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Created "${list.name}"')));
         }
       } else {
         await provider.updateListMetadata(

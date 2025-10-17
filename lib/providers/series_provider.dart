@@ -3,14 +3,9 @@ import 'dart:async';
 
 import '../data/models/movie.dart';
 import '../data/tmdb_repository.dart';
+import 'preferences_provider.dart';
 
-enum SeriesSection {
-  trending,
-  popular,
-  topRated,
-  airingToday,
-  onTheAir,
-}
+enum SeriesSection { trending, popular, topRated, airingToday, onTheAir }
 
 class SeriesSectionState {
   const SeriesSectionState({
@@ -33,23 +28,27 @@ class SeriesSectionState {
     return SeriesSectionState(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
-      errorMessage:
-          errorMessage == _sentinel ? this.errorMessage : errorMessage as String?,
+      errorMessage: errorMessage == _sentinel
+          ? this.errorMessage
+          : errorMessage as String?,
     );
   }
 }
 
 class SeriesProvider extends ChangeNotifier {
-  SeriesProvider(this._repository, {bool autoInitialize = true}) {
+  SeriesProvider(this._repository, {PreferencesProvider? preferencesProvider, bool autoInitialize = true}) {
+    _preferences = preferencesProvider;
     if (autoInitialize) {
       _init();
     }
   }
 
   final TmdbRepository _repository;
+  PreferencesProvider? _preferences;
 
   final Map<SeriesSection, SeriesSectionState> _sections = {
-    for (final section in SeriesSection.values) section: const SeriesSectionState(),
+    for (final section in SeriesSection.values)
+      section: const SeriesSectionState(),
   };
 
   bool _isInitialized = false;
@@ -85,14 +84,17 @@ class SeriesProvider extends ChangeNotifier {
     _isRefreshing = true;
     _globalError = null;
     for (final section in SeriesSection.values) {
-      _sections[section] =
-          _sections[section]!.copyWith(isLoading: true, errorMessage: null);
+      _sections[section] = _sections[section]!.copyWith(
+        isLoading: true,
+        errorMessage: null,
+      );
     }
     notifyListeners();
 
     try {
+      final includeAdult = _preferences?.includeAdult ?? false;
       final results = await Future.wait<List<Movie>>([
-        _repository.fetchTrendingTv(),
+        _repository.fetchTrendingTv(forceRefresh: false),
         _loadPopularSeries(),
         _repository.fetchTopRatedTv(),
         _repository.fetchAiringTodayTv(),
@@ -150,11 +152,19 @@ class SeriesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final response = await _repository.fetchNetworkTvShows(networkId: networkId);
-      _sections[SeriesSection.popular] = SeriesSectionState(items: response.results);
+      final response = await _repository.fetchNetworkTvShows(
+        networkId: networkId,
+      );
+      _sections[SeriesSection.popular] = SeriesSectionState(
+        items: response.results,
+      );
     } catch (error) {
       _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-          .copyWith(isLoading: false, errorMessage: '$error', items: const <Movie>[]);
+          .copyWith(
+            isLoading: false,
+            errorMessage: '$error',
+            items: const <Movie>[],
+          );
     } finally {
       notifyListeners();
     }
@@ -166,10 +176,16 @@ class SeriesProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final response = await _repository.discoverTvSeries(filters: filters);
-      _sections[SeriesSection.popular] = SeriesSectionState(items: response.results);
+      _sections[SeriesSection.popular] = SeriesSectionState(
+        items: response.results,
+      );
     } catch (error) {
       _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-          .copyWith(isLoading: false, errorMessage: '$error', items: const <Movie>[]);
+          .copyWith(
+            isLoading: false,
+            errorMessage: '$error',
+            items: const <Movie>[],
+          );
     } finally {
       notifyListeners();
     }

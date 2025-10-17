@@ -6,10 +6,8 @@ part 'network_detailed_model.g.dart';
 /// Alternative network name
 @freezed
 class AlternativeName with _$AlternativeName {
-  const factory AlternativeName({
-    required String name,
-    required String type,
-  }) = _AlternativeName;
+  const factory AlternativeName({required String name, required String type}) =
+      _AlternativeName;
 
   factory AlternativeName.fromJson(Map<String, dynamic> json) =>
       _$AlternativeNameFromJson(json);
@@ -33,4 +31,3 @@ class NetworkDetailed with _$NetworkDetailed {
   factory NetworkDetailed.fromJson(Map<String, dynamic> json) =>
       _$NetworkDetailedFromJson(json);
 }
-

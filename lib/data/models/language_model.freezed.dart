@@ -12,7 +12,8 @@ part of 'language_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Language _$LanguageFromJson(Map<String, dynamic> json) {
   return _Language.fromJson(json);
@@ -50,20 +51,20 @@ class _$LanguageCopyWithImpl<$Res, $Val extends Language>
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? iso6391 = null,
-    Object? name = null,
-  }) {
-    return _then(_value.copyWith(
-      iso6391: null == iso6391
-          ? _value.iso6391
-          : iso6391 // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
+  $Res call({Object? iso6391 = null, Object? name = null}) {
+    return _then(
+      _value.copyWith(
+            iso6391: null == iso6391
+                ? _value.iso6391
+                : iso6391 // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -71,8 +72,9 @@ class _$LanguageCopyWithImpl<$Res, $Val extends Language>
 abstract class _$$LanguageImplCopyWith<$Res>
     implements $LanguageCopyWith<$Res> {
   factory _$$LanguageImplCopyWith(
-          _$LanguageImpl value, $Res Function(_$LanguageImpl) then) =
-      __$$LanguageImplCopyWithImpl<$Res>;
+    _$LanguageImpl value,
+    $Res Function(_$LanguageImpl) then,
+  ) = __$$LanguageImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: 'iso_639_1') String iso6391, String name});
@@ -83,33 +85,35 @@ class __$$LanguageImplCopyWithImpl<$Res>
     extends _$LanguageCopyWithImpl<$Res, _$LanguageImpl>
     implements _$$LanguageImplCopyWith<$Res> {
   __$$LanguageImplCopyWithImpl(
-      _$LanguageImpl _value, $Res Function(_$LanguageImpl) _then)
-      : super(_value, _then);
+    _$LanguageImpl _value,
+    $Res Function(_$LanguageImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? iso6391 = null,
-    Object? name = null,
-  }) {
-    return _then(_$LanguageImpl(
-      iso6391: null == iso6391
-          ? _value.iso6391
-          : iso6391 // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
+  $Res call({Object? iso6391 = null, Object? name = null}) {
+    return _then(
+      _$LanguageImpl(
+        iso6391: null == iso6391
+            ? _value.iso6391
+            : iso6391 // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$LanguageImpl implements _Language {
-  const _$LanguageImpl(
-      {@JsonKey(name: 'iso_639_1') required this.iso6391, required this.name});
+  const _$LanguageImpl({
+    @JsonKey(name: 'iso_639_1') required this.iso6391,
+    required this.name,
+  });
 
   factory _$LanguageImpl.fromJson(Map<String, dynamic> json) =>
       _$$LanguageImplFromJson(json);
@@ -146,16 +150,15 @@ class _$LanguageImpl implements _Language {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$LanguageImplToJson(
-      this,
-    );
+    return _$$LanguageImplToJson(this);
   }
 }
 
 abstract class _Language implements Language {
-  const factory _Language(
-      {@JsonKey(name: 'iso_639_1') required final String iso6391,
-      required final String name}) = _$LanguageImpl;
+  const factory _Language({
+    @JsonKey(name: 'iso_639_1') required final String iso6391,
+    required final String name,
+  }) = _$LanguageImpl;
 
   factory _Language.fromJson(Map<String, dynamic> json) =
       _$LanguageImpl.fromJson;

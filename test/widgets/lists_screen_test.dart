@@ -18,11 +18,23 @@ class _InMemoryPrefs implements SharedPreferences {
   @override
   bool containsKey(String key) => _data.containsKey(key);
   @override
-  Future<bool> clear() async { _data.clear(); return true; }
+  Future<bool> clear() async {
+    _data.clear();
+    return true;
+  }
+
   @override
-  Future<bool> remove(String key) async { _data.remove(key); return true; }
+  Future<bool> remove(String key) async {
+    _data.remove(key);
+    return true;
+  }
+
   @override
-  Future<bool> setString(String key, String value) async { _data[key] = value; return true; }
+  Future<bool> setString(String key, String value) async {
+    _data[key] = value;
+    return true;
+  }
+
   // ignore: no_leading_underscores_for_local_identifiers
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -36,9 +48,23 @@ void main() {
   Widget _buildWithProviders(Widget child) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => ListsProvider(_makeStorage(), currentUserId: 'me', currentUserName: 'Me')),
+        ChangeNotifierProvider(
+          create: (_) => ListsProvider(
+            _makeStorage(),
+            currentUserId: 'me',
+            currentUserName: 'Me',
+          ),
+        ),
       ],
-      child: TestApp(child: child),
+      child: FutureBuilder<SharedPreferences>(
+        future: SharedPreferences.getInstance(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const SizedBox.shrink();
+          }
+          return TestApp(child: child, prefs: snapshot.data!);
+        },
+      ),
     );
   }
 
@@ -65,8 +91,14 @@ void main() {
     await tester.pumpAndSettle();
 
     // Fill fields
-    await tester.enterText(find.widgetWithText(TextFormField, 'Name'), 'New Test List');
-    await tester.enterText(find.widgetWithText(TextFormField, 'Description'), 'Desc');
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Name'),
+      'New Test List',
+    );
+    await tester.enterText(
+      find.widgetWithText(TextFormField, 'Description'),
+      'Desc',
+    );
 
     await tester.tap(find.widgetWithText(FilledButton, 'Create list'));
     await tester.pumpAndSettle();
@@ -103,7 +135,10 @@ void main() {
     await tester.pumpAndSettle();
 
     // Create a list to delete (owned by me)
-    final provider = Provider.of<ListsProvider>(tester.element(find.byType(ListsScreen)), listen: false);
+    final provider = Provider.of<ListsProvider>(
+      tester.element(find.byType(ListsScreen)),
+      listen: false,
+    );
     final list = await provider.createList(name: 'Temp to delete');
     await tester.pumpAndSettle();
 
@@ -122,5 +157,3 @@ void main() {
     expect(provider.listById(list!.id), isNull);
   });
 }
-
-

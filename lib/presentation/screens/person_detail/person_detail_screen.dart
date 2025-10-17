@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/app_localizations.dart';
-import '../../../data/models/image_model.dart';
+// removed unused image_model import
 import '../../../data/models/person_detail_model.dart';
 import '../../../data/models/person_model.dart';
 import '../../../data/tmdb_repository.dart';
@@ -30,11 +30,9 @@ class PersonDetailScreen extends StatelessWidget {
     final repository = context.read<TmdbRepository>();
 
     return ChangeNotifierProvider(
-      create: (_) => PersonDetailProvider(
-        repository,
-        personId,
-        seedPerson: initialPerson,
-      )..load(),
+      create: (_) =>
+          PersonDetailProvider(repository, personId, seedPerson: initialPerson)
+            ..load(),
       builder: (context, _) => const _PersonDetailView(),
     );
   }
@@ -73,8 +71,9 @@ class _PersonDetailView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 ElevatedButton(
-                  onPressed: () =>
-                      context.read<PersonDetailProvider>().load(forceRefresh: true),
+                  onPressed: () => context.read<PersonDetailProvider>().load(
+                    forceRefresh: true,
+                  ),
                   child: Text(loc.t('common.retry')),
                 ),
               ],
@@ -85,7 +84,8 @@ class _PersonDetailView extends StatelessWidget {
     }
 
     final name = detail?.name ?? summary?.name ?? '';
-    final department = detail?.knownForDepartment ?? summary?.knownForDepartment;
+    final department =
+        detail?.knownForDepartment ?? summary?.knownForDepartment;
     final popularity = detail?.popularity ?? summary?.popularity;
     final profileUrl = detail?.profileUrl ?? summary?.profileUrl;
 
@@ -122,9 +122,7 @@ class _PersonDetailView extends StatelessWidget {
           popularity: popularity,
           profileUrl: profileUrl,
         ),
-        SliverToBoxAdapter(
-          child: _PersonDetailBody(detail: detail),
-        ),
+        SliverToBoxAdapter(child: _PersonDetailBody(detail: detail)),
       ],
     );
   }
@@ -182,14 +180,13 @@ class _PersonAppBar extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-            if (department != null && department!.isNotEmpty)
-                Chip(
-                  label: Text(
+                  if (department != null && department!.isNotEmpty)
+                    Chip(
+                      label: Text(
                         department!,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: Colors.white),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.white),
                       ),
                       backgroundColor: Colors.black45,
                     ),
@@ -198,10 +195,9 @@ class _PersonAppBar extends StatelessWidget {
                       padding: const EdgeInsets.only(top: 8),
                       child: Text(
                         '${loc.t('person.popularity')}: ${popularity!.toStringAsFixed(1)}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodyMedium
-                            ?.copyWith(color: Colors.white70),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(color: Colors.white70),
                       ),
                     ),
                 ],
@@ -229,10 +225,10 @@ class _FallbackProfile extends StatelessWidget {
         backgroundColor: Colors.grey.shade500,
         child: Text(
           name.isNotEmpty ? name.substring(0, 1).toUpperCase() : '?',
-          style: Theme.of(context)
-              .textTheme
-              .displayMedium
-              ?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+          style: Theme.of(context).textTheme.displayMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );
@@ -326,19 +322,17 @@ class _BiographySectionState extends State<_BiographySection> {
       children: [
         Text(
           loc.t('person.biography'),
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         if (biography == null || biography.isEmpty)
           Text(
             loc.t('person.no_biography'),
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(color: Colors.grey.shade600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
           )
         else
           Column(
@@ -364,9 +358,11 @@ class _BiographySectionState extends State<_BiographySection> {
                 TextButton.icon(
                   onPressed: () => setState(() => _expanded = !_expanded),
                   icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
-                  label: Text(_expanded
-                      ? loc.t('person.show_less')
-                      : loc.t('person.read_more')),
+                  label: Text(
+                    _expanded
+                        ? loc.t('person.show_less')
+                        : loc.t('person.read_more'),
+                  ),
                 ),
             ],
           ),
@@ -391,16 +387,10 @@ class _PersonalInfoSection extends StatelessWidget {
 
     final rows = <MapEntry<String, String>>[];
     if (birthday != null) {
-      rows.add(MapEntry(
-        loc.t('person.birthday'),
-        dateFormat.format(birthday),
-      ));
+      rows.add(MapEntry(loc.t('person.birthday'), dateFormat.format(birthday)));
     }
     if (deathday != null) {
-      rows.add(MapEntry(
-        loc.t('person.deathday'),
-        dateFormat.format(deathday),
-      ));
+      rows.add(MapEntry(loc.t('person.deathday'), dateFormat.format(deathday)));
     }
     if (age != null) {
       rows.add(MapEntry(loc.t('person.age'), age.toString()));
@@ -412,16 +402,17 @@ class _PersonalInfoSection extends StatelessWidget {
       rows.add(MapEntry(loc.t('person.gender'), genderLabel));
     }
     if ((detail.knownForDepartment ?? '').isNotEmpty) {
-      rows.add(MapEntry(
-        loc.t('person.known_for_department'),
-        detail.knownForDepartment!,
-      ));
+      rows.add(
+        MapEntry(
+          loc.t('person.known_for_department'),
+          detail.knownForDepartment!,
+        ),
+      );
     }
     if (detail.alsoKnownAs.isNotEmpty) {
-      rows.add(MapEntry(
-        loc.t('person.also_known_as'),
-        detail.alsoKnownAs.join(', '),
-      ));
+      rows.add(
+        MapEntry(loc.t('person.also_known_as'), detail.alsoKnownAs.join(', ')),
+      );
     }
 
     if (rows.isEmpty) {
@@ -442,10 +433,9 @@ class _PersonalInfoSection extends StatelessWidget {
                       width: 140,
                       child: Text(
                         entry.key,
-                        style: Theme.of(context)
-                            .textTheme
-                            .labelLarge
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -477,11 +467,8 @@ class _KnownForSection extends StatelessWidget {
     credits.addAll(detail.combinedCredits.cast);
     credits.addAll(detail.combinedCredits.crew);
 
-    final sorted = credits
-        .toList()
-      ..sort(
-        (a, b) => (b.popularity ?? 0).compareTo(a.popularity ?? 0),
-      );
+    final sorted = credits.toList()
+      ..sort((a, b) => (b.popularity ?? 0).compareTo(a.popularity ?? 0));
     final topCredits = sorted.take(10).toList();
 
     if (topCredits.isEmpty) {
@@ -493,10 +480,9 @@ class _KnownForSection extends StatelessWidget {
       children: [
         Text(
           loc.t('person.known_for'),
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         SizedBox(
@@ -557,10 +543,9 @@ class _KnownForCard extends StatelessWidget {
           if (credit.mediaType != null)
             Text(
               credit.mediaType!.toUpperCase(),
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: Colors.grey.shade600),
+              style: Theme.of(
+                context,
+              ).textTheme.labelSmall?.copyWith(color: Colors.grey.shade600),
             ),
         ],
       ),
@@ -601,10 +586,9 @@ class _CombinedCreditsSection extends StatelessWidget {
                   width: 64,
                   child: Text(
                     credit.releaseYear ?? '—',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey.shade600),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -654,9 +638,7 @@ class _TimelineSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final sorted = credits
-        .where((credit) => credit.parsedDate != null)
-        .toList()
+    final sorted = credits.where((credit) => credit.parsedDate != null).toList()
       ..sort((a, b) => b.parsedDate!.compareTo(a.parsedDate!));
 
     if (sorted.isEmpty) {
@@ -664,10 +646,9 @@ class _TimelineSection extends StatelessWidget {
         title: loc.t(titleKey),
         child: Text(
           loc.t(emptyKey),
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: Colors.grey.shade600),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
         ),
       );
     }
@@ -705,11 +686,7 @@ class _TimelineTile extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
               ),
-              Container(
-                width: 2,
-                height: 36,
-                color: Colors.grey.shade400,
-              ),
+              Container(width: 2, height: 36, color: Colors.grey.shade400),
             ],
           ),
           const SizedBox(width: 12),
@@ -719,18 +696,16 @@ class _TimelineTile extends StatelessWidget {
               children: [
                 Text(
                   credit.releaseYear ?? '—',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelMedium
-                      ?.copyWith(color: Colors.grey.shade600),
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
                   credit.displayTitle,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 if ((credit.character ?? '').isNotEmpty)
                   Text(
@@ -770,10 +745,9 @@ class _CrewByDepartmentSection extends StatelessWidget {
         title: loc.t(titleKey),
         child: Text(
           loc.t(emptyKey),
-          style: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(color: Colors.grey.shade600),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
         ),
       );
     }
@@ -784,16 +758,18 @@ class _CrewByDepartmentSection extends StatelessWidget {
       grouped.putIfAbsent(key, () => <PersonCredit>[]).add(credit);
     }
 
-    final sortedDepartments = grouped.keys.toList()
-      ..sort();
+    final sortedDepartments = grouped.keys.toList()..sort();
 
     return _SectionCard(
       title: loc.t(titleKey),
       child: Column(
         children: sortedDepartments.map((department) {
           final departmentCredits = grouped[department]!;
-          departmentCredits.sort((a, b) =>
-              (b.parsedDate ?? DateTime(1900)).compareTo(a.parsedDate ?? DateTime(1900)));
+          departmentCredits.sort(
+            (a, b) => (b.parsedDate ?? DateTime(1900)).compareTo(
+              a.parsedDate ?? DateTime(1900),
+            ),
+          );
           return Padding(
             padding: const EdgeInsets.only(bottom: 16),
             child: Column(
@@ -801,45 +777,42 @@ class _CrewByDepartmentSection extends StatelessWidget {
               children: [
                 Text(
                   department,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                ...departmentCredits.take(10).map(
-                  (credit) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 70,
-                          child: Text(
-                            credit.releaseYear ?? '—',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.copyWith(color: Colors.grey.shade600),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            credit.displayTitle,
-                            style: Theme.of(context).textTheme.bodyMedium,
-                          ),
-                        ),
-                        if ((credit.job ?? '').isNotEmpty)
-                          Text(
-                            credit.job!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelMedium
-                                ?.copyWith(color: Colors.grey.shade600),
-                          ),
-                      ],
-                    ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
+                const SizedBox(height: 8),
+                ...departmentCredits
+                    .take(10)
+                    .map(
+                      (credit) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 70,
+                              child: Text(
+                                credit.releaseYear ?? '—',
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: Colors.grey.shade600),
+                              ),
+                            ),
+                            Expanded(
+                              child: Text(
+                                credit.displayTitle,
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                            ),
+                            if ((credit.job ?? '').isNotEmpty)
+                              Text(
+                                credit.job!,
+                                style: Theme.of(context).textTheme.labelMedium
+                                    ?.copyWith(color: Colors.grey.shade600),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
               ],
             ),
           );
@@ -878,12 +851,12 @@ class _ImageGallerySection extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
                 aspectRatio: image.aspectRatio,
-                  child: MediaImage(
-                    path: imageUrl,
-                    type: MediaImageType.profile,
-                    size: MediaImageSize.w300,
-                    fit: BoxFit.cover,
-                  ),
+                child: MediaImage(
+                  path: imageUrl,
+                  type: MediaImageType.profile,
+                  size: MediaImageSize.w300,
+                  fit: BoxFit.cover,
+                ),
               ),
             );
           },
@@ -946,10 +919,9 @@ class _TaggedImagesSection extends StatelessWidget {
                   if ((image.media?.character ?? '').isNotEmpty)
                     Text(
                       image.media!.character!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .labelSmall
-                          ?.copyWith(color: Colors.grey.shade600),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
                     ),
                 ],
               ),
@@ -1065,8 +1037,10 @@ class _TranslationsSection extends StatelessWidget {
       child: Column(
         children: translations.map((translation) {
           final parts = <String>[];
-          if ((translation.englishName ?? '').isNotEmpty) parts.add(translation.englishName!);
-          if ((translation.iso31661 ?? '').isNotEmpty) parts.add(translation.iso31661!);
+          if ((translation.englishName ?? '').isNotEmpty)
+            parts.add(translation.englishName!);
+          if ((translation.iso31661 ?? '').isNotEmpty)
+            parts.add(translation.iso31661!);
           final localeLabel = parts.join(' • ');
 
           return Padding(
@@ -1076,20 +1050,18 @@ class _TranslationsSection extends StatelessWidget {
               children: [
                 Text(
                   localeLabel,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodyLarge
-                      ?.copyWith(fontWeight: FontWeight.w600),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 if ((translation.biography ?? '').isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
                       translation.biography!,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodyMedium
-                          ?.copyWith(color: Colors.grey.shade700),
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade700,
+                      ),
                     ),
                   ),
               ],
@@ -1114,10 +1086,9 @@ class _SectionCard extends StatelessWidget {
       children: [
         Text(
           title,
-          style: Theme.of(context)
-              .textTheme
-              .titleLarge
-              ?.copyWith(fontWeight: FontWeight.bold),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Container(
@@ -1150,10 +1121,9 @@ class _InfoChip extends StatelessWidget {
     return Chip(
       label: Text(label),
       backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-      labelStyle: Theme.of(context)
-          .textTheme
-          .labelMedium
-          ?.copyWith(color: Theme.of(context).colorScheme.onPrimaryContainer),
+      labelStyle: Theme.of(context).textTheme.labelMedium?.copyWith(
+        color: Theme.of(context).colorScheme.onPrimaryContainer,
+      ),
     );
   }
 }
@@ -1182,7 +1152,8 @@ int? _calculateAge(DateTime? birthday, {DateTime? deathday}) {
 
   final endDate = deathday ?? DateTime.now();
   var age = endDate.year - birthday.year;
-  final hasNotHadBirthdayYet = (endDate.month < birthday.month) ||
+  final hasNotHadBirthdayYet =
+      (endDate.month < birthday.month) ||
       (endDate.month == birthday.month && endDate.day < birthday.day);
 
   if (hasNotHadBirthdayYet) {
@@ -1204,4 +1175,3 @@ String _genderLabel(int? gender, AppLocalizations loc) {
       return '';
   }
 }
-

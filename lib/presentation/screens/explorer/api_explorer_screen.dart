@@ -80,9 +80,7 @@ class _ApiExplorerScreenState extends State<ApiExplorerScreen> {
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverToBoxAdapter(
-                  child: _ExplorerHeader(snapshot: snapshot),
-                ),
+                SliverToBoxAdapter(child: _ExplorerHeader(snapshot: snapshot)),
                 _MovieCarouselSection(
                   title: 'Trending across TMDB',
                   subtitle:
@@ -116,15 +114,17 @@ class _ApiExplorerScreenState extends State<ApiExplorerScreen> {
                 _ChipSection(
                   title: 'Supported languages',
                   subtitle: 'Browse the catalogue in your preferred language.',
-                  labels: snapshot.languages
-                      .map((lang) => '${lang.englishName} (${lang.code})'),
+                  labels: snapshot.languages.map(
+                    (lang) => '${lang.englishName} (${lang.code})',
+                  ),
                 ),
                 _ChipSection(
                   title: 'Certified countries',
                   subtitle:
                       'Regional marketplaces connected to TMDB content and ratings.',
-                  labels: snapshot.countries
-                      .map((country) => '${country.englishName} (${country.code})'),
+                  labels: snapshot.countries.map(
+                    (country) => '${country.englishName} (${country.code})',
+                  ),
                 ),
                 _ChipSection(
                   title: 'Watch provider regions',
@@ -132,7 +132,10 @@ class _ApiExplorerScreenState extends State<ApiExplorerScreen> {
                       'Stream, rent, or buy titles with global partner availability.',
                   labels: snapshot.watchProviderRegions
                       .take(24)
-                      .map((region) => '${region.englishName} (${region.countryCode})'),
+                      .map(
+                        (region) =>
+                            '${region.englishName} (${region.countryCode})',
+                      ),
                 ),
                 _TimezoneSection(snapshot: snapshot),
                 _WatchProvidersSection(snapshot: snapshot),
@@ -304,16 +307,12 @@ class _MovieCarouselSection extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
+                  Text(subtitle, style: Theme.of(context).textTheme.bodyMedium),
                 ],
               ),
             ),
@@ -592,7 +591,9 @@ class _ChipSection extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
         child: Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -605,18 +606,13 @@ class _ChipSection extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  subtitle,
-                  style: theme.textTheme.bodyMedium,
-                ),
+                Text(subtitle, style: theme.textTheme.bodyMedium),
                 const SizedBox(height: 12),
                 Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: entries
-                      .map((label) => Chip(
-                            label: Text(label),
-                          ))
+                      .map((label) => Chip(label: Text(label)))
                       .toList(),
                 ),
               ],
@@ -641,7 +637,8 @@ class _TimezoneSection extends StatelessWidget {
 
     final theme = Theme.of(context);
     final countryMap = {
-      for (final country in snapshot.countries) country.code: country.englishName
+      for (final country in snapshot.countries)
+        country.code: country.englishName,
     };
     final preview = snapshot.timezones.take(6).toList();
 
@@ -650,7 +647,9 @@ class _TimezoneSection extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
         child: Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -689,8 +688,7 @@ class _TimezoneSection extends StatelessWidget {
                               : zonePreview,
                         ),
                       ),
-                      if (index != preview.length - 1)
-                        const Divider(height: 1),
+                      if (index != preview.length - 1) const Divider(height: 1),
                     ],
                   );
                 }),
@@ -718,7 +716,7 @@ class _WatchProvidersSection extends StatelessWidget {
     final theme = Theme.of(context);
     final regionMap = {
       for (final region in snapshot.watchProviderRegions)
-        region.countryCode: region.englishName
+        region.countryCode: region.englishName,
     };
 
     final prioritizedRegions = <String>['US', 'GB', 'CA', 'AU', 'IN', 'BR'];
@@ -741,7 +739,9 @@ class _WatchProvidersSection extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
         child: Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -839,10 +839,7 @@ class _ProviderWrap extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: theme.textTheme.labelLarge,
-          ),
+          Text(label, style: theme.textTheme.labelLarge),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -894,7 +891,8 @@ class _CertificationSection extends StatelessWidget {
 
     final theme = Theme.of(context);
     final countryMap = {
-      for (final country in snapshot.countries) country.code: country.englishName
+      for (final country in snapshot.countries)
+        country.code: country.englishName,
     };
 
     final prioritizedRegions = <String>['US', 'GB', 'CA', 'AU', 'IN'];
@@ -910,7 +908,9 @@ class _CertificationSection extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Card(
           elevation: 3,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -956,23 +956,27 @@ class _CertificationSection extends StatelessWidget {
                       style: theme.textTheme.titleSmall,
                     ),
                     children: [
-                      ...items.take(6).map(
-                        (item) => ListTile(
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 16),
-                          leading: CircleAvatar(
-                            backgroundColor: theme.colorScheme.primaryContainer,
-                            child: Text(
-                              item.certification,
-                              style: theme.textTheme.labelLarge?.copyWith(
-                                color: theme.colorScheme.primary,
+                      ...items
+                          .take(6)
+                          .map(
+                            (item) => ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
+                              leading: CircleAvatar(
+                                backgroundColor:
+                                    theme.colorScheme.primaryContainer,
+                                child: Text(
+                                  item.certification,
+                                  style: theme.textTheme.labelLarge?.copyWith(
+                                    color: theme.colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                              title: Text(item.meaning),
+                              subtitle: Text('Order: ${item.order}'),
                             ),
                           ),
-                          title: Text(item.meaning),
-                          subtitle: Text('Order: ${item.order}'),
-                        ),
-                      ),
                     ],
                   );
                 }),

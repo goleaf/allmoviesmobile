@@ -7,13 +7,13 @@ part of 'video_model.dart';
 // **************************************************************************
 
 _$VideoImpl _$$VideoImplFromJson(Map<String, dynamic> json) => _$VideoImpl(
-      key: json['key'] as String,
-      site: json['site'] as String,
-      type: json['type'] as String,
-      name: json['name'] as String,
-      official: json['official'] as bool,
-      publishedAt: json['published_at'] as String,
-    );
+  key: json['key'] as String,
+  site: json['site'] as String,
+  type: json['type'] as String,
+  name: json['name'] as String,
+  official: json['official'] as bool,
+  publishedAt: json['published_at'] as String,
+);
 
 Map<String, dynamic> _$$VideoImplToJson(_$VideoImpl instance) =>
     <String, dynamic>{

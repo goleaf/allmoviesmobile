@@ -32,26 +32,19 @@ class MediaList extends StatelessWidget {
                 ),
               ),
               if (onSeeAll != null)
-                TextButton(
-                  onPressed: onSeeAll,
-                  child: const Text('See All'),
-                ),
+                TextButton(onPressed: onSeeAll, child: const Text('See All')),
             ],
           ),
         ),
         if (isLoading)
           const SizedBox(
             height: 200,
-            child: Center(
-              child: CircularProgressIndicator(),
-            ),
+            child: Center(child: CircularProgressIndicator()),
           )
         else if (items.isEmpty)
           const SizedBox(
             height: 200,
-            child: Center(
-              child: Text('No items available'),
-            ),
+            child: Center(child: Text('No items available')),
           )
         else
           SizedBox(
@@ -75,4 +68,3 @@ class MediaList extends StatelessWidget {
     );
   }
 }
-

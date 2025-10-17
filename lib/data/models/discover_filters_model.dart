@@ -62,7 +62,7 @@ class DiscoverFilters with _$DiscoverFilters {
     @JsonKey(name: 'with_watch_providers') String? withWatchProviders,
     @JsonKey(name: 'watch_region') String? watchRegion,
     @JsonKey(name: 'with_watch_monetization_types')
-        String? withWatchMonetizationTypes,
+    String? withWatchMonetizationTypes,
   }) = _DiscoverFilters;
 
   factory DiscoverFilters.fromJson(Map<String, dynamic> json) =>
@@ -98,4 +98,3 @@ extension DiscoverFiltersQuery on DiscoverFilters {
     return parameters;
   }
 }
-

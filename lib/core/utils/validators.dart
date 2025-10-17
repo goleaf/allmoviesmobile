@@ -27,7 +27,7 @@ class Validators {
   static String? validateConfirmPassword(String? value, String password) {
     final error = validatePassword(value);
     if (error != null) return error;
-    
+
     if (value != password) {
       return AppStrings.passwordsDoNotMatch;
     }
@@ -41,4 +41,3 @@ class Validators {
     return null;
   }
 }
-

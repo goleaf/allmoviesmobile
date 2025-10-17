@@ -1,57 +1,112 @@
 import 'package:flutter/material.dart';
+import '../data/models/saved_media_item.dart';
 import '../data/services/local_storage_service.dart';
+import 'package:http/http.dart' as http;
 
 class FavoritesProvider with ChangeNotifier {
   final LocalStorageService _storage;
-  
-  Set<int> _favorites = {};
+  final http.Client _httpClient;
 
-  FavoritesProvider(this._storage) {
+  Set<int> _favoriteIds = {};
+  List<SavedMediaItem> _favoriteItems = const <SavedMediaItem>[];
+
+  FavoritesProvider(this._storage, {http.Client? httpClient})
+    : _httpClient = httpClient ?? http.Client() {
     _loadFavorites();
   }
 
-  Set<int> get favorites => _favorites;
-  
-  bool isFavorite(int id) => _favorites.contains(id);
-  
-  int get count => _favorites.length;
+  // Public getters
+  Set<int> get favorites => _favoriteIds;
+  List<SavedMediaItem> get favoriteItems => List.unmodifiable(_favoriteItems);
+  bool isFavorite(int id) => _favoriteIds.contains(id);
+  int get count => _favoriteIds.length;
+
+  bool isWatched(int id, {SavedMediaType type = SavedMediaType.movie}) {
+    for (final item in _favoriteItems) {
+      if (item.id == id && item.type == type) {
+        return item.watched;
+      }
+    }
+    return false;
+  }
 
   void _loadFavorites() {
-    _favorites = _storage.getFavorites();
+    _favoriteItems = _storage.getFavoriteItems();
+    _favoriteIds = _favoriteItems.map((e) => e.id).toSet();
     notifyListeners();
   }
 
-  Future<void> toggleFavorite(int id) async {
-    if (_favorites.contains(id)) {
-      await _storage.removeFromFavorites(id);
-      _favorites.remove(id);
+  Future<void> toggleFavorite(
+    int id, {
+    SavedMediaType type = SavedMediaType.movie,
+  }) async {
+    if (_favoriteIds.contains(id)) {
+      await _storage.removeFromFavorites(id, type: type);
     } else {
-      await _storage.addToFavorites(id);
-      _favorites.add(id);
+      await _storage.addToFavorites(id, type: type);
     }
-    
-    notifyListeners();
+    _loadFavorites();
   }
 
-  Future<void> addFavorite(int id) async {
-    if (!_favorites.contains(id)) {
-      await _storage.addToFavorites(id);
-      _favorites.add(id);
-      notifyListeners();
+  Future<void> addFavorite(
+    int id, {
+    SavedMediaItem? item,
+    SavedMediaType type = SavedMediaType.movie,
+  }) async {
+    if (!_favoriteIds.contains(id)) {
+      await _storage.addToFavorites(id, item: item, type: type);
+      _loadFavorites();
     }
   }
 
-  Future<void> removeFavorite(int id) async {
-    if (_favorites.contains(id)) {
-      await _storage.removeFromFavorites(id);
-      _favorites.remove(id);
-      notifyListeners();
+  Future<void> removeFavorite(
+    int id, {
+    SavedMediaType type = SavedMediaType.movie,
+  }) async {
+    if (_favoriteIds.contains(id)) {
+      await _storage.removeFromFavorites(id, type: type);
+      _loadFavorites();
     }
   }
 
   Future<void> clearFavorites() async {
-    await _storage.saveFavorites(<int>{});
-    _favorites.clear();
-    notifyListeners();
+    await _storage.saveFavoriteItems(const <SavedMediaItem>[]);
+    _loadFavorites();
+  }
+
+  // Watched state management
+  Future<void> setWatched(
+    int id, {
+    required bool watched,
+    SavedMediaType type = SavedMediaType.movie,
+  }) async {
+    final items = List<SavedMediaItem>.from(_favoriteItems);
+    final index = items.indexWhere((it) => it.id == id && it.type == type);
+    if (index < 0) {
+      return;
+    }
+    final updated = items[index].copyWith(
+      watched: watched,
+      watchedAt: watched ? DateTime.now() : null,
+    );
+    items[index] = updated;
+    await _storage.saveFavoriteItems(items);
+    _loadFavorites();
+  }
+
+  // Export / Import
+  String exportToJson() {
+    return SavedMediaItem.encodeList(_favoriteItems);
+  }
+
+  Future<void> importFromRemoteJson(Uri url) async {
+    final response = await _httpClient.get(url);
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final items = SavedMediaItem.decodeList(response.body);
+      await _storage.saveFavoriteItems(items);
+      _loadFavorites();
+      return;
+    }
+    throw Exception('Failed to import favorites: HTTP ${response.statusCode}');
   }
 }

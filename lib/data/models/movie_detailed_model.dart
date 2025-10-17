@@ -118,16 +118,16 @@ class MovieDetailed with _$MovieDetailed {
 
 extension MovieDetailedX on MovieDetailed {
   String? get posterUrl => MediaImageHelper.buildUrl(
-        posterPath,
-        type: MediaImageType.poster,
-        size: MediaImageSize.w500,
-      );
+    posterPath,
+    type: MediaImageType.poster,
+    size: MediaImageSize.w500,
+  );
 
   String? get backdropUrl => MediaImageHelper.buildUrl(
-        backdropPath,
-        type: MediaImageType.backdrop,
-        size: MediaImageSize.w780,
-      );
+    backdropPath,
+    type: MediaImageType.backdrop,
+    size: MediaImageSize.w780,
+  );
 
   String? get releaseYear => releaseDate != null && releaseDate!.isNotEmpty
       ? releaseDate!.split('-').first

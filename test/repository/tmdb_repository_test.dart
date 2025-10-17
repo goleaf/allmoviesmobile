@@ -24,7 +24,11 @@ void main() {
         if (match.isEmpty) {
           return http.Response('Not Found', 404);
         }
-        return http.Response(jsonEncode(routes[match]), 200, headers: {'content-type': 'application/json'});
+        return http.Response(
+          jsonEncode(routes[match]),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
       });
     }
 
@@ -34,17 +38,16 @@ void main() {
         'total_pages': 1,
         'total_results': 1,
         'results': [
-          {
-            'id': 1,
-            'title': 'A',
-            'media_type': 'movie',
-          }
-        ]
+          {'id': 1, 'title': 'A', 'media_type': 'movie'},
+        ],
       };
-      final client = buildClient({
-        '/3/trending/movie/day?': payload,
-      });
-      final repo = TmdbRepository(client: client, cacheService: CacheService(), apiKey: 'k', language: 'en-US');
+      final client = buildClient({'/3/trending/movie/day?': payload});
+      final repo = TmdbRepository(
+        client: client,
+        cacheService: CacheService(),
+        apiKey: 'k',
+        language: 'en-US',
+      );
       final list = await repo.fetchTrendingMovies();
       expect(list, isNotEmpty);
       expect(list.first.title, 'A');
@@ -57,14 +60,23 @@ void main() {
         'total_pages': 1,
         'total_results': 1,
         'results': [
-          {'id': 1, 'title': 'A'}
-        ]
+          {'id': 1, 'title': 'A'},
+        ],
       };
       final client = MockClient((request) async {
         count++;
-        return http.Response(jsonEncode(data), 200, headers: {'content-type': 'application/json'});
+        return http.Response(
+          jsonEncode(data),
+          200,
+          headers: {'content-type': 'application/json'},
+        );
       });
-      final repo = TmdbRepository(client: client, cacheService: CacheService(), apiKey: 'k', language: 'en-US');
+      final repo = TmdbRepository(
+        client: client,
+        cacheService: CacheService(),
+        apiKey: 'k',
+        language: 'en-US',
+      );
       final a = await repo.fetchPopularMovies();
       final b = await repo.fetchPopularMovies();
       expect(count, 1);
@@ -76,7 +88,12 @@ void main() {
       final client = MockClient((request) async {
         return http.Response('fail', 500);
       });
-      final repo = TmdbRepository(client: client, cacheService: CacheService(), apiKey: 'k', language: 'en-US');
+      final repo = TmdbRepository(
+        client: client,
+        cacheService: CacheService(),
+        apiKey: 'k',
+        language: 'en-US',
+      );
       expect(
         () => repo.fetchTrendingTitles(mediaType: 'movie', timeWindow: 'day'),
         throwsA(isA<TmdbException>()),
@@ -84,5 +101,3 @@ void main() {
     });
   });
 }
-
-

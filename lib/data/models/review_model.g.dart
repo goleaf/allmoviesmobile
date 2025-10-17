@@ -23,15 +23,16 @@ Map<String, dynamic> _$$ReviewAuthorImplToJson(_$ReviewAuthorImpl instance) =>
     };
 
 _$ReviewImpl _$$ReviewImplFromJson(Map<String, dynamic> json) => _$ReviewImpl(
-      id: json['id'] as String,
-      author: json['author'] as String,
-      authorDetails:
-          ReviewAuthor.fromJson(json['author_details'] as Map<String, dynamic>),
-      content: json['content'] as String,
-      createdAt: json['created_at'] as String,
-      updatedAt: json['updated_at'] as String?,
-      url: json['url'] as String?,
-    );
+  id: json['id'] as String,
+  author: json['author'] as String,
+  authorDetails: ReviewAuthor.fromJson(
+    json['author_details'] as Map<String, dynamic>,
+  ),
+  content: json['content'] as String,
+  createdAt: json['created_at'] as String,
+  updatedAt: json['updated_at'] as String?,
+  url: json['url'] as String?,
+);
 
 Map<String, dynamic> _$$ReviewImplToJson(_$ReviewImpl instance) =>
     <String, dynamic>{

@@ -12,7 +12,8 @@ part of 'collection_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 Collection _$CollectionFromJson(Map<String, dynamic> json) {
   return _Collection.fromJson(json);
@@ -36,14 +37,16 @@ mixin _$Collection {
 /// @nodoc
 abstract class $CollectionCopyWith<$Res> {
   factory $CollectionCopyWith(
-          Collection value, $Res Function(Collection) then) =
-      _$CollectionCopyWithImpl<$Res, Collection>;
+    Collection value,
+    $Res Function(Collection) then,
+  ) = _$CollectionCopyWithImpl<$Res, Collection>;
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+  });
 }
 
 /// @nodoc
@@ -64,24 +67,27 @@ class _$CollectionCopyWithImpl<$Res, $Val extends Collection>
     Object? posterPath = freezed,
     Object? backdropPath = freezed,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -89,15 +95,17 @@ class _$CollectionCopyWithImpl<$Res, $Val extends Collection>
 abstract class _$$CollectionImplCopyWith<$Res>
     implements $CollectionCopyWith<$Res> {
   factory _$$CollectionImplCopyWith(
-          _$CollectionImpl value, $Res Function(_$CollectionImpl) then) =
-      __$$CollectionImplCopyWithImpl<$Res>;
+    _$CollectionImpl value,
+    $Res Function(_$CollectionImpl) then,
+  ) = __$$CollectionImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+  });
 }
 
 /// @nodoc
@@ -105,8 +113,9 @@ class __$$CollectionImplCopyWithImpl<$Res>
     extends _$CollectionCopyWithImpl<$Res, _$CollectionImpl>
     implements _$$CollectionImplCopyWith<$Res> {
   __$$CollectionImplCopyWithImpl(
-      _$CollectionImpl _value, $Res Function(_$CollectionImpl) _then)
-      : super(_value, _then);
+    _$CollectionImpl _value,
+    $Res Function(_$CollectionImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -116,35 +125,38 @@ class __$$CollectionImplCopyWithImpl<$Res>
     Object? posterPath = freezed,
     Object? backdropPath = freezed,
   }) {
-    return _then(_$CollectionImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$CollectionImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CollectionImpl implements _Collection {
-  const _$CollectionImpl(
-      {required this.id,
-      required this.name,
-      @JsonKey(name: 'poster_path') this.posterPath,
-      @JsonKey(name: 'backdrop_path') this.backdropPath});
+  const _$CollectionImpl({
+    required this.id,
+    required this.name,
+    @JsonKey(name: 'poster_path') this.posterPath,
+    @JsonKey(name: 'backdrop_path') this.backdropPath,
+  });
 
   factory _$CollectionImpl.fromJson(Map<String, dynamic> json) =>
       _$$CollectionImplFromJson(json);
@@ -191,19 +203,17 @@ class _$CollectionImpl implements _Collection {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CollectionImplToJson(
-      this,
-    );
+    return _$$CollectionImplToJson(this);
   }
 }
 
 abstract class _Collection implements Collection {
-  const factory _Collection(
-          {required final int id,
-          required final String name,
-          @JsonKey(name: 'poster_path') final String? posterPath,
-          @JsonKey(name: 'backdrop_path') final String? backdropPath}) =
-      _$CollectionImpl;
+  const factory _Collection({
+    required final int id,
+    required final String name,
+    @JsonKey(name: 'poster_path') final String? posterPath,
+    @JsonKey(name: 'backdrop_path') final String? backdropPath,
+  }) = _$CollectionImpl;
 
   factory _Collection.fromJson(Map<String, dynamic> json) =
       _$CollectionImpl.fromJson;
@@ -248,16 +258,18 @@ mixin _$CollectionDetails {
 /// @nodoc
 abstract class $CollectionDetailsCopyWith<$Res> {
   factory $CollectionDetailsCopyWith(
-          CollectionDetails value, $Res Function(CollectionDetails) then) =
-      _$CollectionDetailsCopyWithImpl<$Res, CollectionDetails>;
+    CollectionDetails value,
+    $Res Function(CollectionDetails) then,
+  ) = _$CollectionDetailsCopyWithImpl<$Res, CollectionDetails>;
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      String? overview,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      List<MovieRef> parts});
+  $Res call({
+    int id,
+    String name,
+    String? overview,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    List<MovieRef> parts,
+  });
 }
 
 /// @nodoc
@@ -280,59 +292,65 @@ class _$CollectionDetailsCopyWithImpl<$Res, $Val extends CollectionDetails>
     Object? backdropPath = freezed,
     Object? parts = null,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      parts: null == parts
-          ? _value.parts
-          : parts // ignore: cast_nullable_to_non_nullable
-              as List<MovieRef>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            overview: freezed == overview
+                ? _value.overview
+                : overview // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            parts: null == parts
+                ? _value.parts
+                : parts // ignore: cast_nullable_to_non_nullable
+                      as List<MovieRef>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$CollectionDetailsImplCopyWith<$Res>
     implements $CollectionDetailsCopyWith<$Res> {
-  factory _$$CollectionDetailsImplCopyWith(_$CollectionDetailsImpl value,
-          $Res Function(_$CollectionDetailsImpl) then) =
-      __$$CollectionDetailsImplCopyWithImpl<$Res>;
+  factory _$$CollectionDetailsImplCopyWith(
+    _$CollectionDetailsImpl value,
+    $Res Function(_$CollectionDetailsImpl) then,
+  ) = __$$CollectionDetailsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      String? overview,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      List<MovieRef> parts});
+  $Res call({
+    int id,
+    String name,
+    String? overview,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    List<MovieRef> parts,
+  });
 }
 
 /// @nodoc
 class __$$CollectionDetailsImplCopyWithImpl<$Res>
     extends _$CollectionDetailsCopyWithImpl<$Res, _$CollectionDetailsImpl>
     implements _$$CollectionDetailsImplCopyWith<$Res> {
-  __$$CollectionDetailsImplCopyWithImpl(_$CollectionDetailsImpl _value,
-      $Res Function(_$CollectionDetailsImpl) _then)
-      : super(_value, _then);
+  __$$CollectionDetailsImplCopyWithImpl(
+    _$CollectionDetailsImpl _value,
+    $Res Function(_$CollectionDetailsImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -344,46 +362,48 @@ class __$$CollectionDetailsImplCopyWithImpl<$Res>
     Object? backdropPath = freezed,
     Object? parts = null,
   }) {
-    return _then(_$CollectionDetailsImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      parts: null == parts
-          ? _value._parts
-          : parts // ignore: cast_nullable_to_non_nullable
-              as List<MovieRef>,
-    ));
+    return _then(
+      _$CollectionDetailsImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        overview: freezed == overview
+            ? _value.overview
+            : overview // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        parts: null == parts
+            ? _value._parts
+            : parts // ignore: cast_nullable_to_non_nullable
+                  as List<MovieRef>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CollectionDetailsImpl implements _CollectionDetails {
-  const _$CollectionDetailsImpl(
-      {required this.id,
-      required this.name,
-      this.overview,
-      @JsonKey(name: 'poster_path') this.posterPath,
-      @JsonKey(name: 'backdrop_path') this.backdropPath,
-      final List<MovieRef> parts = const []})
-      : _parts = parts;
+  const _$CollectionDetailsImpl({
+    required this.id,
+    required this.name,
+    this.overview,
+    @JsonKey(name: 'poster_path') this.posterPath,
+    @JsonKey(name: 'backdrop_path') this.backdropPath,
+    final List<MovieRef> parts = const [],
+  }) : _parts = parts;
 
   factory _$CollectionDetailsImpl.fromJson(Map<String, dynamic> json) =>
       _$$CollectionDetailsImplFromJson(json);
@@ -432,32 +452,40 @@ class _$CollectionDetailsImpl implements _CollectionDetails {
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, id, name, overview, posterPath,
-      backdropPath, const DeepCollectionEquality().hash(_parts));
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    name,
+    overview,
+    posterPath,
+    backdropPath,
+    const DeepCollectionEquality().hash(_parts),
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CollectionDetailsImplCopyWith<_$CollectionDetailsImpl> get copyWith =>
       __$$CollectionDetailsImplCopyWithImpl<_$CollectionDetailsImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CollectionDetailsImplToJson(
-      this,
-    );
+    return _$$CollectionDetailsImplToJson(this);
   }
 }
 
 abstract class _CollectionDetails implements CollectionDetails {
-  const factory _CollectionDetails(
-      {required final int id,
-      required final String name,
-      final String? overview,
-      @JsonKey(name: 'poster_path') final String? posterPath,
-      @JsonKey(name: 'backdrop_path') final String? backdropPath,
-      final List<MovieRef> parts}) = _$CollectionDetailsImpl;
+  const factory _CollectionDetails({
+    required final int id,
+    required final String name,
+    final String? overview,
+    @JsonKey(name: 'poster_path') final String? posterPath,
+    @JsonKey(name: 'backdrop_path') final String? backdropPath,
+    final List<MovieRef> parts,
+  }) = _$CollectionDetailsImpl;
 
   factory _CollectionDetails.fromJson(Map<String, dynamic> json) =
       _$CollectionDetailsImpl.fromJson;

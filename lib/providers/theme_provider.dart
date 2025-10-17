@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-enum AppThemeMode {
-  light,
-  dark,
-  system,
-}
+enum AppThemeMode { light, dark, system }
 
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'allmovies_theme_mode';
@@ -57,4 +53,3 @@ class ThemeProvider extends ChangeNotifier {
     }
   }
 }
-

@@ -5,7 +5,7 @@ import 'package:logger/logger.dart';
 /// Centralized error handling for the application
 class ErrorHandler {
   static Logger? _logger;
-  
+
   static Logger get logger {
     _logger ??= Logger(
       printer: PrettyPrinter(
@@ -19,7 +19,7 @@ class ErrorHandler {
     );
     return _logger!;
   }
-  
+
   /// Disable logging (useful for tests)
   static void disableLogging() {
     _logger = null;
@@ -178,4 +178,3 @@ class ErrorHandler {
     }
   }
 }
-

@@ -6,9 +6,7 @@ part 'change_model.g.dart';
 /// Change item value
 @freezed
 class ChangeValue with _$ChangeValue {
-  const factory ChangeValue({
-    dynamic value,
-  }) = _ChangeValue;
+  const factory ChangeValue({dynamic value}) = _ChangeValue;
 
   factory ChangeValue.fromJson(Map<String, dynamic> json) =>
       _$ChangeValueFromJson(json);
@@ -39,18 +37,15 @@ class Change with _$Change {
     @Default([]) List<ChangeItem> items,
   }) = _Change;
 
-  factory Change.fromJson(Map<String, dynamic> json) =>
-      _$ChangeFromJson(json);
+  factory Change.fromJson(Map<String, dynamic> json) => _$ChangeFromJson(json);
 }
 
 /// Changes response
 @freezed
 class ChangesResponse with _$ChangesResponse {
-  const factory ChangesResponse({
-    @Default([]) List<Change> changes,
-  }) = _ChangesResponse;
+  const factory ChangesResponse({@Default([]) List<Change> changes}) =
+      _ChangesResponse;
 
   factory ChangesResponse.fromJson(Map<String, dynamic> json) =>
       _$ChangesResponseFromJson(json);
 }
-

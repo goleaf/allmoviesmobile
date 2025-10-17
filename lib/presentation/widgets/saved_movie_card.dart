@@ -103,9 +103,7 @@ class _LoadingCard extends StatelessWidget {
           Expanded(
             child: Container(
               color: Colors.grey[300],
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
+              child: const Center(child: CircularProgressIndicator()),
             ),
           ),
           Padding(
@@ -157,10 +155,7 @@ class _ErrorCard extends StatelessWidget {
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: Text(retryLabel),
-            ),
+            ElevatedButton(onPressed: onRetry, child: Text(retryLabel)),
           ],
         ),
       ),
@@ -244,18 +239,14 @@ class _MovieContent extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         if (voteAverage > 0) ...[
-                          const Icon(
-                            Icons.star,
-                            size: 14,
-                            color: Colors.amber,
-                          ),
+                          const Icon(Icons.star, size: 14, color: Colors.amber),
                           const SizedBox(width: 4),
                           Text(
                             voteAverage.toStringAsFixed(1),
@@ -267,9 +258,7 @@ class _MovieContent extends StatelessWidget {
                         if (releaseYear != null)
                           Text(
                             releaseYear,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall
+                            style: Theme.of(context).textTheme.bodySmall
                                 ?.copyWith(color: Colors.grey[600]),
                           ),
                       ],
@@ -320,11 +309,7 @@ class _ActionIcon extends StatelessWidget {
         },
         child: Padding(
           padding: const EdgeInsets.all(6),
-          child: Icon(
-            icon,
-            size: 20,
-            color: color,
-          ),
+          child: Icon(icon, size: 20, color: color),
         ),
       ),
     );
@@ -333,9 +318,6 @@ class _ActionIcon extends StatelessWidget {
       return button;
     }
 
-    return Tooltip(
-      message: tooltip!,
-      child: button,
-    );
+    return Tooltip(message: tooltip!, child: button);
   }
 }

@@ -32,7 +32,7 @@ const WatchProviderRegionEntitySchema = CollectionSchema(
       id: 2,
       name: r'nativeName',
       type: IsarType.string,
-    )
+    ),
   },
   estimateSize: _watchProviderRegionEntityEstimateSize,
   serialize: _watchProviderRegionEntitySerialize,
@@ -50,9 +50,9 @@ const WatchProviderRegionEntitySchema = CollectionSchema(
           name: r'iso3166_1',
           type: IndexType.hash,
           caseSensitive: true,
-        )
+        ),
       ],
-    )
+    ),
   },
   links: {},
   embeddedSchemas: {},
@@ -127,12 +127,16 @@ Id _watchProviderRegionEntityGetId(WatchProviderRegionEntity object) {
 }
 
 List<IsarLinkBase<dynamic>> _watchProviderRegionEntityGetLinks(
-    WatchProviderRegionEntity object) {
+  WatchProviderRegionEntity object,
+) {
   return [];
 }
 
 void _watchProviderRegionEntityAttach(
-    IsarCollection<dynamic> col, Id id, WatchProviderRegionEntity object) {
+  IsarCollection<dynamic> col,
+  Id id,
+  WatchProviderRegionEntity object,
+) {
   object.id = id;
 }
 
@@ -155,13 +159,15 @@ extension WatchProviderRegionEntityByIndex
   }
 
   Future<List<WatchProviderRegionEntity?>> getAllByIso3166_1(
-      List<String> iso3166_1Values) {
+    List<String> iso3166_1Values,
+  ) {
     final values = iso3166_1Values.map((e) => [e]).toList();
     return getAllByIndex(r'iso3166_1', values);
   }
 
   List<WatchProviderRegionEntity?> getAllByIso3166_1Sync(
-      List<String> iso3166_1Values) {
+    List<String> iso3166_1Values,
+  ) {
     final values = iso3166_1Values.map((e) => [e]).toList();
     return getAllByIndexSync(r'iso3166_1', values);
   }
@@ -180,8 +186,10 @@ extension WatchProviderRegionEntityByIndex
     return putByIndex(r'iso3166_1', object);
   }
 
-  Id putByIso3166_1Sync(WatchProviderRegionEntity object,
-      {bool saveLinks = true}) {
+  Id putByIso3166_1Sync(
+    WatchProviderRegionEntity object, {
+    bool saveLinks = true,
+  }) {
     return putByIndexSync(r'iso3166_1', object, saveLinks: saveLinks);
   }
 
@@ -189,36 +197,57 @@ extension WatchProviderRegionEntityByIndex
     return putAllByIndex(r'iso3166_1', objects);
   }
 
-  List<Id> putAllByIso3166_1Sync(List<WatchProviderRegionEntity> objects,
-      {bool saveLinks = true}) {
+  List<Id> putAllByIso3166_1Sync(
+    List<WatchProviderRegionEntity> objects, {
+    bool saveLinks = true,
+  }) {
     return putAllByIndexSync(r'iso3166_1', objects, saveLinks: saveLinks);
   }
 }
 
-extension WatchProviderRegionEntityQueryWhereSort on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QWhere> {
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhere> anyId() {
+extension WatchProviderRegionEntityQueryWhereSort
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QWhere
+        > {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhere
+  >
+  anyId() {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(const IdWhereClause.any());
     });
   }
 }
 
-extension WatchProviderRegionEntityQueryWhere on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QWhereClause> {
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhereClause> idEqualTo(Id id) {
+extension WatchProviderRegionEntityQueryWhere
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QWhereClause
+        > {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhereClause
+  >
+  idEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: id,
-        upper: id,
-      ));
+      return query.addWhereClause(IdWhereClause.between(lower: id, upper: id));
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhereClause> idNotEqualTo(Id id) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhereClause
+  >
+  idNotEqualTo(Id id) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
@@ -240,8 +269,12 @@ extension WatchProviderRegionEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhereClause> idGreaterThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhereClause
+  >
+  idGreaterThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.greaterThan(lower: id, includeLower: include),
@@ -249,8 +282,12 @@ extension WatchProviderRegionEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhereClause> idLessThan(Id id, {bool include = false}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhereClause
+  >
+  idLessThan(Id id, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
       return query.addWhereClause(
         IdWhereClause.lessThan(upper: id, includeUpper: include),
@@ -258,119 +295,164 @@ extension WatchProviderRegionEntityQueryWhere on QueryBuilder<
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhereClause> idBetween(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhereClause
+  >
+  idBetween(
     Id lowerId,
     Id upperId, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IdWhereClause.between(
-        lower: lowerId,
-        includeLower: includeLower,
-        upper: upperId,
-        includeUpper: includeUpper,
-      ));
+      return query.addWhereClause(
+        IdWhereClause.between(
+          lower: lowerId,
+          includeLower: includeLower,
+          upper: upperId,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhereClause> iso3166_1EqualTo(String iso3166_1) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhereClause
+  >
+  iso3166_1EqualTo(String iso3166_1) {
     return QueryBuilder.apply(this, (query) {
-      return query.addWhereClause(IndexWhereClause.equalTo(
-        indexName: r'iso3166_1',
-        value: [iso3166_1],
-      ));
+      return query.addWhereClause(
+        IndexWhereClause.equalTo(indexName: r'iso3166_1', value: [iso3166_1]),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterWhereClause> iso3166_1NotEqualTo(String iso3166_1) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterWhereClause
+  >
+  iso3166_1NotEqualTo(String iso3166_1) {
     return QueryBuilder.apply(this, (query) {
       if (query.whereSort == Sort.asc) {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso3166_1',
-              lower: [],
-              upper: [iso3166_1],
-              includeUpper: false,
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso3166_1',
-              lower: [iso3166_1],
-              includeLower: false,
-              upper: [],
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso3166_1',
+                lower: [],
+                upper: [iso3166_1],
+                includeUpper: false,
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso3166_1',
+                lower: [iso3166_1],
+                includeLower: false,
+                upper: [],
+              ),
+            );
       } else {
         return query
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso3166_1',
-              lower: [iso3166_1],
-              includeLower: false,
-              upper: [],
-            ))
-            .addWhereClause(IndexWhereClause.between(
-              indexName: r'iso3166_1',
-              lower: [],
-              upper: [iso3166_1],
-              includeUpper: false,
-            ));
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso3166_1',
+                lower: [iso3166_1],
+                includeLower: false,
+                upper: [],
+              ),
+            )
+            .addWhereClause(
+              IndexWhereClause.between(
+                indexName: r'iso3166_1',
+                lower: [],
+                upper: [iso3166_1],
+                includeUpper: false,
+              ),
+            );
       }
     });
   }
 }
 
-extension WatchProviderRegionEntityQueryFilter on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QFilterCondition> {
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameEqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+extension WatchProviderRegionEntityQueryFilter
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QFilterCondition
+        > {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameEqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'englishName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'englishName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'englishName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameLessThan(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameGreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'englishName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'englishName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameBetween(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'englishName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameBetween(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -378,193 +460,251 @@ extension WatchProviderRegionEntityQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'englishName',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'englishName',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'englishName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'englishName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'englishName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'englishName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-          QAfterFilterCondition>
-      englishNameContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'englishName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'englishName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-          QAfterFilterCondition>
-      englishNameMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'englishName',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'englishName',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameIsEmpty() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'englishName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'englishName', value: ''),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> englishNameIsNotEmpty() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  englishNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'englishName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'englishName', value: ''),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> idEqualTo(Id value) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  idEqualTo(Id value) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'id', value: value),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> idGreaterThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  idGreaterThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> idLessThan(
-    Id value, {
-    bool include = false,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  idLessThan(Id value, {bool include = false}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'id',
-        value: value,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'id',
+          value: value,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> idBetween(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  idBetween(
     Id lower,
     Id upper, {
     bool includeLower = true,
     bool includeUpper = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'id',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'id',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1EqualTo(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1EqualTo(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'iso3166_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'iso3166_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1GreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'iso3166_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
-    });
-  }
-
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1LessThan(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1GreaterThan(
     String value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'iso3166_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'iso3166_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1Between(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1LessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'iso3166_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
+    });
+  }
+
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1Between(
     String lower,
     String upper, {
     bool includeLower = true,
@@ -572,155 +712,206 @@ extension WatchProviderRegionEntityQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'iso3166_1',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'iso3166_1',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1StartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1StartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'iso3166_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'iso3166_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1EndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1EndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'iso3166_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'iso3166_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-          QAfterFilterCondition>
-      iso3166_1Contains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1Contains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'iso3166_1',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'iso3166_1',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-          QAfterFilterCondition>
-      iso3166_1Matches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1Matches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'iso3166_1',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'iso3166_1',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1IsEmpty() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1IsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'iso3166_1',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'iso3166_1', value: ''),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> iso3166_1IsNotEmpty() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  iso3166_1IsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'iso3166_1',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'iso3166_1', value: ''),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameIsNull() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameIsNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNull(
-        property: r'nativeName',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNull(property: r'nativeName'),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameIsNotNull() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameIsNotNull() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(const FilterCondition.isNotNull(
-        property: r'nativeName',
-      ));
+      return query.addFilterCondition(
+        const FilterCondition.isNotNull(property: r'nativeName'),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameEqualTo(
-    String? value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameEqualTo(String? value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nativeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(
+          property: r'nativeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameGreaterThan(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameGreaterThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        include: include,
-        property: r'nativeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(
+          include: include,
+          property: r'nativeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameLessThan(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameLessThan(
     String? value, {
     bool include = false,
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.lessThan(
-        include: include,
-        property: r'nativeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.lessThan(
+          include: include,
+          property: r'nativeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameBetween(
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameBetween(
     String? lower,
     String? upper, {
     bool includeLower = true,
@@ -728,226 +919,336 @@ extension WatchProviderRegionEntityQueryFilter on QueryBuilder<
     bool caseSensitive = true,
   }) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.between(
-        property: r'nativeName',
-        lower: lower,
-        includeLower: includeLower,
-        upper: upper,
-        includeUpper: includeUpper,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.between(
+          property: r'nativeName',
+          lower: lower,
+          includeLower: includeLower,
+          upper: upper,
+          includeUpper: includeUpper,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameStartsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameStartsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.startsWith(
-        property: r'nativeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.startsWith(
+          property: r'nativeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameEndsWith(
-    String value, {
-    bool caseSensitive = true,
-  }) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameEndsWith(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.endsWith(
-        property: r'nativeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.endsWith(
+          property: r'nativeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-          QAfterFilterCondition>
-      nativeNameContains(String value, {bool caseSensitive = true}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameContains(String value, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.contains(
-        property: r'nativeName',
-        value: value,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.contains(
+          property: r'nativeName',
+          value: value,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-          QAfterFilterCondition>
-      nativeNameMatches(String pattern, {bool caseSensitive = true}) {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameMatches(String pattern, {bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.matches(
-        property: r'nativeName',
-        wildcard: pattern,
-        caseSensitive: caseSensitive,
-      ));
+      return query.addFilterCondition(
+        FilterCondition.matches(
+          property: r'nativeName',
+          wildcard: pattern,
+          caseSensitive: caseSensitive,
+        ),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameIsEmpty() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameIsEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.equalTo(
-        property: r'nativeName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.equalTo(property: r'nativeName', value: ''),
+      );
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterFilterCondition> nativeNameIsNotEmpty() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterFilterCondition
+  >
+  nativeNameIsNotEmpty() {
     return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(FilterCondition.greaterThan(
-        property: r'nativeName',
-        value: '',
-      ));
+      return query.addFilterCondition(
+        FilterCondition.greaterThan(property: r'nativeName', value: ''),
+      );
     });
   }
 }
 
-extension WatchProviderRegionEntityQueryObject on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QFilterCondition> {}
+extension WatchProviderRegionEntityQueryObject
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QFilterCondition
+        > {}
 
-extension WatchProviderRegionEntityQueryLinks on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QFilterCondition> {}
+extension WatchProviderRegionEntityQueryLinks
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QFilterCondition
+        > {}
 
-extension WatchProviderRegionEntityQuerySortBy on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QSortBy> {
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> sortByEnglishName() {
+extension WatchProviderRegionEntityQuerySortBy
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QSortBy
+        > {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  sortByEnglishName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'englishName', Sort.asc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> sortByEnglishNameDesc() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  sortByEnglishNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'englishName', Sort.desc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> sortByIso3166_1() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  sortByIso3166_1() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso3166_1', Sort.asc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> sortByIso3166_1Desc() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  sortByIso3166_1Desc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso3166_1', Sort.desc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> sortByNativeName() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  sortByNativeName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'nativeName', Sort.asc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> sortByNativeNameDesc() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  sortByNativeNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'nativeName', Sort.desc);
     });
   }
 }
 
-extension WatchProviderRegionEntityQuerySortThenBy on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QSortThenBy> {
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenByEnglishName() {
+extension WatchProviderRegionEntityQuerySortThenBy
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QSortThenBy
+        > {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenByEnglishName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'englishName', Sort.asc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenByEnglishNameDesc() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenByEnglishNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'englishName', Sort.desc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenById() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenById() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.asc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenByIdDesc() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenByIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'id', Sort.desc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenByIso3166_1() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenByIso3166_1() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso3166_1', Sort.asc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenByIso3166_1Desc() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenByIso3166_1Desc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'iso3166_1', Sort.desc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenByNativeName() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenByNativeName() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'nativeName', Sort.asc);
     });
   }
 
-  QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity,
-      QAfterSortBy> thenByNativeNameDesc() {
+  QueryBuilder<
+    WatchProviderRegionEntity,
+    WatchProviderRegionEntity,
+    QAfterSortBy
+  >
+  thenByNativeNameDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'nativeName', Sort.desc);
     });
   }
 }
 
-extension WatchProviderRegionEntityQueryWhereDistinct on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QDistinct> {
+extension WatchProviderRegionEntityQueryWhereDistinct
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QDistinct
+        > {
   QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity, QDistinct>
-      distinctByEnglishName({bool caseSensitive = true}) {
+  distinctByEnglishName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'englishName', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity, QDistinct>
-      distinctByIso3166_1({bool caseSensitive = true}) {
+  distinctByIso3166_1({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'iso3166_1', caseSensitive: caseSensitive);
     });
   }
 
   QueryBuilder<WatchProviderRegionEntity, WatchProviderRegionEntity, QDistinct>
-      distinctByNativeName({bool caseSensitive = true}) {
+  distinctByNativeName({bool caseSensitive = true}) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'nativeName', caseSensitive: caseSensitive);
     });
   }
 }
 
-extension WatchProviderRegionEntityQueryProperty on QueryBuilder<
-    WatchProviderRegionEntity, WatchProviderRegionEntity, QQueryProperty> {
+extension WatchProviderRegionEntityQueryProperty
+    on
+        QueryBuilder<
+          WatchProviderRegionEntity,
+          WatchProviderRegionEntity,
+          QQueryProperty
+        > {
   QueryBuilder<WatchProviderRegionEntity, int, QQueryOperations> idProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'id');
@@ -955,21 +1256,21 @@ extension WatchProviderRegionEntityQueryProperty on QueryBuilder<
   }
 
   QueryBuilder<WatchProviderRegionEntity, String, QQueryOperations>
-      englishNameProperty() {
+  englishNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'englishName');
     });
   }
 
   QueryBuilder<WatchProviderRegionEntity, String, QQueryOperations>
-      iso3166_1Property() {
+  iso3166_1Property() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'iso3166_1');
     });
   }
 
   QueryBuilder<WatchProviderRegionEntity, String?, QQueryOperations>
-      nativeNameProperty() {
+  nativeNameProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'nativeName');
     });

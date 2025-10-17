@@ -27,19 +27,17 @@ class Season with _$Season {
 
   const Season._();
 
-  factory Season.fromJson(Map<String, dynamic> json) =>
-      _$SeasonFromJson(json);
+  factory Season.fromJson(Map<String, dynamic> json) => _$SeasonFromJson(json);
 
   String? get posterUrl => MediaImageHelper.buildUrl(
-        posterPath,
-        type: MediaImageType.poster,
-        size: MediaImageSize.w500,
-      );
+    posterPath,
+    type: MediaImageType.poster,
+    size: MediaImageSize.w500,
+  );
 
   String? get backdropUrl => MediaImageHelper.buildUrl(
-        backdropPath,
-        type: MediaImageType.backdrop,
-        size: MediaImageSize.w780,
-      );
+    backdropPath,
+    type: MediaImageType.backdrop,
+    size: MediaImageSize.w780,
+  );
 }
-

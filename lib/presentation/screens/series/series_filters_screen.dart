@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
 
 class SeriesFiltersScreen extends StatefulWidget {
@@ -58,13 +59,16 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
 
   void _apply() {
     final filters = <String, String>{
-      if (airFrom != null) 'first_air_date.gte': airFrom!.toIso8601String().split('T').first,
-      if (airTo != null) 'first_air_date.lte': airTo!.toIso8601String().split('T').first,
+      if (airFrom != null)
+        'first_air_date.gte': airFrom!.toIso8601String().split('T').first,
+      if (airTo != null)
+        'first_air_date.lte': airTo!.toIso8601String().split('T').first,
       if (includeNullFirstAirDates) 'include_null_first_air_dates': 'true',
       if (screenedTheatrically) 'screened_theatrically': 'true',
       if (timezone.isNotEmpty) 'timezone': timezone,
       if (watchProviders.isNotEmpty) 'with_watch_providers': watchProviders,
-      if (monetization.isNotEmpty) 'with_watch_monetization_types': monetization.join('|'),
+      if (monetization.isNotEmpty)
+        'with_watch_monetization_types': monetization.join('|'),
       if (language.isNotEmpty) 'with_original_language': language,
       if (firstAirYear != null) 'first_air_date_year': '$firstAirYear',
       if (genres.isNotEmpty) 'with_genres': genres.join(','),
@@ -82,18 +86,16 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text(AppStrings.filters),
+        title: Text(l.t('discover.filters')),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          TextButton(
-            onPressed: _reset,
-            child: const Text(AppStrings.reset),
-          ),
+          TextButton(onPressed: _reset, child: Text(l.t('common.reset'))),
         ],
       ),
       body: ListView(
@@ -103,10 +105,7 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             children: [
               const Icon(Icons.hub_outlined),
               const SizedBox(width: 8),
-              Text(
-                AppStrings.series,
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
+              Text(AppLocalizations.of(context).t('tv.series'), style: Theme.of(context).textTheme.titleLarge),
             ],
           ),
           const SizedBox(height: 12),
@@ -116,7 +115,7 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final entry in const [
+              for (final entry in [
                 {'id': 213, 'name': 'Netflix'},
                 {'id': 49, 'name': 'HBO'},
                 {'id': 1024, 'name': 'Amazon'},
@@ -129,7 +128,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
                   onSelected: (v) {
                     setState(() {
                       final id = entry['id'] as int;
-                      if (v) networks.add(id); else networks.remove(id);
+                      if (v)
+                        networks.add(id);
+                      else
+                        networks.remove(id);
                     });
                   },
                 ),
@@ -141,7 +143,12 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           Wrap(
             spacing: 8,
             children: [
-              for (final s in ['Returning Series', 'Ended', 'Canceled', 'In Production'])
+              for (final s in [
+                'Returning Series',
+                'Ended',
+                'Canceled',
+                'In Production',
+              ])
                 FilterChip(
                   label: Text(s),
                   selected: status == s,
@@ -155,7 +162,14 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           Wrap(
             spacing: 8,
             children: [
-              for (final t in ['Scripted', 'Reality', 'Documentary', 'News', 'Talk Show', 'Miniseries'])
+              for (final t in [
+                'Scripted',
+                'Reality',
+                'Documentary',
+                'News',
+                'Talk Show',
+                'Miniseries',
+              ])
                 FilterChip(
                   label: Text(t),
                   selected: type == t,
@@ -164,18 +178,27 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Air Date Range', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Air Date Range',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.date_range),
-                  label: Text(airFrom == null ? 'From' : airFrom!.toIso8601String().split('T').first),
+                  label: Text(
+                    airFrom == null
+                        ? 'From'
+                        : airFrom!.toIso8601String().split('T').first,
+                  ),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: context,
-                      initialDate: airFrom ?? DateTime.now().subtract(const Duration(days: 3650)),
+                      initialDate:
+                          airFrom ??
+                          DateTime.now().subtract(const Duration(days: 3650)),
                       firstDate: DateTime(1950),
                       lastDate: DateTime.now(),
                     );
@@ -187,7 +210,11 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.event),
-                  label: Text(airTo == null ? 'To' : airTo!.toIso8601String().split('T').first),
+                  label: Text(
+                    airTo == null
+                        ? 'To'
+                        : airTo!.toIso8601String().split('T').first,
+                  ),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: context,
@@ -202,12 +229,15 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text('Original Language', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Original Language',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: [
-              for (final lang in ['en','es','fr','de','it','ja','ko'])
+              for (final lang in ['en', 'es', 'fr', 'de', 'it', 'ja', 'ko'])
                 FilterChip(
                   label: Text(lang.toUpperCase()),
                   selected: language == lang,
@@ -216,7 +246,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text('First Air Date Year', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'First Air Date Year',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -225,7 +258,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
                 FilterChip(
                   label: Text('$y'),
                   selected: firstAirYear == y,
-                  onSelected: (v) => setState(() => firstAirYear = v ? y : null),
+                  onSelected: (v) =>
+                      setState(() => firstAirYear = v ? y : null),
                 ),
             ],
           ),
@@ -236,7 +270,7 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              for (final g in const [
+              for (final g in [
                 {'id': 18, 'name': 'Drama'},
                 {'id': 35, 'name': 'Comedy'},
                 {'id': 80, 'name': 'Crime'},
@@ -251,7 +285,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
                   onSelected: (v) {
                     setState(() {
                       final id = g['id'] as int;
-                      if (v) genres.add(id); else genres.remove(id);
+                      if (v)
+                        genres.add(id);
+                      else
+                        genres.remove(id);
                     });
                   },
                 ),
@@ -274,18 +311,29 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           Text('Timezone', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: 'e.g., America/New_York'),
+            decoration: const InputDecoration(
+              hintText: 'e.g., America/New_York',
+            ),
             onChanged: (v) => setState(() => timezone = v.trim()),
           ),
           const SizedBox(height: 16),
-          Text('Watch Providers (IDs)', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          TextField(
-            decoration: const InputDecoration(hintText: 'Comma-separated provider IDs'),
-            onChanged: (v) => setState(() => watchProviders = v.replaceAll(' ', '')),
+          Text(
+            'Watch Providers (IDs)',
+            style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          Text('Monetization Types', style: Theme.of(context).textTheme.titleMedium),
+          TextField(
+            decoration: const InputDecoration(
+              hintText: 'Comma-separated provider IDs',
+            ),
+            onChanged: (v) =>
+                setState(() => watchProviders = v.replaceAll(' ', '')),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Monetization Types',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -313,7 +361,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             min: 0,
             max: 10,
             divisions: 20,
-            labels: RangeLabels(voteMin.toStringAsFixed(1), voteMax.toStringAsFixed(1)),
+            labels: RangeLabels(
+              voteMin.toStringAsFixed(1),
+              voteMax.toStringAsFixed(1),
+            ),
             onChanged: (values) {
               setState(() {
                 voteMin = values.start;
@@ -322,7 +373,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             },
           ),
           const SizedBox(height: 8),
-          Text('Runtime (minutes)', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Runtime (minutes)',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           RangeSlider(
             values: RangeValues(runtimeMin.toDouble(), runtimeMax.toDouble()),
             min: 0,
@@ -337,7 +391,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             },
           ),
           const SizedBox(height: 8),
-          Text('Vote Count Minimum', style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            'Vote Count Minimum',
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           Row(
             children: [
               Expanded(
@@ -376,5 +433,3 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
     );
   }
 }
-
-

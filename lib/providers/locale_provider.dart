@@ -4,11 +4,11 @@ import 'package:shared_preferences/shared_preferences.dart';
 class LocaleProvider with ChangeNotifier {
   static const String _localeKey = 'selected_locale';
   final SharedPreferences _prefs;
-  
+
   Locale _locale;
 
   LocaleProvider(this._prefs)
-      : _locale = Locale(_prefs.getString(_localeKey) ?? 'en');
+    : _locale = Locale(_prefs.getString(_localeKey) ?? 'en');
 
   Locale get locale => _locale;
 
@@ -53,8 +53,8 @@ class LocaleProvider with ChangeNotifier {
   }
 
   static List<Map<String, String>> get supportedLanguages => [
-        {'code': 'en', 'name': 'English'},
-        {'code': 'ru', 'name': 'Русский'},
-        {'code': 'uk', 'name': 'Українська'},
-      ];
+    {'code': 'en', 'name': 'English'},
+    {'code': 'ru', 'name': 'Русский'},
+    {'code': 'uk', 'name': 'Українська'},
+  ];
 }

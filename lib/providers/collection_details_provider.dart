@@ -4,9 +4,8 @@ import '../data/models/collection_detail_view.dart';
 import '../data/services/tmdb_comprehensive_service.dart';
 
 class CollectionDetailsProvider extends ChangeNotifier {
-  CollectionDetailsProvider({
-    TmdbComprehensiveService? comprehensiveService,
-  }) : _service = comprehensiveService ?? TmdbComprehensiveService();
+  CollectionDetailsProvider({TmdbComprehensiveService? comprehensiveService})
+    : _service = comprehensiveService ?? TmdbComprehensiveService();
 
   final TmdbComprehensiveService _service;
 
@@ -20,6 +19,10 @@ class CollectionDetailsProvider extends ChangeNotifier {
 
   Future<void> loadCollection(int collectionId) async {
     if (_isLoading) return;
+    // Avoid redundant fetch when the requested collection is already loaded
+    if (_collection != null && _collection!.id == collectionId) {
+      return;
+    }
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -27,7 +30,9 @@ class CollectionDetailsProvider extends ChangeNotifier {
     try {
       final detailsFuture = _service.getCollectionDetails(collectionId);
       final imagesFuture = _service.getCollectionImages(collectionId);
-      final translationsFuture = _service.getCollectionTranslations(collectionId);
+      final translationsFuture = _service.getCollectionTranslations(
+        collectionId,
+      );
 
       final responses = await Future.wait([
         detailsFuture,

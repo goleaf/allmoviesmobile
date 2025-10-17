@@ -3,10 +3,7 @@ import 'package:flutter/material.dart';
 class LoadingIndicator extends StatelessWidget {
   final String? message;
 
-  const LoadingIndicator({
-    super.key,
-    this.message,
-  });
+  const LoadingIndicator({super.key, this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -17,10 +14,7 @@ class LoadingIndicator extends StatelessWidget {
           const CircularProgressIndicator(),
           if (message != null) ...[
             const SizedBox(height: 16),
-            Text(
-              message!,
-              style: const TextStyle(fontSize: 16),
-            ),
+            Text(message!, style: const TextStyle(fontSize: 16)),
           ],
         ],
       ),
@@ -57,9 +51,10 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
       duration: const Duration(milliseconds: 1500),
     )..repeat();
 
-    _animation = Tween<double>(begin: -1.0, end: 2.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: -1.0,
+      end: 2.0,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -81,11 +76,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
-              colors: [
-                Colors.grey[300]!,
-                Colors.grey[100]!,
-                Colors.grey[300]!,
-              ],
+              colors: [Colors.grey[300]!, Colors.grey[100]!, Colors.grey[300]!],
               stops: [
                 _animation.value - 0.3,
                 _animation.value,
@@ -98,4 +89,3 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
     );
   }
 }
-

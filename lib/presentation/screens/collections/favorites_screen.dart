@@ -17,9 +17,7 @@ class FavoritesScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Favorites'),
-      ),
+      appBar: AppBar(title: const Text('Favorites')),
       body: Consumer2<FavoritesProvider, WatchlistProvider>(
         builder: (context, favoritesProvider, watchlistProvider, _) {
           final favoriteIds = favoritesProvider.favorites;
@@ -32,7 +30,8 @@ class FavoritesScreen extends StatelessWidget {
             );
           }
 
-          final sortedIds = favoriteIds.toList()..sort((a, b) => b.compareTo(a));
+          final sortedIds = favoriteIds.toList()
+            ..sort((a, b) => b.compareTo(a));
 
           return _CollectionMoviesList(
             movieIds: sortedIds,
@@ -139,8 +138,9 @@ class _CollectionMoviesListState extends State<_CollectionMoviesList> {
             itemBuilder: (context, index) {
               final movie = movies[index];
               final isFavorite = widget.favoritesProvider.isFavorite(movie.id);
-              final isInWatchlist =
-                  widget.watchlistProvider.isInWatchlist(movie.id);
+              final isInWatchlist = widget.watchlistProvider.isInWatchlist(
+                movie.id,
+              );
 
               return _CollectionMovieTile(
                 movie: movie,
@@ -225,7 +225,9 @@ class _CollectionMovieTile extends StatelessWidget {
     if (showing != null && showing.isNotEmpty) {
       parts.add(showing);
     }
-    return parts.isEmpty ? 'No additional details available.' : parts.join(' • ');
+    return parts.isEmpty
+        ? 'No additional details available.'
+        : parts.join(' • ');
   }
 }
 
@@ -267,10 +269,7 @@ class _PosterPlaceholder extends StatelessWidget {
         color: Colors.grey[300],
         borderRadius: BorderRadius.circular(8),
       ),
-      child: const Icon(
-        Icons.movie,
-        color: Colors.grey,
-      ),
+      child: const Icon(Icons.movie, color: Colors.grey),
     );
   }
 }
@@ -311,10 +310,7 @@ class _EmptyCollectionMessage extends StatelessWidget {
   final IconData icon;
   final String message;
 
-  const _EmptyCollectionMessage({
-    required this.icon,
-    required this.message,
-  });
+  const _EmptyCollectionMessage({required this.icon, required this.message});
 
   @override
   Widget build(BuildContext context) {
@@ -337,4 +333,3 @@ class _EmptyCollectionMessage extends StatelessWidget {
     );
   }
 }
-

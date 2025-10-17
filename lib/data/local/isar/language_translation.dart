@@ -14,4 +14,3 @@ class LanguageTranslationEntity {
 
   late String name;
 }
-

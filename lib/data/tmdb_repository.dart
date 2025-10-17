@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:async';
+import 'dart:io';
 
 import 'package:http/http.dart' as http;
 
@@ -34,16 +36,18 @@ class TmdbRepository {
     CacheService? cacheService,
     String? apiKey,
     String? language,
-  })  : _client = client ?? http.Client(),
-        _cache = cacheService,
-        _language = language ?? AppConfig.defaultLanguage,
-        _apiKey = (() {
-          final provided = apiKey ?? const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
-          if (provided.isNotEmpty) {
-            return provided;
-          }
-          return AppConfig.tmdbApiKey;
-        })();
+  }) : _client = client ?? http.Client(),
+       _cache = cacheService,
+       _language = language ?? AppConfig.defaultLanguage,
+       _apiKey = (() {
+         final provided =
+             apiKey ??
+             const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
+         if (provided.isNotEmpty) {
+           return provided;
+         }
+         return AppConfig.tmdbApiKey;
+       })();
 
   static const _host = 'api.themoviedb.org';
   static const _basePath = '/3';
@@ -74,17 +78,30 @@ class TmdbRepository {
   }) async {
     _ensureApiKey();
     final uri = _buildUri(endpoint, query);
-    final response = await _client.get(uri, headers: {
-      'Accept': 'application/json',
-    });
+    try {
+      final response = await _client
+          .get(
+            uri,
+            headers: {'Accept': 'application/json'},
+          )
+          .timeout(AppConfig.requestTimeout);
 
-    if (response.statusCode != 200) {
-      throw TmdbException(
-        'Request to ${uri.path} failed with status ${response.statusCode}',
-      );
+      if (response.statusCode != 200) {
+        final body = response.body;
+        final snippet = body.length > 200 ? body.substring(0, 200) : body;
+        throw TmdbException(
+          'HTTP ${response.statusCode} at ${uri.path}: $snippet',
+        );
+      }
+
+      return jsonDecode(response.body) as Map<String, dynamic>;
+    } on TimeoutException {
+      throw const TmdbException('Network timeout while contacting TMDB');
+    } on SocketException catch (e) {
+      throw TmdbException('Network error: ${e.message}');
+    } on FormatException {
+      throw const TmdbException('Invalid JSON received from TMDB');
     }
-
-    return jsonDecode(response.body) as Map<String, dynamic>;
   }
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);
@@ -139,7 +156,10 @@ class TmdbRepository {
 
         return _mapPaginated<Movie>(
           payload,
-          (json) => Movie.fromJson(json, mediaType: mediaType == 'all' ? null : mediaType),
+          (json) => Movie.fromJson(
+            json,
+            mediaType: mediaType == 'all' ? null : mediaType,
+          ),
         );
       },
       forceRefresh: forceRefresh,
@@ -188,18 +208,69 @@ class TmdbRepository {
     return response.results;
   }
 
-  Future<List<Movie>> fetchNowPlayingMovies({
-    int page = 1,
-  }) async {
-    final payload = await _getJson('/movie/now_playing', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, Movie.fromJson).results;
+  Future<List<Movie>> fetchNowPlayingMovies({int page = 1}) async {
+    final response = await fetchNowPlayingMoviesPaginated(page: page);
+    return response.results;
   }
 
-  Future<List<Movie>> fetchUpcomingMovies({
+  Future<List<Movie>> fetchUpcomingMovies({int page = 1}) async {
+    final response = await fetchUpcomingMoviesPaginated(page: page);
+    return response.results;
+  }
+
+  // Paginated wrappers for movie sections
+  Future<PaginatedResponse<Movie>> fetchTrendingMoviesPaginated({
+    String timeWindow = 'day',
     int page = 1,
+    bool forceRefresh = false,
+  }) {
+    return fetchTrendingTitles(
+      mediaType: 'movie',
+      timeWindow: timeWindow,
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchPopularMoviesPaginated({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    return discoverMovies(
+      page: page,
+      forceRefresh: forceRefresh,
+      discoverFilters: const DiscoverFilters(sortBy: SortBy.popularityDesc),
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchTopRatedMoviesPaginated({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    return discoverMovies(
+      page: page,
+      forceRefresh: forceRefresh,
+      discoverFilters: const DiscoverFilters(sortBy: SortBy.ratingDesc),
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchNowPlayingMoviesPaginated({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    final payload = await _getJson(
+      '/movie/now_playing',
+      query: {'page': '$page'},
+    );
+    return _mapPaginated<Movie>(payload, Movie.fromJson);
+  }
+
+  Future<PaginatedResponse<Movie>> fetchUpcomingMoviesPaginated({
+    int page = 1,
+    bool forceRefresh = false,
   }) async {
     final payload = await _getJson('/movie/upcoming', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, Movie.fromJson).results;
+    return _mapPaginated<Movie>(payload, Movie.fromJson);
   }
 
   Future<PaginatedResponse<Movie>> discoverMovies({
@@ -215,7 +286,8 @@ class TmdbRepository {
       if (filters != null) ...filters,
     };
 
-    final cacheKey = 'discover_movie::${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
+    final cacheKey =
+        'discover_movie::${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
 
     return _cached(
       cacheKey,
@@ -255,7 +327,8 @@ class TmdbRepository {
       if (filters != null) ...filters.toQueryParameters(),
     };
 
-    final cacheKey = 'search_movie::$normalized::$page::${params.entries.map((e) => e.key + e.value).join('-')}';
+    final cacheKey =
+        'search_movie::$normalized::$page::${params.entries.map((e) => e.key + e.value).join('-')}';
 
     return _cached(
       cacheKey,
@@ -287,9 +360,10 @@ class TmdbRepository {
         final normalized = Map<String, dynamic>.from(payload);
 
         void setList(String key, List? source) {
-          normalized[key] = source
-                  ?.whereType<Map<String, dynamic>>()
-                  .toList(growable: false) ??
+          normalized[key] =
+              source?.whereType<Map<String, dynamic>>().toList(
+                growable: false,
+              ) ??
               const [];
         }
 
@@ -299,7 +373,10 @@ class TmdbRepository {
 
         final keywords = payload['keywords'];
         if (keywords is Map<String, dynamic>) {
-          setList('keywords', (keywords['keywords'] ?? keywords['results']) as List?);
+          setList(
+            'keywords',
+            (keywords['keywords'] ?? keywords['results']) as List?,
+          );
         }
 
         final reviews = payload['reviews'] as Map<String, dynamic>?;
@@ -308,10 +385,12 @@ class TmdbRepository {
         final releaseDates = payload['release_dates'] as Map<String, dynamic>?;
         setList('release_dates', releaseDates?['results'] as List?);
 
-        final watchProviders = payload['watch/providers'] as Map<String, dynamic>?;
+        final watchProviders =
+            payload['watch/providers'] as Map<String, dynamic>?;
         normalized['watchProviders'] = watchProviders?['results'] ?? const {};
 
-        final alternativeTitles = payload['alternative_titles'] as Map<String, dynamic>?;
+        final alternativeTitles =
+            payload['alternative_titles'] as Map<String, dynamic>?;
         setList('alternative_titles', alternativeTitles?['titles'] as List?);
 
         final translations = payload['translations'] as Map<String, dynamic>?;
@@ -330,7 +409,8 @@ class TmdbRepository {
         ].whereType<Map<String, dynamic>>().toList(growable: false);
         setList('images', combinedImages);
 
-        final recommendations = payload['recommendations'] as Map<String, dynamic>?;
+        final recommendations =
+            payload['recommendations'] as Map<String, dynamic>?;
         setList('recommendations', recommendations?['results'] as List?);
 
         final similar = payload['similar'] as Map<String, dynamic>?;
@@ -369,12 +449,21 @@ class TmdbRepository {
   }
 
   Future<List<Movie>> fetchSimilarMovies(int movieId, {int page = 1}) async {
-    final payload = await _getJson('/movie/$movieId/similar', query: {'page': '$page'});
+    final payload = await _getJson(
+      '/movie/$movieId/similar',
+      query: {'page': '$page'},
+    );
     return _mapPaginated<Movie>(payload, Movie.fromJson).results;
   }
 
-  Future<List<Movie>> fetchRecommendedMovies(int movieId, {int page = 1}) async {
-    final payload = await _getJson('/movie/$movieId/recommendations', query: {'page': '$page'});
+  Future<List<Movie>> fetchRecommendedMovies(
+    int movieId, {
+    int page = 1,
+  }) async {
+    final payload = await _getJson(
+      '/movie/$movieId/recommendations',
+      query: {'page': '$page'},
+    );
     return _mapPaginated<Movie>(payload, Movie.fromJson).results;
   }
 
@@ -393,7 +482,8 @@ class TmdbRepository {
       if (filters != null) ...filters,
     };
 
-    final cacheKey = 'discover_tv::${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
+    final cacheKey =
+        'discover_tv::${params.entries.map((e) => '${e.key}=${e.value}').join('&')}';
 
     return _cached(
       cacheKey,
@@ -414,33 +504,48 @@ class TmdbRepository {
     bool forceRefresh = false,
   }) async {
     final payload = await _getJson('/trending/tv/$timeWindow');
-    return _mapPaginated<Movie>(payload, (json) => Movie.fromJson(json, mediaType: 'tv')).results;
+    return _mapPaginated<Movie>(
+      payload,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
+    ).results;
   }
 
   Future<List<Movie>> fetchPopularTv({int page = 1}) async {
     final payload = await _getJson('/tv/popular', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, (json) => Movie.fromJson(json, mediaType: 'tv')).results;
+    return _mapPaginated<Movie>(
+      payload,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
+    ).results;
   }
 
   Future<List<Movie>> fetchTopRatedTv({int page = 1}) async {
     final payload = await _getJson('/tv/top_rated', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, (json) => Movie.fromJson(json, mediaType: 'tv')).results;
+    return _mapPaginated<Movie>(
+      payload,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
+    ).results;
   }
 
   Future<List<Movie>> fetchAiringTodayTv({int page = 1}) async {
-    final payload = await _getJson('/tv/airing_today', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, (json) => Movie.fromJson(json, mediaType: 'tv')).results;
+    final payload = await _getJson(
+      '/tv/airing_today',
+      query: {'page': '$page'},
+    );
+    return _mapPaginated<Movie>(
+      payload,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
+    ).results;
   }
 
   Future<List<Movie>> fetchOnTheAirTv({int page = 1}) async {
     final payload = await _getJson('/tv/on_the_air', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, (json) => Movie.fromJson(json, mediaType: 'tv')).results;
+    return _mapPaginated<Movie>(
+      payload,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
+    ).results;
   }
 
-  Future<TVDetailed> fetchTvDetails(
-    int tvId, {
-    bool forceRefresh = false,
-  }) {
+  Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) {
     final cacheKey = 'tv_details::$tvId';
     return _cached(
       cacheKey,
@@ -455,9 +560,10 @@ class TmdbRepository {
 
         final normalized = Map<String, dynamic>.from(payload);
         void setList(String key, List? source) {
-          normalized[key] = source
-                  ?.whereType<Map<String, dynamic>>()
-                  .toList(growable: false) ??
+          normalized[key] =
+              source?.whereType<Map<String, dynamic>>().toList(
+                growable: false,
+              ) ??
               const [];
         }
 
@@ -468,7 +574,10 @@ class TmdbRepository {
 
         final keywords = payload['keywords'];
         if (keywords is Map<String, dynamic>) {
-          setList('keywords', (keywords['results'] ?? keywords['keywords']) as List?);
+          setList(
+            'keywords',
+            (keywords['results'] ?? keywords['keywords']) as List?,
+          );
         }
 
         final videos = payload['videos'] as Map<String, dynamic>?;
@@ -477,13 +586,15 @@ class TmdbRepository {
         final images = payload['images'] as Map<String, dynamic>?;
         setList('images', images?['backdrops'] as List?);
 
-        final recommendations = payload['recommendations'] as Map<String, dynamic>?;
+        final recommendations =
+            payload['recommendations'] as Map<String, dynamic>?;
         setList('recommendations', recommendations?['results'] as List?);
 
         final similar = payload['similar'] as Map<String, dynamic>?;
         setList('similar', similar?['results'] as List?);
 
-        final watchProviders = payload['watch/providers'] as Map<String, dynamic>?;
+        final watchProviders =
+            payload['watch/providers'] as Map<String, dynamic>?;
         normalized['watchProviders'] = watchProviders?['results'] ?? const {};
 
         final translations = payload['translations'] as Map<String, dynamic>?;
@@ -521,6 +632,32 @@ class TmdbRepository {
     );
   }
 
+  Future<MediaImages> fetchTvSeasonImages(
+    int tvId,
+    int seasonNumber, {
+    bool forceRefresh = false,
+  }) async {
+    final payload = await _getJson(
+      '/tv/$tvId/season/$seasonNumber/images',
+      query: {'include_image_language': 'en,null'},
+    );
+
+    List<ImageModel> _mapImages(String key) {
+      final list = payload[key];
+      if (list is! List) return const [];
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map(ImageModel.fromJson)
+          .toList(growable: false);
+    }
+
+    return MediaImages(
+      posters: _mapImages('posters'),
+      backdrops: _mapImages('backdrops'),
+      stills: _mapImages('stills'),
+    );
+  }
+
   Future<Season> fetchTvSeason(
     int tvId,
     int seasonNumber, {
@@ -528,9 +665,7 @@ class TmdbRepository {
   }) async {
     final payload = await _getJson(
       '/tv/$tvId/season/$seasonNumber',
-      query: {
-        'append_to_response': 'credits,videos',
-      },
+      query: {'append_to_response': 'credits,videos'},
     );
 
     final normalized = Map<String, dynamic>.from(payload);
@@ -567,7 +702,8 @@ class TmdbRepository {
       if (filters != null) ...filters.toQueryParameters(),
     };
 
-    final cacheKey = 'search_tv::$normalized::$page::${params.entries.map((e) => e.key + e.value).join('-')}';
+    final cacheKey =
+        'search_tv::$normalized::$page::${params.entries.map((e) => e.key + e.value).join('-')}';
 
     return _cached(
       cacheKey,
@@ -587,9 +723,7 @@ class TmdbRepository {
   // People
   // ---------------------------------------------------------------------------
 
-  Future<List<Person>> fetchTrendingPeople({
-    String timeWindow = 'day',
-  }) async {
+  Future<List<Person>> fetchTrendingPeople({String timeWindow = 'day'}) async {
     final payload = await _getJson('/trending/person/$timeWindow');
     return _mapPaginated<Person>(payload, Person.fromJson).results;
   }
@@ -602,7 +736,10 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/person/popular', query: {'page': '$page'});
+        final payload = await _getJson(
+          '/person/popular',
+          query: {'page': '$page'},
+        );
         return _mapPaginated<Person>(payload, Person.fromJson);
       },
       forceRefresh: forceRefresh,
@@ -617,7 +754,8 @@ class TmdbRepository {
     final payload = await _getJson(
       '/person/$personId',
       query: {
-        'append_to_response': 'combined_credits,external_ids,images,tagged_images',
+        'append_to_response':
+            'combined_credits,external_ids,images,tagged_images',
       },
     );
     return PersonDetail.fromJson(payload);
@@ -644,10 +782,10 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/search/person', query: {
-          'query': normalized,
-          'page': '$page',
-        });
+        final payload = await _getJson(
+          '/search/person',
+          query: {'query': normalized, 'page': '$page'},
+        );
         return _mapPaginated<Person>(payload, Person.fromJson);
       },
       forceRefresh: forceRefresh,
@@ -680,10 +818,10 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/search/company', query: {
-          'query': normalized,
-          'page': '$page',
-        });
+        final payload = await _getJson(
+          '/search/company',
+          query: {'query': normalized, 'page': '$page'},
+        );
         return _mapPaginated<Company>(payload, Company.fromJson);
       },
       forceRefresh: forceRefresh,
@@ -714,15 +852,18 @@ class TmdbRepository {
         if (parts is List) {
           normalized['parts'] = parts
               .whereType<Map<String, dynamic>>()
-              .map((item) => {
-                    'id': item['id'],
-                    'title': item['title'] ?? item['name'] ?? '',
-                    'poster_path': item['poster_path'],
-                    'backdrop_path': item['backdrop_path'],
-                    'vote_average': (item['vote_average'] as num?)?.toDouble(),
-                    'release_date': item['release_date'] ?? item['first_air_date'],
-                    'media_type': item['media_type'],
-                  })
+              .map(
+                (item) => {
+                  'id': item['id'],
+                  'title': item['title'] ?? item['name'] ?? '',
+                  'poster_path': item['poster_path'],
+                  'backdrop_path': item['backdrop_path'],
+                  'vote_average': (item['vote_average'] as num?)?.toDouble(),
+                  'release_date':
+                      item['release_date'] ?? item['first_air_date'],
+                  'media_type': item['media_type'],
+                },
+              )
               .toList(growable: false);
         }
         return CollectionDetails.fromJson(normalized);
@@ -753,10 +894,10 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/search/collection', query: {
-          'query': normalized,
-          'page': '$page',
-        });
+        final payload = await _getJson(
+          '/search/collection',
+          query: {'query': normalized, 'page': '$page'},
+        );
         return _mapPaginated<Collection>(payload, Collection.fromJson);
       },
       forceRefresh: forceRefresh,
@@ -772,7 +913,9 @@ class TmdbRepository {
     int page = 1,
     bool forceRefresh = false,
   }) async {
-    final trendingMovies = await fetchTrendingMovies(forceRefresh: forceRefresh);
+    final trendingMovies = await fetchTrendingMovies(
+      forceRefresh: forceRefresh,
+    );
     final topMovies = trendingMovies.take(5);
     final keywords = <Keyword>[];
     final seen = <int>{};
@@ -822,10 +965,10 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/search/keyword', query: {
-          'query': normalized,
-          'page': '$page',
-        });
+        final payload = await _getJson(
+          '/search/keyword',
+          query: {'query': normalized, 'page': '$page'},
+        );
         return _mapPaginated<Keyword>(payload, Keyword.fromJson);
       },
       forceRefresh: forceRefresh,
@@ -856,16 +999,17 @@ class TmdbRepository {
     bool includeAdult = false,
     bool forceRefresh = false,
   }) {
-    final payload = _getJson('/discover/movie', query: {
-      'with_keywords': '$keywordId',
-      'page': '$page',
-      'sort_by': sortBy,
-      'include_adult': includeAdult.toString(),
-    });
-
-    return payload.then(
-      (json) => _mapPaginated<Movie>(json, Movie.fromJson),
+    final payload = _getJson(
+      '/discover/movie',
+      query: {
+        'with_keywords': '$keywordId',
+        'page': '$page',
+        'sort_by': sortBy,
+        'include_adult': includeAdult.toString(),
+      },
     );
+
+    return payload.then((json) => _mapPaginated<Movie>(json, Movie.fromJson));
   }
 
   Future<PaginatedResponse<Movie>> fetchKeywordTvShows({
@@ -874,11 +1018,14 @@ class TmdbRepository {
     String sortBy = 'popularity.desc',
     bool forceRefresh = false,
   }) {
-    final payload = _getJson('/discover/tv', query: {
-      'with_keywords': '$keywordId',
-      'page': '$page',
-      'sort_by': sortBy,
-    });
+    final payload = _getJson(
+      '/discover/tv',
+      query: {
+        'with_keywords': '$keywordId',
+        'page': '$page',
+        'sort_by': sortBy,
+      },
+    );
 
     return payload.then(
       (json) => _mapPaginated<Movie>(
@@ -904,20 +1051,27 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/search/network', query: {
-          'query': normalized,
-          'page': '$page',
-        });
-        final networks = _mapPaginated<Network>(payload, Network.fromJson).results;
+        final payload = await _getJson(
+          '/search/network',
+          query: {'query': normalized, 'page': '$page'},
+        );
+        final networks = _mapPaginated<Network>(
+          payload,
+          Network.fromJson,
+        ).results;
         final filtered = country == null
             ? networks
             : networks
-                .where(
-                  (network) => (network.originCountry ?? '').toUpperCase() == country.toUpperCase(),
-                )
-                .toList(growable: false);
+                  .where(
+                    (network) =>
+                        (network.originCountry ?? '').toUpperCase() ==
+                        country.toUpperCase(),
+                  )
+                  .toList(growable: false);
         return PaginatedResponse<Network>(
-          page: payload['page'] is int ? payload['page'] as int : int.tryParse('${payload['page']}') ?? 1,
+          page: payload['page'] is int
+              ? payload['page'] as int
+              : int.tryParse('${payload['page']}') ?? 1,
           totalPages: payload['total_pages'] is int
               ? payload['total_pages'] as int
               : int.tryParse('${payload['total_pages']}') ?? 1,
@@ -938,10 +1092,10 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/discover/tv', query: {
-          'page': '$page',
-          'sort_by': 'popularity.desc',
-        });
+        final payload = await _getJson(
+          '/discover/tv',
+          query: {'page': '$page', 'sort_by': 'popularity.desc'},
+        );
 
         final seen = <int>{};
         final networks = <Network>[];
@@ -959,7 +1113,9 @@ class TmdbRepository {
         }
 
         return PaginatedResponse<Network>(
-          page: payload['page'] is int ? payload['page'] as int : int.tryParse('${payload['page']}') ?? 1,
+          page: payload['page'] is int
+              ? payload['page'] as int
+              : int.tryParse('${payload['page']}') ?? 1,
           totalPages: payload['total_pages'] is int
               ? payload['total_pages'] as int
               : int.tryParse('${payload['total_pages']}') ?? 1,
@@ -981,17 +1137,21 @@ class TmdbRepository {
       cacheKey,
       () async {
         final details = await _getJson('/network/$networkId');
-        final altNames = await _getJson('/network/$networkId/alternative_names');
+        final altNames = await _getJson(
+          '/network/$networkId/alternative_names',
+        );
 
         final normalized = Map<String, dynamic>.from(details);
         final alt = altNames['results'];
         if (alt is List) {
           normalized['alternative_names'] = alt
               .whereType<Map<String, dynamic>>()
-              .map((item) => {
-                    'name': item['name'] ?? '',
-                    'type': item['type'] ?? 'official',
-                  })
+              .map(
+                (item) => {
+                  'name': item['name'] ?? '',
+                  'type': item['type'] ?? 'official',
+                },
+              )
               .toList(growable: false);
         }
 
@@ -1066,10 +1226,10 @@ class TmdbRepository {
     return _cached(
       cacheKey,
       () async {
-        final payload = await _getJson('/search/multi', query: {
-          'query': normalized,
-          'page': '$page',
-        });
+        final payload = await _getJson(
+          '/search/multi',
+          query: {'query': normalized, 'page': '$page'},
+        );
         return SearchResponse.fromJson(payload);
       },
       forceRefresh: forceRefresh,
@@ -1183,9 +1343,10 @@ class TmdbRepository {
     return _cached(
       key,
       () async {
-        final payload = await _getJson('/watch/providers/$mediaType', query: {
-          'language': language,
-        });
+        final payload = await _getJson(
+          '/watch/providers/$mediaType',
+          query: {'language': language},
+        );
         final results = payload['results'];
         if (results is! List) return const [];
         return results
@@ -1208,14 +1369,12 @@ class TmdbRepository {
       return const {};
     }
 
-    return results.map(
-      (key, value) {
-        if (value is Map<String, dynamic>) {
-          return MapEntry(key, WatchProviderResults.fromJson(value));
-        }
-        return MapEntry(key, const WatchProviderResults());
-      },
-    );
+    return results.map((key, value) {
+      if (value is Map<String, dynamic>) {
+        return MapEntry(key, WatchProviderResults.fromJson(value));
+      }
+      return MapEntry(key, const WatchProviderResults());
+    });
   }
 
   Future<Map<String, WatchProviderResults>> fetchTvWatchProviders(
@@ -1228,14 +1387,12 @@ class TmdbRepository {
       return const {};
     }
 
-    return results.map(
-      (key, value) {
-        if (value is Map<String, dynamic>) {
-          return MapEntry(key, WatchProviderResults.fromJson(value));
-        }
-        return MapEntry(key, const WatchProviderResults());
-      },
-    );
+    return results.map((key, value) {
+      if (value is Map<String, dynamic>) {
+        return MapEntry(key, WatchProviderResults.fromJson(value));
+      }
+      return MapEntry(key, const WatchProviderResults());
+    });
   }
 
   Future<Map<String, WatchProviderResults>> fetchWatchProviders({
@@ -1249,12 +1406,18 @@ class TmdbRepository {
         if (mediaType == 'movie') {
           final movies = await fetchTrendingMovies(forceRefresh: forceRefresh);
           if (movies.isNotEmpty) {
-            return fetchMovieWatchProviders(movies.first.id, forceRefresh: forceRefresh);
+            return fetchMovieWatchProviders(
+              movies.first.id,
+              forceRefresh: forceRefresh,
+            );
           }
         } else {
           final shows = await fetchTrendingTv(forceRefresh: forceRefresh);
           if (shows.isNotEmpty) {
-            return fetchTvWatchProviders(shows.first.id, forceRefresh: forceRefresh);
+            return fetchTvWatchProviders(
+              shows.first.id,
+              forceRefresh: forceRefresh,
+            );
           }
         }
         return const {};
@@ -1273,18 +1436,16 @@ class TmdbRepository {
       return const {};
     }
 
-    return results.map(
-      (key, value) {
-        if (value is List) {
-          final items = value
-              .whereType<Map<String, dynamic>>()
-              .map(Certification.fromJson)
-              .toList(growable: false);
-          return MapEntry(key, items);
-        }
-        return MapEntry(key, const <Certification>[]);
-      },
-    );
+    return results.map((key, value) {
+      if (value is List) {
+        final items = value
+            .whereType<Map<String, dynamic>>()
+            .map(Certification.fromJson)
+            .toList(growable: false);
+        return MapEntry(key, items);
+      }
+      return MapEntry(key, const <Certification>[]);
+    });
   }
 
   Future<Map<String, List<Certification>>> fetchTvCertifications({
@@ -1296,18 +1457,16 @@ class TmdbRepository {
       return const {};
     }
 
-    return results.map(
-      (key, value) {
-        if (value is List) {
-          final items = value
-              .whereType<Map<String, dynamic>>()
-              .map(Certification.fromJson)
-              .toList(growable: false);
-          return MapEntry(key, items);
-        }
-        return MapEntry(key, const <Certification>[]);
-      },
-    );
+    return results.map((key, value) {
+      if (value is List) {
+        final items = value
+            .whereType<Map<String, dynamic>>()
+            .map(Certification.fromJson)
+            .toList(growable: false);
+        return MapEntry(key, items);
+      }
+      return MapEntry(key, const <Certification>[]);
+    });
   }
 
   Future<List<Genre>> fetchMovieGenres() async {
@@ -1336,7 +1495,10 @@ class TmdbRepository {
 
   // Localized variants (explicit language parameter)
   Future<List<Genre>> fetchMovieGenresLocalized(String language) async {
-    final payload = await _getJson('/genre/movie/list', query: {'language': language});
+    final payload = await _getJson(
+      '/genre/movie/list',
+      query: {'language': language},
+    );
     final genres = payload['genres'];
     if (genres is List) {
       return genres
@@ -1348,7 +1510,10 @@ class TmdbRepository {
   }
 
   Future<List<Genre>> fetchTVGenresLocalized(String language) async {
-    final payload = await _getJson('/genre/tv/list', query: {'language': language});
+    final payload = await _getJson(
+      '/genre/tv/list',
+      query: {'language': language},
+    );
     final genres = payload['genres'];
     if (genres is List) {
       return genres
@@ -1359,11 +1524,17 @@ class TmdbRepository {
     return const [];
   }
 
-  Future<List<CountryInfo>> fetchCountriesLocalized(String language, {bool forceRefresh = false}) {
+  Future<List<CountryInfo>> fetchCountriesLocalized(
+    String language, {
+    bool forceRefresh = false,
+  }) {
     return _cached(
       'countries::$language',
       () async {
-        final payload = await _getJson('/configuration/countries', query: {'language': language});
+        final payload = await _getJson(
+          '/configuration/countries',
+          query: {'language': language},
+        );
         final list = payload['results'] ?? payload;
         if (list is List) {
           return list

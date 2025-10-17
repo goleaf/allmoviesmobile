@@ -28,10 +28,14 @@ void main() {
   test('TrendingTitlesProvider loads and refreshes', () async {
     final provider = TrendingTitlesProvider(FakeRepo());
     await provider.load();
-    expect(provider.stateFor(TrendingMediaType.all, TrendingWindow.day).items, isNotEmpty);
+    expect(
+      provider.stateFor(TrendingMediaType.all, TrendingWindow.day).items,
+      isNotEmpty,
+    );
     await provider.refreshAll();
-    expect(provider.stateFor(TrendingMediaType.all, TrendingWindow.week).items, isNotEmpty);
+    expect(
+      provider.stateFor(TrendingMediaType.all, TrendingWindow.week).items,
+      isNotEmpty,
+    );
   });
 }
-
-

@@ -212,7 +212,9 @@ class _ContentRatingsList extends StatelessWidget {
                 style: theme.textTheme.bodySmall,
               ),
               children: entry.certifications.map((cert) {
-                final label = cert.certification.isEmpty ? 'NR' : cert.certification;
+                final label = cert.certification.isEmpty
+                    ? 'NR'
+                    : cert.certification;
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: theme.colorScheme.primaryContainer,

@@ -12,7 +12,8 @@ part of 'tv_detailed_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 TVDetailed _$TVDetailedFromJson(Map<String, dynamic> json) {
   return _TVDetailed.fromJson(json);
@@ -74,40 +75,42 @@ mixin _$TVDetailed {
 /// @nodoc
 abstract class $TVDetailedCopyWith<$Res> {
   factory $TVDetailedCopyWith(
-          TVDetailed value, $Res Function(TVDetailed) then) =
-      _$TVDetailedCopyWithImpl<$Res, TVDetailed>;
+    TVDetailed value,
+    $Res Function(TVDetailed) then,
+  ) = _$TVDetailedCopyWithImpl<$Res, TVDetailed>;
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'original_name') String originalName,
-      @JsonKey(name: 'vote_average') double voteAverage,
-      @JsonKey(name: 'vote_count') int voteCount,
-      String? overview,
-      String? tagline,
-      @JsonKey(name: 'first_air_date') String? firstAirDate,
-      @JsonKey(name: 'last_air_date') String? lastAirDate,
-      @JsonKey(name: 'number_of_seasons') int? numberOfSeasons,
-      @JsonKey(name: 'number_of_episodes') int? numberOfEpisodes,
-      @JsonKey(name: 'episode_run_time') List<int> episodeRunTime,
-      List<Genre> genres,
-      @JsonKey(name: 'production_companies') List<Company> productionCompanies,
-      @JsonKey(name: 'production_countries') List<Country> productionCountries,
-      @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
-      List<Network> networks,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      double? popularity,
-      String? status,
-      String? homepage,
-      @JsonKey(name: 'external_ids') ExternalIds externalIds,
-      List<Cast> cast,
-      List<Season> seasons,
-      List<Video> videos,
-      List<ImageModel> images,
-      List<TVRef> recommendations,
-      List<TVRef> similar,
-      List<Keyword> keywords});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'original_name') String originalName,
+    @JsonKey(name: 'vote_average') double voteAverage,
+    @JsonKey(name: 'vote_count') int voteCount,
+    String? overview,
+    String? tagline,
+    @JsonKey(name: 'first_air_date') String? firstAirDate,
+    @JsonKey(name: 'last_air_date') String? lastAirDate,
+    @JsonKey(name: 'number_of_seasons') int? numberOfSeasons,
+    @JsonKey(name: 'number_of_episodes') int? numberOfEpisodes,
+    @JsonKey(name: 'episode_run_time') List<int> episodeRunTime,
+    List<Genre> genres,
+    @JsonKey(name: 'production_companies') List<Company> productionCompanies,
+    @JsonKey(name: 'production_countries') List<Country> productionCountries,
+    @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
+    List<Network> networks,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    double? popularity,
+    String? status,
+    String? homepage,
+    @JsonKey(name: 'external_ids') ExternalIds externalIds,
+    List<Cast> cast,
+    List<Season> seasons,
+    List<Video> videos,
+    List<ImageModel> images,
+    List<TVRef> recommendations,
+    List<TVRef> similar,
+    List<Keyword> keywords,
+  });
 
   $ExternalIdsCopyWith<$Res> get externalIds;
 }
@@ -156,128 +159,131 @@ class _$TVDetailedCopyWithImpl<$Res, $Val extends TVDetailed>
     Object? similar = null,
     Object? keywords = null,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      voteAverage: null == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double,
-      voteCount: null == voteCount
-          ? _value.voteCount
-          : voteCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tagline: freezed == tagline
-          ? _value.tagline
-          : tagline // ignore: cast_nullable_to_non_nullable
-              as String?,
-      firstAirDate: freezed == firstAirDate
-          ? _value.firstAirDate
-          : firstAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      lastAirDate: freezed == lastAirDate
-          ? _value.lastAirDate
-          : lastAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      numberOfSeasons: freezed == numberOfSeasons
-          ? _value.numberOfSeasons
-          : numberOfSeasons // ignore: cast_nullable_to_non_nullable
-              as int?,
-      numberOfEpisodes: freezed == numberOfEpisodes
-          ? _value.numberOfEpisodes
-          : numberOfEpisodes // ignore: cast_nullable_to_non_nullable
-              as int?,
-      episodeRunTime: null == episodeRunTime
-          ? _value.episodeRunTime
-          : episodeRunTime // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-      genres: null == genres
-          ? _value.genres
-          : genres // ignore: cast_nullable_to_non_nullable
-              as List<Genre>,
-      productionCompanies: null == productionCompanies
-          ? _value.productionCompanies
-          : productionCompanies // ignore: cast_nullable_to_non_nullable
-              as List<Company>,
-      productionCountries: null == productionCountries
-          ? _value.productionCountries
-          : productionCountries // ignore: cast_nullable_to_non_nullable
-              as List<Country>,
-      spokenLanguages: null == spokenLanguages
-          ? _value.spokenLanguages
-          : spokenLanguages // ignore: cast_nullable_to_non_nullable
-              as List<Language>,
-      networks: null == networks
-          ? _value.networks
-          : networks // ignore: cast_nullable_to_non_nullable
-              as List<Network>,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as String?,
-      homepage: freezed == homepage
-          ? _value.homepage
-          : homepage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      externalIds: null == externalIds
-          ? _value.externalIds
-          : externalIds // ignore: cast_nullable_to_non_nullable
-              as ExternalIds,
-      cast: null == cast
-          ? _value.cast
-          : cast // ignore: cast_nullable_to_non_nullable
-              as List<Cast>,
-      seasons: null == seasons
-          ? _value.seasons
-          : seasons // ignore: cast_nullable_to_non_nullable
-              as List<Season>,
-      videos: null == videos
-          ? _value.videos
-          : videos // ignore: cast_nullable_to_non_nullable
-              as List<Video>,
-      images: null == images
-          ? _value.images
-          : images // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      recommendations: null == recommendations
-          ? _value.recommendations
-          : recommendations // ignore: cast_nullable_to_non_nullable
-              as List<TVRef>,
-      similar: null == similar
-          ? _value.similar
-          : similar // ignore: cast_nullable_to_non_nullable
-              as List<TVRef>,
-      keywords: null == keywords
-          ? _value.keywords
-          : keywords // ignore: cast_nullable_to_non_nullable
-              as List<Keyword>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            name: null == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String,
+            originalName: null == originalName
+                ? _value.originalName
+                : originalName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            voteAverage: null == voteAverage
+                ? _value.voteAverage
+                : voteAverage // ignore: cast_nullable_to_non_nullable
+                      as double,
+            voteCount: null == voteCount
+                ? _value.voteCount
+                : voteCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            overview: freezed == overview
+                ? _value.overview
+                : overview // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            tagline: freezed == tagline
+                ? _value.tagline
+                : tagline // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            firstAirDate: freezed == firstAirDate
+                ? _value.firstAirDate
+                : firstAirDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lastAirDate: freezed == lastAirDate
+                ? _value.lastAirDate
+                : lastAirDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            numberOfSeasons: freezed == numberOfSeasons
+                ? _value.numberOfSeasons
+                : numberOfSeasons // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            numberOfEpisodes: freezed == numberOfEpisodes
+                ? _value.numberOfEpisodes
+                : numberOfEpisodes // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            episodeRunTime: null == episodeRunTime
+                ? _value.episodeRunTime
+                : episodeRunTime // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
+            genres: null == genres
+                ? _value.genres
+                : genres // ignore: cast_nullable_to_non_nullable
+                      as List<Genre>,
+            productionCompanies: null == productionCompanies
+                ? _value.productionCompanies
+                : productionCompanies // ignore: cast_nullable_to_non_nullable
+                      as List<Company>,
+            productionCountries: null == productionCountries
+                ? _value.productionCountries
+                : productionCountries // ignore: cast_nullable_to_non_nullable
+                      as List<Country>,
+            spokenLanguages: null == spokenLanguages
+                ? _value.spokenLanguages
+                : spokenLanguages // ignore: cast_nullable_to_non_nullable
+                      as List<Language>,
+            networks: null == networks
+                ? _value.networks
+                : networks // ignore: cast_nullable_to_non_nullable
+                      as List<Network>,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            popularity: freezed == popularity
+                ? _value.popularity
+                : popularity // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            status: freezed == status
+                ? _value.status
+                : status // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            homepage: freezed == homepage
+                ? _value.homepage
+                : homepage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            externalIds: null == externalIds
+                ? _value.externalIds
+                : externalIds // ignore: cast_nullable_to_non_nullable
+                      as ExternalIds,
+            cast: null == cast
+                ? _value.cast
+                : cast // ignore: cast_nullable_to_non_nullable
+                      as List<Cast>,
+            seasons: null == seasons
+                ? _value.seasons
+                : seasons // ignore: cast_nullable_to_non_nullable
+                      as List<Season>,
+            videos: null == videos
+                ? _value.videos
+                : videos // ignore: cast_nullable_to_non_nullable
+                      as List<Video>,
+            images: null == images
+                ? _value.images
+                : images // ignore: cast_nullable_to_non_nullable
+                      as List<ImageModel>,
+            recommendations: null == recommendations
+                ? _value.recommendations
+                : recommendations // ignore: cast_nullable_to_non_nullable
+                      as List<TVRef>,
+            similar: null == similar
+                ? _value.similar
+                : similar // ignore: cast_nullable_to_non_nullable
+                      as List<TVRef>,
+            keywords: null == keywords
+                ? _value.keywords
+                : keywords // ignore: cast_nullable_to_non_nullable
+                      as List<Keyword>,
+          )
+          as $Val,
+    );
   }
 
   @override
@@ -293,41 +299,43 @@ class _$TVDetailedCopyWithImpl<$Res, $Val extends TVDetailed>
 abstract class _$$TVDetailedImplCopyWith<$Res>
     implements $TVDetailedCopyWith<$Res> {
   factory _$$TVDetailedImplCopyWith(
-          _$TVDetailedImpl value, $Res Function(_$TVDetailedImpl) then) =
-      __$$TVDetailedImplCopyWithImpl<$Res>;
+    _$TVDetailedImpl value,
+    $Res Function(_$TVDetailedImpl) then,
+  ) = __$$TVDetailedImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      String name,
-      @JsonKey(name: 'original_name') String originalName,
-      @JsonKey(name: 'vote_average') double voteAverage,
-      @JsonKey(name: 'vote_count') int voteCount,
-      String? overview,
-      String? tagline,
-      @JsonKey(name: 'first_air_date') String? firstAirDate,
-      @JsonKey(name: 'last_air_date') String? lastAirDate,
-      @JsonKey(name: 'number_of_seasons') int? numberOfSeasons,
-      @JsonKey(name: 'number_of_episodes') int? numberOfEpisodes,
-      @JsonKey(name: 'episode_run_time') List<int> episodeRunTime,
-      List<Genre> genres,
-      @JsonKey(name: 'production_companies') List<Company> productionCompanies,
-      @JsonKey(name: 'production_countries') List<Country> productionCountries,
-      @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
-      List<Network> networks,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      double? popularity,
-      String? status,
-      String? homepage,
-      @JsonKey(name: 'external_ids') ExternalIds externalIds,
-      List<Cast> cast,
-      List<Season> seasons,
-      List<Video> videos,
-      List<ImageModel> images,
-      List<TVRef> recommendations,
-      List<TVRef> similar,
-      List<Keyword> keywords});
+  $Res call({
+    int id,
+    String name,
+    @JsonKey(name: 'original_name') String originalName,
+    @JsonKey(name: 'vote_average') double voteAverage,
+    @JsonKey(name: 'vote_count') int voteCount,
+    String? overview,
+    String? tagline,
+    @JsonKey(name: 'first_air_date') String? firstAirDate,
+    @JsonKey(name: 'last_air_date') String? lastAirDate,
+    @JsonKey(name: 'number_of_seasons') int? numberOfSeasons,
+    @JsonKey(name: 'number_of_episodes') int? numberOfEpisodes,
+    @JsonKey(name: 'episode_run_time') List<int> episodeRunTime,
+    List<Genre> genres,
+    @JsonKey(name: 'production_companies') List<Company> productionCompanies,
+    @JsonKey(name: 'production_countries') List<Country> productionCountries,
+    @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
+    List<Network> networks,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    double? popularity,
+    String? status,
+    String? homepage,
+    @JsonKey(name: 'external_ids') ExternalIds externalIds,
+    List<Cast> cast,
+    List<Season> seasons,
+    List<Video> videos,
+    List<ImageModel> images,
+    List<TVRef> recommendations,
+    List<TVRef> similar,
+    List<Keyword> keywords,
+  });
 
   @override
   $ExternalIdsCopyWith<$Res> get externalIds;
@@ -338,8 +346,9 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
     extends _$TVDetailedCopyWithImpl<$Res, _$TVDetailedImpl>
     implements _$$TVDetailedImplCopyWith<$Res> {
   __$$TVDetailedImplCopyWithImpl(
-      _$TVDetailedImpl _value, $Res Function(_$TVDetailedImpl) _then)
-      : super(_value, _then);
+    _$TVDetailedImpl _value,
+    $Res Function(_$TVDetailedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -375,182 +384,184 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
     Object? similar = null,
     Object? keywords = null,
   }) {
-    return _then(_$TVDetailedImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      name: null == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String,
-      originalName: null == originalName
-          ? _value.originalName
-          : originalName // ignore: cast_nullable_to_non_nullable
-              as String,
-      voteAverage: null == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double,
-      voteCount: null == voteCount
-          ? _value.voteCount
-          : voteCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tagline: freezed == tagline
-          ? _value.tagline
-          : tagline // ignore: cast_nullable_to_non_nullable
-              as String?,
-      firstAirDate: freezed == firstAirDate
-          ? _value.firstAirDate
-          : firstAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      lastAirDate: freezed == lastAirDate
-          ? _value.lastAirDate
-          : lastAirDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      numberOfSeasons: freezed == numberOfSeasons
-          ? _value.numberOfSeasons
-          : numberOfSeasons // ignore: cast_nullable_to_non_nullable
-              as int?,
-      numberOfEpisodes: freezed == numberOfEpisodes
-          ? _value.numberOfEpisodes
-          : numberOfEpisodes // ignore: cast_nullable_to_non_nullable
-              as int?,
-      episodeRunTime: null == episodeRunTime
-          ? _value._episodeRunTime
-          : episodeRunTime // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-      genres: null == genres
-          ? _value._genres
-          : genres // ignore: cast_nullable_to_non_nullable
-              as List<Genre>,
-      productionCompanies: null == productionCompanies
-          ? _value._productionCompanies
-          : productionCompanies // ignore: cast_nullable_to_non_nullable
-              as List<Company>,
-      productionCountries: null == productionCountries
-          ? _value._productionCountries
-          : productionCountries // ignore: cast_nullable_to_non_nullable
-              as List<Country>,
-      spokenLanguages: null == spokenLanguages
-          ? _value._spokenLanguages
-          : spokenLanguages // ignore: cast_nullable_to_non_nullable
-              as List<Language>,
-      networks: null == networks
-          ? _value._networks
-          : networks // ignore: cast_nullable_to_non_nullable
-              as List<Network>,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as String?,
-      homepage: freezed == homepage
-          ? _value.homepage
-          : homepage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      externalIds: null == externalIds
-          ? _value.externalIds
-          : externalIds // ignore: cast_nullable_to_non_nullable
-              as ExternalIds,
-      cast: null == cast
-          ? _value._cast
-          : cast // ignore: cast_nullable_to_non_nullable
-              as List<Cast>,
-      seasons: null == seasons
-          ? _value._seasons
-          : seasons // ignore: cast_nullable_to_non_nullable
-              as List<Season>,
-      videos: null == videos
-          ? _value._videos
-          : videos // ignore: cast_nullable_to_non_nullable
-              as List<Video>,
-      images: null == images
-          ? _value._images
-          : images // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      recommendations: null == recommendations
-          ? _value._recommendations
-          : recommendations // ignore: cast_nullable_to_non_nullable
-              as List<TVRef>,
-      similar: null == similar
-          ? _value._similar
-          : similar // ignore: cast_nullable_to_non_nullable
-              as List<TVRef>,
-      keywords: null == keywords
-          ? _value._keywords
-          : keywords // ignore: cast_nullable_to_non_nullable
-              as List<Keyword>,
-    ));
+    return _then(
+      _$TVDetailedImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        name: null == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String,
+        originalName: null == originalName
+            ? _value.originalName
+            : originalName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        voteAverage: null == voteAverage
+            ? _value.voteAverage
+            : voteAverage // ignore: cast_nullable_to_non_nullable
+                  as double,
+        voteCount: null == voteCount
+            ? _value.voteCount
+            : voteCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        overview: freezed == overview
+            ? _value.overview
+            : overview // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        tagline: freezed == tagline
+            ? _value.tagline
+            : tagline // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        firstAirDate: freezed == firstAirDate
+            ? _value.firstAirDate
+            : firstAirDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lastAirDate: freezed == lastAirDate
+            ? _value.lastAirDate
+            : lastAirDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        numberOfSeasons: freezed == numberOfSeasons
+            ? _value.numberOfSeasons
+            : numberOfSeasons // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        numberOfEpisodes: freezed == numberOfEpisodes
+            ? _value.numberOfEpisodes
+            : numberOfEpisodes // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        episodeRunTime: null == episodeRunTime
+            ? _value._episodeRunTime
+            : episodeRunTime // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
+        genres: null == genres
+            ? _value._genres
+            : genres // ignore: cast_nullable_to_non_nullable
+                  as List<Genre>,
+        productionCompanies: null == productionCompanies
+            ? _value._productionCompanies
+            : productionCompanies // ignore: cast_nullable_to_non_nullable
+                  as List<Company>,
+        productionCountries: null == productionCountries
+            ? _value._productionCountries
+            : productionCountries // ignore: cast_nullable_to_non_nullable
+                  as List<Country>,
+        spokenLanguages: null == spokenLanguages
+            ? _value._spokenLanguages
+            : spokenLanguages // ignore: cast_nullable_to_non_nullable
+                  as List<Language>,
+        networks: null == networks
+            ? _value._networks
+            : networks // ignore: cast_nullable_to_non_nullable
+                  as List<Network>,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        popularity: freezed == popularity
+            ? _value.popularity
+            : popularity // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        status: freezed == status
+            ? _value.status
+            : status // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        homepage: freezed == homepage
+            ? _value.homepage
+            : homepage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        externalIds: null == externalIds
+            ? _value.externalIds
+            : externalIds // ignore: cast_nullable_to_non_nullable
+                  as ExternalIds,
+        cast: null == cast
+            ? _value._cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                  as List<Cast>,
+        seasons: null == seasons
+            ? _value._seasons
+            : seasons // ignore: cast_nullable_to_non_nullable
+                  as List<Season>,
+        videos: null == videos
+            ? _value._videos
+            : videos // ignore: cast_nullable_to_non_nullable
+                  as List<Video>,
+        images: null == images
+            ? _value._images
+            : images // ignore: cast_nullable_to_non_nullable
+                  as List<ImageModel>,
+        recommendations: null == recommendations
+            ? _value._recommendations
+            : recommendations // ignore: cast_nullable_to_non_nullable
+                  as List<TVRef>,
+        similar: null == similar
+            ? _value._similar
+            : similar // ignore: cast_nullable_to_non_nullable
+                  as List<TVRef>,
+        keywords: null == keywords
+            ? _value._keywords
+            : keywords // ignore: cast_nullable_to_non_nullable
+                  as List<Keyword>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TVDetailedImpl implements _TVDetailed {
-  const _$TVDetailedImpl(
-      {required this.id,
-      required this.name,
-      @JsonKey(name: 'original_name') required this.originalName,
-      @JsonKey(name: 'vote_average') required this.voteAverage,
-      @JsonKey(name: 'vote_count') required this.voteCount,
-      this.overview,
-      this.tagline,
-      @JsonKey(name: 'first_air_date') this.firstAirDate,
-      @JsonKey(name: 'last_air_date') this.lastAirDate,
-      @JsonKey(name: 'number_of_seasons') this.numberOfSeasons,
-      @JsonKey(name: 'number_of_episodes') this.numberOfEpisodes,
-      @JsonKey(name: 'episode_run_time')
-      final List<int> episodeRunTime = const [],
-      final List<Genre> genres = const [],
-      @JsonKey(name: 'production_companies')
-      final List<Company> productionCompanies = const [],
-      @JsonKey(name: 'production_countries')
-      final List<Country> productionCountries = const [],
-      @JsonKey(name: 'spoken_languages')
-      final List<Language> spokenLanguages = const [],
-      final List<Network> networks = const [],
-      @JsonKey(name: 'poster_path') this.posterPath,
-      @JsonKey(name: 'backdrop_path') this.backdropPath,
-      this.popularity,
-      this.status,
-      this.homepage,
-      @JsonKey(name: 'external_ids') this.externalIds = const ExternalIds(),
-      final List<Cast> cast = const [],
-      final List<Season> seasons = const [],
-      final List<Video> videos = const [],
-      final List<ImageModel> images = const [],
-      final List<TVRef> recommendations = const [],
-      final List<TVRef> similar = const [],
-      final List<Keyword> keywords = const []})
-      : _episodeRunTime = episodeRunTime,
-        _genres = genres,
-        _productionCompanies = productionCompanies,
-        _productionCountries = productionCountries,
-        _spokenLanguages = spokenLanguages,
-        _networks = networks,
-        _cast = cast,
-        _seasons = seasons,
-        _videos = videos,
-        _images = images,
-        _recommendations = recommendations,
-        _similar = similar,
-        _keywords = keywords;
+  const _$TVDetailedImpl({
+    required this.id,
+    required this.name,
+    @JsonKey(name: 'original_name') required this.originalName,
+    @JsonKey(name: 'vote_average') required this.voteAverage,
+    @JsonKey(name: 'vote_count') required this.voteCount,
+    this.overview,
+    this.tagline,
+    @JsonKey(name: 'first_air_date') this.firstAirDate,
+    @JsonKey(name: 'last_air_date') this.lastAirDate,
+    @JsonKey(name: 'number_of_seasons') this.numberOfSeasons,
+    @JsonKey(name: 'number_of_episodes') this.numberOfEpisodes,
+    @JsonKey(name: 'episode_run_time')
+    final List<int> episodeRunTime = const [],
+    final List<Genre> genres = const [],
+    @JsonKey(name: 'production_companies')
+    final List<Company> productionCompanies = const [],
+    @JsonKey(name: 'production_countries')
+    final List<Country> productionCountries = const [],
+    @JsonKey(name: 'spoken_languages')
+    final List<Language> spokenLanguages = const [],
+    final List<Network> networks = const [],
+    @JsonKey(name: 'poster_path') this.posterPath,
+    @JsonKey(name: 'backdrop_path') this.backdropPath,
+    this.popularity,
+    this.status,
+    this.homepage,
+    @JsonKey(name: 'external_ids') this.externalIds = const ExternalIds(),
+    final List<Cast> cast = const [],
+    final List<Season> seasons = const [],
+    final List<Video> videos = const [],
+    final List<ImageModel> images = const [],
+    final List<TVRef> recommendations = const [],
+    final List<TVRef> similar = const [],
+    final List<Keyword> keywords = const [],
+  }) : _episodeRunTime = episodeRunTime,
+       _genres = genres,
+       _productionCompanies = productionCompanies,
+       _productionCountries = productionCountries,
+       _spokenLanguages = spokenLanguages,
+       _networks = networks,
+       _cast = cast,
+       _seasons = seasons,
+       _videos = videos,
+       _images = images,
+       _recommendations = recommendations,
+       _similar = similar,
+       _keywords = keywords;
 
   factory _$TVDetailedImpl.fromJson(Map<String, dynamic> json) =>
       _$$TVDetailedImplFromJson(json);
@@ -747,15 +758,23 @@ class _$TVDetailedImpl implements _TVDetailed {
                 other.numberOfSeasons == numberOfSeasons) &&
             (identical(other.numberOfEpisodes, numberOfEpisodes) ||
                 other.numberOfEpisodes == numberOfEpisodes) &&
-            const DeepCollectionEquality()
-                .equals(other._episodeRunTime, _episodeRunTime) &&
+            const DeepCollectionEquality().equals(
+              other._episodeRunTime,
+              _episodeRunTime,
+            ) &&
             const DeepCollectionEquality().equals(other._genres, _genres) &&
-            const DeepCollectionEquality()
-                .equals(other._productionCompanies, _productionCompanies) &&
-            const DeepCollectionEquality()
-                .equals(other._productionCountries, _productionCountries) &&
-            const DeepCollectionEquality()
-                .equals(other._spokenLanguages, _spokenLanguages) &&
+            const DeepCollectionEquality().equals(
+              other._productionCompanies,
+              _productionCompanies,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._productionCountries,
+              _productionCountries,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._spokenLanguages,
+              _spokenLanguages,
+            ) &&
             const DeepCollectionEquality().equals(other._networks, _networks) &&
             (identical(other.posterPath, posterPath) ||
                 other.posterPath == posterPath) &&
@@ -772,8 +791,10 @@ class _$TVDetailedImpl implements _TVDetailed {
             const DeepCollectionEquality().equals(other._seasons, _seasons) &&
             const DeepCollectionEquality().equals(other._videos, _videos) &&
             const DeepCollectionEquality().equals(other._images, _images) &&
-            const DeepCollectionEquality()
-                .equals(other._recommendations, _recommendations) &&
+            const DeepCollectionEquality().equals(
+              other._recommendations,
+              _recommendations,
+            ) &&
             const DeepCollectionEquality().equals(other._similar, _similar) &&
             const DeepCollectionEquality().equals(other._keywords, _keywords));
   }
@@ -781,38 +802,38 @@ class _$TVDetailedImpl implements _TVDetailed {
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        id,
-        name,
-        originalName,
-        voteAverage,
-        voteCount,
-        overview,
-        tagline,
-        firstAirDate,
-        lastAirDate,
-        numberOfSeasons,
-        numberOfEpisodes,
-        const DeepCollectionEquality().hash(_episodeRunTime),
-        const DeepCollectionEquality().hash(_genres),
-        const DeepCollectionEquality().hash(_productionCompanies),
-        const DeepCollectionEquality().hash(_productionCountries),
-        const DeepCollectionEquality().hash(_spokenLanguages),
-        const DeepCollectionEquality().hash(_networks),
-        posterPath,
-        backdropPath,
-        popularity,
-        status,
-        homepage,
-        externalIds,
-        const DeepCollectionEquality().hash(_cast),
-        const DeepCollectionEquality().hash(_seasons),
-        const DeepCollectionEquality().hash(_videos),
-        const DeepCollectionEquality().hash(_images),
-        const DeepCollectionEquality().hash(_recommendations),
-        const DeepCollectionEquality().hash(_similar),
-        const DeepCollectionEquality().hash(_keywords)
-      ]);
+    runtimeType,
+    id,
+    name,
+    originalName,
+    voteAverage,
+    voteCount,
+    overview,
+    tagline,
+    firstAirDate,
+    lastAirDate,
+    numberOfSeasons,
+    numberOfEpisodes,
+    const DeepCollectionEquality().hash(_episodeRunTime),
+    const DeepCollectionEquality().hash(_genres),
+    const DeepCollectionEquality().hash(_productionCompanies),
+    const DeepCollectionEquality().hash(_productionCountries),
+    const DeepCollectionEquality().hash(_spokenLanguages),
+    const DeepCollectionEquality().hash(_networks),
+    posterPath,
+    backdropPath,
+    popularity,
+    status,
+    homepage,
+    externalIds,
+    const DeepCollectionEquality().hash(_cast),
+    const DeepCollectionEquality().hash(_seasons),
+    const DeepCollectionEquality().hash(_videos),
+    const DeepCollectionEquality().hash(_images),
+    const DeepCollectionEquality().hash(_recommendations),
+    const DeepCollectionEquality().hash(_similar),
+    const DeepCollectionEquality().hash(_keywords),
+  ]);
 
   @JsonKey(ignore: true)
   @override
@@ -822,46 +843,45 @@ class _$TVDetailedImpl implements _TVDetailed {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TVDetailedImplToJson(
-      this,
-    );
+    return _$$TVDetailedImplToJson(this);
   }
 }
 
 abstract class _TVDetailed implements TVDetailed {
-  const factory _TVDetailed(
-      {required final int id,
-      required final String name,
-      @JsonKey(name: 'original_name') required final String originalName,
-      @JsonKey(name: 'vote_average') required final double voteAverage,
-      @JsonKey(name: 'vote_count') required final int voteCount,
-      final String? overview,
-      final String? tagline,
-      @JsonKey(name: 'first_air_date') final String? firstAirDate,
-      @JsonKey(name: 'last_air_date') final String? lastAirDate,
-      @JsonKey(name: 'number_of_seasons') final int? numberOfSeasons,
-      @JsonKey(name: 'number_of_episodes') final int? numberOfEpisodes,
-      @JsonKey(name: 'episode_run_time') final List<int> episodeRunTime,
-      final List<Genre> genres,
-      @JsonKey(name: 'production_companies')
-      final List<Company> productionCompanies,
-      @JsonKey(name: 'production_countries')
-      final List<Country> productionCountries,
-      @JsonKey(name: 'spoken_languages') final List<Language> spokenLanguages,
-      final List<Network> networks,
-      @JsonKey(name: 'poster_path') final String? posterPath,
-      @JsonKey(name: 'backdrop_path') final String? backdropPath,
-      final double? popularity,
-      final String? status,
-      final String? homepage,
-      @JsonKey(name: 'external_ids') final ExternalIds externalIds,
-      final List<Cast> cast,
-      final List<Season> seasons,
-      final List<Video> videos,
-      final List<ImageModel> images,
-      final List<TVRef> recommendations,
-      final List<TVRef> similar,
-      final List<Keyword> keywords}) = _$TVDetailedImpl;
+  const factory _TVDetailed({
+    required final int id,
+    required final String name,
+    @JsonKey(name: 'original_name') required final String originalName,
+    @JsonKey(name: 'vote_average') required final double voteAverage,
+    @JsonKey(name: 'vote_count') required final int voteCount,
+    final String? overview,
+    final String? tagline,
+    @JsonKey(name: 'first_air_date') final String? firstAirDate,
+    @JsonKey(name: 'last_air_date') final String? lastAirDate,
+    @JsonKey(name: 'number_of_seasons') final int? numberOfSeasons,
+    @JsonKey(name: 'number_of_episodes') final int? numberOfEpisodes,
+    @JsonKey(name: 'episode_run_time') final List<int> episodeRunTime,
+    final List<Genre> genres,
+    @JsonKey(name: 'production_companies')
+    final List<Company> productionCompanies,
+    @JsonKey(name: 'production_countries')
+    final List<Country> productionCountries,
+    @JsonKey(name: 'spoken_languages') final List<Language> spokenLanguages,
+    final List<Network> networks,
+    @JsonKey(name: 'poster_path') final String? posterPath,
+    @JsonKey(name: 'backdrop_path') final String? backdropPath,
+    final double? popularity,
+    final String? status,
+    final String? homepage,
+    @JsonKey(name: 'external_ids') final ExternalIds externalIds,
+    final List<Cast> cast,
+    final List<Season> seasons,
+    final List<Video> videos,
+    final List<ImageModel> images,
+    final List<TVRef> recommendations,
+    final List<TVRef> similar,
+    final List<Keyword> keywords,
+  }) = _$TVDetailedImpl;
 
   factory _TVDetailed.fromJson(Map<String, dynamic> json) =
       _$TVDetailedImpl.fromJson;

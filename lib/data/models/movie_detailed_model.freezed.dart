@@ -12,7 +12,8 @@ part of 'movie_detailed_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 MovieDetailed _$MovieDetailedFromJson(Map<String, dynamic> json) {
   return _MovieDetailed.fromJson(json);
@@ -63,9 +64,10 @@ mixin _$MovieDetailed {
   List<ReleaseDatesResult> get releaseDates =>
       throw _privateConstructorUsedError;
   @JsonKey(
-      name: 'watchProviders',
-      fromJson: MovieDetailed._watchProvidersFromJson,
-      toJson: MovieDetailed._watchProvidersToJson)
+    name: 'watchProviders',
+    fromJson: MovieDetailed._watchProvidersFromJson,
+    toJson: MovieDetailed._watchProvidersToJson,
+  )
   Map<String, WatchProviderResults> get watchProviders =>
       throw _privateConstructorUsedError;
   @JsonKey(name: 'alternative_titles')
@@ -92,53 +94,56 @@ mixin _$MovieDetailed {
 /// @nodoc
 abstract class $MovieDetailedCopyWith<$Res> {
   factory $MovieDetailedCopyWith(
-          MovieDetailed value, $Res Function(MovieDetailed) then) =
-      _$MovieDetailedCopyWithImpl<$Res, MovieDetailed>;
+    MovieDetailed value,
+    $Res Function(MovieDetailed) then,
+  ) = _$MovieDetailedCopyWithImpl<$Res, MovieDetailed>;
   @useResult
-  $Res call(
-      {int id,
-      String title,
-      @JsonKey(name: 'original_title') String originalTitle,
-      @JsonKey(name: 'original_language') String? originalLanguage,
-      @JsonKey(name: 'vote_average') double voteAverage,
-      @JsonKey(name: 'vote_count') int voteCount,
-      String? overview,
-      String? tagline,
-      @JsonKey(name: 'release_date') String? releaseDate,
-      int? runtime,
-      List<Genre> genres,
-      @JsonKey(name: 'production_companies') List<Company> productionCompanies,
-      @JsonKey(name: 'production_countries') List<Country> productionCountries,
-      @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      @JsonKey(name: 'belongs_to_collection') Collection? collection,
-      double? popularity,
-      String? status,
-      String? homepage,
-      @JsonKey(name: 'external_ids') ExternalIds externalIds,
-      int? budget,
-      int? revenue,
-      List<Cast> cast,
-      List<Crew> crew,
-      List<Keyword> keywords,
-      List<Review> reviews,
-      @JsonKey(name: 'release_dates') List<ReleaseDatesResult> releaseDates,
-      @JsonKey(
-          name: 'watchProviders',
-          fromJson: MovieDetailed._watchProvidersFromJson,
-          toJson: MovieDetailed._watchProvidersToJson)
-      Map<String, WatchProviderResults> watchProviders,
-      @JsonKey(name: 'alternative_titles')
-      List<AlternativeTitle> alternativeTitles,
-      List<Translation> translations,
-      List<Video> videos,
-      @JsonKey(name: 'imageBackdrops') List<ImageModel> imageBackdrops,
-      @JsonKey(name: 'imagePosters') List<ImageModel> imagePosters,
-      @JsonKey(name: 'imageProfiles') List<ImageModel> imageProfiles,
-      List<ImageModel> images,
-      List<MovieRef> recommendations,
-      List<MovieRef> similar});
+  $Res call({
+    int id,
+    String title,
+    @JsonKey(name: 'original_title') String originalTitle,
+    @JsonKey(name: 'original_language') String? originalLanguage,
+    @JsonKey(name: 'vote_average') double voteAverage,
+    @JsonKey(name: 'vote_count') int voteCount,
+    String? overview,
+    String? tagline,
+    @JsonKey(name: 'release_date') String? releaseDate,
+    int? runtime,
+    List<Genre> genres,
+    @JsonKey(name: 'production_companies') List<Company> productionCompanies,
+    @JsonKey(name: 'production_countries') List<Country> productionCountries,
+    @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'belongs_to_collection') Collection? collection,
+    double? popularity,
+    String? status,
+    String? homepage,
+    @JsonKey(name: 'external_ids') ExternalIds externalIds,
+    int? budget,
+    int? revenue,
+    List<Cast> cast,
+    List<Crew> crew,
+    List<Keyword> keywords,
+    List<Review> reviews,
+    @JsonKey(name: 'release_dates') List<ReleaseDatesResult> releaseDates,
+    @JsonKey(
+      name: 'watchProviders',
+      fromJson: MovieDetailed._watchProvidersFromJson,
+      toJson: MovieDetailed._watchProvidersToJson,
+    )
+    Map<String, WatchProviderResults> watchProviders,
+    @JsonKey(name: 'alternative_titles')
+    List<AlternativeTitle> alternativeTitles,
+    List<Translation> translations,
+    List<Video> videos,
+    @JsonKey(name: 'imageBackdrops') List<ImageModel> imageBackdrops,
+    @JsonKey(name: 'imagePosters') List<ImageModel> imagePosters,
+    @JsonKey(name: 'imageProfiles') List<ImageModel> imageProfiles,
+    List<ImageModel> images,
+    List<MovieRef> recommendations,
+    List<MovieRef> similar,
+  });
 
   $CollectionCopyWith<$Res>? get collection;
   $ExternalIdsCopyWith<$Res> get externalIds;
@@ -196,160 +201,163 @@ class _$MovieDetailedCopyWithImpl<$Res, $Val extends MovieDetailed>
     Object? recommendations = null,
     Object? similar = null,
   }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      originalTitle: null == originalTitle
-          ? _value.originalTitle
-          : originalTitle // ignore: cast_nullable_to_non_nullable
-              as String,
-      originalLanguage: freezed == originalLanguage
-          ? _value.originalLanguage
-          : originalLanguage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      voteAverage: null == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double,
-      voteCount: null == voteCount
-          ? _value.voteCount
-          : voteCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tagline: freezed == tagline
-          ? _value.tagline
-          : tagline // ignore: cast_nullable_to_non_nullable
-              as String?,
-      releaseDate: freezed == releaseDate
-          ? _value.releaseDate
-          : releaseDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      runtime: freezed == runtime
-          ? _value.runtime
-          : runtime // ignore: cast_nullable_to_non_nullable
-              as int?,
-      genres: null == genres
-          ? _value.genres
-          : genres // ignore: cast_nullable_to_non_nullable
-              as List<Genre>,
-      productionCompanies: null == productionCompanies
-          ? _value.productionCompanies
-          : productionCompanies // ignore: cast_nullable_to_non_nullable
-              as List<Company>,
-      productionCountries: null == productionCountries
-          ? _value.productionCountries
-          : productionCountries // ignore: cast_nullable_to_non_nullable
-              as List<Country>,
-      spokenLanguages: null == spokenLanguages
-          ? _value.spokenLanguages
-          : spokenLanguages // ignore: cast_nullable_to_non_nullable
-              as List<Language>,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      collection: freezed == collection
-          ? _value.collection
-          : collection // ignore: cast_nullable_to_non_nullable
-              as Collection?,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as String?,
-      homepage: freezed == homepage
-          ? _value.homepage
-          : homepage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      externalIds: null == externalIds
-          ? _value.externalIds
-          : externalIds // ignore: cast_nullable_to_non_nullable
-              as ExternalIds,
-      budget: freezed == budget
-          ? _value.budget
-          : budget // ignore: cast_nullable_to_non_nullable
-              as int?,
-      revenue: freezed == revenue
-          ? _value.revenue
-          : revenue // ignore: cast_nullable_to_non_nullable
-              as int?,
-      cast: null == cast
-          ? _value.cast
-          : cast // ignore: cast_nullable_to_non_nullable
-              as List<Cast>,
-      crew: null == crew
-          ? _value.crew
-          : crew // ignore: cast_nullable_to_non_nullable
-              as List<Crew>,
-      keywords: null == keywords
-          ? _value.keywords
-          : keywords // ignore: cast_nullable_to_non_nullable
-              as List<Keyword>,
-      reviews: null == reviews
-          ? _value.reviews
-          : reviews // ignore: cast_nullable_to_non_nullable
-              as List<Review>,
-      releaseDates: null == releaseDates
-          ? _value.releaseDates
-          : releaseDates // ignore: cast_nullable_to_non_nullable
-              as List<ReleaseDatesResult>,
-      watchProviders: null == watchProviders
-          ? _value.watchProviders
-          : watchProviders // ignore: cast_nullable_to_non_nullable
-              as Map<String, WatchProviderResults>,
-      alternativeTitles: null == alternativeTitles
-          ? _value.alternativeTitles
-          : alternativeTitles // ignore: cast_nullable_to_non_nullable
-              as List<AlternativeTitle>,
-      translations: null == translations
-          ? _value.translations
-          : translations // ignore: cast_nullable_to_non_nullable
-              as List<Translation>,
-      videos: null == videos
-          ? _value.videos
-          : videos // ignore: cast_nullable_to_non_nullable
-              as List<Video>,
-      imageBackdrops: null == imageBackdrops
-          ? _value.imageBackdrops
-          : imageBackdrops // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      imagePosters: null == imagePosters
-          ? _value.imagePosters
-          : imagePosters // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      imageProfiles: null == imageProfiles
-          ? _value.imageProfiles
-          : imageProfiles // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      images: null == images
-          ? _value.images
-          : images // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      recommendations: null == recommendations
-          ? _value.recommendations
-          : recommendations // ignore: cast_nullable_to_non_nullable
-              as List<MovieRef>,
-      similar: null == similar
-          ? _value.similar
-          : similar // ignore: cast_nullable_to_non_nullable
-              as List<MovieRef>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            id: null == id
+                ? _value.id
+                : id // ignore: cast_nullable_to_non_nullable
+                      as int,
+            title: null == title
+                ? _value.title
+                : title // ignore: cast_nullable_to_non_nullable
+                      as String,
+            originalTitle: null == originalTitle
+                ? _value.originalTitle
+                : originalTitle // ignore: cast_nullable_to_non_nullable
+                      as String,
+            originalLanguage: freezed == originalLanguage
+                ? _value.originalLanguage
+                : originalLanguage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            voteAverage: null == voteAverage
+                ? _value.voteAverage
+                : voteAverage // ignore: cast_nullable_to_non_nullable
+                      as double,
+            voteCount: null == voteCount
+                ? _value.voteCount
+                : voteCount // ignore: cast_nullable_to_non_nullable
+                      as int,
+            overview: freezed == overview
+                ? _value.overview
+                : overview // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            tagline: freezed == tagline
+                ? _value.tagline
+                : tagline // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            releaseDate: freezed == releaseDate
+                ? _value.releaseDate
+                : releaseDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            runtime: freezed == runtime
+                ? _value.runtime
+                : runtime // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            genres: null == genres
+                ? _value.genres
+                : genres // ignore: cast_nullable_to_non_nullable
+                      as List<Genre>,
+            productionCompanies: null == productionCompanies
+                ? _value.productionCompanies
+                : productionCompanies // ignore: cast_nullable_to_non_nullable
+                      as List<Company>,
+            productionCountries: null == productionCountries
+                ? _value.productionCountries
+                : productionCountries // ignore: cast_nullable_to_non_nullable
+                      as List<Country>,
+            spokenLanguages: null == spokenLanguages
+                ? _value.spokenLanguages
+                : spokenLanguages // ignore: cast_nullable_to_non_nullable
+                      as List<Language>,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            collection: freezed == collection
+                ? _value.collection
+                : collection // ignore: cast_nullable_to_non_nullable
+                      as Collection?,
+            popularity: freezed == popularity
+                ? _value.popularity
+                : popularity // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            status: freezed == status
+                ? _value.status
+                : status // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            homepage: freezed == homepage
+                ? _value.homepage
+                : homepage // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            externalIds: null == externalIds
+                ? _value.externalIds
+                : externalIds // ignore: cast_nullable_to_non_nullable
+                      as ExternalIds,
+            budget: freezed == budget
+                ? _value.budget
+                : budget // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            revenue: freezed == revenue
+                ? _value.revenue
+                : revenue // ignore: cast_nullable_to_non_nullable
+                      as int?,
+            cast: null == cast
+                ? _value.cast
+                : cast // ignore: cast_nullable_to_non_nullable
+                      as List<Cast>,
+            crew: null == crew
+                ? _value.crew
+                : crew // ignore: cast_nullable_to_non_nullable
+                      as List<Crew>,
+            keywords: null == keywords
+                ? _value.keywords
+                : keywords // ignore: cast_nullable_to_non_nullable
+                      as List<Keyword>,
+            reviews: null == reviews
+                ? _value.reviews
+                : reviews // ignore: cast_nullable_to_non_nullable
+                      as List<Review>,
+            releaseDates: null == releaseDates
+                ? _value.releaseDates
+                : releaseDates // ignore: cast_nullable_to_non_nullable
+                      as List<ReleaseDatesResult>,
+            watchProviders: null == watchProviders
+                ? _value.watchProviders
+                : watchProviders // ignore: cast_nullable_to_non_nullable
+                      as Map<String, WatchProviderResults>,
+            alternativeTitles: null == alternativeTitles
+                ? _value.alternativeTitles
+                : alternativeTitles // ignore: cast_nullable_to_non_nullable
+                      as List<AlternativeTitle>,
+            translations: null == translations
+                ? _value.translations
+                : translations // ignore: cast_nullable_to_non_nullable
+                      as List<Translation>,
+            videos: null == videos
+                ? _value.videos
+                : videos // ignore: cast_nullable_to_non_nullable
+                      as List<Video>,
+            imageBackdrops: null == imageBackdrops
+                ? _value.imageBackdrops
+                : imageBackdrops // ignore: cast_nullable_to_non_nullable
+                      as List<ImageModel>,
+            imagePosters: null == imagePosters
+                ? _value.imagePosters
+                : imagePosters // ignore: cast_nullable_to_non_nullable
+                      as List<ImageModel>,
+            imageProfiles: null == imageProfiles
+                ? _value.imageProfiles
+                : imageProfiles // ignore: cast_nullable_to_non_nullable
+                      as List<ImageModel>,
+            images: null == images
+                ? _value.images
+                : images // ignore: cast_nullable_to_non_nullable
+                      as List<ImageModel>,
+            recommendations: null == recommendations
+                ? _value.recommendations
+                : recommendations // ignore: cast_nullable_to_non_nullable
+                      as List<MovieRef>,
+            similar: null == similar
+                ? _value.similar
+                : similar // ignore: cast_nullable_to_non_nullable
+                      as List<MovieRef>,
+          )
+          as $Val,
+    );
   }
 
   @override
@@ -377,54 +385,57 @@ class _$MovieDetailedCopyWithImpl<$Res, $Val extends MovieDetailed>
 abstract class _$$MovieDetailedImplCopyWith<$Res>
     implements $MovieDetailedCopyWith<$Res> {
   factory _$$MovieDetailedImplCopyWith(
-          _$MovieDetailedImpl value, $Res Function(_$MovieDetailedImpl) then) =
-      __$$MovieDetailedImplCopyWithImpl<$Res>;
+    _$MovieDetailedImpl value,
+    $Res Function(_$MovieDetailedImpl) then,
+  ) = __$$MovieDetailedImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {int id,
-      String title,
-      @JsonKey(name: 'original_title') String originalTitle,
-      @JsonKey(name: 'original_language') String? originalLanguage,
-      @JsonKey(name: 'vote_average') double voteAverage,
-      @JsonKey(name: 'vote_count') int voteCount,
-      String? overview,
-      String? tagline,
-      @JsonKey(name: 'release_date') String? releaseDate,
-      int? runtime,
-      List<Genre> genres,
-      @JsonKey(name: 'production_companies') List<Company> productionCompanies,
-      @JsonKey(name: 'production_countries') List<Country> productionCountries,
-      @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
-      @JsonKey(name: 'poster_path') String? posterPath,
-      @JsonKey(name: 'backdrop_path') String? backdropPath,
-      @JsonKey(name: 'belongs_to_collection') Collection? collection,
-      double? popularity,
-      String? status,
-      String? homepage,
-      @JsonKey(name: 'external_ids') ExternalIds externalIds,
-      int? budget,
-      int? revenue,
-      List<Cast> cast,
-      List<Crew> crew,
-      List<Keyword> keywords,
-      List<Review> reviews,
-      @JsonKey(name: 'release_dates') List<ReleaseDatesResult> releaseDates,
-      @JsonKey(
-          name: 'watchProviders',
-          fromJson: MovieDetailed._watchProvidersFromJson,
-          toJson: MovieDetailed._watchProvidersToJson)
-      Map<String, WatchProviderResults> watchProviders,
-      @JsonKey(name: 'alternative_titles')
-      List<AlternativeTitle> alternativeTitles,
-      List<Translation> translations,
-      List<Video> videos,
-      @JsonKey(name: 'imageBackdrops') List<ImageModel> imageBackdrops,
-      @JsonKey(name: 'imagePosters') List<ImageModel> imagePosters,
-      @JsonKey(name: 'imageProfiles') List<ImageModel> imageProfiles,
-      List<ImageModel> images,
-      List<MovieRef> recommendations,
-      List<MovieRef> similar});
+  $Res call({
+    int id,
+    String title,
+    @JsonKey(name: 'original_title') String originalTitle,
+    @JsonKey(name: 'original_language') String? originalLanguage,
+    @JsonKey(name: 'vote_average') double voteAverage,
+    @JsonKey(name: 'vote_count') int voteCount,
+    String? overview,
+    String? tagline,
+    @JsonKey(name: 'release_date') String? releaseDate,
+    int? runtime,
+    List<Genre> genres,
+    @JsonKey(name: 'production_companies') List<Company> productionCompanies,
+    @JsonKey(name: 'production_countries') List<Country> productionCountries,
+    @JsonKey(name: 'spoken_languages') List<Language> spokenLanguages,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'belongs_to_collection') Collection? collection,
+    double? popularity,
+    String? status,
+    String? homepage,
+    @JsonKey(name: 'external_ids') ExternalIds externalIds,
+    int? budget,
+    int? revenue,
+    List<Cast> cast,
+    List<Crew> crew,
+    List<Keyword> keywords,
+    List<Review> reviews,
+    @JsonKey(name: 'release_dates') List<ReleaseDatesResult> releaseDates,
+    @JsonKey(
+      name: 'watchProviders',
+      fromJson: MovieDetailed._watchProvidersFromJson,
+      toJson: MovieDetailed._watchProvidersToJson,
+    )
+    Map<String, WatchProviderResults> watchProviders,
+    @JsonKey(name: 'alternative_titles')
+    List<AlternativeTitle> alternativeTitles,
+    List<Translation> translations,
+    List<Video> videos,
+    @JsonKey(name: 'imageBackdrops') List<ImageModel> imageBackdrops,
+    @JsonKey(name: 'imagePosters') List<ImageModel> imagePosters,
+    @JsonKey(name: 'imageProfiles') List<ImageModel> imageProfiles,
+    List<ImageModel> images,
+    List<MovieRef> recommendations,
+    List<MovieRef> similar,
+  });
 
   @override
   $CollectionCopyWith<$Res>? get collection;
@@ -437,8 +448,9 @@ class __$$MovieDetailedImplCopyWithImpl<$Res>
     extends _$MovieDetailedCopyWithImpl<$Res, _$MovieDetailedImpl>
     implements _$$MovieDetailedImplCopyWith<$Res> {
   __$$MovieDetailedImplCopyWithImpl(
-      _$MovieDetailedImpl _value, $Res Function(_$MovieDetailedImpl) _then)
-      : super(_value, _then);
+    _$MovieDetailedImpl _value,
+    $Res Function(_$MovieDetailedImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -482,236 +494,239 @@ class __$$MovieDetailedImplCopyWithImpl<$Res>
     Object? recommendations = null,
     Object? similar = null,
   }) {
-    return _then(_$MovieDetailedImpl(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      originalTitle: null == originalTitle
-          ? _value.originalTitle
-          : originalTitle // ignore: cast_nullable_to_non_nullable
-              as String,
-      originalLanguage: freezed == originalLanguage
-          ? _value.originalLanguage
-          : originalLanguage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      voteAverage: null == voteAverage
-          ? _value.voteAverage
-          : voteAverage // ignore: cast_nullable_to_non_nullable
-              as double,
-      voteCount: null == voteCount
-          ? _value.voteCount
-          : voteCount // ignore: cast_nullable_to_non_nullable
-              as int,
-      overview: freezed == overview
-          ? _value.overview
-          : overview // ignore: cast_nullable_to_non_nullable
-              as String?,
-      tagline: freezed == tagline
-          ? _value.tagline
-          : tagline // ignore: cast_nullable_to_non_nullable
-              as String?,
-      releaseDate: freezed == releaseDate
-          ? _value.releaseDate
-          : releaseDate // ignore: cast_nullable_to_non_nullable
-              as String?,
-      runtime: freezed == runtime
-          ? _value.runtime
-          : runtime // ignore: cast_nullable_to_non_nullable
-              as int?,
-      genres: null == genres
-          ? _value._genres
-          : genres // ignore: cast_nullable_to_non_nullable
-              as List<Genre>,
-      productionCompanies: null == productionCompanies
-          ? _value._productionCompanies
-          : productionCompanies // ignore: cast_nullable_to_non_nullable
-              as List<Company>,
-      productionCountries: null == productionCountries
-          ? _value._productionCountries
-          : productionCountries // ignore: cast_nullable_to_non_nullable
-              as List<Country>,
-      spokenLanguages: null == spokenLanguages
-          ? _value._spokenLanguages
-          : spokenLanguages // ignore: cast_nullable_to_non_nullable
-              as List<Language>,
-      posterPath: freezed == posterPath
-          ? _value.posterPath
-          : posterPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      backdropPath: freezed == backdropPath
-          ? _value.backdropPath
-          : backdropPath // ignore: cast_nullable_to_non_nullable
-              as String?,
-      collection: freezed == collection
-          ? _value.collection
-          : collection // ignore: cast_nullable_to_non_nullable
-              as Collection?,
-      popularity: freezed == popularity
-          ? _value.popularity
-          : popularity // ignore: cast_nullable_to_non_nullable
-              as double?,
-      status: freezed == status
-          ? _value.status
-          : status // ignore: cast_nullable_to_non_nullable
-              as String?,
-      homepage: freezed == homepage
-          ? _value.homepage
-          : homepage // ignore: cast_nullable_to_non_nullable
-              as String?,
-      externalIds: null == externalIds
-          ? _value.externalIds
-          : externalIds // ignore: cast_nullable_to_non_nullable
-              as ExternalIds,
-      budget: freezed == budget
-          ? _value.budget
-          : budget // ignore: cast_nullable_to_non_nullable
-              as int?,
-      revenue: freezed == revenue
-          ? _value.revenue
-          : revenue // ignore: cast_nullable_to_non_nullable
-              as int?,
-      cast: null == cast
-          ? _value._cast
-          : cast // ignore: cast_nullable_to_non_nullable
-              as List<Cast>,
-      crew: null == crew
-          ? _value._crew
-          : crew // ignore: cast_nullable_to_non_nullable
-              as List<Crew>,
-      keywords: null == keywords
-          ? _value._keywords
-          : keywords // ignore: cast_nullable_to_non_nullable
-              as List<Keyword>,
-      reviews: null == reviews
-          ? _value._reviews
-          : reviews // ignore: cast_nullable_to_non_nullable
-              as List<Review>,
-      releaseDates: null == releaseDates
-          ? _value._releaseDates
-          : releaseDates // ignore: cast_nullable_to_non_nullable
-              as List<ReleaseDatesResult>,
-      watchProviders: null == watchProviders
-          ? _value._watchProviders
-          : watchProviders // ignore: cast_nullable_to_non_nullable
-              as Map<String, WatchProviderResults>,
-      alternativeTitles: null == alternativeTitles
-          ? _value._alternativeTitles
-          : alternativeTitles // ignore: cast_nullable_to_non_nullable
-              as List<AlternativeTitle>,
-      translations: null == translations
-          ? _value._translations
-          : translations // ignore: cast_nullable_to_non_nullable
-              as List<Translation>,
-      videos: null == videos
-          ? _value._videos
-          : videos // ignore: cast_nullable_to_non_nullable
-              as List<Video>,
-      imageBackdrops: null == imageBackdrops
-          ? _value._imageBackdrops
-          : imageBackdrops // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      imagePosters: null == imagePosters
-          ? _value._imagePosters
-          : imagePosters // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      imageProfiles: null == imageProfiles
-          ? _value._imageProfiles
-          : imageProfiles // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      images: null == images
-          ? _value._images
-          : images // ignore: cast_nullable_to_non_nullable
-              as List<ImageModel>,
-      recommendations: null == recommendations
-          ? _value._recommendations
-          : recommendations // ignore: cast_nullable_to_non_nullable
-              as List<MovieRef>,
-      similar: null == similar
-          ? _value._similar
-          : similar // ignore: cast_nullable_to_non_nullable
-              as List<MovieRef>,
-    ));
+    return _then(
+      _$MovieDetailedImpl(
+        id: null == id
+            ? _value.id
+            : id // ignore: cast_nullable_to_non_nullable
+                  as int,
+        title: null == title
+            ? _value.title
+            : title // ignore: cast_nullable_to_non_nullable
+                  as String,
+        originalTitle: null == originalTitle
+            ? _value.originalTitle
+            : originalTitle // ignore: cast_nullable_to_non_nullable
+                  as String,
+        originalLanguage: freezed == originalLanguage
+            ? _value.originalLanguage
+            : originalLanguage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voteAverage: null == voteAverage
+            ? _value.voteAverage
+            : voteAverage // ignore: cast_nullable_to_non_nullable
+                  as double,
+        voteCount: null == voteCount
+            ? _value.voteCount
+            : voteCount // ignore: cast_nullable_to_non_nullable
+                  as int,
+        overview: freezed == overview
+            ? _value.overview
+            : overview // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        tagline: freezed == tagline
+            ? _value.tagline
+            : tagline // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        releaseDate: freezed == releaseDate
+            ? _value.releaseDate
+            : releaseDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        runtime: freezed == runtime
+            ? _value.runtime
+            : runtime // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        genres: null == genres
+            ? _value._genres
+            : genres // ignore: cast_nullable_to_non_nullable
+                  as List<Genre>,
+        productionCompanies: null == productionCompanies
+            ? _value._productionCompanies
+            : productionCompanies // ignore: cast_nullable_to_non_nullable
+                  as List<Company>,
+        productionCountries: null == productionCountries
+            ? _value._productionCountries
+            : productionCountries // ignore: cast_nullable_to_non_nullable
+                  as List<Country>,
+        spokenLanguages: null == spokenLanguages
+            ? _value._spokenLanguages
+            : spokenLanguages // ignore: cast_nullable_to_non_nullable
+                  as List<Language>,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        collection: freezed == collection
+            ? _value.collection
+            : collection // ignore: cast_nullable_to_non_nullable
+                  as Collection?,
+        popularity: freezed == popularity
+            ? _value.popularity
+            : popularity // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        status: freezed == status
+            ? _value.status
+            : status // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        homepage: freezed == homepage
+            ? _value.homepage
+            : homepage // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        externalIds: null == externalIds
+            ? _value.externalIds
+            : externalIds // ignore: cast_nullable_to_non_nullable
+                  as ExternalIds,
+        budget: freezed == budget
+            ? _value.budget
+            : budget // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        revenue: freezed == revenue
+            ? _value.revenue
+            : revenue // ignore: cast_nullable_to_non_nullable
+                  as int?,
+        cast: null == cast
+            ? _value._cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                  as List<Cast>,
+        crew: null == crew
+            ? _value._crew
+            : crew // ignore: cast_nullable_to_non_nullable
+                  as List<Crew>,
+        keywords: null == keywords
+            ? _value._keywords
+            : keywords // ignore: cast_nullable_to_non_nullable
+                  as List<Keyword>,
+        reviews: null == reviews
+            ? _value._reviews
+            : reviews // ignore: cast_nullable_to_non_nullable
+                  as List<Review>,
+        releaseDates: null == releaseDates
+            ? _value._releaseDates
+            : releaseDates // ignore: cast_nullable_to_non_nullable
+                  as List<ReleaseDatesResult>,
+        watchProviders: null == watchProviders
+            ? _value._watchProviders
+            : watchProviders // ignore: cast_nullable_to_non_nullable
+                  as Map<String, WatchProviderResults>,
+        alternativeTitles: null == alternativeTitles
+            ? _value._alternativeTitles
+            : alternativeTitles // ignore: cast_nullable_to_non_nullable
+                  as List<AlternativeTitle>,
+        translations: null == translations
+            ? _value._translations
+            : translations // ignore: cast_nullable_to_non_nullable
+                  as List<Translation>,
+        videos: null == videos
+            ? _value._videos
+            : videos // ignore: cast_nullable_to_non_nullable
+                  as List<Video>,
+        imageBackdrops: null == imageBackdrops
+            ? _value._imageBackdrops
+            : imageBackdrops // ignore: cast_nullable_to_non_nullable
+                  as List<ImageModel>,
+        imagePosters: null == imagePosters
+            ? _value._imagePosters
+            : imagePosters // ignore: cast_nullable_to_non_nullable
+                  as List<ImageModel>,
+        imageProfiles: null == imageProfiles
+            ? _value._imageProfiles
+            : imageProfiles // ignore: cast_nullable_to_non_nullable
+                  as List<ImageModel>,
+        images: null == images
+            ? _value._images
+            : images // ignore: cast_nullable_to_non_nullable
+                  as List<ImageModel>,
+        recommendations: null == recommendations
+            ? _value._recommendations
+            : recommendations // ignore: cast_nullable_to_non_nullable
+                  as List<MovieRef>,
+        similar: null == similar
+            ? _value._similar
+            : similar // ignore: cast_nullable_to_non_nullable
+                  as List<MovieRef>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$MovieDetailedImpl implements _MovieDetailed {
-  const _$MovieDetailedImpl(
-      {required this.id,
-      required this.title,
-      @JsonKey(name: 'original_title') required this.originalTitle,
-      @JsonKey(name: 'original_language') this.originalLanguage,
-      @JsonKey(name: 'vote_average') required this.voteAverage,
-      @JsonKey(name: 'vote_count') required this.voteCount,
-      this.overview,
-      this.tagline,
-      @JsonKey(name: 'release_date') this.releaseDate,
-      this.runtime,
-      final List<Genre> genres = const [],
-      @JsonKey(name: 'production_companies')
-      final List<Company> productionCompanies = const [],
-      @JsonKey(name: 'production_countries')
-      final List<Country> productionCountries = const [],
-      @JsonKey(name: 'spoken_languages')
-      final List<Language> spokenLanguages = const [],
-      @JsonKey(name: 'poster_path') this.posterPath,
-      @JsonKey(name: 'backdrop_path') this.backdropPath,
-      @JsonKey(name: 'belongs_to_collection') this.collection,
-      this.popularity,
-      this.status,
-      this.homepage,
-      @JsonKey(name: 'external_ids') this.externalIds = const ExternalIds(),
-      this.budget,
-      this.revenue,
-      final List<Cast> cast = const [],
-      final List<Crew> crew = const [],
-      final List<Keyword> keywords = const [],
-      final List<Review> reviews = const [],
-      @JsonKey(name: 'release_dates')
-      final List<ReleaseDatesResult> releaseDates = const [],
-      @JsonKey(
-          name: 'watchProviders',
-          fromJson: MovieDetailed._watchProvidersFromJson,
-          toJson: MovieDetailed._watchProvidersToJson)
-      final Map<String, WatchProviderResults> watchProviders = const {},
-      @JsonKey(name: 'alternative_titles')
-      final List<AlternativeTitle> alternativeTitles = const [],
-      final List<Translation> translations = const [],
-      final List<Video> videos = const [],
-      @JsonKey(name: 'imageBackdrops')
-      final List<ImageModel> imageBackdrops = const [],
-      @JsonKey(name: 'imagePosters')
-      final List<ImageModel> imagePosters = const [],
-      @JsonKey(name: 'imageProfiles')
-      final List<ImageModel> imageProfiles = const [],
-      final List<ImageModel> images = const [],
-      final List<MovieRef> recommendations = const [],
-      final List<MovieRef> similar = const []})
-      : _genres = genres,
-        _productionCompanies = productionCompanies,
-        _productionCountries = productionCountries,
-        _spokenLanguages = spokenLanguages,
-        _cast = cast,
-        _crew = crew,
-        _keywords = keywords,
-        _reviews = reviews,
-        _releaseDates = releaseDates,
-        _watchProviders = watchProviders,
-        _alternativeTitles = alternativeTitles,
-        _translations = translations,
-        _videos = videos,
-        _imageBackdrops = imageBackdrops,
-        _imagePosters = imagePosters,
-        _imageProfiles = imageProfiles,
-        _images = images,
-        _recommendations = recommendations,
-        _similar = similar;
+  const _$MovieDetailedImpl({
+    required this.id,
+    required this.title,
+    @JsonKey(name: 'original_title') required this.originalTitle,
+    @JsonKey(name: 'original_language') this.originalLanguage,
+    @JsonKey(name: 'vote_average') required this.voteAverage,
+    @JsonKey(name: 'vote_count') required this.voteCount,
+    this.overview,
+    this.tagline,
+    @JsonKey(name: 'release_date') this.releaseDate,
+    this.runtime,
+    final List<Genre> genres = const [],
+    @JsonKey(name: 'production_companies')
+    final List<Company> productionCompanies = const [],
+    @JsonKey(name: 'production_countries')
+    final List<Country> productionCountries = const [],
+    @JsonKey(name: 'spoken_languages')
+    final List<Language> spokenLanguages = const [],
+    @JsonKey(name: 'poster_path') this.posterPath,
+    @JsonKey(name: 'backdrop_path') this.backdropPath,
+    @JsonKey(name: 'belongs_to_collection') this.collection,
+    this.popularity,
+    this.status,
+    this.homepage,
+    @JsonKey(name: 'external_ids') this.externalIds = const ExternalIds(),
+    this.budget,
+    this.revenue,
+    final List<Cast> cast = const [],
+    final List<Crew> crew = const [],
+    final List<Keyword> keywords = const [],
+    final List<Review> reviews = const [],
+    @JsonKey(name: 'release_dates')
+    final List<ReleaseDatesResult> releaseDates = const [],
+    @JsonKey(
+      name: 'watchProviders',
+      fromJson: MovieDetailed._watchProvidersFromJson,
+      toJson: MovieDetailed._watchProvidersToJson,
+    )
+    final Map<String, WatchProviderResults> watchProviders = const {},
+    @JsonKey(name: 'alternative_titles')
+    final List<AlternativeTitle> alternativeTitles = const [],
+    final List<Translation> translations = const [],
+    final List<Video> videos = const [],
+    @JsonKey(name: 'imageBackdrops')
+    final List<ImageModel> imageBackdrops = const [],
+    @JsonKey(name: 'imagePosters')
+    final List<ImageModel> imagePosters = const [],
+    @JsonKey(name: 'imageProfiles')
+    final List<ImageModel> imageProfiles = const [],
+    final List<ImageModel> images = const [],
+    final List<MovieRef> recommendations = const [],
+    final List<MovieRef> similar = const [],
+  }) : _genres = genres,
+       _productionCompanies = productionCompanies,
+       _productionCountries = productionCountries,
+       _spokenLanguages = spokenLanguages,
+       _cast = cast,
+       _crew = crew,
+       _keywords = keywords,
+       _reviews = reviews,
+       _releaseDates = releaseDates,
+       _watchProviders = watchProviders,
+       _alternativeTitles = alternativeTitles,
+       _translations = translations,
+       _videos = videos,
+       _imageBackdrops = imageBackdrops,
+       _imagePosters = imagePosters,
+       _imageProfiles = imageProfiles,
+       _images = images,
+       _recommendations = recommendations,
+       _similar = similar;
 
   factory _$MovieDetailedImpl.fromJson(Map<String, dynamic> json) =>
       _$$MovieDetailedImplFromJson(json);
@@ -849,9 +864,10 @@ class _$MovieDetailedImpl implements _MovieDetailed {
   final Map<String, WatchProviderResults> _watchProviders;
   @override
   @JsonKey(
-      name: 'watchProviders',
-      fromJson: MovieDetailed._watchProvidersFromJson,
-      toJson: MovieDetailed._watchProvidersToJson)
+    name: 'watchProviders',
+    fromJson: MovieDetailed._watchProvidersFromJson,
+    toJson: MovieDetailed._watchProvidersToJson,
+  )
   Map<String, WatchProviderResults> get watchProviders {
     if (_watchProviders is EqualUnmodifiableMapView) return _watchProviders;
     // ignore: implicit_dynamic_type
@@ -967,12 +983,18 @@ class _$MovieDetailedImpl implements _MovieDetailed {
                 other.releaseDate == releaseDate) &&
             (identical(other.runtime, runtime) || other.runtime == runtime) &&
             const DeepCollectionEquality().equals(other._genres, _genres) &&
-            const DeepCollectionEquality()
-                .equals(other._productionCompanies, _productionCompanies) &&
-            const DeepCollectionEquality()
-                .equals(other._productionCountries, _productionCountries) &&
-            const DeepCollectionEquality()
-                .equals(other._spokenLanguages, _spokenLanguages) &&
+            const DeepCollectionEquality().equals(
+              other._productionCompanies,
+              _productionCompanies,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._productionCountries,
+              _productionCountries,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._spokenLanguages,
+              _spokenLanguages,
+            ) &&
             (identical(other.posterPath, posterPath) ||
                 other.posterPath == posterPath) &&
             (identical(other.backdropPath, backdropPath) ||
@@ -992,70 +1014,86 @@ class _$MovieDetailedImpl implements _MovieDetailed {
             const DeepCollectionEquality().equals(other._crew, _crew) &&
             const DeepCollectionEquality().equals(other._keywords, _keywords) &&
             const DeepCollectionEquality().equals(other._reviews, _reviews) &&
-            const DeepCollectionEquality()
-                .equals(other._releaseDates, _releaseDates) &&
-            const DeepCollectionEquality()
-                .equals(other._watchProviders, _watchProviders) &&
-            const DeepCollectionEquality()
-                .equals(other._alternativeTitles, _alternativeTitles) &&
-            const DeepCollectionEquality()
-                .equals(other._translations, _translations) &&
+            const DeepCollectionEquality().equals(
+              other._releaseDates,
+              _releaseDates,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._watchProviders,
+              _watchProviders,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._alternativeTitles,
+              _alternativeTitles,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._translations,
+              _translations,
+            ) &&
             const DeepCollectionEquality().equals(other._videos, _videos) &&
-            const DeepCollectionEquality()
-                .equals(other._imageBackdrops, _imageBackdrops) &&
-            const DeepCollectionEquality()
-                .equals(other._imagePosters, _imagePosters) &&
-            const DeepCollectionEquality()
-                .equals(other._imageProfiles, _imageProfiles) &&
+            const DeepCollectionEquality().equals(
+              other._imageBackdrops,
+              _imageBackdrops,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._imagePosters,
+              _imagePosters,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._imageProfiles,
+              _imageProfiles,
+            ) &&
             const DeepCollectionEquality().equals(other._images, _images) &&
-            const DeepCollectionEquality()
-                .equals(other._recommendations, _recommendations) &&
+            const DeepCollectionEquality().equals(
+              other._recommendations,
+              _recommendations,
+            ) &&
             const DeepCollectionEquality().equals(other._similar, _similar));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hashAll([
-        runtimeType,
-        id,
-        title,
-        originalTitle,
-        originalLanguage,
-        voteAverage,
-        voteCount,
-        overview,
-        tagline,
-        releaseDate,
-        runtime,
-        const DeepCollectionEquality().hash(_genres),
-        const DeepCollectionEquality().hash(_productionCompanies),
-        const DeepCollectionEquality().hash(_productionCountries),
-        const DeepCollectionEquality().hash(_spokenLanguages),
-        posterPath,
-        backdropPath,
-        collection,
-        popularity,
-        status,
-        homepage,
-        externalIds,
-        budget,
-        revenue,
-        const DeepCollectionEquality().hash(_cast),
-        const DeepCollectionEquality().hash(_crew),
-        const DeepCollectionEquality().hash(_keywords),
-        const DeepCollectionEquality().hash(_reviews),
-        const DeepCollectionEquality().hash(_releaseDates),
-        const DeepCollectionEquality().hash(_watchProviders),
-        const DeepCollectionEquality().hash(_alternativeTitles),
-        const DeepCollectionEquality().hash(_translations),
-        const DeepCollectionEquality().hash(_videos),
-        const DeepCollectionEquality().hash(_imageBackdrops),
-        const DeepCollectionEquality().hash(_imagePosters),
-        const DeepCollectionEquality().hash(_imageProfiles),
-        const DeepCollectionEquality().hash(_images),
-        const DeepCollectionEquality().hash(_recommendations),
-        const DeepCollectionEquality().hash(_similar)
-      ]);
+    runtimeType,
+    id,
+    title,
+    originalTitle,
+    originalLanguage,
+    voteAverage,
+    voteCount,
+    overview,
+    tagline,
+    releaseDate,
+    runtime,
+    const DeepCollectionEquality().hash(_genres),
+    const DeepCollectionEquality().hash(_productionCompanies),
+    const DeepCollectionEquality().hash(_productionCountries),
+    const DeepCollectionEquality().hash(_spokenLanguages),
+    posterPath,
+    backdropPath,
+    collection,
+    popularity,
+    status,
+    homepage,
+    externalIds,
+    budget,
+    revenue,
+    const DeepCollectionEquality().hash(_cast),
+    const DeepCollectionEquality().hash(_crew),
+    const DeepCollectionEquality().hash(_keywords),
+    const DeepCollectionEquality().hash(_reviews),
+    const DeepCollectionEquality().hash(_releaseDates),
+    const DeepCollectionEquality().hash(_watchProviders),
+    const DeepCollectionEquality().hash(_alternativeTitles),
+    const DeepCollectionEquality().hash(_translations),
+    const DeepCollectionEquality().hash(_videos),
+    const DeepCollectionEquality().hash(_imageBackdrops),
+    const DeepCollectionEquality().hash(_imagePosters),
+    const DeepCollectionEquality().hash(_imageProfiles),
+    const DeepCollectionEquality().hash(_images),
+    const DeepCollectionEquality().hash(_recommendations),
+    const DeepCollectionEquality().hash(_similar),
+  ]);
 
   @JsonKey(ignore: true)
   @override
@@ -1065,60 +1103,59 @@ class _$MovieDetailedImpl implements _MovieDetailed {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$MovieDetailedImplToJson(
-      this,
-    );
+    return _$$MovieDetailedImplToJson(this);
   }
 }
 
 abstract class _MovieDetailed implements MovieDetailed {
-  const factory _MovieDetailed(
-      {required final int id,
-      required final String title,
-      @JsonKey(name: 'original_title') required final String originalTitle,
-      @JsonKey(name: 'original_language') final String? originalLanguage,
-      @JsonKey(name: 'vote_average') required final double voteAverage,
-      @JsonKey(name: 'vote_count') required final int voteCount,
-      final String? overview,
-      final String? tagline,
-      @JsonKey(name: 'release_date') final String? releaseDate,
-      final int? runtime,
-      final List<Genre> genres,
-      @JsonKey(name: 'production_companies')
-      final List<Company> productionCompanies,
-      @JsonKey(name: 'production_countries')
-      final List<Country> productionCountries,
-      @JsonKey(name: 'spoken_languages') final List<Language> spokenLanguages,
-      @JsonKey(name: 'poster_path') final String? posterPath,
-      @JsonKey(name: 'backdrop_path') final String? backdropPath,
-      @JsonKey(name: 'belongs_to_collection') final Collection? collection,
-      final double? popularity,
-      final String? status,
-      final String? homepage,
-      @JsonKey(name: 'external_ids') final ExternalIds externalIds,
-      final int? budget,
-      final int? revenue,
-      final List<Cast> cast,
-      final List<Crew> crew,
-      final List<Keyword> keywords,
-      final List<Review> reviews,
-      @JsonKey(name: 'release_dates')
-      final List<ReleaseDatesResult> releaseDates,
-      @JsonKey(
-          name: 'watchProviders',
-          fromJson: MovieDetailed._watchProvidersFromJson,
-          toJson: MovieDetailed._watchProvidersToJson)
-      final Map<String, WatchProviderResults> watchProviders,
-      @JsonKey(name: 'alternative_titles')
-      final List<AlternativeTitle> alternativeTitles,
-      final List<Translation> translations,
-      final List<Video> videos,
-      @JsonKey(name: 'imageBackdrops') final List<ImageModel> imageBackdrops,
-      @JsonKey(name: 'imagePosters') final List<ImageModel> imagePosters,
-      @JsonKey(name: 'imageProfiles') final List<ImageModel> imageProfiles,
-      final List<ImageModel> images,
-      final List<MovieRef> recommendations,
-      final List<MovieRef> similar}) = _$MovieDetailedImpl;
+  const factory _MovieDetailed({
+    required final int id,
+    required final String title,
+    @JsonKey(name: 'original_title') required final String originalTitle,
+    @JsonKey(name: 'original_language') final String? originalLanguage,
+    @JsonKey(name: 'vote_average') required final double voteAverage,
+    @JsonKey(name: 'vote_count') required final int voteCount,
+    final String? overview,
+    final String? tagline,
+    @JsonKey(name: 'release_date') final String? releaseDate,
+    final int? runtime,
+    final List<Genre> genres,
+    @JsonKey(name: 'production_companies')
+    final List<Company> productionCompanies,
+    @JsonKey(name: 'production_countries')
+    final List<Country> productionCountries,
+    @JsonKey(name: 'spoken_languages') final List<Language> spokenLanguages,
+    @JsonKey(name: 'poster_path') final String? posterPath,
+    @JsonKey(name: 'backdrop_path') final String? backdropPath,
+    @JsonKey(name: 'belongs_to_collection') final Collection? collection,
+    final double? popularity,
+    final String? status,
+    final String? homepage,
+    @JsonKey(name: 'external_ids') final ExternalIds externalIds,
+    final int? budget,
+    final int? revenue,
+    final List<Cast> cast,
+    final List<Crew> crew,
+    final List<Keyword> keywords,
+    final List<Review> reviews,
+    @JsonKey(name: 'release_dates') final List<ReleaseDatesResult> releaseDates,
+    @JsonKey(
+      name: 'watchProviders',
+      fromJson: MovieDetailed._watchProvidersFromJson,
+      toJson: MovieDetailed._watchProvidersToJson,
+    )
+    final Map<String, WatchProviderResults> watchProviders,
+    @JsonKey(name: 'alternative_titles')
+    final List<AlternativeTitle> alternativeTitles,
+    final List<Translation> translations,
+    final List<Video> videos,
+    @JsonKey(name: 'imageBackdrops') final List<ImageModel> imageBackdrops,
+    @JsonKey(name: 'imagePosters') final List<ImageModel> imagePosters,
+    @JsonKey(name: 'imageProfiles') final List<ImageModel> imageProfiles,
+    final List<ImageModel> images,
+    final List<MovieRef> recommendations,
+    final List<MovieRef> similar,
+  }) = _$MovieDetailedImpl;
 
   factory _MovieDetailed.fromJson(Map<String, dynamic> json) =
       _$MovieDetailedImpl.fromJson;
@@ -1194,9 +1231,10 @@ abstract class _MovieDetailed implements MovieDetailed {
   List<ReleaseDatesResult> get releaseDates;
   @override
   @JsonKey(
-      name: 'watchProviders',
-      fromJson: MovieDetailed._watchProvidersFromJson,
-      toJson: MovieDetailed._watchProvidersToJson)
+    name: 'watchProviders',
+    fromJson: MovieDetailed._watchProvidersFromJson,
+    toJson: MovieDetailed._watchProvidersToJson,
+  )
   Map<String, WatchProviderResults> get watchProviders;
   @override
   @JsonKey(name: 'alternative_titles')

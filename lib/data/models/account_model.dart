@@ -13,8 +13,12 @@ class AccountAvatar {
     final tmdb = json['tmdb'];
 
     return AccountAvatar(
-      gravatarHash: gravatar is Map<String, dynamic> ? gravatar['hash'] as String? : null,
-      tmdbAvatarPath: tmdb is Map<String, dynamic> ? tmdb['avatar_path'] as String? : null,
+      gravatarHash: gravatar is Map<String, dynamic>
+          ? gravatar['hash'] as String?
+          : null,
+      tmdbAvatarPath: tmdb is Map<String, dynamic>
+          ? tmdb['avatar_path'] as String?
+          : null,
     );
   }
 

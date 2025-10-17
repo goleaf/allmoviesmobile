@@ -74,18 +74,9 @@ void main() {
     });
 
     test('isRetryable should detect network errors', () {
-      expect(
-        RetryHelper.isRetryable(Exception('Network error')),
-        true,
-      );
-      expect(
-        RetryHelper.isRetryable(Exception('Connection timeout')),
-        true,
-      );
-      expect(
-        RetryHelper.isRetryable(Exception('Socket exception')),
-        true,
-      );
+      expect(RetryHelper.isRetryable(Exception('Network error')), true);
+      expect(RetryHelper.isRetryable(Exception('Connection timeout')), true);
+      expect(RetryHelper.isRetryable(Exception('Socket exception')), true);
     });
 
     test('isRetryable should detect server errors', () {
@@ -120,4 +111,3 @@ void main() {
     });
   });
 }
-

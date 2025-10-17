@@ -15,10 +15,7 @@ class CompanyDetailScreen extends StatefulWidget {
 
   final Company initialCompany;
 
-  const CompanyDetailScreen({
-    super.key,
-    required this.initialCompany,
-  });
+  const CompanyDetailScreen({super.key, required this.initialCompany});
 
   @override
   State<CompanyDetailScreen> createState() => _CompanyDetailScreenState();
@@ -35,8 +32,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
   Future<Company> _loadCompany({bool forceRefresh = false}) {
     return context.read<TmdbRepository>().fetchCompanyDetails(
-          widget.initialCompany.id,
-        );
+      widget.initialCompany.id,
+    );
   }
 
   Future<void> _refreshCompany() async {
@@ -129,8 +126,7 @@ class _CompanyDetailBody extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
-          if (isRefreshing)
-            const LinearProgressIndicator(minHeight: 2),
+          if (isRefreshing) const LinearProgressIndicator(minHeight: 2),
           Center(
             child: Container(
               width: 160,
@@ -200,10 +196,7 @@ class _CompanyDetailBody extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          Text(
-            description,
-            style: theme.textTheme.bodyMedium,
-          ),
+          Text(description, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 24),
           if (producedMovies.isNotEmpty)
             _ProducedList(
@@ -254,10 +247,7 @@ class _CompanyDetailBody extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   final String label;
   final String value;
@@ -280,12 +270,7 @@ class _InfoRow extends StatelessWidget {
               ),
             ),
           ),
-          Expanded(
-            child: Text(
-              value,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ),
+          Expanded(child: Text(value, style: theme.textTheme.bodyMedium)),
         ],
       ),
     );
@@ -293,10 +278,7 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _ProducedList extends StatelessWidget {
-  const _ProducedList({
-    required this.title,
-    required this.items,
-  });
+  const _ProducedList({required this.title, required this.items});
 
   final String title;
   final List<String> items;
@@ -318,10 +300,7 @@ class _ProducedList extends StatelessWidget {
         ...items.map(
           (item) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Text(
-              '• $item',
-              style: theme.textTheme.bodyMedium,
-            ),
+            child: Text('• $item', style: theme.textTheme.bodyMedium),
           ),
         ),
       ],

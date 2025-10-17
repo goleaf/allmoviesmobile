@@ -16,11 +16,23 @@ class _InMemoryPrefs implements SharedPreferences {
   @override
   bool containsKey(String key) => _data.containsKey(key);
   @override
-  Future<bool> clear() async { _data.clear(); return true; }
+  Future<bool> clear() async {
+    _data.clear();
+    return true;
+  }
+
   @override
-  Future<bool> remove(String key) async { _data.remove(key); return true; }
+  Future<bool> remove(String key) async {
+    _data.remove(key);
+    return true;
+  }
+
   @override
-  Future<bool> setString(String key, String value) async { _data[key] = value; return true; }
+  Future<bool> setString(String key, String value) async {
+    _data[key] = value;
+    return true;
+  }
+
   // ignore: no_leading_underscores_for_local_identifiers
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -36,7 +48,11 @@ void main() {
   group('ListsProvider', () {
     test('initializes with seeded lists when storage empty', () async {
       final storage = _makeStorage();
-      final provider = ListsProvider(storage, currentUserId: 'me', currentUserName: 'Me');
+      final provider = ListsProvider(
+        storage,
+        currentUserId: 'me',
+        currentUserName: 'Me',
+      );
 
       // allow async init
       await Future<void>.delayed(const Duration(milliseconds: 10));
@@ -50,10 +66,18 @@ void main() {
     });
 
     test('create, update metadata, and delete list', () async {
-      final provider = ListsProvider(_makeStorage(), currentUserId: 'me', currentUserName: 'Me');
+      final provider = ListsProvider(
+        _makeStorage(),
+        currentUserId: 'me',
+        currentUserName: 'Me',
+      );
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
-      final created = await provider.createList(name: 'Weekend Picks', description: 'Cozy', isPublic: false);
+      final created = await provider.createList(
+        name: 'Weekend Picks',
+        description: 'Cozy',
+        isPublic: false,
+      );
       expect(created, isA<UserList>());
       expect(provider.myLists.any((l) => l.name == 'Weekend Picks'), isTrue);
 
@@ -79,7 +103,11 @@ void main() {
     });
 
     test('add/remove entries and reorder (manual sort)', () async {
-      final provider = ListsProvider(_makeStorage(), currentUserId: 'me', currentUserName: 'Me');
+      final provider = ListsProvider(
+        _makeStorage(),
+        currentUserId: 'me',
+        currentUserName: 'Me',
+      );
       await Future<void>.delayed(const Duration(milliseconds: 10));
 
       final list = await provider.createList(name: 'Test List');
@@ -119,14 +147,36 @@ void main() {
     });
 
     test('update sort mode applies sorting and reindex', () async {
-      final provider = ListsProvider(_makeStorage(), currentUserId: 'me', currentUserName: 'Me');
+      final provider = ListsProvider(
+        _makeStorage(),
+        currentUserId: 'me',
+        currentUserName: 'Me',
+      );
       await Future<void>.delayed(const Duration(milliseconds: 10));
       final list = await provider.createList(name: 'Sort List');
       final id = list!.id;
 
       // Add entries out of alpha/release order
-      await provider.addEntry(id, ListEntry(mediaId: 1, title: 'Zebra', addedBy: 'me', addedAt: DateTime(2020), position: 0));
-      await provider.addEntry(id, ListEntry(mediaId: 2, title: 'Alpha', addedBy: 'me', addedAt: DateTime(2021), position: 0));
+      await provider.addEntry(
+        id,
+        ListEntry(
+          mediaId: 1,
+          title: 'Zebra',
+          addedBy: 'me',
+          addedAt: DateTime(2020),
+          position: 0,
+        ),
+      );
+      await provider.addEntry(
+        id,
+        ListEntry(
+          mediaId: 2,
+          title: 'Alpha',
+          addedBy: 'me',
+          addedAt: DateTime(2021),
+          position: 0,
+        ),
+      );
 
       await provider.updateListSortMode(id, ListSortMode.alphabetical);
       var current = provider.listById(id)!;
@@ -139,7 +189,11 @@ void main() {
     });
 
     test('follow/unfollow and collaborators affect edit rights', () async {
-      final provider = ListsProvider(_makeStorage(), currentUserId: 'me', currentUserName: 'Me');
+      final provider = ListsProvider(
+        _makeStorage(),
+        currentUserId: 'me',
+        currentUserName: 'Me',
+      );
       await Future<void>.delayed(const Duration(milliseconds: 10));
       final list = await provider.createList(name: 'Public', isPublic: true);
       final id = list!.id;
@@ -156,7 +210,11 @@ void main() {
 
       // Switch back to owner and add collaborator
       await provider.setCurrentUser(userId: 'me', displayName: 'Me');
-      await provider.addCollaborator(id, userId: 'collab', displayName: 'Collab');
+      await provider.addCollaborator(
+        id,
+        userId: 'collab',
+        displayName: 'Collab',
+      );
       current = provider.listById(id)!;
       expect(current.isCollaborative, isTrue);
       expect(current.collaborators.any((c) => c.userId == 'collab'), isTrue);
@@ -167,7 +225,11 @@ void main() {
     });
 
     test('comments add and delete in order', () async {
-      final provider = ListsProvider(_makeStorage(), currentUserId: 'me', currentUserName: 'Me');
+      final provider = ListsProvider(
+        _makeStorage(),
+        currentUserId: 'me',
+        currentUserName: 'Me',
+      );
       await Future<void>.delayed(const Duration(milliseconds: 10));
       final list = await provider.createList(name: 'Comments');
       final id = list!.id;
@@ -186,5 +248,3 @@ void main() {
     });
   });
 }
-
-

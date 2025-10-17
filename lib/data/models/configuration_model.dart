@@ -80,4 +80,3 @@ class Timezone with _$Timezone {
   factory Timezone.fromJson(Map<String, dynamic> json) =>
       _$TimezoneFromJson(json);
 }
-

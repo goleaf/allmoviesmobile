@@ -8,7 +8,7 @@ import 'tmdb_v4_catalog.dart';
 
 class TmdbV4Repository {
   TmdbV4Repository({http.Client? client, String? apiKey})
-      : _service = TmdbV4ApiService(client: client, apiKey: apiKey);
+    : _service = TmdbV4ApiService(client: client, apiKey: apiKey);
 
   final TmdbV4ApiService _service;
 

@@ -57,7 +57,7 @@ class GenreChipList extends StatelessWidget {
         itemBuilder: (context, index) {
           final genre = genres[index];
           final isSelected = selectedGenres?.contains(genre) ?? false;
-          
+
           return Padding(
             padding: const EdgeInsets.only(right: 8.0),
             child: GenreChip(
@@ -71,4 +71,3 @@ class GenreChipList extends StatelessWidget {
     );
   }
 }
-

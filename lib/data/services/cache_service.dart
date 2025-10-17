@@ -10,7 +10,7 @@ class CacheService {
 
   final Logger _logger = Logger();
   final Map<String, _CacheEntry> _cache = {};
-  
+
   // Default TTL values (in seconds)
   static const int defaultTTL = 300; // 5 minutes
   static const int movieDetailsTTL = 3600; // 1 hour
@@ -23,7 +23,7 @@ class CacheService {
   /// Get a value from cache
   T? get<T>(String key) {
     final entry = _cache[key];
-    
+
     if (entry == null) {
       _logger.d('Cache miss: $key');
       return null;
@@ -43,12 +43,9 @@ class CacheService {
   void set<T>(String key, T value, {int? ttlSeconds}) {
     final ttl = ttlSeconds ?? defaultTTL;
     final expiresAt = DateTime.now().add(Duration(seconds: ttl));
-    
-    _cache[key] = _CacheEntry(
-      value: value,
-      expiresAt: expiresAt,
-    );
-    
+
+    _cache[key] = _CacheEntry(value: value, expiresAt: expiresAt);
+
     _logger.d('Cache set: $key (TTL: ${ttl}s)');
   }
 
@@ -61,12 +58,14 @@ class CacheService {
   /// Remove all keys matching a pattern
   void removePattern(String pattern) {
     final regex = RegExp(pattern);
-    final keysToRemove = _cache.keys.where((key) => regex.hasMatch(key)).toList();
-    
+    final keysToRemove = _cache.keys
+        .where((key) => regex.hasMatch(key))
+        .toList();
+
     for (final key in keysToRemove) {
       _cache.remove(key);
     }
-    
+
     _logger.d('Cache removed pattern: $pattern (${keysToRemove.length} keys)');
   }
 
@@ -98,7 +97,9 @@ class CacheService {
     }
 
     final now = DateTime.now().millisecondsSinceEpoch;
-    final keys = prefs.getKeys().where((key) => key.startsWith(_persistentPrefix));
+    final keys = prefs.getKeys().where(
+      (key) => key.startsWith(_persistentPrefix),
+    );
     var removed = 0;
 
     for (final key in keys) {
@@ -148,7 +149,9 @@ class CacheService {
   }
 
   /// Schedule periodic cleanup
-  Timer schedulePeriodicCleanup({Duration interval = const Duration(minutes: 5)}) {
+  Timer schedulePeriodicCleanup({
+    Duration interval = const Duration(minutes: 5),
+  }) {
     return Timer.periodic(interval, (_) {
       cleanExpired();
       unawaited(cleanPersistentExpired());
@@ -161,19 +164,19 @@ class CacheService {
   }
 
   /// Store value in persistent cache (JSON serializable or primitive/string)
-  Future<void> setPersistent<T>(
-    String key,
-    T value, {
-    int? ttlSeconds,
-  }) async {
+  Future<void> setPersistent<T>(String key, T value, {int? ttlSeconds}) async {
     final prefs = _prefs;
     if (prefs == null) {
-      _logger.w('Persistent cache requested but SharedPreferences not attached');
+      _logger.w(
+        'Persistent cache requested but SharedPreferences not attached',
+      );
       return;
     }
 
     final ttl = ttlSeconds ?? defaultTTL;
-    final expiresAt = DateTime.now().add(Duration(seconds: ttl)).millisecondsSinceEpoch;
+    final expiresAt = DateTime.now()
+        .add(Duration(seconds: ttl))
+        .millisecondsSinceEpoch;
     final isString = value is String;
     final serialized = isString ? value as String : jsonEncode(value);
 
@@ -191,7 +194,9 @@ class CacheService {
   Future<T?> getPersistent<T>(String key) async {
     final prefs = _prefs;
     if (prefs == null) {
-      _logger.w('Persistent cache requested but SharedPreferences not attached');
+      _logger.w(
+        'Persistent cache requested but SharedPreferences not attached',
+      );
       return null;
     }
 
@@ -207,7 +212,8 @@ class CacheService {
       final isString = decoded['isString'] == true;
       final serialized = decoded['value'] as String?;
 
-      if (expiresAt != null && DateTime.now().millisecondsSinceEpoch > expiresAt) {
+      if (expiresAt != null &&
+          DateTime.now().millisecondsSinceEpoch > expiresAt) {
         await prefs.remove(_persistentKey(key));
         _logger.d('Persistent cache expired: $key');
         return null;
@@ -239,7 +245,10 @@ class CacheService {
     final prefs = _prefs;
     if (prefs == null) return;
 
-    final keys = prefs.getKeys().where((key) => key.startsWith(_persistentPrefix)).toList();
+    final keys = prefs
+        .getKeys()
+        .where((key) => key.startsWith(_persistentPrefix))
+        .toList();
     for (final key in keys) {
       await prefs.remove(key);
     }
@@ -260,10 +269,7 @@ class _CacheEntry {
   final dynamic value;
   final DateTime expiresAt;
 
-  _CacheEntry({
-    required this.value,
-    required this.expiresAt,
-  });
+  _CacheEntry({required this.value, required this.expiresAt});
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
 }

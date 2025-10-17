@@ -8,18 +8,24 @@ class WatchRegionProvider extends ChangeNotifier {
   String _region;
 
   WatchRegionProvider(this._prefs)
-      : _region = (() {
-          final stored = (_prefs.getString(_regionKey) ?? 'US').toUpperCase();
-          final supportedCodes = supportedRegions.map((r) => r['code']).whereType<String>().toSet();
-          return supportedCodes.contains(stored) ? stored : 'US';
-        })();
+    : _region = (() {
+        final stored = (_prefs.getString(_regionKey) ?? 'US').toUpperCase();
+        final supportedCodes = supportedRegions
+            .map((r) => r['code'])
+            .whereType<String>()
+            .toSet();
+        return supportedCodes.contains(stored) ? stored : 'US';
+      })();
 
   String get region => _region;
 
   Future<void> setRegion(String regionCode) async {
     final normalized = regionCode.trim().toUpperCase();
     // Ensure region is one of the supported codes; fallback to default for determinism
-    final supportedCodes = supportedRegions.map((r) => r['code']).whereType<String>().toSet();
+    final supportedCodes = supportedRegions
+        .map((r) => r['code'])
+        .whereType<String>()
+        .toSet();
     final next = supportedCodes.contains(normalized) ? normalized : 'US';
     if (next == _region) return;
     _region = next;

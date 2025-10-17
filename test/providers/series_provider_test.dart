@@ -9,7 +9,10 @@ class _FakeRepo extends TmdbRepository {
   _FakeRepo();
 
   @override
-  Future<List<Movie>> fetchTrendingTv({String timeWindow = 'day', bool forceRefresh = false}) async {
+  Future<List<Movie>> fetchTrendingTv({
+    String timeWindow = 'day',
+    bool forceRefresh = false,
+  }) async {
     return [Movie(id: 10, title: 'TV-T')];
   }
 
@@ -34,8 +37,20 @@ class _FakeRepo extends TmdbRepository {
   }
 
   @override
-  Future<PaginatedResponse<Movie>> fetchNetworkTvShows({required int networkId, int page = 1, String sortBy = 'popularity.desc', double? minVoteAverage, String? originalLanguage, bool forceRefresh = false}) async {
-    return PaginatedResponse<Movie>(page: 1, totalPages: 1, totalResults: 1, results: [Movie(id: 99, title: 'By Network')]);
+  Future<PaginatedResponse<Movie>> fetchNetworkTvShows({
+    required int networkId,
+    int page = 1,
+    String sortBy = 'popularity.desc',
+    double? minVoteAverage,
+    String? originalLanguage,
+    bool forceRefresh = false,
+  }) async {
+    return PaginatedResponse<Movie>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 1,
+      results: [Movie(id: 99, title: 'By Network')],
+    );
   }
 }
 
@@ -51,14 +66,18 @@ void main() {
       }
     });
 
-    test('applyNetworkFilter loads network shows into popular section', () async {
-      final provider = SeriesProvider(_FakeRepo());
-      await provider.initialized;
+    test(
+      'applyNetworkFilter loads network shows into popular section',
+      () async {
+        final provider = SeriesProvider(_FakeRepo());
+        await provider.initialized;
 
-      await provider.applyNetworkFilter(213); // Netflix
-      expect(provider.sectionState(SeriesSection.popular).items.first.title, 'By Network');
-    });
+        await provider.applyNetworkFilter(213); // Netflix
+        expect(
+          provider.sectionState(SeriesSection.popular).items.first.title,
+          'By Network',
+        );
+      },
+    );
   });
 }
-
-

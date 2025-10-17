@@ -1,11 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum NotificationCategory {
-  system,
-  social,
-  list,
-  recommendation,
-}
+enum NotificationCategory { system, social, list, recommendation }
 
 @immutable
 class AppNotification {
@@ -33,8 +28,8 @@ class AppNotification {
       metadata: json['metadata'] != null
           ? Map<String, dynamic>.fromEntries(
               (json['metadata'] as Map).entries.map(
-                    (e) => MapEntry(e.key.toString(), e.value),
-                  ),
+                (e) => MapEntry(e.key.toString(), e.value),
+              ),
             )
           : const <String, dynamic>{},
       createdAt: _parseDate(json['created_at']),

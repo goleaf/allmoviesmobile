@@ -2,10 +2,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/utils/media_image_helper.dart';
 
 /// Represents the type of media returned by TMDB.
-enum MediaKind {
-  movie,
-  tv,
-}
+enum MediaKind { movie, tv }
 
 MediaKind _parseMediaKind(String? raw, {MediaKind fallback = MediaKind.movie}) {
   switch (raw) {
@@ -50,8 +47,12 @@ class MediaSummary {
     final overview = (json['overview'] as String?)?.trim();
 
     return MediaSummary(
-      id: json['id'] is int ? json['id'] as int : int.tryParse('${json['id']}') ?? 0,
-      title: rawTitle.isEmpty ? 'Untitled ${mediaKindLabel(resolvedKind)}' : rawTitle,
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse('${json['id']}') ?? 0,
+      title: rawTitle.isEmpty
+          ? 'Untitled ${mediaKindLabel(resolvedKind)}'
+          : rawTitle,
       kind: resolvedKind,
       overview: overview?.isEmpty == true ? null : overview,
       posterPath: json['poster_path'] as String?,
@@ -90,8 +91,9 @@ class MediaSummary {
     return url ?? '';
   }
 
-  String get releaseYear =>
-      (releaseDate != null && releaseDate!.isNotEmpty) ? releaseDate!.split('-').first : '';
+  String get releaseYear => (releaseDate != null && releaseDate!.isNotEmpty)
+      ? releaseDate!.split('-').first
+      : '';
 
   String get ratingLabel {
     if (voteAverage == null || voteAverage == 0) {
@@ -118,18 +120,17 @@ class MediaDetail {
     this.watchProviders = const <String>[],
   });
 
-  factory MediaDetail.fromJson(
-    Map<String, dynamic> json,
-    MediaKind kind,
-  ) {
-    final genres = (json['genres'] as List?)
+  factory MediaDetail.fromJson(Map<String, dynamic> json, MediaKind kind) {
+    final genres =
+        (json['genres'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map((genre) => (genre['name'] as String?)?.trim())
             .whereType<String>()
             .toList(growable: false) ??
         const <String>[];
 
-    final companies = (json['production_companies'] as List?)
+    final companies =
+        (json['production_companies'] as List?)
             ?.whereType<Map<String, dynamic>>()
             .map((company) => (company['name'] as String?)?.trim())
             .whereType<String>()
@@ -162,7 +163,8 @@ class MediaDetail {
       summary: MediaSummary.fromJson(json, fallbackKind: kind),
       tagline: (json['tagline'] as String?)?.trim().nullable(),
       runtimeMinutes: (json['runtime'] as num?)?.toInt(),
-      episodeRuntimeMinutes: ((json['episode_run_time'] as List?)?.firstOrNull as num?)?.toInt(),
+      episodeRuntimeMinutes:
+          ((json['episode_run_time'] as List?)?.firstOrNull as num?)?.toInt(),
       numberOfSeasons: json['number_of_seasons'] as int?,
       numberOfEpisodes: json['number_of_episodes'] as int?,
       genres: genres,

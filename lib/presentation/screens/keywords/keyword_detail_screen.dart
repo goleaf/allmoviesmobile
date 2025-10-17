@@ -8,6 +8,7 @@ import '../../widgets/movie_card.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../tv_detail/tv_detail_screen.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../../core/localization/app_localizations.dart';
 
 class KeywordDetailScreen extends StatelessWidget {
   static const routeName = '/keyword-detail';
@@ -21,15 +22,10 @@ class KeywordDetailScreen extends StatelessWidget {
     this.keywordName,
   });
 
-  static Route<void> route({
-    required int keywordId,
-    String? keywordName,
-  }) {
+  static Route<void> route({required int keywordId, String? keywordName}) {
     return MaterialPageRoute(
-      builder: (_) => KeywordDetailScreen(
-        keywordId: keywordId,
-        keywordName: keywordName,
-      ),
+      builder: (_) =>
+          KeywordDetailScreen(keywordId: keywordId, keywordName: keywordName),
       fullscreenDialog: true,
     );
   }
@@ -48,22 +44,14 @@ class KeywordDetailScreen extends StatelessWidget {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => KeywordMoviesProvider(
-            repository,
-            keywordId: keywordId,
-          ),
+          create: (_) =>
+              KeywordMoviesProvider(repository, keywordId: keywordId),
         ),
         ChangeNotifierProvider(
-          create: (_) => KeywordTvProvider(
-            repository,
-            keywordId: keywordId,
-          ),
+          create: (_) => KeywordTvProvider(repository, keywordId: keywordId),
         ),
       ],
-      child: DefaultTabController(
-        length: 2,
-        child: const _KeywordDetailView(),
-      ),
+      child: DefaultTabController(length: 2, child: const _KeywordDetailView()),
     );
   }
 }
@@ -76,24 +64,25 @@ class _KeywordDetailView extends StatelessWidget {
     final detailsProvider = context.watch<KeywordDetailsProvider>();
     final keywordName = detailsProvider.keywordName;
 
+    final l = AppLocalizations.of(context);
     final tabBar = TabBar(
-      tabs: const [
-        Tab(text: 'Movies'),
-        Tab(text: 'TV Shows'),
+      tabs: [
+        Tab(text: l.t('navigation.movies')),
+        Tab(text: l.t('navigation.tv_shows')),
       ],
       labelStyle: Theme.of(context).textTheme.titleMedium,
     );
 
     return FullscreenModalScaffold(
-      title: Text(keywordName),
+      title: Text(keywordName ?? l.t('keywords.title')),
       actions: [
         IconButton(
-          tooltip: 'Refresh keyword info',
+          tooltip: l.t('common.retry'),
           icon: const Icon(Icons.refresh),
           onPressed: () {
-            context
-                .read<KeywordDetailsProvider>()
-                .fetchDetails(forceRefresh: true);
+            context.read<KeywordDetailsProvider>().fetchDetails(
+              forceRefresh: true,
+            );
           },
         ),
       ],
@@ -126,8 +115,8 @@ class _KeywordDetailView extends StatelessWidget {
                   builder: (context, provider, _) {
                     return _KeywordMediaTab(
                       provider: provider,
-                      sortOptions: _movieSortOptions,
-                      emptyMessage: 'No movies found for this keyword.',
+                      sortOptions: _movieSortOptions(context),
+                      emptyMessage: l.t('search.no_results'),
                       isTv: false,
                     );
                   },
@@ -136,8 +125,8 @@ class _KeywordDetailView extends StatelessWidget {
                   builder: (context, provider, _) {
                     return _KeywordMediaTab(
                       provider: provider,
-                      sortOptions: _tvSortOptions,
-                      emptyMessage: 'No TV shows found for this keyword.',
+                      sortOptions: _tvSortOptions(context),
+                      emptyMessage: l.t('search.no_results'),
                       isTv: true,
                     );
                   },
@@ -158,23 +147,65 @@ class _SortOption {
   final String label;
 }
 
-const _movieSortOptions = <_SortOption>[
-  _SortOption(value: 'popularity.desc', label: 'Popularity (High to Low)'),
-  _SortOption(value: 'popularity.asc', label: 'Popularity (Low to High)'),
-  _SortOption(value: 'vote_average.desc', label: 'Rating (High to Low)'),
-  _SortOption(value: 'vote_average.asc', label: 'Rating (Low to High)'),
-  _SortOption(value: 'release_date.desc', label: 'Release Date (Newest)'),
-  _SortOption(value: 'release_date.asc', label: 'Release Date (Oldest)'),
-];
+List<_SortOption> _movieSortOptions(BuildContext context) {
+  final l = AppLocalizations.of(context);
+  return <_SortOption>[
+    _SortOption(
+      value: 'popularity.desc',
+      label: l.t('discover.sort_popularity_desc'),
+    ),
+    _SortOption(
+      value: 'popularity.asc',
+      label: l.t('discover.sort_popularity_asc'),
+    ),
+    _SortOption(
+      value: 'vote_average.desc',
+      label: l.t('discover.sort_rating_desc'),
+    ),
+    _SortOption(
+      value: 'vote_average.asc',
+      label: l.t('discover.sort_rating_asc'),
+    ),
+    _SortOption(
+      value: 'release_date.desc',
+      label: l.t('discover.sort_release_date_desc'),
+    ),
+    _SortOption(
+      value: 'release_date.asc',
+      label: l.t('discover.sort_release_date_asc'),
+    ),
+  ];
+}
 
-const _tvSortOptions = <_SortOption>[
-  _SortOption(value: 'popularity.desc', label: 'Popularity (High to Low)'),
-  _SortOption(value: 'popularity.asc', label: 'Popularity (Low to High)'),
-  _SortOption(value: 'vote_average.desc', label: 'Rating (High to Low)'),
-  _SortOption(value: 'vote_average.asc', label: 'Rating (Low to High)'),
-  _SortOption(value: 'first_air_date.desc', label: 'First Air Date (Newest)'),
-  _SortOption(value: 'first_air_date.asc', label: 'First Air Date (Oldest)'),
-];
+List<_SortOption> _tvSortOptions(BuildContext context) {
+  final l = AppLocalizations.of(context);
+  return <_SortOption>[
+    _SortOption(
+      value: 'popularity.desc',
+      label: l.t('discover.sort_popularity_desc'),
+    ),
+    _SortOption(
+      value: 'popularity.asc',
+      label: l.t('discover.sort_popularity_asc'),
+    ),
+    _SortOption(
+      value: 'vote_average.desc',
+      label: l.t('discover.sort_rating_desc'),
+    ),
+    _SortOption(
+      value: 'vote_average.asc',
+      label: l.t('discover.sort_rating_asc'),
+    ),
+    _SortOption(
+      value: 'first_air_date.desc',
+      label: l.t('discover.sort_release_date_desc'),
+    ),
+    _SortOption(
+      value: 'first_air_date.asc',
+      label: l.t('discover.sort_release_date_asc'),
+    ),
+  ];
+}
 
 class _KeywordMediaTab extends StatelessWidget {
   const _KeywordMediaTab({
@@ -196,9 +227,9 @@ class _KeywordMediaTab extends StatelessWidget {
         final metrics = notification.metrics;
         final shouldLoadMore =
             metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                provider.canLoadMore &&
-                !provider.isLoadingMore &&
-                !provider.isLoading;
+            provider.canLoadMore &&
+            !provider.isLoadingMore &&
+            !provider.isLoading;
 
         if (shouldLoadMore) {
           provider.loadMoreMedia();
@@ -270,13 +301,10 @@ class _KeywordMediaTab extends StatelessWidget {
             crossAxisSpacing: 16,
             childAspectRatio: 0.66,
           ),
-          delegate: SliverChildBuilderDelegate(
-            (context, index) {
-              final item = provider.media[index];
-              return _KeywordMediaCard(movie: item, isTv: isTv);
-            },
-            childCount: provider.media.length,
-          ),
+          delegate: SliverChildBuilderDelegate((context, index) {
+            final item = provider.media[index];
+            return _KeywordMediaCard(movie: item, isTv: isTv);
+          }, childCount: provider.media.length),
         ),
       ),
     ];
@@ -325,9 +353,7 @@ class _SortDropdown extends StatelessWidget {
       child: InputDecorator(
         decoration: InputDecoration(
           labelText: 'Sort by',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         ),
         child: DropdownButtonHideUnderline(
           child: DropdownButton<String>(
@@ -424,10 +450,7 @@ class _KeywordErrorView extends StatelessWidget {
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Retry'),
-            ),
+            ElevatedButton(onPressed: onRetry, child: const Text('Retry')),
           ],
         ),
       ),
@@ -455,21 +478,18 @@ class _InlineErrorMessage extends StatelessWidget {
               Text(
                 'Could not load more items',
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
               ),
               const SizedBox(height: 8),
               Text(
                 message,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onErrorContainer,
-                    ),
+                  color: Theme.of(context).colorScheme.onErrorContainer,
+                ),
               ),
               const SizedBox(height: 12),
-              TextButton(
-                onPressed: onRetry,
-                child: const Text('Retry'),
-              ),
+              TextButton(onPressed: onRetry, child: const Text('Retry')),
             ],
           ),
         ),
@@ -498,14 +518,11 @@ class _KeywordInfoErrorBanner extends StatelessWidget {
             child: Text(
               message,
               style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onErrorContainer,
-                  ),
+                color: theme.colorScheme.onErrorContainer,
+              ),
             ),
           ),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),
     );

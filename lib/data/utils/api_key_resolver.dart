@@ -6,7 +6,10 @@ class ApiKeyResolver {
   static const String _fallbackApiKey = '755c09802f113640bd146fb59ad22411';
 
   static String resolve(String? providedKey) {
-    final envKey = const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
+    final envKey = const String.fromEnvironment(
+      'TMDB_API_KEY',
+      defaultValue: '',
+    );
     final candidate = (providedKey ?? envKey).trim();
     if (candidate.isNotEmpty) {
       return candidate;

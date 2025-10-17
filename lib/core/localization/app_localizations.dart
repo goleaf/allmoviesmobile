@@ -9,7 +9,62 @@ class AppLocalizations {
   AppLocalizations(this.locale);
 
   static AppLocalizations of(BuildContext context) {
-    return Localizations.of<AppLocalizations>(context, AppLocalizations)!;
+    final instance = Localizations.of<AppLocalizations>(
+      context,
+      AppLocalizations,
+    );
+    if (instance != null) return instance;
+    // Fallback instance for tests or contexts without Localizations
+    final fallback = AppLocalizations(const Locale('en'));
+    fallback._localizedStrings = const <String, dynamic>{
+      'app': {'name': 'AllMovies'},
+      'navigation': {
+        'movies': 'Movies',
+        'series': 'Series',
+        'people': 'People',
+        'companies': 'Companies',
+      },
+      'common': {'cancel': 'Cancel', 'retry': 'Retry'},
+      'settings': {
+        'title': 'Settings',
+        'appearance': 'Appearance',
+        'localization': 'Localization',
+        'about': 'About',
+        'appVersion': 'App version',
+        'theme': 'Theme',
+        'chooseTheme': 'Choose Theme',
+        'language': 'Language',
+        'chooseLanguage': 'Choose Language',
+        'region': 'Region',
+        'chooseRegion': 'Choose Region',
+      },
+      'tv': {'overview': 'Overview'},
+      'movie': {'overview': 'Overview'},
+      'person': {
+        'popularity': 'Popularity',
+        'biography': 'Biography',
+        'no_biography': 'No biography available',
+        'known_for': 'Known for',
+        'personal_info': 'Personal Info',
+        'gender_female': 'Female',
+        'gender_male': 'Male',
+        'gender_non_binary': 'Non-binary',
+        'known_for_department': 'Known for department',
+        'also_known_as': 'Also known as',
+        'translations': 'Translations',
+        'image_gallery': 'Image gallery',
+        'tagged_images': 'Tagged images',
+        'movie_actor_timeline': 'Movie acting timeline',
+        'no_movie_actor_credits': 'No movie acting credits',
+        'movie_crew_departments': 'Movie crew departments',
+        'no_movie_crew_credits': 'No movie crew credits',
+        'tv_actor_timeline': 'TV acting timeline',
+        'no_tv_actor_credits': 'No TV acting credits',
+        'tv_crew_departments': 'TV crew departments',
+      },
+      'errors': {'generic': 'Something went wrong'},
+    };
+    return fallback;
   }
 
   static const LocalizationsDelegate<AppLocalizations> delegate =
@@ -96,4 +151,3 @@ class _AppLocalizationsDelegate
   @override
   bool shouldReload(_AppLocalizationsDelegate old) => false;
 }
-

@@ -12,7 +12,8 @@ part of 'configuration_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
+  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
+);
 
 ImagesConfiguration _$ImagesConfigurationFromJson(Map<String, dynamic> json) {
   return _ImagesConfiguration.fromJson(json);
@@ -44,17 +45,19 @@ mixin _$ImagesConfiguration {
 /// @nodoc
 abstract class $ImagesConfigurationCopyWith<$Res> {
   factory $ImagesConfigurationCopyWith(
-          ImagesConfiguration value, $Res Function(ImagesConfiguration) then) =
-      _$ImagesConfigurationCopyWithImpl<$Res, ImagesConfiguration>;
+    ImagesConfiguration value,
+    $Res Function(ImagesConfiguration) then,
+  ) = _$ImagesConfigurationCopyWithImpl<$Res, ImagesConfiguration>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'base_url') String baseUrl,
-      @JsonKey(name: 'secure_base_url') String secureBaseUrl,
-      @JsonKey(name: 'backdrop_sizes') List<String> backdropSizes,
-      @JsonKey(name: 'logo_sizes') List<String> logoSizes,
-      @JsonKey(name: 'poster_sizes') List<String> posterSizes,
-      @JsonKey(name: 'profile_sizes') List<String> profileSizes,
-      @JsonKey(name: 'still_sizes') List<String> stillSizes});
+  $Res call({
+    @JsonKey(name: 'base_url') String baseUrl,
+    @JsonKey(name: 'secure_base_url') String secureBaseUrl,
+    @JsonKey(name: 'backdrop_sizes') List<String> backdropSizes,
+    @JsonKey(name: 'logo_sizes') List<String> logoSizes,
+    @JsonKey(name: 'poster_sizes') List<String> posterSizes,
+    @JsonKey(name: 'profile_sizes') List<String> profileSizes,
+    @JsonKey(name: 'still_sizes') List<String> stillSizes,
+  });
 }
 
 /// @nodoc
@@ -78,64 +81,70 @@ class _$ImagesConfigurationCopyWithImpl<$Res, $Val extends ImagesConfiguration>
     Object? profileSizes = null,
     Object? stillSizes = null,
   }) {
-    return _then(_value.copyWith(
-      baseUrl: null == baseUrl
-          ? _value.baseUrl
-          : baseUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      secureBaseUrl: null == secureBaseUrl
-          ? _value.secureBaseUrl
-          : secureBaseUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      backdropSizes: null == backdropSizes
-          ? _value.backdropSizes
-          : backdropSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      logoSizes: null == logoSizes
-          ? _value.logoSizes
-          : logoSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      posterSizes: null == posterSizes
-          ? _value.posterSizes
-          : posterSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      profileSizes: null == profileSizes
-          ? _value.profileSizes
-          : profileSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      stillSizes: null == stillSizes
-          ? _value.stillSizes
-          : stillSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            baseUrl: null == baseUrl
+                ? _value.baseUrl
+                : baseUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+            secureBaseUrl: null == secureBaseUrl
+                ? _value.secureBaseUrl
+                : secureBaseUrl // ignore: cast_nullable_to_non_nullable
+                      as String,
+            backdropSizes: null == backdropSizes
+                ? _value.backdropSizes
+                : backdropSizes // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            logoSizes: null == logoSizes
+                ? _value.logoSizes
+                : logoSizes // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            posterSizes: null == posterSizes
+                ? _value.posterSizes
+                : posterSizes // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            profileSizes: null == profileSizes
+                ? _value.profileSizes
+                : profileSizes // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+            stillSizes: null == stillSizes
+                ? _value.stillSizes
+                : stillSizes // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+          )
+          as $Val,
+    );
   }
 }
 
 /// @nodoc
 abstract class _$$ImagesConfigurationImplCopyWith<$Res>
     implements $ImagesConfigurationCopyWith<$Res> {
-  factory _$$ImagesConfigurationImplCopyWith(_$ImagesConfigurationImpl value,
-          $Res Function(_$ImagesConfigurationImpl) then) =
-      __$$ImagesConfigurationImplCopyWithImpl<$Res>;
+  factory _$$ImagesConfigurationImplCopyWith(
+    _$ImagesConfigurationImpl value,
+    $Res Function(_$ImagesConfigurationImpl) then,
+  ) = __$$ImagesConfigurationImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: 'base_url') String baseUrl,
-      @JsonKey(name: 'secure_base_url') String secureBaseUrl,
-      @JsonKey(name: 'backdrop_sizes') List<String> backdropSizes,
-      @JsonKey(name: 'logo_sizes') List<String> logoSizes,
-      @JsonKey(name: 'poster_sizes') List<String> posterSizes,
-      @JsonKey(name: 'profile_sizes') List<String> profileSizes,
-      @JsonKey(name: 'still_sizes') List<String> stillSizes});
+  $Res call({
+    @JsonKey(name: 'base_url') String baseUrl,
+    @JsonKey(name: 'secure_base_url') String secureBaseUrl,
+    @JsonKey(name: 'backdrop_sizes') List<String> backdropSizes,
+    @JsonKey(name: 'logo_sizes') List<String> logoSizes,
+    @JsonKey(name: 'poster_sizes') List<String> posterSizes,
+    @JsonKey(name: 'profile_sizes') List<String> profileSizes,
+    @JsonKey(name: 'still_sizes') List<String> stillSizes,
+  });
 }
 
 /// @nodoc
 class __$$ImagesConfigurationImplCopyWithImpl<$Res>
     extends _$ImagesConfigurationCopyWithImpl<$Res, _$ImagesConfigurationImpl>
     implements _$$ImagesConfigurationImplCopyWith<$Res> {
-  __$$ImagesConfigurationImplCopyWithImpl(_$ImagesConfigurationImpl _value,
-      $Res Function(_$ImagesConfigurationImpl) _then)
-      : super(_value, _then);
+  __$$ImagesConfigurationImplCopyWithImpl(
+    _$ImagesConfigurationImpl _value,
+    $Res Function(_$ImagesConfigurationImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -148,57 +157,58 @@ class __$$ImagesConfigurationImplCopyWithImpl<$Res>
     Object? profileSizes = null,
     Object? stillSizes = null,
   }) {
-    return _then(_$ImagesConfigurationImpl(
-      baseUrl: null == baseUrl
-          ? _value.baseUrl
-          : baseUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      secureBaseUrl: null == secureBaseUrl
-          ? _value.secureBaseUrl
-          : secureBaseUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-      backdropSizes: null == backdropSizes
-          ? _value._backdropSizes
-          : backdropSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      logoSizes: null == logoSizes
-          ? _value._logoSizes
-          : logoSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      posterSizes: null == posterSizes
-          ? _value._posterSizes
-          : posterSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      profileSizes: null == profileSizes
-          ? _value._profileSizes
-          : profileSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      stillSizes: null == stillSizes
-          ? _value._stillSizes
-          : stillSizes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ));
+    return _then(
+      _$ImagesConfigurationImpl(
+        baseUrl: null == baseUrl
+            ? _value.baseUrl
+            : baseUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+        secureBaseUrl: null == secureBaseUrl
+            ? _value.secureBaseUrl
+            : secureBaseUrl // ignore: cast_nullable_to_non_nullable
+                  as String,
+        backdropSizes: null == backdropSizes
+            ? _value._backdropSizes
+            : backdropSizes // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        logoSizes: null == logoSizes
+            ? _value._logoSizes
+            : logoSizes // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        posterSizes: null == posterSizes
+            ? _value._posterSizes
+            : posterSizes // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        profileSizes: null == profileSizes
+            ? _value._profileSizes
+            : profileSizes // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+        stillSizes: null == stillSizes
+            ? _value._stillSizes
+            : stillSizes // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ImagesConfigurationImpl implements _ImagesConfiguration {
-  const _$ImagesConfigurationImpl(
-      {@JsonKey(name: 'base_url') required this.baseUrl,
-      @JsonKey(name: 'secure_base_url') required this.secureBaseUrl,
-      @JsonKey(name: 'backdrop_sizes')
-      final List<String> backdropSizes = const [],
-      @JsonKey(name: 'logo_sizes') final List<String> logoSizes = const [],
-      @JsonKey(name: 'poster_sizes') final List<String> posterSizes = const [],
-      @JsonKey(name: 'profile_sizes')
-      final List<String> profileSizes = const [],
-      @JsonKey(name: 'still_sizes') final List<String> stillSizes = const []})
-      : _backdropSizes = backdropSizes,
-        _logoSizes = logoSizes,
-        _posterSizes = posterSizes,
-        _profileSizes = profileSizes,
-        _stillSizes = stillSizes;
+  const _$ImagesConfigurationImpl({
+    @JsonKey(name: 'base_url') required this.baseUrl,
+    @JsonKey(name: 'secure_base_url') required this.secureBaseUrl,
+    @JsonKey(name: 'backdrop_sizes')
+    final List<String> backdropSizes = const [],
+    @JsonKey(name: 'logo_sizes') final List<String> logoSizes = const [],
+    @JsonKey(name: 'poster_sizes') final List<String> posterSizes = const [],
+    @JsonKey(name: 'profile_sizes') final List<String> profileSizes = const [],
+    @JsonKey(name: 'still_sizes') final List<String> stillSizes = const [],
+  }) : _backdropSizes = backdropSizes,
+       _logoSizes = logoSizes,
+       _posterSizes = posterSizes,
+       _profileSizes = profileSizes,
+       _stillSizes = stillSizes;
 
   factory _$ImagesConfigurationImpl.fromJson(Map<String, dynamic> json) =>
       _$$ImagesConfigurationImplFromJson(json);
@@ -267,55 +277,66 @@ class _$ImagesConfigurationImpl implements _ImagesConfiguration {
             (identical(other.baseUrl, baseUrl) || other.baseUrl == baseUrl) &&
             (identical(other.secureBaseUrl, secureBaseUrl) ||
                 other.secureBaseUrl == secureBaseUrl) &&
-            const DeepCollectionEquality()
-                .equals(other._backdropSizes, _backdropSizes) &&
-            const DeepCollectionEquality()
-                .equals(other._logoSizes, _logoSizes) &&
-            const DeepCollectionEquality()
-                .equals(other._posterSizes, _posterSizes) &&
-            const DeepCollectionEquality()
-                .equals(other._profileSizes, _profileSizes) &&
-            const DeepCollectionEquality()
-                .equals(other._stillSizes, _stillSizes));
+            const DeepCollectionEquality().equals(
+              other._backdropSizes,
+              _backdropSizes,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._logoSizes,
+              _logoSizes,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._posterSizes,
+              _posterSizes,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._profileSizes,
+              _profileSizes,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._stillSizes,
+              _stillSizes,
+            ));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType,
-      baseUrl,
-      secureBaseUrl,
-      const DeepCollectionEquality().hash(_backdropSizes),
-      const DeepCollectionEquality().hash(_logoSizes),
-      const DeepCollectionEquality().hash(_posterSizes),
-      const DeepCollectionEquality().hash(_profileSizes),
-      const DeepCollectionEquality().hash(_stillSizes));
+    runtimeType,
+    baseUrl,
+    secureBaseUrl,
+    const DeepCollectionEquality().hash(_backdropSizes),
+    const DeepCollectionEquality().hash(_logoSizes),
+    const DeepCollectionEquality().hash(_posterSizes),
+    const DeepCollectionEquality().hash(_profileSizes),
+    const DeepCollectionEquality().hash(_stillSizes),
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ImagesConfigurationImplCopyWith<_$ImagesConfigurationImpl> get copyWith =>
       __$$ImagesConfigurationImplCopyWithImpl<_$ImagesConfigurationImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ImagesConfigurationImplToJson(
-      this,
-    );
+    return _$$ImagesConfigurationImplToJson(this);
   }
 }
 
 abstract class _ImagesConfiguration implements ImagesConfiguration {
-  const factory _ImagesConfiguration(
-          {@JsonKey(name: 'base_url') required final String baseUrl,
-          @JsonKey(name: 'secure_base_url') required final String secureBaseUrl,
-          @JsonKey(name: 'backdrop_sizes') final List<String> backdropSizes,
-          @JsonKey(name: 'logo_sizes') final List<String> logoSizes,
-          @JsonKey(name: 'poster_sizes') final List<String> posterSizes,
-          @JsonKey(name: 'profile_sizes') final List<String> profileSizes,
-          @JsonKey(name: 'still_sizes') final List<String> stillSizes}) =
-      _$ImagesConfigurationImpl;
+  const factory _ImagesConfiguration({
+    @JsonKey(name: 'base_url') required final String baseUrl,
+    @JsonKey(name: 'secure_base_url') required final String secureBaseUrl,
+    @JsonKey(name: 'backdrop_sizes') final List<String> backdropSizes,
+    @JsonKey(name: 'logo_sizes') final List<String> logoSizes,
+    @JsonKey(name: 'poster_sizes') final List<String> posterSizes,
+    @JsonKey(name: 'profile_sizes') final List<String> profileSizes,
+    @JsonKey(name: 'still_sizes') final List<String> stillSizes,
+  }) = _$ImagesConfigurationImpl;
 
   factory _ImagesConfiguration.fromJson(Map<String, dynamic> json) =
       _$ImagesConfigurationImpl.fromJson;
@@ -366,12 +387,14 @@ mixin _$ApiConfiguration {
 /// @nodoc
 abstract class $ApiConfigurationCopyWith<$Res> {
   factory $ApiConfigurationCopyWith(
-          ApiConfiguration value, $Res Function(ApiConfiguration) then) =
-      _$ApiConfigurationCopyWithImpl<$Res, ApiConfiguration>;
+    ApiConfiguration value,
+    $Res Function(ApiConfiguration) then,
+  ) = _$ApiConfigurationCopyWithImpl<$Res, ApiConfiguration>;
   @useResult
-  $Res call(
-      {ImagesConfiguration images,
-      @JsonKey(name: 'change_keys') List<String> changeKeys});
+  $Res call({
+    ImagesConfiguration images,
+    @JsonKey(name: 'change_keys') List<String> changeKeys,
+  });
 
   $ImagesConfigurationCopyWith<$Res> get images;
 }
@@ -388,20 +411,20 @@ class _$ApiConfigurationCopyWithImpl<$Res, $Val extends ApiConfiguration>
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? images = null,
-    Object? changeKeys = null,
-  }) {
-    return _then(_value.copyWith(
-      images: null == images
-          ? _value.images
-          : images // ignore: cast_nullable_to_non_nullable
-              as ImagesConfiguration,
-      changeKeys: null == changeKeys
-          ? _value.changeKeys
-          : changeKeys // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ) as $Val);
+  $Res call({Object? images = null, Object? changeKeys = null}) {
+    return _then(
+      _value.copyWith(
+            images: null == images
+                ? _value.images
+                : images // ignore: cast_nullable_to_non_nullable
+                      as ImagesConfiguration,
+            changeKeys: null == changeKeys
+                ? _value.changeKeys
+                : changeKeys // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+          )
+          as $Val,
+    );
   }
 
   @override
@@ -416,14 +439,16 @@ class _$ApiConfigurationCopyWithImpl<$Res, $Val extends ApiConfiguration>
 /// @nodoc
 abstract class _$$ApiConfigurationImplCopyWith<$Res>
     implements $ApiConfigurationCopyWith<$Res> {
-  factory _$$ApiConfigurationImplCopyWith(_$ApiConfigurationImpl value,
-          $Res Function(_$ApiConfigurationImpl) then) =
-      __$$ApiConfigurationImplCopyWithImpl<$Res>;
+  factory _$$ApiConfigurationImplCopyWith(
+    _$ApiConfigurationImpl value,
+    $Res Function(_$ApiConfigurationImpl) then,
+  ) = __$$ApiConfigurationImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {ImagesConfiguration images,
-      @JsonKey(name: 'change_keys') List<String> changeKeys});
+  $Res call({
+    ImagesConfiguration images,
+    @JsonKey(name: 'change_keys') List<String> changeKeys,
+  });
 
   @override
   $ImagesConfigurationCopyWith<$Res> get images;
@@ -433,36 +458,36 @@ abstract class _$$ApiConfigurationImplCopyWith<$Res>
 class __$$ApiConfigurationImplCopyWithImpl<$Res>
     extends _$ApiConfigurationCopyWithImpl<$Res, _$ApiConfigurationImpl>
     implements _$$ApiConfigurationImplCopyWith<$Res> {
-  __$$ApiConfigurationImplCopyWithImpl(_$ApiConfigurationImpl _value,
-      $Res Function(_$ApiConfigurationImpl) _then)
-      : super(_value, _then);
+  __$$ApiConfigurationImplCopyWithImpl(
+    _$ApiConfigurationImpl _value,
+    $Res Function(_$ApiConfigurationImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? images = null,
-    Object? changeKeys = null,
-  }) {
-    return _then(_$ApiConfigurationImpl(
-      images: null == images
-          ? _value.images
-          : images // ignore: cast_nullable_to_non_nullable
-              as ImagesConfiguration,
-      changeKeys: null == changeKeys
-          ? _value._changeKeys
-          : changeKeys // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ));
+  $Res call({Object? images = null, Object? changeKeys = null}) {
+    return _then(
+      _$ApiConfigurationImpl(
+        images: null == images
+            ? _value.images
+            : images // ignore: cast_nullable_to_non_nullable
+                  as ImagesConfiguration,
+        changeKeys: null == changeKeys
+            ? _value._changeKeys
+            : changeKeys // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ApiConfigurationImpl implements _ApiConfiguration {
-  const _$ApiConfigurationImpl(
-      {required this.images,
-      @JsonKey(name: 'change_keys') final List<String> changeKeys = const []})
-      : _changeKeys = changeKeys;
+  const _$ApiConfigurationImpl({
+    required this.images,
+    @JsonKey(name: 'change_keys') final List<String> changeKeys = const [],
+  }) : _changeKeys = changeKeys;
 
   factory _$ApiConfigurationImpl.fromJson(Map<String, dynamic> json) =>
       _$$ApiConfigurationImplFromJson(json);
@@ -489,35 +514,40 @@ class _$ApiConfigurationImpl implements _ApiConfiguration {
         (other.runtimeType == runtimeType &&
             other is _$ApiConfigurationImpl &&
             (identical(other.images, images) || other.images == images) &&
-            const DeepCollectionEquality()
-                .equals(other._changeKeys, _changeKeys));
+            const DeepCollectionEquality().equals(
+              other._changeKeys,
+              _changeKeys,
+            ));
   }
 
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType, images, const DeepCollectionEquality().hash(_changeKeys));
+    runtimeType,
+    images,
+    const DeepCollectionEquality().hash(_changeKeys),
+  );
 
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ApiConfigurationImplCopyWith<_$ApiConfigurationImpl> get copyWith =>
       __$$ApiConfigurationImplCopyWithImpl<_$ApiConfigurationImpl>(
-          this, _$identity);
+        this,
+        _$identity,
+      );
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ApiConfigurationImplToJson(
-      this,
-    );
+    return _$$ApiConfigurationImplToJson(this);
   }
 }
 
 abstract class _ApiConfiguration implements ApiConfiguration {
-  const factory _ApiConfiguration(
-          {required final ImagesConfiguration images,
-          @JsonKey(name: 'change_keys') final List<String> changeKeys}) =
-      _$ApiConfigurationImpl;
+  const factory _ApiConfiguration({
+    required final ImagesConfiguration images,
+    @JsonKey(name: 'change_keys') final List<String> changeKeys,
+  }) = _$ApiConfigurationImpl;
 
   factory _ApiConfiguration.fromJson(Map<String, dynamic> json) =
       _$ApiConfigurationImpl.fromJson;
@@ -555,13 +585,15 @@ mixin _$CountryInfo {
 /// @nodoc
 abstract class $CountryInfoCopyWith<$Res> {
   factory $CountryInfoCopyWith(
-          CountryInfo value, $Res Function(CountryInfo) then) =
-      _$CountryInfoCopyWithImpl<$Res, CountryInfo>;
+    CountryInfo value,
+    $Res Function(CountryInfo) then,
+  ) = _$CountryInfoCopyWithImpl<$Res, CountryInfo>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_3166_1') String code,
-      @JsonKey(name: 'english_name') String englishName,
-      @JsonKey(name: 'native_name') String? nativeName});
+  $Res call({
+    @JsonKey(name: 'iso_3166_1') String code,
+    @JsonKey(name: 'english_name') String englishName,
+    @JsonKey(name: 'native_name') String? nativeName,
+  });
 }
 
 /// @nodoc
@@ -581,20 +613,23 @@ class _$CountryInfoCopyWithImpl<$Res, $Val extends CountryInfo>
     Object? englishName = null,
     Object? nativeName = freezed,
   }) {
-    return _then(_value.copyWith(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as String,
-      englishName: null == englishName
-          ? _value.englishName
-          : englishName // ignore: cast_nullable_to_non_nullable
-              as String,
-      nativeName: freezed == nativeName
-          ? _value.nativeName
-          : nativeName // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            englishName: null == englishName
+                ? _value.englishName
+                : englishName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            nativeName: freezed == nativeName
+                ? _value.nativeName
+                : nativeName // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -602,14 +637,16 @@ class _$CountryInfoCopyWithImpl<$Res, $Val extends CountryInfo>
 abstract class _$$CountryInfoImplCopyWith<$Res>
     implements $CountryInfoCopyWith<$Res> {
   factory _$$CountryInfoImplCopyWith(
-          _$CountryInfoImpl value, $Res Function(_$CountryInfoImpl) then) =
-      __$$CountryInfoImplCopyWithImpl<$Res>;
+    _$CountryInfoImpl value,
+    $Res Function(_$CountryInfoImpl) then,
+  ) = __$$CountryInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_3166_1') String code,
-      @JsonKey(name: 'english_name') String englishName,
-      @JsonKey(name: 'native_name') String? nativeName});
+  $Res call({
+    @JsonKey(name: 'iso_3166_1') String code,
+    @JsonKey(name: 'english_name') String englishName,
+    @JsonKey(name: 'native_name') String? nativeName,
+  });
 }
 
 /// @nodoc
@@ -617,8 +654,9 @@ class __$$CountryInfoImplCopyWithImpl<$Res>
     extends _$CountryInfoCopyWithImpl<$Res, _$CountryInfoImpl>
     implements _$$CountryInfoImplCopyWith<$Res> {
   __$$CountryInfoImplCopyWithImpl(
-      _$CountryInfoImpl _value, $Res Function(_$CountryInfoImpl) _then)
-      : super(_value, _then);
+    _$CountryInfoImpl _value,
+    $Res Function(_$CountryInfoImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -627,30 +665,33 @@ class __$$CountryInfoImplCopyWithImpl<$Res>
     Object? englishName = null,
     Object? nativeName = freezed,
   }) {
-    return _then(_$CountryInfoImpl(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as String,
-      englishName: null == englishName
-          ? _value.englishName
-          : englishName // ignore: cast_nullable_to_non_nullable
-              as String,
-      nativeName: freezed == nativeName
-          ? _value.nativeName
-          : nativeName // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$CountryInfoImpl(
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        englishName: null == englishName
+            ? _value.englishName
+            : englishName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        nativeName: freezed == nativeName
+            ? _value.nativeName
+            : nativeName // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CountryInfoImpl implements _CountryInfo {
-  const _$CountryInfoImpl(
-      {@JsonKey(name: 'iso_3166_1') required this.code,
-      @JsonKey(name: 'english_name') required this.englishName,
-      @JsonKey(name: 'native_name') this.nativeName});
+  const _$CountryInfoImpl({
+    @JsonKey(name: 'iso_3166_1') required this.code,
+    @JsonKey(name: 'english_name') required this.englishName,
+    @JsonKey(name: 'native_name') this.nativeName,
+  });
 
   factory _$CountryInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$CountryInfoImplFromJson(json);
@@ -694,18 +735,16 @@ class _$CountryInfoImpl implements _CountryInfo {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CountryInfoImplToJson(
-      this,
-    );
+    return _$$CountryInfoImplToJson(this);
   }
 }
 
 abstract class _CountryInfo implements CountryInfo {
-  const factory _CountryInfo(
-          {@JsonKey(name: 'iso_3166_1') required final String code,
-          @JsonKey(name: 'english_name') required final String englishName,
-          @JsonKey(name: 'native_name') final String? nativeName}) =
-      _$CountryInfoImpl;
+  const factory _CountryInfo({
+    @JsonKey(name: 'iso_3166_1') required final String code,
+    @JsonKey(name: 'english_name') required final String englishName,
+    @JsonKey(name: 'native_name') final String? nativeName,
+  }) = _$CountryInfoImpl;
 
   factory _CountryInfo.fromJson(Map<String, dynamic> json) =
       _$CountryInfoImpl.fromJson;
@@ -747,13 +786,15 @@ mixin _$LanguageInfo {
 /// @nodoc
 abstract class $LanguageInfoCopyWith<$Res> {
   factory $LanguageInfoCopyWith(
-          LanguageInfo value, $Res Function(LanguageInfo) then) =
-      _$LanguageInfoCopyWithImpl<$Res, LanguageInfo>;
+    LanguageInfo value,
+    $Res Function(LanguageInfo) then,
+  ) = _$LanguageInfoCopyWithImpl<$Res, LanguageInfo>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_639_1') String code,
-      @JsonKey(name: 'english_name') String englishName,
-      @JsonKey(name: 'native_name') String? name});
+  $Res call({
+    @JsonKey(name: 'iso_639_1') String code,
+    @JsonKey(name: 'english_name') String englishName,
+    @JsonKey(name: 'native_name') String? name,
+  });
 }
 
 /// @nodoc
@@ -773,20 +814,23 @@ class _$LanguageInfoCopyWithImpl<$Res, $Val extends LanguageInfo>
     Object? englishName = null,
     Object? name = freezed,
   }) {
-    return _then(_value.copyWith(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as String,
-      englishName: null == englishName
-          ? _value.englishName
-          : englishName // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ) as $Val);
+    return _then(
+      _value.copyWith(
+            code: null == code
+                ? _value.code
+                : code // ignore: cast_nullable_to_non_nullable
+                      as String,
+            englishName: null == englishName
+                ? _value.englishName
+                : englishName // ignore: cast_nullable_to_non_nullable
+                      as String,
+            name: freezed == name
+                ? _value.name
+                : name // ignore: cast_nullable_to_non_nullable
+                      as String?,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -794,14 +838,16 @@ class _$LanguageInfoCopyWithImpl<$Res, $Val extends LanguageInfo>
 abstract class _$$LanguageInfoImplCopyWith<$Res>
     implements $LanguageInfoCopyWith<$Res> {
   factory _$$LanguageInfoImplCopyWith(
-          _$LanguageInfoImpl value, $Res Function(_$LanguageInfoImpl) then) =
-      __$$LanguageInfoImplCopyWithImpl<$Res>;
+    _$LanguageInfoImpl value,
+    $Res Function(_$LanguageInfoImpl) then,
+  ) = __$$LanguageInfoImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_639_1') String code,
-      @JsonKey(name: 'english_name') String englishName,
-      @JsonKey(name: 'native_name') String? name});
+  $Res call({
+    @JsonKey(name: 'iso_639_1') String code,
+    @JsonKey(name: 'english_name') String englishName,
+    @JsonKey(name: 'native_name') String? name,
+  });
 }
 
 /// @nodoc
@@ -809,8 +855,9 @@ class __$$LanguageInfoImplCopyWithImpl<$Res>
     extends _$LanguageInfoCopyWithImpl<$Res, _$LanguageInfoImpl>
     implements _$$LanguageInfoImplCopyWith<$Res> {
   __$$LanguageInfoImplCopyWithImpl(
-      _$LanguageInfoImpl _value, $Res Function(_$LanguageInfoImpl) _then)
-      : super(_value, _then);
+    _$LanguageInfoImpl _value,
+    $Res Function(_$LanguageInfoImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
@@ -819,30 +866,33 @@ class __$$LanguageInfoImplCopyWithImpl<$Res>
     Object? englishName = null,
     Object? name = freezed,
   }) {
-    return _then(_$LanguageInfoImpl(
-      code: null == code
-          ? _value.code
-          : code // ignore: cast_nullable_to_non_nullable
-              as String,
-      englishName: null == englishName
-          ? _value.englishName
-          : englishName // ignore: cast_nullable_to_non_nullable
-              as String,
-      name: freezed == name
-          ? _value.name
-          : name // ignore: cast_nullable_to_non_nullable
-              as String?,
-    ));
+    return _then(
+      _$LanguageInfoImpl(
+        code: null == code
+            ? _value.code
+            : code // ignore: cast_nullable_to_non_nullable
+                  as String,
+        englishName: null == englishName
+            ? _value.englishName
+            : englishName // ignore: cast_nullable_to_non_nullable
+                  as String,
+        name: freezed == name
+            ? _value.name
+            : name // ignore: cast_nullable_to_non_nullable
+                  as String?,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$LanguageInfoImpl implements _LanguageInfo {
-  const _$LanguageInfoImpl(
-      {@JsonKey(name: 'iso_639_1') required this.code,
-      @JsonKey(name: 'english_name') required this.englishName,
-      @JsonKey(name: 'native_name') this.name});
+  const _$LanguageInfoImpl({
+    @JsonKey(name: 'iso_639_1') required this.code,
+    @JsonKey(name: 'english_name') required this.englishName,
+    @JsonKey(name: 'native_name') this.name,
+  });
 
   factory _$LanguageInfoImpl.fromJson(Map<String, dynamic> json) =>
       _$$LanguageInfoImplFromJson(json);
@@ -885,17 +935,16 @@ class _$LanguageInfoImpl implements _LanguageInfo {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$LanguageInfoImplToJson(
-      this,
-    );
+    return _$$LanguageInfoImplToJson(this);
   }
 }
 
 abstract class _LanguageInfo implements LanguageInfo {
-  const factory _LanguageInfo(
-      {@JsonKey(name: 'iso_639_1') required final String code,
-      @JsonKey(name: 'english_name') required final String englishName,
-      @JsonKey(name: 'native_name') final String? name}) = _$LanguageInfoImpl;
+  const factory _LanguageInfo({
+    @JsonKey(name: 'iso_639_1') required final String code,
+    @JsonKey(name: 'english_name') required final String englishName,
+    @JsonKey(name: 'native_name') final String? name,
+  }) = _$LanguageInfoImpl;
 
   factory _LanguageInfo.fromJson(Map<String, dynamic> json) =
       _$LanguageInfoImpl.fromJson;
@@ -948,20 +997,20 @@ class _$JobCopyWithImpl<$Res, $Val extends Job> implements $JobCopyWith<$Res> {
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? department = null,
-    Object? jobs = null,
-  }) {
-    return _then(_value.copyWith(
-      department: null == department
-          ? _value.department
-          : department // ignore: cast_nullable_to_non_nullable
-              as String,
-      jobs: null == jobs
-          ? _value.jobs
-          : jobs // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ) as $Val);
+  $Res call({Object? department = null, Object? jobs = null}) {
+    return _then(
+      _value.copyWith(
+            department: null == department
+                ? _value.department
+                : department // ignore: cast_nullable_to_non_nullable
+                      as String,
+            jobs: null == jobs
+                ? _value.jobs
+                : jobs // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -978,33 +1027,33 @@ abstract class _$$JobImplCopyWith<$Res> implements $JobCopyWith<$Res> {
 class __$$JobImplCopyWithImpl<$Res> extends _$JobCopyWithImpl<$Res, _$JobImpl>
     implements _$$JobImplCopyWith<$Res> {
   __$$JobImplCopyWithImpl(_$JobImpl _value, $Res Function(_$JobImpl) _then)
-      : super(_value, _then);
+    : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? department = null,
-    Object? jobs = null,
-  }) {
-    return _then(_$JobImpl(
-      department: null == department
-          ? _value.department
-          : department // ignore: cast_nullable_to_non_nullable
-              as String,
-      jobs: null == jobs
-          ? _value._jobs
-          : jobs // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ));
+  $Res call({Object? department = null, Object? jobs = null}) {
+    return _then(
+      _$JobImpl(
+        department: null == department
+            ? _value.department
+            : department // ignore: cast_nullable_to_non_nullable
+                  as String,
+        jobs: null == jobs
+            ? _value._jobs
+            : jobs // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$JobImpl implements _Job {
-  const _$JobImpl(
-      {required this.department, final List<String> jobs = const []})
-      : _jobs = jobs;
+  const _$JobImpl({
+    required this.department,
+    final List<String> jobs = const [],
+  }) : _jobs = jobs;
 
   factory _$JobImpl.fromJson(Map<String, dynamic> json) =>
       _$$JobImplFromJson(json);
@@ -1038,7 +1087,10 @@ class _$JobImpl implements _Job {
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType, department, const DeepCollectionEquality().hash(_jobs));
+    runtimeType,
+    department,
+    const DeepCollectionEquality().hash(_jobs),
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -1048,15 +1100,15 @@ class _$JobImpl implements _Job {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$JobImplToJson(
-      this,
-    );
+    return _$$JobImplToJson(this);
   }
 }
 
 abstract class _Job implements Job {
-  const factory _Job(
-      {required final String department, final List<String> jobs}) = _$JobImpl;
+  const factory _Job({
+    required final String department,
+    final List<String> jobs,
+  }) = _$JobImpl;
 
   factory _Job.fromJson(Map<String, dynamic> json) = _$JobImpl.fromJson;
 
@@ -1091,8 +1143,10 @@ abstract class $TimezoneCopyWith<$Res> {
   factory $TimezoneCopyWith(Timezone value, $Res Function(Timezone) then) =
       _$TimezoneCopyWithImpl<$Res, Timezone>;
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_3166_1') String countryCode, List<String> zones});
+  $Res call({
+    @JsonKey(name: 'iso_3166_1') String countryCode,
+    List<String> zones,
+  });
 }
 
 /// @nodoc
@@ -1107,20 +1161,20 @@ class _$TimezoneCopyWithImpl<$Res, $Val extends Timezone>
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? countryCode = null,
-    Object? zones = null,
-  }) {
-    return _then(_value.copyWith(
-      countryCode: null == countryCode
-          ? _value.countryCode
-          : countryCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      zones: null == zones
-          ? _value.zones
-          : zones // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ) as $Val);
+  $Res call({Object? countryCode = null, Object? zones = null}) {
+    return _then(
+      _value.copyWith(
+            countryCode: null == countryCode
+                ? _value.countryCode
+                : countryCode // ignore: cast_nullable_to_non_nullable
+                      as String,
+            zones: null == zones
+                ? _value.zones
+                : zones // ignore: cast_nullable_to_non_nullable
+                      as List<String>,
+          )
+          as $Val,
+    );
   }
 }
 
@@ -1128,12 +1182,15 @@ class _$TimezoneCopyWithImpl<$Res, $Val extends Timezone>
 abstract class _$$TimezoneImplCopyWith<$Res>
     implements $TimezoneCopyWith<$Res> {
   factory _$$TimezoneImplCopyWith(
-          _$TimezoneImpl value, $Res Function(_$TimezoneImpl) then) =
-      __$$TimezoneImplCopyWithImpl<$Res>;
+    _$TimezoneImpl value,
+    $Res Function(_$TimezoneImpl) then,
+  ) = __$$TimezoneImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call(
-      {@JsonKey(name: 'iso_3166_1') String countryCode, List<String> zones});
+  $Res call({
+    @JsonKey(name: 'iso_3166_1') String countryCode,
+    List<String> zones,
+  });
 }
 
 /// @nodoc
@@ -1141,35 +1198,35 @@ class __$$TimezoneImplCopyWithImpl<$Res>
     extends _$TimezoneCopyWithImpl<$Res, _$TimezoneImpl>
     implements _$$TimezoneImplCopyWith<$Res> {
   __$$TimezoneImplCopyWithImpl(
-      _$TimezoneImpl _value, $Res Function(_$TimezoneImpl) _then)
-      : super(_value, _then);
+    _$TimezoneImpl _value,
+    $Res Function(_$TimezoneImpl) _then,
+  ) : super(_value, _then);
 
   @pragma('vm:prefer-inline')
   @override
-  $Res call({
-    Object? countryCode = null,
-    Object? zones = null,
-  }) {
-    return _then(_$TimezoneImpl(
-      countryCode: null == countryCode
-          ? _value.countryCode
-          : countryCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      zones: null == zones
-          ? _value._zones
-          : zones // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-    ));
+  $Res call({Object? countryCode = null, Object? zones = null}) {
+    return _then(
+      _$TimezoneImpl(
+        countryCode: null == countryCode
+            ? _value.countryCode
+            : countryCode // ignore: cast_nullable_to_non_nullable
+                  as String,
+        zones: null == zones
+            ? _value._zones
+            : zones // ignore: cast_nullable_to_non_nullable
+                  as List<String>,
+      ),
+    );
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TimezoneImpl implements _Timezone {
-  const _$TimezoneImpl(
-      {@JsonKey(name: 'iso_3166_1') required this.countryCode,
-      final List<String> zones = const []})
-      : _zones = zones;
+  const _$TimezoneImpl({
+    @JsonKey(name: 'iso_3166_1') required this.countryCode,
+    final List<String> zones = const [],
+  }) : _zones = zones;
 
   factory _$TimezoneImpl.fromJson(Map<String, dynamic> json) =>
       _$$TimezoneImplFromJson(json);
@@ -1204,7 +1261,10 @@ class _$TimezoneImpl implements _Timezone {
   @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-      runtimeType, countryCode, const DeepCollectionEquality().hash(_zones));
+    runtimeType,
+    countryCode,
+    const DeepCollectionEquality().hash(_zones),
+  );
 
   @JsonKey(ignore: true)
   @override
@@ -1214,16 +1274,15 @@ class _$TimezoneImpl implements _Timezone {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TimezoneImplToJson(
-      this,
-    );
+    return _$$TimezoneImplToJson(this);
   }
 }
 
 abstract class _Timezone implements Timezone {
-  const factory _Timezone(
-      {@JsonKey(name: 'iso_3166_1') required final String countryCode,
-      final List<String> zones}) = _$TimezoneImpl;
+  const factory _Timezone({
+    @JsonKey(name: 'iso_3166_1') required final String countryCode,
+    final List<String> zones,
+  }) = _$TimezoneImpl;
 
   factory _Timezone.fromJson(Map<String, dynamic> json) =
       _$TimezoneImpl.fromJson;

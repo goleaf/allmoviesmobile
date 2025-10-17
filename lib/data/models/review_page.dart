@@ -13,9 +13,9 @@ class ReviewPage {
     final results = json['results'];
     final reviews = results is List
         ? results
-            .whereType<Map<String, dynamic>>()
-            .map(Review.fromJson)
-            .toList(growable: false)
+              .whereType<Map<String, dynamic>>()
+              .map(Review.fromJson)
+              .toList(growable: false)
         : const <Review>[];
 
     return ReviewPage(

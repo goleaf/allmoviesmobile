@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'company_model.dart';
 import 'country_model.dart';
+import 'episode_group_model.dart';
 import 'external_ids_model.dart';
 import 'genre_model.dart';
 import 'image_model.dart';
@@ -47,6 +48,9 @@ class TVDetailed with _$TVDetailed {
     @JsonKey(name: 'external_ids')
     @Default(ExternalIds())
     ExternalIds externalIds,
+    @JsonKey(name: 'episode_groups')
+    @Default(<EpisodeGroup>[])
+    List<EpisodeGroup> episodeGroups,
     @Default([]) List<Season> seasons,
     @Default([]) List<Video> videos,
     @Default([]) List<ImageModel> images,

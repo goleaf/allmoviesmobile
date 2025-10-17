@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "episode_group.schema.json",
+  "title": "Episode Group",
+  "type": "object",
+  "required": ["id", "name", "type", "groups"],
+  "properties": {
+    "id": { "type": "string" },
+    "name": { "type": "string" },
+    "description": { "type": ["string", "null"] },
+    "type": { "type": "integer", "minimum": 1 },
+    "episode_count": { "type": ["integer", "null"], "minimum": 0 },
+    "group_count": { "type": ["integer", "null"], "minimum": 0 },
+    "network": {
+      "oneOf": [
+        { "$ref": "shared.schema.json#/$defs/Network" },
+        { "type": "null" }
+      ]
+    },
+    "groups": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/Group" },
+      "default": []
+    }
+  },
+  "$defs": {
+    "Group": {
+      "type": "object",
+      "required": ["id", "name", "episodes"],
+      "properties": {
+        "id": { "type": "string" },
+        "name": { "type": "string" },
+        "order": { "type": ["integer", "null"], "minimum": 0 },
+        "lock_order": { "type": ["integer", "null"], "minimum": 0 },
+        "overview": { "type": ["string", "null"] },
+        "episodes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/Episode" },
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "Episode": {
+      "type": "object",
+      "required": ["id", "name", "episode_number", "season_number"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "episode_number": { "type": "integer", "minimum": 0 },
+        "season_number": { "type": "integer", "minimum": 0 },
+        "air_date": { "type": ["string", "null"], "format": "date" },
+        "overview": { "type": ["string", "null"] },
+        "production_code": { "type": ["string", "null"] },
+        "still_path": { "type": ["string", "null"] },
+        "vote_average": {
+          "type": ["number", "null"],
+          "minimum": 0,
+          "maximum": 10
+        },
+        "vote_count": { "type": ["integer", "null"], "minimum": 0 },
+        "order": { "type": ["integer", "null"], "minimum": 0 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

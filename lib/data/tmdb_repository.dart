@@ -239,15 +239,22 @@ class TmdbRepository {
       }
     }
 
-    final payload = await _apiService.fetchTvDetails(
+    final detailFuture = _apiService.fetchTvDetails(
       tvId,
       queryParameters: const {
         'append_to_response':
             'videos,images,credits,recommendations,similar,external_ids',
       },
     );
+    final episodeGroupsFuture = _apiService.fetchTvEpisodeGroups(tvId);
 
-    final normalized = _normalizeDetailPayload(payload);
+    final payload = await detailFuture;
+    final episodeGroupsPayload = await episodeGroupsFuture;
+
+    final normalized = _normalizeDetailPayload(
+      payload,
+      episodeGroupsPayload: episodeGroupsPayload,
+    );
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
@@ -725,7 +732,10 @@ class TmdbRepository {
     return regions;
   }
 
-  Map<String, dynamic> _normalizeDetailPayload(Map<String, dynamic> payload) {
+  Map<String, dynamic> _normalizeDetailPayload(
+    Map<String, dynamic> payload, {
+    Map<String, dynamic>? episodeGroupsPayload,
+  }) {
     final normalized = Map<String, dynamic>.from(payload);
 
     final videos = normalized['videos'];
@@ -779,6 +789,44 @@ class TmdbRepository {
 
     if (normalized['external_ids'] is! Map<String, dynamic>) {
       normalized['external_ids'] = const {};
+    }
+
+    if (episodeGroupsPayload != null) {
+      final results = episodeGroupsPayload['results'];
+      final normalizedEpisodeGroups = <Map<String, dynamic>>[];
+
+      if (results is List) {
+        for (final group in results.whereType<Map<String, dynamic>>()) {
+          final normalizedGroup = Map<String, dynamic>.from(group);
+
+          final groups = normalizedGroup['groups'];
+          final normalizedNodes = <Map<String, dynamic>>[];
+          if (groups is List) {
+            for (final node in groups.whereType<Map<String, dynamic>>()) {
+              final normalizedNode = Map<String, dynamic>.from(node);
+              final episodes = normalizedNode['episodes'];
+              if (episodes is List) {
+                normalizedNode['episodes'] =
+                    episodes.whereType<Map<String, dynamic>>().toList();
+              } else {
+                normalizedNode['episodes'] = <Map<String, dynamic>>[];
+              }
+              normalizedNodes.add(normalizedNode);
+            }
+          }
+
+          normalizedGroup['groups'] = normalizedNodes;
+
+          final network = normalizedGroup['network'];
+          if (network != null && network is! Map<String, dynamic>) {
+            normalizedGroup.remove('network');
+          }
+
+          normalizedEpisodeGroups.add(normalizedGroup);
+        }
+      }
+
+      normalized['episode_groups'] = normalizedEpisodeGroups;
     }
 
     return normalized;

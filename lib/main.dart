@@ -8,10 +8,12 @@ import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/services/offline_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/offline_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
@@ -69,20 +71,29 @@ void main() async {
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
+  final offlineService = OfflineService(prefs: prefs);
 
-  runApp(AllMoviesApp(storageService: storageService, prefs: prefs));
+  runApp(
+    AllMoviesApp(
+      storageService: storageService,
+      prefs: prefs,
+      offlineService: offlineService,
+    ),
+  );
 }
 
 class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
   final TmdbRepository? tmdbRepository;
+  final OfflineService offlineService;
   // Removed unused StaticCatalogService stub (no longer present)
 
   const AllMoviesApp({
     super.key,
     required this.storageService,
     required this.prefs,
+    required this.offlineService,
     this.tmdbRepository,
   });
 
@@ -92,14 +103,24 @@ class AllMoviesApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
+        Provider<OfflineService>.value(value: offlineService),
+        ChangeNotifierProvider(
+          create: (_) => OfflineProvider(offlineService),
+        ),
         Provider<TmdbRepository>.value(value: repo),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(
-          create: (_) => FavoritesProvider(storageService),
+          create: (_) => FavoritesProvider(
+            storageService,
+            offlineService: offlineService,
+          ),
         ),
         ChangeNotifierProvider(
-          create: (_) => WatchlistProvider(storageService),
+          create: (_) => WatchlistProvider(
+            storageService,
+            offlineService: offlineService,
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => SearchProvider(repo, storageService),
@@ -112,20 +133,37 @@ class AllMoviesApp extends StatelessWidget {
           PreferencesProvider,
           MoviesProvider
         >(
-          create: (_) => MoviesProvider(repo, storageService: storageService),
+          create: (_) => MoviesProvider(
+            repo,
+            storageService: storageService,
+            offlineService: offlineService,
+          ),
           update: (_, watchRegion, preferences, movies) {
-            movies ??= MoviesProvider(repo, storageService: storageService);
+            movies ??= MoviesProvider(
+              repo,
+              storageService: storageService,
+              offlineService: offlineService,
+            );
             movies.bindRegionProvider(watchRegion);
             movies.bindPreferencesProvider(preferences);
             return movies;
           },
         ),
-        ChangeNotifierProxyProvider<PreferencesProvider, SeriesProvider>(
-          create: (_) => SeriesProvider(repo),
-          update: (_, prefsProvider, series) {
-            series ??= SeriesProvider(repo);
-            // We can't bind later; re-create with prefs when needed
-            return SeriesProvider(repo, preferencesProvider: prefsProvider);
+        ChangeNotifierProxyProvider2<PreferencesProvider, OfflineService,
+            SeriesProvider>(
+          create: (_) => SeriesProvider(
+            repo,
+            preferencesProvider: null,
+            offlineService: offlineService,
+          ),
+          update: (_, prefsProvider, offline, series) {
+            series ??= SeriesProvider(
+              repo,
+              preferencesProvider: prefsProvider,
+              offlineService: offline,
+            );
+            series.bindPreferencesProvider(prefsProvider);
+            return series;
           },
         ),
         ChangeNotifierProvider(create: (_) => PeopleProvider(repo)),

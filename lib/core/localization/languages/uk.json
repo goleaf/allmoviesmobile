@@ -273,6 +273,23 @@
     "terms": "Умови Використання",
     "privacy": "Політика Конфіденційності"
   },
+  "offline": {
+    "banner_offline": "Автономний режим: показ кешованих даних",
+    "banner_syncing": "З'єднання відновлено! Синхронізуємо офлайн-дії…",
+    "sync_now": "Синхронізувати",
+    "download": "Завантажити для офлайн",
+    "remove_download": "Видалити офлайн-копію",
+    "downloaded": "Доступно офлайн",
+    "download_saved": "Збережено для перегляду офлайн",
+    "download_removed": "Офлайн-копію видалено",
+    "storage_title": "Офлайн-сховище",
+    "storage_summary": "Списків у кеші: {lists}, завантажень: {downloads}, у черзі: {pending}",
+    "storage_last_synced": "Остання синхронізація: {date}",
+    "storage_last_sync_never": "Остання синхронізація: не виконувалася",
+    "storage_size": "Приблизний розмір: {size}",
+    "clear_storage": "Очистити офлайн-дані",
+    "storage_cleared": "Офлайн-дані очищено"
+  },
   "common": {
     "loading": "Завантаження...",
     "error": "Помилка",

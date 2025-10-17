@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import '../data/models/saved_media_item.dart';
 import '../data/services/local_storage_service.dart';
+import '../data/services/offline_service.dart';
 import 'package:http/http.dart' as http;
 
 class WatchlistProvider with ChangeNotifier {
   final LocalStorageService _storage;
   final http.Client _httpClient;
+  final OfflineService? _offlineService;
 
   Set<int> _watchlistIds = {};
   List<SavedMediaItem> _watchlistItems = const <SavedMediaItem>[];
 
-  WatchlistProvider(this._storage, {http.Client? httpClient})
-    : _httpClient = httpClient ?? http.Client() {
+  WatchlistProvider(
+    this._storage, {
+    http.Client? httpClient,
+    OfflineService? offlineService,
+  })  : _httpClient = httpClient ?? http.Client(),
+        _offlineService = offlineService {
     _loadWatchlist();
   }
 
@@ -40,11 +46,27 @@ class WatchlistProvider with ChangeNotifier {
     int id, {
     SavedMediaType type = SavedMediaType.movie,
   }) async {
-    if (_watchlistIds.contains(id)) {
+    final wasInWatchlist = _watchlistIds.contains(id);
+    if (wasInWatchlist) {
       await _storage.removeFromWatchlist(id, type: type);
     } else {
       await _storage.addToWatchlist(id, type: type);
     }
+    await _offlineService?.recordWatchlistMutation(
+      mediaId: id,
+      mediaType: type,
+      added: !wasInWatchlist,
+      snapshot: wasInWatchlist
+          ? null
+          : _watchlistItems.firstWhere(
+              (item) => item.id == id && item.type == type,
+              orElse: () => SavedMediaItem(
+                id: id,
+                type: type,
+                title: 'Media #$id',
+              ),
+            ),
+    );
     _loadWatchlist();
   }
 
@@ -55,6 +77,12 @@ class WatchlistProvider with ChangeNotifier {
   }) async {
     if (!_watchlistIds.contains(id)) {
       await _storage.addToWatchlist(id, item: item, type: type);
+      await _offlineService?.recordWatchlistMutation(
+        mediaId: id,
+        mediaType: type,
+        added: true,
+        snapshot: item,
+      );
       _loadWatchlist();
     }
   }
@@ -65,6 +93,11 @@ class WatchlistProvider with ChangeNotifier {
   }) async {
     if (_watchlistIds.contains(id)) {
       await _storage.removeFromWatchlist(id, type: type);
+      await _offlineService?.recordWatchlistMutation(
+        mediaId: id,
+        mediaType: type,
+        added: false,
+      );
       _loadWatchlist();
     }
   }

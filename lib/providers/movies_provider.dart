@@ -7,6 +7,8 @@ import '../data/models/discover_filters_model.dart';
 import 'watch_region_provider.dart';
 import '../data/models/paginated_response.dart';
 import '../data/services/local_storage_service.dart';
+import '../data/services/offline_service.dart';
+import '../core/constants/app_strings.dart';
 import 'preferences_provider.dart';
 
 enum MovieSection {
@@ -64,8 +66,9 @@ class MoviesProvider extends ChangeNotifier {
     WatchRegionProvider? regionProvider,
     PreferencesProvider? preferencesProvider,
     LocalStorageService? storageService,
+    OfflineService? offlineService,
     bool autoInitialize = true,
-  }) {
+  }) : _offlineService = offlineService {
     _regionProvider = regionProvider;
     _preferences = preferencesProvider;
     _storage = storageService;
@@ -78,6 +81,7 @@ class MoviesProvider extends ChangeNotifier {
   WatchRegionProvider? _regionProvider;
   PreferencesProvider? _preferences;
   LocalStorageService? _storage;
+  final OfflineService? _offlineService;
 
   // Trending window: 'day' or 'week'
   String _trendingWindow = 'day';
@@ -152,6 +156,16 @@ class MoviesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final servedFromOffline = await _tryServeOffline();
+      if (servedFromOffline && (_offlineService?.isOffline ?? false)) {
+        _isRefreshing = false;
+        if (!_initializedCompleter.isCompleted) {
+          _initializedCompleter.complete();
+        }
+        notifyListeners();
+        return;
+      }
+
       final region = _regionProvider?.region;
       final includeAdultPref = _preferences?.includeAdult ?? false;
       final defaultSortRaw =
@@ -215,6 +229,10 @@ class MoviesProvider extends ChangeNotifier {
           currentPage: resp.page,
           totalPages: resp.totalPages,
         );
+        await _offlineService?.cacheMoviesSection(
+          _offlineKeyFor(section),
+          resp.results,
+        );
       }
 
       _globalError = null;
@@ -241,6 +259,60 @@ class MoviesProvider extends ChangeNotifier {
         errorMessage: message,
         items: const <Movie>[],
       );
+    }
+  }
+
+  Future<bool> _tryServeOffline() async {
+    final service = _offlineService;
+    if (service == null || !(service.isOffline)) {
+      return false;
+    }
+
+    var hasData = false;
+    for (final section in MovieSection.values) {
+      final cached = await service.loadMoviesSection(_offlineKeyFor(section));
+      if (cached != null && cached.items.isNotEmpty) {
+        hasData = true;
+        _sections[section] = MovieSectionState(
+          items: cached.items,
+          currentPage: 1,
+          totalPages: 1,
+          isLoading: false,
+          errorMessage: null,
+        );
+      } else {
+        _sections[section] = _sections[section]!.copyWith(
+          isLoading: false,
+          errorMessage: AppStrings.offlineCacheUnavailable,
+          items: const <Movie>[],
+        );
+      }
+    }
+
+    if (!hasData) {
+      _globalError = AppStrings.offlineCacheUnavailable;
+      return true;
+    }
+
+    _globalError = null;
+    _isInitialized = true;
+    return true;
+  }
+
+  String _offlineKeyFor(MovieSection section) {
+    switch (section) {
+      case MovieSection.trending:
+        return 'trending_${_trendingWindow}';
+      case MovieSection.nowPlaying:
+        return 'now_playing';
+      case MovieSection.popular:
+        return 'popular';
+      case MovieSection.topRated:
+        return 'top_rated';
+      case MovieSection.upcoming:
+        return 'upcoming';
+      case MovieSection.discover:
+        return 'discover';
     }
   }
 

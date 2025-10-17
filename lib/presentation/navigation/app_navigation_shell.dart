@@ -7,6 +7,7 @@ import '../screens/search/search_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/movies/movies_filters_screen.dart';
 import '../screens/series/series_filters_screen.dart';
+import '../widgets/offline_banner.dart';
 
 enum AppDestination { movies, tv, search }
 
@@ -30,14 +31,21 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     return WillPopScope(
       onWillPop: _handleWillPop,
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentDestination.index,
+        body: Column(
           children: [
-            for (final destination in AppDestination.values)
-              _DestinationNavigator(
-                navigatorKey: _navigatorKeys[destination]!,
-                destination: destination,
+            const OfflineBanner(),
+            Expanded(
+              child: IndexedStack(
+                index: _currentDestination.index,
+                children: [
+                  for (final destination in AppDestination.values)
+                    _DestinationNavigator(
+                      navigatorKey: _navigatorKeys[destination]!,
+                      destination: destination,
+                    ),
+                ],
               ),
+            ),
           ],
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),

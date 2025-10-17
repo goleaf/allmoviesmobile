@@ -289,6 +289,23 @@
     "terms": "Terms of Service",
     "privacy": "Privacy Policy"
   },
+  "offline": {
+    "banner_offline": "Offline mode: showing cached data",
+    "banner_syncing": "Back online! Syncing offline actions…",
+    "sync_now": "Sync now",
+    "download": "Download for offline",
+    "remove_download": "Remove offline copy",
+    "downloaded": "Available offline",
+    "download_saved": "Saved for offline viewing",
+    "download_removed": "Offline copy removed",
+    "storage_title": "Offline storage",
+    "storage_summary": "Cached lists: {lists}, downloads: {downloads}, pending: {pending}",
+    "storage_last_synced": "Last sync: {date}",
+    "storage_last_sync_never": "Last sync: never",
+    "storage_size": "Approx size: {size}",
+    "clear_storage": "Clear offline data",
+    "storage_cleared": "Offline data cleared"
+  },
   "common": {
     "loading": "Loading...",
     "error": "Error",

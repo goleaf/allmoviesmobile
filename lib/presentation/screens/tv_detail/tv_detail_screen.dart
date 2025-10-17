@@ -11,6 +11,7 @@ import '../../../data/models/image_model.dart';
 import '../../../data/models/keyword_model.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/models/network_model.dart';
+import '../../../data/models/saved_media_item.dart';
 import '../../../data/models/season_model.dart';
 import '../../../data/models/tv_detailed_model.dart';
 import '../../../data/models/video_model.dart';
@@ -20,6 +21,7 @@ import '../../../providers/favorites_provider.dart';
 import '../../../providers/tv_detail_provider.dart';
 import '../../../providers/watch_region_provider.dart';
 import '../../../providers/watchlist_provider.dart';
+import '../../../providers/offline_provider.dart';
 import '../../widgets/error_widget.dart';
 import '../../../data/models/watch_provider_model.dart';
 import '../../widgets/loading_indicator.dart';
@@ -254,75 +256,142 @@ class _TVDetailView extends StatelessWidget {
   ) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
+    final offlineProvider = context.watch<OfflineProvider>();
 
     final isFavorite = favoritesProvider.isFavorite(details.id);
     final isInWatchlist = watchlistProvider.isInWatchlist(details.id);
+    final isDownloaded = offlineProvider.downloadedItems.any(
+      (item) => item.id == details.id && item.type == SavedMediaType.tv,
+    );
+    final episodeRuntime =
+        details.episodeRunTime.isNotEmpty ? details.episodeRunTime.first : null;
+    final offlineItem = SavedMediaItem(
+      id: details.id,
+      type: SavedMediaType.tv,
+      title: details.name,
+      originalTitle: details.originalName,
+      posterPath: details.posterPath,
+      backdropPath: details.backdropPath,
+      overview: details.overview,
+      releaseDate: details.firstAirDate,
+      voteAverage: details.voteAverage,
+      voteCount: details.voteCount,
+      episodeRuntimeMinutes: episodeRuntime,
+      episodeCount: details.numberOfEpisodes,
+      seasonCount: details.numberOfSeasons,
+      genreIds: details.genres.map((genre) => genre.id).toList(),
+    );
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                favoritesProvider.toggleFavorite(details.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isFavorite
-                          ? loc.t('favorites.removed')
-                          : loc.t('favorites.added'),
-                    ),
-                    duration: const Duration(seconds: 2),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    favoritesProvider.toggleFavorite(details.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isFavorite
+                              ? loc.t('favorites.removed')
+                              : loc.t('favorites.added'),
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon:
+                      Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
+                  label: Text(
+                    isFavorite
+                        ? loc.t('tv.remove_from_favorites')
+                        : loc.t('tv.add_to_favorites'),
                   ),
-                );
-              },
-              icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
-              label: Text(
-                isFavorite
-                    ? loc.t('tv.remove_from_favorites')
-                    : loc.t('tv.add_to_favorites'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isFavorite
+                        ? Colors.red.withOpacity(0.1)
+                        : null,
+                    foregroundColor: isFavorite ? Colors.red : null,
+                  ),
+                ),
               ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isFavorite
-                    ? Colors.red.withOpacity(0.1)
-                    : null,
-                foregroundColor: isFavorite ? Colors.red : null,
+              const SizedBox(width: 8),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    watchlistProvider.toggleWatchlist(details.id);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          isInWatchlist
+                              ? loc.t('watchlist.removed')
+                              : loc.t('watchlist.added'),
+                        ),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
+                  ),
+                  label: Text(
+                    isInWatchlist
+                        ? loc.t('tv.remove_from_watchlist')
+                        : loc.t('tv.add_to_watchlist'),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: isInWatchlist
+                        ? Colors.blue.withOpacity(0.1)
+                        : null,
+                    foregroundColor: isInWatchlist ? Colors.blue : null,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () async {
+                    final nowDownloaded =
+                        await offlineProvider.toggleDownload(offlineItem);
+                    final message = nowDownloaded
+                        ? loc.t('offline.download_saved')
+                        : loc.t('offline.download_removed');
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(message),
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                  icon: Icon(
+                    isDownloaded
+                        ? Icons.offline_pin
+                        : Icons.download_for_offline,
+                  ),
+                  label: Text(
+                    isDownloaded
+                        ? loc.t('offline.remove_download')
+                        : loc.t('offline.download'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          if (isDownloaded) ...[
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Chip(
+                avatar: const Icon(Icons.offline_pin, size: 16),
+                label: Text(loc.t('offline.downloaded')),
               ),
             ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: ElevatedButton.icon(
-              onPressed: () {
-                watchlistProvider.toggleWatchlist(details.id);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      isInWatchlist
-                          ? loc.t('watchlist.removed')
-                          : loc.t('watchlist.added'),
-                    ),
-                    duration: const Duration(seconds: 2),
-                  ),
-                );
-              },
-              icon: Icon(
-                isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
-              ),
-              label: Text(
-                isInWatchlist
-                    ? loc.t('tv.remove_from_watchlist')
-                    : loc.t('tv.add_to_watchlist'),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: isInWatchlist
-                    ? Colors.blue.withOpacity(0.1)
-                    : null,
-                foregroundColor: isInWatchlist ? Colors.blue : null,
-              ),
-            ),
-          ),
+          ],
         ],
       ),
     );

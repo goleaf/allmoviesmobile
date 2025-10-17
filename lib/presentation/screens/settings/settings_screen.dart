@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/locale_provider.dart';
@@ -8,7 +9,9 @@ import '../../../providers/watch_region_provider.dart';
 import '../../../core/utils/service_locator.dart';
 import '../../../data/services/cache_service.dart';
 import '../../../data/services/local_storage_service.dart';
+import '../../../data/services/offline_service.dart';
 import '../../../providers/preferences_provider.dart';
+import '../../../providers/offline_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   static const routeName = '/settings';
@@ -39,6 +42,7 @@ class SettingsScreen extends StatelessWidget {
           // _ImageQualityTile(),
           _SettingsHeader(title: l.t('settings.cache')),
           _ClearCacheTile(),
+          const _OfflineStorageTile(),
           _ClearSearchHistoryTile(),
           _SettingsHeader(title: l.t('settings.about')),
           _StaticInfoTile(
@@ -89,6 +93,85 @@ class _StaticInfoTile extends StatelessWidget {
       title: Text(title),
       subtitle: Text(value),
     );
+  }
+}
+
+class _OfflineStorageTile extends StatelessWidget {
+  const _OfflineStorageTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Consumer<OfflineProvider>(
+      builder: (context, provider, _) {
+        return FutureBuilder<OfflineStorageStats>(
+          future: provider.getStorageStats(),
+          builder: (context, snapshot) {
+            final stats = snapshot.data;
+            final isLoading = !snapshot.hasData;
+
+            String subtitle;
+            if (stats == null) {
+              subtitle = l.t('common.loading');
+            } else {
+              final summaryTemplate = l.t('offline.storage_summary');
+              final summary = summaryTemplate
+                  .replaceFirst('{lists}', '${stats.cachedCollections}')
+                  .replaceFirst('{downloads}', '${stats.downloadedCount}')
+                  .replaceFirst('{pending}', '${stats.pendingSyncCount}');
+              final lastSync = stats.lastSyncedAt;
+              final lastSyncLabel = lastSync == null
+                  ? l.t('offline.storage_last_sync_never')
+                  : l
+                      .t('offline.storage_last_synced')
+                      .replaceFirst(
+                        '{date}',
+                        DateFormat.yMMMd().add_Hm().format(lastSync.toLocal()),
+                      );
+              final approx = l
+                  .t('offline.storage_size')
+                  .replaceFirst('{size}', _formatBytes(stats.approximateBytes));
+              subtitle = '$summary\n$lastSyncLabel\n$approx';
+            }
+
+            return ListTile(
+              leading: const Icon(Icons.cloud_off),
+              title: Text(l.t('offline.storage_title')),
+              subtitle: Text(subtitle),
+              trailing: TextButton(
+                onPressed: isLoading
+                    ? null
+                    : () async {
+                        await provider.clearOfflineData();
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(l.t('offline.storage_cleared')),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                child: Text(l.t('offline.clear_storage')),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatBytes(int bytes) {
+    if (bytes <= 0) {
+      return '0 B';
+    }
+    const units = ['B', 'KB', 'MB', 'GB'];
+    var value = bytes.toDouble();
+    var unitIndex = 0;
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value /= 1024;
+      unitIndex++;
+    }
+    return '${value.toStringAsFixed(1)} ${units[unitIndex]}';
   }
 }
 

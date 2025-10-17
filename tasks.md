@@ -360,7 +360,7 @@ write all code with comments, maximum comments, update files if not comments for
 - [x] External links
 
 #### 🔄 Remaining Tasks
-- [ ] People by department filter (Acting, Directing, Writing)
+- [x] People by department filter (Acting, Directing, Writing)
 - [ ] Enhanced credits sorting (by year, popularity, rating)
 - [ ] Career timeline visualization
 

@@ -1,0 +1,16 @@
+/// TMDB API Keys Configuration Template
+/// 
+/// Copy this file to 'api_keys.dart' and add your actual API keys.
+/// The api_keys.dart file is ignored by git to protect your credentials.
+class ApiKeys {
+  ApiKeys._();
+
+  /// TMDB API Key (v3)
+  /// Get your API key from: https://www.themoviedb.org/settings/api
+  static const String tmdbApiKey = 'YOUR_API_KEY_HERE';
+
+  /// TMDB API Read Access Token (v4)
+  /// Required for v4 endpoints (if needed in future)
+  static const String tmdbAccessToken = 'YOUR_ACCESS_TOKEN_HERE';
+}
+

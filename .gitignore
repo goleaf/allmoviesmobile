@@ -26,3 +26,7 @@ local.properties
 outputs/
 *.hprof
 
+# API Keys (sensitive)
+**/api_keys.dart
+lib/core/config/api_keys.dart
+

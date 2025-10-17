@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/media_image_helper.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/credit_model.dart';
 import '../../../data/models/episode_group_model.dart';
 import '../../../data/models/episode_model.dart';
@@ -32,8 +33,7 @@ import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../season_detail/season_detail_screen.dart';
 import '../../widgets/watch_providers_section.dart';
-import '../../../core/navigation/deep_link_parser.dart';
-import '../../widgets/share/deep_link_share_sheet.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -146,12 +146,17 @@ class _TVDetailView extends StatelessWidget {
           tooltip: 'Share',
           icon: const Icon(Icons.share),
           onPressed: () {
-            final link = DeepLinkBuilder.tvShow(details.id);
+            final fallbackUrl = details.homepage?.isNotEmpty == true
+                ? details.homepage!
+                : 'https://www.themoviedb.org/tv/${details.id}';
             showDeepLinkShareSheet(
               context,
               title: details.name,
-              httpLink: link,
-              customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+              deepLink: DeepLinkHandler.buildTvUri(
+                details.id,
+                universal: true,
+              ),
+              fallbackUrl: fallbackUrl,
             );
           },
         ),

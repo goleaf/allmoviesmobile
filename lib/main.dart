@@ -12,6 +12,7 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/navigation/deep_link_handler.dart';
 import 'core/utils/memory_optimizer.dart';
+import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/background_sync_service.dart';
 import 'data/services/network_quality_service.dart';
@@ -120,24 +121,21 @@ class AllMoviesApp extends StatefulWidget {
 class _AllMoviesAppState extends State<AllMoviesApp> {
   late final TmdbRepository _repository;
   late final DeepLinkHandler _deepLinkHandler;
-  final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
 
   @override
   void initState() {
     super.initState();
     _repository = widget.tmdbRepository ?? TmdbRepository();
     _deepLinkHandler = DeepLinkHandler(
-      navigatorKey: _rootNavigatorKey,
+      navigatorKey: _navigatorKey,
       repository: _repository,
-    );
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _deepLinkHandler.initialize();
-    });
+    )..initialize();
   }
 
   @override
   void dispose() {
-    unawaited(_deepLinkHandler.dispose());
+    _deepLinkHandler.dispose();
     super.dispose();
   }
 
@@ -145,7 +143,6 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   Widget build(BuildContext context) {
     final storageService = widget.storageService;
     final prefs = widget.prefs;
-    final networkQualityNotifier = widget.networkQualityNotifier;
 
     return MultiProvider(
       providers: [
@@ -153,8 +150,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         Provider<LocalStorageService>.value(value: storageService),
         Provider<SharedPreferences>.value(value: prefs),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
-          value: networkQualityNotifier,
+          value: widget.networkQualityNotifier,
         ),
+        Provider<DeepLinkHandler>.value(value: _deepLinkHandler),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => AccessibilityProvider(prefs)),
@@ -180,11 +178,15 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           PreferencesProvider,
           MoviesProvider
         >(
-          create: (_) =>
-              MoviesProvider(_repository, storageService: storageService),
+          create: (_) => MoviesProvider(
+            _repository,
+            storageService: storageService,
+          ),
           update: (_, watchRegion, preferences, movies) {
-            movies ??=
-                MoviesProvider(_repository, storageService: storageService);
+            movies ??= MoviesProvider(
+              _repository,
+              storageService: storageService,
+            );
             movies.bindRegionProvider(watchRegion);
             movies.bindPreferencesProvider(preferences);
             return movies;
@@ -223,7 +225,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
               );
 
               return MaterialApp(
-                navigatorKey: _rootNavigatorKey,
+                navigatorKey: _navigatorKey,
                 title: AppLocalizations.of(context).t('app.name'),
                 theme: lightTheme,
                 darkTheme: darkTheme,

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/image_model.dart';
 import '../../../data/models/person_detail_model.dart';
 import '../../../data/models/person_model.dart';
@@ -13,8 +14,7 @@ import '../../widgets/media_image.dart';
 import '../../widgets/image_gallery.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
-import '../../../core/navigation/deep_link_parser.dart';
-import '../../widgets/share/deep_link_share_sheet.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   static const routeName = '/person-detail';
@@ -103,6 +103,7 @@ class _PersonDetailView extends StatelessWidget {
             department: department,
             popularity: popularity,
             profileUrl: profileUrl,
+            personId: provider.personId,
           ),
           const SliverFillRemaining(
             hasScrollBody: false,
@@ -126,6 +127,7 @@ class _PersonDetailView extends StatelessWidget {
           department: department,
           popularity: popularity,
           profileUrl: profileUrl,
+          personId: provider.personId,
         ),
         SliverToBoxAdapter(child: _PersonDetailBody(detail: detail)),
       ],
@@ -140,6 +142,7 @@ class _PersonAppBar extends StatelessWidget {
     this.department,
     this.popularity,
     this.profileUrl,
+    this.personId,
   });
 
   final int personId;
@@ -147,6 +150,7 @@ class _PersonAppBar extends StatelessWidget {
   final String? department;
   final double? popularity;
   final String? profileUrl;
+  final int? personId;
 
   @override
   Widget build(BuildContext context) {
@@ -157,19 +161,22 @@ class _PersonAppBar extends StatelessWidget {
       expandedHeight: 360,
       pinned: true,
       actions: [
-        IconButton(
-          tooltip: 'Share',
-          icon: const Icon(Icons.share),
-          onPressed: () {
-            final link = DeepLinkBuilder.person(personId);
-            showDeepLinkShareSheet(
-              context,
-              title: name,
-              httpLink: link,
-              customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
-            );
-          },
-        ),
+        if (personId != null)
+          IconButton(
+            tooltip: 'Share',
+            icon: const Icon(Icons.share),
+            onPressed: () {
+              showDeepLinkShareSheet(
+                context,
+                title: name,
+                deepLink: DeepLinkHandler.buildPersonUri(
+                  personId!,
+                  universal: true,
+                ),
+                fallbackUrl: 'https://www.themoviedb.org/person/$personId',
+              );
+            },
+          ),
       ],
       flexibleSpace: FlexibleSpaceBar(
         titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 16),

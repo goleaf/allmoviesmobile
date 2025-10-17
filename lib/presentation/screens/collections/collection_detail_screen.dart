@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/collection_detail_view.dart';
 import '../../../data/services/api_config.dart';
 import '../../../providers/collection_details_provider.dart';
@@ -11,8 +12,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
-import '../../../core/navigation/deep_link_parser.dart';
-import '../../widgets/share/deep_link_share_sheet.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 
 class CollectionDetailScreen extends StatelessWidget {
   static const routeName = '/collection-detail';
@@ -129,12 +129,7 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
         child: scroll,
       ),
       slivers: [
-        _buildAppBar(
-          context,
-          widget.collectionId,
-          backdropPath,
-          displayName,
-        ),
+        _buildAppBar(context, backdropPath, displayName, widget.collectionId),
         if (provider.isLoading && data != null)
           const SliverToBoxAdapter(child: LinearProgressIndicator()),
         SliverToBoxAdapter(
@@ -264,6 +259,7 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
     int collectionId,
     String? backdropPath,
     String title,
+    int collectionId,
   ) {
     final backdropUrl = backdropPath;
 
@@ -276,12 +272,14 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
           tooltip: 'Share',
           icon: const Icon(Icons.share),
           onPressed: () {
-            final link = DeepLinkBuilder.collection(collectionId);
             showDeepLinkShareSheet(
               context,
               title: title,
-              httpLink: link,
-              customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+              deepLink: DeepLinkHandler.buildCollectionUri(
+                collectionId,
+                universal: true,
+              ),
+              fallbackUrl: 'https://www.themoviedb.org/collection/$collectionId',
             );
           },
         ),

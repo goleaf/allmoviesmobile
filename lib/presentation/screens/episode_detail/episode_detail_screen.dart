@@ -3,14 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/episode_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../widgets/rating_display.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
-import '../../../core/navigation/deep_link_parser.dart';
-import '../../widgets/share/deep_link_share_sheet.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 
 class EpisodeDetailScreen extends StatelessWidget {
   static const routeName = '/episode-detail';
@@ -18,11 +18,7 @@ class EpisodeDetailScreen extends StatelessWidget {
   final Episode episode;
   final int tvId;
 
-  const EpisodeDetailScreen({
-    super.key,
-    required this.episode,
-    required this.tvId,
-  });
+  const EpisodeDetailScreen({super.key, required this.episode, required this.tvId});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +27,7 @@ class EpisodeDetailScreen extends StatelessWidget {
     return FullscreenModalScaffold(
       includeDefaultSliverAppBar: false,
       slivers: [
-        _buildStillAppBar(context),
+        _buildStillAppBar(context, loc),
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -60,7 +56,7 @@ class EpisodeDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildStillAppBar(BuildContext context) {
+  Widget _buildStillAppBar(BuildContext context, AppLocalizations loc) {
     final hasStill = episode.stillPath != null && episode.stillPath!.isNotEmpty;
 
     return SliverAppBar(
@@ -71,19 +67,20 @@ class EpisodeDetailScreen extends StatelessWidget {
           tooltip: 'Share',
           icon: const Icon(Icons.share),
           onPressed: () {
-            final link = DeepLinkBuilder.episode(
-              tvId,
-              episode.seasonNumber,
-              episode.episodeNumber,
-            );
             final title = episode.name.isNotEmpty
                 ? episode.name
-                : 'S${episode.seasonNumber}E${episode.episodeNumber}';
+                : loc.t('movie.episode');
             showDeepLinkShareSheet(
               context,
               title: title,
-              httpLink: link,
-              customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+              deepLink: DeepLinkHandler.buildEpisodeUri(
+                tvId,
+                episode.seasonNumber,
+                episode.episodeNumber,
+                universal: true,
+              ),
+              fallbackUrl:
+                  'https://www.themoviedb.org/tv/$tvId/season/${episode.seasonNumber}/episode/${episode.episodeNumber}',
             );
           },
         ),

@@ -16,8 +16,8 @@ import '../../widgets/image_gallery.dart';
 import '../../navigation/season_detail_args.dart';
 import '../episode_detail/episode_detail_screen.dart';
 import '../../../providers/season_detail_provider.dart';
-import '../../../core/navigation/deep_link_parser.dart';
-import '../../widgets/share/deep_link_share_sheet.dart';
+import '../../../core/navigation/deep_link_handler.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 
 class SeasonDetailScreen extends StatelessWidget {
   static const routeName = '/season';
@@ -80,21 +80,22 @@ class _SeasonDetailView extends StatelessWidget {
         title: Text('${loc.t('tv.season')} ${season.seasonNumber}'),
         actions: [
           IconButton(
-            tooltip: loc.t('movie.share') ?? 'Share',
+            tooltip: 'Share',
             icon: const Icon(Icons.share),
             onPressed: () {
-              final link = DeepLinkBuilder.season(
-                provider.tvId,
-                provider.seasonNumber,
-              );
-              final title = season.name.isNotEmpty
+              final displayTitle = season.name.isNotEmpty
                   ? season.name
                   : '${loc.t('tv.season')} ${season.seasonNumber}';
               showDeepLinkShareSheet(
                 context,
-                title: title,
-                httpLink: link,
-                customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+                title: displayTitle,
+                deepLink: DeepLinkHandler.buildSeasonUri(
+                  provider.tvId,
+                  season.seasonNumber,
+                  universal: true,
+                ),
+                fallbackUrl:
+                    'https://www.themoviedb.org/tv/${provider.tvId}/season/${season.seasonNumber}',
               );
             },
           ),
@@ -579,7 +580,7 @@ class _EpisodeTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => EpisodeDetailScreen(
               episode: episode,
-              tvId: tvId,
+              tvId: provider.tvId,
             ),
           ),
         );

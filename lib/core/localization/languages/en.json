@@ -45,6 +45,8 @@
     "status": "Status",
     "details": "Details",
     "genres": "Genres",
+    "details": "Details",
+    "keywords": "Keywords",
     "production_companies": "Production Companies",
     "production_countries": "Production Countries",
     "spoken_languages": "Spoken Languages",

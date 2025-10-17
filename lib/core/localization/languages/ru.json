@@ -45,6 +45,8 @@
     "status": "Статус",
     "details": "Подробности",
     "genres": "Жанры",
+    "details": "Детали",
+    "keywords": "Ключевые слова",
     "production_companies": "Производственные Компании",
     "production_countries": "Страны Производства",
     "spoken_languages": "Языки",

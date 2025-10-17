@@ -3,18 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
-import '../../../data/models/credit_model.dart';
 import '../../../data/models/movie.dart';
-import '../../../data/models/movie_detailed_model.dart';
-import '../../../data/services/api_config.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../providers/movie_detail_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../widgets/rating_display.dart';
 
-class MovieDetailScreen extends StatefulWidget {
+class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
-
+  
   final Movie movie;
 
   const MovieDetailScreen({
@@ -23,55 +21,55 @@ class MovieDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<MovieDetailScreen> createState() => _MovieDetailScreenState();
+  Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => MovieDetailProvider(
+        context.read<TmdbRepository>(),
+        movie.id,
+      ),
+      child: _MovieDetailView(movie: movie),
+    );
+  }
+
+
 }
 
-class _MovieDetailScreenState extends State<MovieDetailScreen> {
-  late Future<MovieDetailed> _movieDetailsFuture;
+class _MovieDetailView extends StatelessWidget {
+  const _MovieDetailView({required this.movie});
 
-  @override
-  void initState() {
-    super.initState();
-    final repository = context.read<TmdbRepository>();
-    _movieDetailsFuture = repository.fetchMovieDetails(widget.movie.id);
-  }
+  final Movie movie;
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final baseMovie = widget.movie;
+    final detailProvider = context.watch<MovieDetailProvider>();
 
     return Scaffold(
-      body: FutureBuilder<MovieDetailed>(
-        future: _movieDetailsFuture,
-        builder: (context, snapshot) {
-          final details = snapshot.data;
-
-          return CustomScrollView(
-            slivers: [
-              _buildAppBar(context, baseMovie),
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context, baseMovie, details),
-                    _buildActions(context, loc, baseMovie),
-                    _buildOverview(context, loc, baseMovie, details),
-                    _buildMetadata(context, loc, baseMovie, details),
-                    _buildGenres(context, loc, baseMovie, details),
-                    _buildCrewSection(context, loc, snapshot),
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ],
-          );
-        },
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(context),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, loc, detailProvider),
+                _buildActions(context, loc),
+                if (detailProvider.isLoading)
+                  const LinearProgressIndicator(minHeight: 2),
+                _buildOverview(context, loc, detailProvider),
+                _buildMetadata(context, loc, detailProvider),
+                _buildGenres(context, loc, detailProvider),
+                _buildKeywords(context, loc, detailProvider),
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildAppBar(BuildContext context, Movie movie) {
+  SliverAppBar _buildAppBar(BuildContext context) {
     final backdropUrl = movie.backdropUrl;
 
     return SliverAppBar(
@@ -118,16 +116,17 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
 
   Widget _buildHeader(
     BuildContext context,
-    Movie movie,
-    MovieDetailed? details,
+    AppLocalizations loc,
+    MovieDetailProvider detailProvider,
   ) {
-    final posterUrl = movie.posterUrl ??
-        ApiConfig.getPosterUrl(details?.posterPath, size: ApiConfig.posterSizeLarge);
-    final rating = details?.voteAverage ?? movie.voteAverage;
-    final voteCount = details?.voteCount ?? movie.voteCount;
-    final releaseYear = details?.releaseDate?.isNotEmpty == true
-        ? details!.releaseDate!.split('-').first
+    final posterUrl = movie.posterUrl;
+    final detailed = detailProvider.movie;
+    final releaseYear = detailed?.releaseDate?.isNotEmpty == true
+        ? detailed!.releaseDate!.split('-').first
         : movie.releaseYear;
+    final tagline = detailed?.tagline;
+    final voteAverage = detailed?.voteAverage ?? movie.voteAverage;
+    final voteCount = detailed?.voteCount ?? movie.voteCount;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -173,21 +172,33 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 8),
-                if (releaseYear != null && releaseYear.isNotEmpty)
+                if (tagline != null && tagline.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    '“$tagline”',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                  ),
+                ],
+                if (releaseYear != null && releaseYear.isNotEmpty) ...[
+                  const SizedBox(height: 8),
                   Text(
                     releaseYear,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Colors.grey[600],
                         ),
                   ),
-                const SizedBox(height: 8),
-                if (rating != null && rating > 0)
+                ],
+                if (voteAverage != null && voteAverage > 0) ...[
+                  const SizedBox(height: 8),
                   RatingDisplay(
-                    rating: rating,
+                    rating: voteAverage,
                     voteCount: voteCount,
                     size: 18,
                   ),
+                ],
               ],
             ),
           ),
@@ -196,11 +207,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     );
   }
 
-  Widget _buildActions(
-    BuildContext context,
-    AppLocalizations loc,
-    Movie movie,
-  ) {
+  Widget _buildActions(BuildContext context, AppLocalizations loc) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
 
@@ -272,14 +279,14 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   Widget _buildOverview(
     BuildContext context,
     AppLocalizations loc,
-    Movie movie,
-    MovieDetailed? details,
+    MovieDetailProvider detailProvider,
   ) {
-    final overview = (details?.overview?.trim().isNotEmpty ?? false)
-        ? details!.overview!.trim()
-        : (movie.overview?.trim() ?? '');
+    final overview =
+        detailProvider.movie?.overview?.trim().isNotEmpty == true
+            ? detailProvider.movie!.overview
+            : movie.overview;
 
-    if (overview.isEmpty) {
+    if (overview == null || overview.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -307,38 +314,29 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   Widget _buildMetadata(
     BuildContext context,
     AppLocalizations loc,
-    Movie movie,
-    MovieDetailed? details,
+    MovieDetailProvider detailProvider,
   ) {
     final metadata = <MapEntry<String, String>>[];
+    final detailed = detailProvider.movie;
 
-    final releaseDate = details?.releaseDate?.trim().isNotEmpty == true
-        ? details!.releaseDate!
+    final releaseDate = detailed?.releaseDate?.isNotEmpty == true
+        ? detailed!.releaseDate!
         : movie.releaseDate;
     if (releaseDate != null && releaseDate.isNotEmpty) {
       metadata.add(MapEntry(loc.t('movie.release_date'), releaseDate));
     }
 
-    final runtime = details?.runtime;
+    final runtime = detailed?.runtime;
     if (runtime != null && runtime > 0) {
-      metadata.add(
-        MapEntry(loc.t('movie.runtime'), '$runtime ${loc.t('movie.minutes')}'),
-      );
+      metadata.add(MapEntry(
+        loc.t('movie.runtime'),
+        '$runtime ${loc.t('movie.minutes')}',
+      ));
     }
 
-    final status = details?.status;
-    if (status != null && status.isNotEmpty) {
-      metadata.add(MapEntry(loc.t('movie.status'), status));
-    }
-
-    final rating = details?.voteAverage ?? movie.voteAverage;
-    if (rating != null && rating > 0) {
-      metadata.add(MapEntry(loc.t('movie.rating'), rating.toStringAsFixed(1)));
-    }
-
-    final voteCount = details?.voteCount ?? movie.voteCount;
+    final voteCount = detailed?.voteCount ?? movie.voteCount;
     if (voteCount != null && voteCount > 0) {
-      metadata.add(MapEntry(loc.t('movie.votes'), voteCount.toString()));
+      metadata.add(MapEntry(loc.t('movie.votes'), '$voteCount'));
     }
 
     if (metadata.isEmpty) {
@@ -364,7 +362,7 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   SizedBox(
-                    width: 130,
+                    width: 120,
                     child: Text(
                       entry.key,
                       style: TextStyle(
@@ -388,15 +386,21 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
   Widget _buildGenres(
     BuildContext context,
     AppLocalizations loc,
-    Movie movie,
-    MovieDetailed? details,
+    MovieDetailProvider detailProvider,
   ) {
-    final detailGenres = details?.genres
-            .map((genre) => genre.name.trim())
-            .where((name) => name.isNotEmpty)
-            .toList() ??
-        const <String>[];
-    final genres = detailGenres.isNotEmpty ? detailGenres : movie.genres;
+    final detailedGenres = detailProvider.genres
+        .map((genre) => genre.name.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    final fallbackGenres = movie.genreIds
+        ?.map((genreId) => Movie.genreMap[genreId])
+        .whereType<String>()
+        .toList();
+
+    final genres = detailedGenres.isNotEmpty
+        ? detailedGenres
+        : fallbackGenres ?? const <String>[];
 
     if (genres.isEmpty) {
       return const SizedBox.shrink();
@@ -432,142 +436,104 @@ class _MovieDetailScreenState extends State<MovieDetailScreen> {
     );
   }
 
-  Widget _buildCrewSection(
+  Widget _buildKeywords(
     BuildContext context,
     AppLocalizations loc,
-    AsyncSnapshot<MovieDetailed> snapshot,
+    MovieDetailProvider detailProvider,
   ) {
-    if (snapshot.connectionState == ConnectionState.waiting &&
-        !snapshot.hasData) {
+    final keywords = detailProvider.keywords;
+
+    if (detailProvider.isLoading && keywords.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              loc.t('movie.crew'),
+              loc.t('movie.keywords'),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
             ),
             const SizedBox(height: 12),
-            const SizedBox(
-              height: 32,
-              width: 32,
-              child: CircularProgressIndicator(strokeWidth: 2),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(6, (index) {
+                return Container(
+                  width: 80,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                );
+              }),
             ),
           ],
         ),
       );
     }
 
-    if (snapshot.hasError) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              loc.t('movie.crew'),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              loc.t('common.error'),
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-        ),
-      );
-    }
-
-    final crew = snapshot.data?.crew ?? const <Crew>[];
-    if (crew.isEmpty) {
+    if (keywords.isEmpty) {
+      if (detailProvider.errorMessage != null) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                loc.t('movie.keywords'),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                detailProvider.errorMessage!,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.error),
+              ),
+              TextButton(
+                onPressed: detailProvider.refresh,
+                child: Text(loc.t('common.retry')),
+              ),
+            ],
+          ),
+        );
+      }
       return const SizedBox.shrink();
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            loc.t('movie.crew'),
+            loc.t('movie.keywords'),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 12),
-          ...crew.take(10).map((member) => _CrewMemberTile(member: member)),
-        ],
-      ),
-    );
-  }
-}
-
-class _CrewMemberTile extends StatelessWidget {
-  const _CrewMemberTile({required this.member});
-
-  final Crew member;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final profileUrl = ApiConfig.getProfileUrl(member.profilePath);
-    final subtitleParts = <String>[];
-
-    if (member.job.isNotEmpty) {
-      subtitleParts.add(member.job);
-    }
-    if (member.department.isNotEmpty) {
-      subtitleParts.add(member.department);
-    }
-
-    final subtitle = subtitleParts.join(' • ');
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 24,
-            backgroundColor: theme.colorScheme.primaryContainer,
-            backgroundImage:
-                profileUrl.isNotEmpty ? CachedNetworkImageProvider(profileUrl) : null,
-            child: profileUrl.isEmpty
-                ? Text(
-                    member.name.isNotEmpty
-                        ? member.name.substring(0, 1).toUpperCase()
-                        : '?',
-                    style: theme.textTheme.titleMedium,
-                  )
-                : null,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  member.name,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitle,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color?.withOpacity(0.8),
-                        ),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: keywords
+                .map(
+                  (keyword) => Chip(
+                    label: Text(keyword.name),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.secondaryContainer,
                   ),
-                ],
-              ],
-            ),
+                )
+                .toList(),
           ),
         ],
       ),

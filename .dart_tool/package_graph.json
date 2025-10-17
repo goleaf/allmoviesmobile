@@ -165,6 +165,15 @@
       ]
     },
     {
+      "name": "mocktail",
+      "version": "1.0.4",
+      "dependencies": [
+        "collection",
+        "matcher",
+        "test_api"
+      ]
+    },
+    {
       "name": "integration_test",
       "version": "0.0.0",
       "dependencies": [
@@ -963,6 +972,32 @@
       "dependencies": []
     },
     {
+      "name": "test_api",
+      "version": "0.7.6",
+      "dependencies": [
+        "async",
+        "boolean_selector",
+        "collection",
+        "meta",
+        "source_span",
+        "stack_trace",
+        "stream_channel",
+        "string_scanner",
+        "term_glyph"
+      ]
+    },
+    {
+      "name": "matcher",
+      "version": "0.12.17",
+      "dependencies": [
+        "async",
+        "meta",
+        "stack_trace",
+        "term_glyph",
+        "test_api"
+      ]
+    },
+    {
       "name": "vm_service",
       "version": "15.0.2",
       "dependencies": []
@@ -1004,32 +1039,6 @@
       "name": "vector_math",
       "version": "2.2.0",
       "dependencies": []
-    },
-    {
-      "name": "matcher",
-      "version": "0.12.17",
-      "dependencies": [
-        "async",
-        "meta",
-        "stack_trace",
-        "term_glyph",
-        "test_api"
-      ]
-    },
-    {
-      "name": "test_api",
-      "version": "0.7.6",
-      "dependencies": [
-        "async",
-        "boolean_selector",
-        "collection",
-        "meta",
-        "source_span",
-        "stack_trace",
-        "stream_channel",
-        "string_scanner",
-        "term_glyph"
-      ]
     },
     {
       "name": "flutter_inappwebview",
@@ -1577,6 +1586,29 @@
       "dependencies": []
     },
     {
+      "name": "term_glyph",
+      "version": "1.2.2",
+      "dependencies": []
+    },
+    {
+      "name": "boolean_selector",
+      "version": "2.1.2",
+      "dependencies": [
+        "source_span",
+        "string_scanner"
+      ]
+    },
+    {
+      "name": "webdriver",
+      "version": "3.1.0",
+      "dependencies": [
+        "matcher",
+        "path",
+        "stack_trace",
+        "sync_http"
+      ]
+    },
+    {
       "name": "fuchsia_remote_debug_protocol",
       "version": "0.0.0",
       "dependencies": [
@@ -1603,19 +1635,6 @@
         "meta",
         "path",
         "vm_service"
-      ]
-    },
-    {
-      "name": "term_glyph",
-      "version": "1.2.2",
-      "dependencies": []
-    },
-    {
-      "name": "boolean_selector",
-      "version": "2.1.2",
-      "dependencies": [
-        "source_span",
-        "string_scanner"
       ]
     },
     {
@@ -1741,6 +1760,20 @@
       ]
     },
     {
+      "name": "sync_http",
+      "version": "0.3.1",
+      "dependencies": []
+    },
+    {
+      "name": "process",
+      "version": "5.0.5",
+      "dependencies": [
+        "file",
+        "path",
+        "platform"
+      ]
+    },
+    {
       "name": "flutter_inappwebview_internal_annotations",
       "version": "1.2.0",
       "dependencies": []
@@ -1797,39 +1830,6 @@
     {
       "name": "synchronized",
       "version": "3.4.0",
-      "dependencies": []
-    },
-    {
-      "name": "mocktail",
-      "version": "1.0.4",
-      "dependencies": [
-        "collection",
-        "matcher",
-        "test_api"
-      ]
-    },
-    {
-      "name": "process",
-      "version": "5.0.5",
-      "dependencies": [
-        "file",
-        "path",
-        "platform"
-      ]
-    },
-    {
-      "name": "webdriver",
-      "version": "3.1.0",
-      "dependencies": [
-        "matcher",
-        "path",
-        "stack_trace",
-        "sync_http"
-      ]
-    },
-    {
-      "name": "sync_http",
-      "version": "0.3.1",
       "dependencies": []
     }
   ],

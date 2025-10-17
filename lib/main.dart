@@ -9,9 +9,6 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
-import 'data/services/static_catalog_service.dart';
-import 'presentation/screens/splash_preload/splash_preload_screen.dart';
-import 'data/local/isar/isar_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -52,39 +49,17 @@ class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
   final TmdbRepository? tmdbRepository;
-  final StaticCatalogService? catalogService;
 
   const AllMoviesApp({
     super.key,
     required this.storageService,
     required this.prefs,
     this.tmdbRepository,
-    this.catalogService,
   });
-
-  Future<bool> _shouldPreload(StaticCatalogService service) async {
-    final isar = await IsarDbProvider.instance.isar;
-    return service.isFirstRun(isar);
-  }
-
-  Future<void> _maybeSilentRefresh(StaticCatalogService service) async {
-    final isar = await IsarDbProvider.instance.isar;
-    final locales = AppLocalizations.supportedLocales;
-    final stale = await service.needsRefresh(isar, locales);
-    if (stale) {
-      // fire-and-forget, do not block UI
-      // ignore: unawaited_futures
-      service.preloadAll(
-        locales: locales,
-        onProgress: (_) {},
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final repo = tmdbRepository ?? TmdbRepository();
-    final catalog = catalogService ?? StaticCatalogService(repo);
 
     return MultiProvider(
       providers: [
@@ -131,29 +106,8 @@ class AllMoviesApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
-                initialRoute: SplashPreloadScreen.routeName,
+                initialRoute: MoviesScreen.routeName,
                 routes: {
-                  SplashPreloadScreen.routeName: (context) => FutureBuilder<bool>(
-                        future: _shouldPreload(catalog),
-                        builder: (context, snapshot) {
-                          final should = snapshot.data ?? true;
-                          if (!should) {
-                            WidgetsBinding.instance.addPostFrameCallback((_) {
-                              Navigator.of(context).pushReplacementNamed(MoviesScreen.routeName);
-                            });
-                            return const SizedBox.shrink();
-                          }
-                          return SplashPreloadScreen(
-                            service: catalog,
-                            locales: AppLocalizations.supportedLocales,
-                            onDone: () async {
-                              // Kick off silent refresh next runs
-                              Navigator.of(context).pushReplacementNamed(MoviesScreen.routeName);
-                              await _maybeSilentRefresh(catalog);
-                            },
-                          );
-                        },
-                      ),
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
                   SearchScreen.routeName: (context) => const SearchScreen(),
                   SeriesScreen.routeName: (context) => const SeriesScreen(),

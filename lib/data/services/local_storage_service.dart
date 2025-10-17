@@ -141,7 +141,7 @@ class LocalStorageService {
     SavedMediaItem? item,
     SavedMediaType type = SavedMediaType.movie,
   }) async {
-    final watchlist = getWatchlistItems();
+    final watchlist = getWatchlistItems().toList();
     final storageId = item?.storageId ?? '${type.storageKey}_$id';
     final index =
         watchlist.indexWhere((candidate) => candidate.storageId == storageId);

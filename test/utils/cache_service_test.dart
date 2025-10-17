@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:allmovies_mobile/lib/data/services/cache_service.dart';
+import 'package:allmovies_mobile/data/services/cache_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -36,7 +36,7 @@ void main() {
 
   group('CacheService (persistent)', () {
     setUp(() async {
-      SharedPreferences.setMockInitialValues(<String, Object?>{});
+      SharedPreferences.setMockInitialValues(<String, Object>{});
     });
 
     test('setPersistent/getPersistent roundtrip', () async {

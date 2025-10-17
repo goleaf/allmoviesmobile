@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
@@ -12,7 +11,6 @@ import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../series/series_filters_screen.dart';
-import '../../../data/services/local_storage_service.dart';
 import '../../widgets/virtualized_list_view.dart';
 
 class SeriesScreen extends StatefulWidget {
@@ -80,22 +78,12 @@ class _SeriesScreenState extends State<SeriesScreen>
     });
   }
 
-  Future<void> _refreshSection(
-    BuildContext context,
-    SeriesSection section,
-  ) {
-    return context.read<SeriesProvider>().refreshSection(section);
+  Future<void> _refreshAll(BuildContext context) {
+    return context.read<SeriesProvider>().refresh(force: true);
   }
 
-  @override
-  void dispose() {
-    for (final entry in _positionCallbacks.entries) {
-      _positionsListeners[entry.key]!
-          .itemPositions
-          .removeListener(entry.value);
-    }
-    _tabController.dispose();
-    super.dispose();
+  Future<void> _refreshSection(SeriesSection section) {
+    return context.read<SeriesProvider>().refreshSection(section);
   }
 
   @override
@@ -128,6 +116,7 @@ class _SeriesScreenState extends State<SeriesScreen>
             _SeriesSectionView(
               section: section,
               onRefreshAll: _refreshAll,
+              onRefreshSection: () => _refreshSection(section),
               controller: _scrollControllers[section],
             ),
         ],
@@ -233,11 +222,13 @@ class _SeriesSectionView extends StatelessWidget {
   const _SeriesSectionView({
     required this.section,
     required this.onRefreshAll,
+    required this.onRefreshSection,
     this.controller,
   });
 
   final SeriesSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
+  final Future<void> Function() onRefreshSection;
   final ScrollController? controller;
 
   @override
@@ -245,7 +236,7 @@ class _SeriesSectionView extends StatelessWidget {
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
-        Future<void> refreshSection() => onRefreshSection(context, section);
+        final refreshSection = onRefreshSection;
         if (state.isLoading && state.items.isEmpty) {
           return const _SeriesListSkeleton();
         }
@@ -256,8 +247,6 @@ class _SeriesSectionView extends StatelessWidget {
             onRetry: refreshSection,
           );
         }
-
-        _maybeRestore(state.items.length);
 
         return Column(
           children: [
@@ -289,37 +278,13 @@ class _SeriesSectionView extends StatelessWidget {
               ),
             if (state.totalPages > 1)
               _PaginationControls(
-                section: widget.section,
+                section: section,
                 state: state,
               ),
           ],
         );
       },
     );
-  }
-
-  void _maybeRestore(int itemCount) {
-    if (_restored) {
-      return;
-    }
-
-    final targetIndex = widget.initialScrollIndex;
-    if (targetIndex == null) {
-      _restored = true;
-      return;
-    }
-    if (itemCount <= targetIndex) {
-      return;
-    }
-    if (!widget.scrollController.isAttached) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || _restored) return;
-        _maybeRestore(itemCount);
-      });
-      return;
-    }
-    widget.scrollController.jumpTo(index: targetIndex, alignment: 0);
-    _restored = true;
   }
 }
 
@@ -337,8 +302,9 @@ class _SeriesListState extends State<_SeriesList> {
   @override
   Widget build(BuildContext context) {
     if (widget.series.isEmpty) {
+      final l = AppLocalizations.of(context);
       return ListView(
-        controller: controller,
+        controller: widget.controller,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 120),
@@ -350,7 +316,7 @@ class _SeriesListState extends State<_SeriesList> {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              widget.emptyMessage,
+              l.t('search.no_results'),
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -359,7 +325,7 @@ class _SeriesListState extends State<_SeriesList> {
     }
 
     return VirtualizedSeparatedListView(
-      controller: controller,
+      controller: widget.controller,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: widget.series.length,

@@ -149,20 +149,11 @@ class MovieCard extends StatelessWidget {
       type: MediaImageType.poster,
       size: MediaImageSize.w342,
       fit: BoxFit.cover,
-      overlay: MediaImageOverlay(
-        gradientResolvers: [
-          (theme, _) {
-            final isDark = theme.brightness == Brightness.dark;
-            return LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(isDark ? 0.4 : 0.6),
-                Colors.black.withOpacity(0),
-              ],
-            );
-          },
-        ],
+      overlay: MediaImageOverlay.legible(
+        topOpacityLight: 0.22,
+        topOpacityDark: 0.16,
+        bottomOpacityLight: 0.72,
+        bottomOpacityDark: 0.58,
       ),
       placeholder: Container(
         color: Colors.grey[300],

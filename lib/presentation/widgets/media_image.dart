@@ -330,6 +330,79 @@ class MediaImageOverlay {
         colorResolver = null,
         padding = EdgeInsets.zero;
 
+  factory MediaImageOverlay.legible({
+    EdgeInsetsGeometry padding = EdgeInsets.zero,
+    double bottomOpacityLight = 0.78,
+    double bottomOpacityDark = 0.62,
+    double topOpacityLight = 0.38,
+    double topOpacityDark = 0.28,
+    MediaImageColorResolver? baseColorResolver,
+  }) {
+    Color _resolveBaseColor(ThemeData theme, ColorScheme scheme) {
+      final Color? resolved = baseColorResolver?.call(theme, scheme);
+      if (resolved != null) {
+        return resolved;
+      }
+      final scrim = scheme.scrim;
+      if (scrim.opacity == 0) {
+        return Colors.black;
+      }
+      if (scrim.opacity < 1) {
+        return scrim.withOpacity(1);
+      }
+      return scrim;
+    }
+
+    final gradientResolvers = <MediaImageGradientResolver>[
+      (theme, scheme) {
+        final baseColor = _resolveBaseColor(theme, scheme);
+        final isDark = theme.brightness == Brightness.dark;
+        final opacity = (isDark ? bottomOpacityDark : bottomOpacityLight)
+            .clamp(0.0, 1.0)
+            .toDouble();
+        return LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.topCenter,
+          colors: [
+            baseColor.withOpacity(opacity),
+            baseColor.withOpacity(0),
+          ],
+        );
+      },
+    ];
+
+    final hasTopOverlay = topOpacityLight > 0 || topOpacityDark > 0;
+    if (hasTopOverlay) {
+      gradientResolvers.add((theme, scheme) {
+        final baseColor = _resolveBaseColor(theme, scheme);
+        final isDark = theme.brightness == Brightness.dark;
+        final opacity = (isDark ? topOpacityDark : topOpacityLight)
+            .clamp(0.0, 1.0)
+            .toDouble();
+        if (opacity <= 0) {
+          return const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.transparent, Colors.transparent],
+          );
+        }
+        return LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            baseColor.withOpacity(opacity),
+            baseColor.withOpacity(0),
+          ],
+        );
+      });
+    }
+
+    return MediaImageOverlay(
+      gradientResolvers: gradientResolvers,
+      padding: padding,
+    );
+  }
+
   final List<MediaImageGradientResolver> gradientResolvers;
   final MediaImageColorResolver? colorResolver;
   final EdgeInsetsGeometry padding;

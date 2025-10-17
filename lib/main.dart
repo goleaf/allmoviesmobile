@@ -30,6 +30,7 @@ import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/series/series_category_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/videos/videos_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
@@ -107,6 +108,7 @@ class AllMoviesApp extends StatelessWidget {
               HomeScreen.routeName: (context) => const HomeScreen(),
               SearchScreen.routeName: (context) => const SearchScreen(),
               MoviesScreen.routeName: (context) => const MoviesScreen(),
+              VideosScreen.routeName: (context) => const VideosScreen(),
               SeriesScreen.routeName: (context) => const SeriesScreen(),
               SeriesCategoryScreen.routeName: (context) {
                 final args = ModalRoute.of(context)?.settings.arguments;

@@ -184,23 +184,24 @@ class _MovieDetailView extends StatelessWidget {
     MovieDetailed details,
     AppLocalizations loc,
   ) {
-    final posterUrl = details.posterUrl;
-
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Poster
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: MediaImage(
-              path: details.posterPath,
-              type: MediaImageType.poster,
-              size: MediaImageSize.w500,
-              width: 120,
-              height: 180,
-              fit: BoxFit.cover,
+          // Poster hero transition from list cards into detail header.
+          Hero(
+            tag: 'moviePoster-${details.id}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: MediaImage(
+                path: details.posterPath,
+                type: MediaImageType.poster,
+                size: MediaImageSize.w500,
+                width: 120,
+                height: 180,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -1014,6 +1015,7 @@ class _MovieDetailView extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
+                  heroTag: 'moviePoster-${movie.id}',
                   onTap: () {
                     // Navigate to movie details
                     Navigator.of(context).push(
@@ -1080,6 +1082,7 @@ class _MovieDetailView extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
+                  heroTag: 'moviePoster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

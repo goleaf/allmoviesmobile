@@ -1,14 +1,13 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/localization/app_localizations.dart';
-import '../../data/services/api_config.dart';
 import '../../providers/favorites_provider.dart';
 // Removed erroneous barrel imports; use direct imports instead
 import '../../core/utils/media_image_helper.dart';
+import 'loading_indicator.dart';
 import 'media_image.dart';
 
+/// Movie/TV card with poster, metadata, hero transition and favorite toggle.
 class MovieCard extends StatelessWidget {
   final int id;
   final String title;
@@ -17,6 +16,7 @@ class MovieCard extends StatelessWidget {
   final String? releaseDate;
   final String? showingLabel;
   final VoidCallback? onTap;
+  final String heroTag;
 
   const MovieCard({
     super.key,
@@ -27,11 +27,11 @@ class MovieCard extends StatelessWidget {
     this.releaseDate,
     this.showingLabel,
     this.onTap,
-  });
+    String? heroTag,
+  }) : heroTag = heroTag ?? 'mediaPoster-$id';
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context);
     final favoritesProvider = context.watch<FavoritesProvider>();
     final isFavorite = favoritesProvider.isFavorite(id);
 
@@ -135,16 +135,30 @@ class MovieCard extends StatelessWidget {
   }
 
   Widget _buildPoster() {
+    final resolvedHeroTag = heroTag;
     if (posterPath == null || posterPath!.isEmpty) {
-      return Container(
-        color: Colors.grey[300],
-        child: const Center(
-          child: Icon(Icons.movie, size: 48, color: Colors.grey),
-        ),
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final width = _resolveDimension(constraints.maxWidth, 150);
+              final height = _resolveDimension(constraints.maxHeight, 225);
+              return ShimmerLoading(
+                width: width,
+                height: height,
+                borderRadius: BorderRadius.circular(0),
+              );
+            },
+          ),
+          const Center(
+            child: Icon(Icons.movie, size: 48, color: Colors.grey),
+          ),
+        ],
       );
     }
 
-    return MediaImage(
+    final imageWidget = MediaImage(
       path: posterPath,
       type: MediaImageType.poster,
       size: MediaImageSize.w342,
@@ -164,9 +178,16 @@ class MovieCard extends StatelessWidget {
           },
         ],
       ),
-      placeholder: Container(
-        color: Colors.grey[300],
-        child: const Center(child: CircularProgressIndicator()),
+      placeholder: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = _resolveDimension(constraints.maxWidth, 150);
+          final height = _resolveDimension(constraints.maxHeight, 225);
+          return ShimmerLoading(
+            width: width,
+            height: height,
+            borderRadius: BorderRadius.circular(0),
+          );
+        },
       ),
       errorWidget: Container(
         color: Colors.grey[300],
@@ -175,5 +196,17 @@ class MovieCard extends StatelessWidget {
         ),
       ),
     );
+
+    return Hero(
+      tag: resolvedHeroTag,
+      child: imageWidget,
+    );
+  }
+
+  double _resolveDimension(double value, double fallback) {
+    if (value.isFinite && value > 0) {
+      return value;
+    }
+    return fallback;
   }
 }

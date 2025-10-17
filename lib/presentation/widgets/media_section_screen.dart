@@ -135,17 +135,23 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
                   style: theme.textTheme.titleMedium,
                 ),
               )
-            : GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: widget.childAspectRatio,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: _visibleItemIndices.length,
-                itemBuilder: (context, index) {
-                  final item = widget.items[_visibleItemIndices[index]];
-                  return _MediaCard(item: item);
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final width = constraints.maxWidth;
+                  final crossAxisCount = width >= 900 ? 3 : 2;
+                  return GridView.builder(
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      childAspectRatio: widget.childAspectRatio,
+                      crossAxisSpacing: 16,
+                      mainAxisSpacing: 16,
+                    ),
+                    itemCount: _visibleItemIndices.length,
+                    itemBuilder: (context, index) {
+                      final item = widget.items[_visibleItemIndices[index]];
+                      return _MediaCard(item: item);
+                    },
+                  );
                 },
               ),
       ),

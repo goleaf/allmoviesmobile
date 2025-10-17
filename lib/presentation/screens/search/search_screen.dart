@@ -11,6 +11,7 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/rating_display.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../widgets/app_scaffold.dart';
+import '../../widgets/loading_indicator.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -331,22 +332,30 @@ class _SearchScreenState extends State<SearchScreen> {
 
         return false;
       },
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.7,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: itemCount,
-        itemBuilder: (context, index) {
-          if (index >= provider.results.length) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final crossAxisCount = width >= 900 ? 3 : 2;
+          final childAspectRatio = width >= 900 ? 0.65 : 0.7;
 
-          final result = provider.results[index];
-          return _SearchResultCard(result: result);
+          return GridView.builder(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: crossAxisCount,
+              childAspectRatio: childAspectRatio,
+              crossAxisSpacing: 16,
+              mainAxisSpacing: 16,
+            ),
+            itemCount: itemCount,
+            itemBuilder: (context, index) {
+              if (index >= provider.results.length) {
+                return const _SearchResultShimmerCard();
+              }
+
+              final result = provider.results[index];
+              return _SearchResultCard(result: result);
+            },
+          );
         },
       ),
     );
@@ -432,6 +441,11 @@ class _SearchResultCard extends StatelessWidget {
     final posterPath = result.posterPath?.isNotEmpty == true
         ? result.posterPath
         : (result.profilePath?.isNotEmpty == true ? result.profilePath : null);
+    final String? heroTag = switch (result.mediaType) {
+      MediaType.movie => 'moviePoster-${result.id}',
+      MediaType.tv => 'tvPoster-${result.id}',
+      MediaType.person => null,
+    };
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -463,37 +477,7 @@ class _SearchResultCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  if (posterPath != null && posterPath.isNotEmpty)
-                    MediaImage(
-                      path: posterPath,
-                      type: result.mediaType == MediaType.person
-                          ? MediaImageType.profile
-                          : MediaImageType.poster,
-                      size: MediaImageSize.w342,
-                      fit: BoxFit.cover,
-                    )
-                  else
-                    Container(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                    ),
-                  if (posterPath == null || posterPath.isEmpty)
-                    Center(
-                      child: Text(
-                        (title.isNotEmpty ? title[0] : mediaLabel[0])
-                            .toUpperCase(),
-                        style: Theme.of(context).textTheme.headlineMedium
-                            ?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onPrimaryContainer,
-                            ),
-                      ),
-                    ),
-                ],
-              ),
+              child: _buildPoster(heroTag, posterPath, context, title, mediaLabel),
             ),
             Padding(
               padding: const EdgeInsets.all(12),
@@ -531,10 +515,6 @@ class _SearchResultCard extends StatelessWidget {
     );
   }
 
-  String? get _posterImage {
-    return null;
-  }
-
   String _mediaLabel(
     BuildContext context,
     MediaType type, {
@@ -561,5 +541,88 @@ class _SearchResultCard extends StatelessWidget {
                   : 'Untitled Person')
             : (loc.person['title'] ?? 'Person');
     }
+  }
+
+  Widget _buildPoster(
+    String? heroTag,
+    String? posterPath,
+    BuildContext context,
+    String title,
+    String mediaLabel,
+  ) {
+    final imageWidget = posterPath != null && posterPath.isNotEmpty
+        ? MediaImage(
+            path: posterPath,
+            type: result.mediaType == MediaType.person
+                ? MediaImageType.profile
+                : MediaImageType.poster,
+            size: MediaImageSize.w342,
+            fit: BoxFit.cover,
+            placeholder: const ShimmerLoading(
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          )
+        : Stack(
+            fit: StackFit.expand,
+            children: [
+              const ShimmerLoading(
+                width: double.infinity,
+                height: double.infinity,
+              ),
+              Center(
+                child: Text(
+                  (title.isNotEmpty ? title[0] : mediaLabel[0]).toUpperCase(),
+                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onPrimaryContainer,
+                      ),
+                ),
+              ),
+            ],
+          );
+
+    if (heroTag == null) {
+      return imageWidget;
+    }
+
+    return Hero(tag: heroTag, child: imageWidget);
+  }
+}
+
+/// Placeholder card shown while search results are still loading.
+class _SearchResultShimmerCard extends StatelessWidget {
+  const _SearchResultShimmerCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Expanded(
+            child: ShimmerLoading(
+              width: double.infinity,
+              height: double.infinity,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                ShimmerLoading(width: 140, height: 14),
+                SizedBox(height: 8),
+                ShimmerLoading(width: 100, height: 12),
+                SizedBox(height: 6),
+                ShimmerLoading(width: double.infinity, height: 10),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

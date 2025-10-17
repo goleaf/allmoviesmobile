@@ -349,6 +349,7 @@ class _MoviesCarousel extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
+                  heroTag: 'moviePoster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       MovieDetailScreen.routeName,
@@ -391,6 +392,7 @@ class _SeriesCarousel extends StatelessWidget {
                   posterPath: show.posterPath,
                   voteAverage: show.voteAverage,
                   releaseDate: show.releaseDate,
+                  heroTag: 'tvPoster-${show.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       TVDetailScreen.routeName,
@@ -535,6 +537,7 @@ class _RecommendationsSection extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
+                  heroTag: 'moviePoster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       MovieDetailScreen.routeName,
@@ -577,9 +580,18 @@ class _HorizontalMediaSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         if (isLoading)
-          const SizedBox(
-            height: 220,
-            child: Center(child: LoadingIndicator()),
+          SizedBox(
+            height: 260,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) => const SizedBox(
+                width: 160,
+                child: _ShimmerMediaCard(),
+              ),
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemCount: 5,
+            ),
           )
         else if (errorMessage != null && errorMessage!.isNotEmpty)
           SizedBox(
@@ -613,6 +625,42 @@ class _HorizontalMediaSection extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// Skeleton placeholder card used while carousel data loads.
+class _ShimmerMediaCard extends StatelessWidget {
+  const _ShimmerMediaCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Expanded(
+            child: ShimmerLoading(
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: BorderRadius.zero,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                ShimmerLoading(width: 120, height: 12),
+                SizedBox(height: 8),
+                ShimmerLoading(width: 80, height: 10),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

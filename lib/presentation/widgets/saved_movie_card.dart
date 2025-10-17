@@ -1,13 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../data/models/movie_detailed_model.dart';
-import '../../data/services/api_config.dart';
 import '../../core/utils/media_image_helper.dart';
 import 'media_image.dart';
 import '../../data/tmdb_repository.dart';
+import 'loading_indicator.dart';
 
 class SavedMovieCard extends StatefulWidget {
   const SavedMovieCard({
@@ -100,20 +99,17 @@ class _LoadingCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Container(
-              color: Colors.grey[300],
-              child: const Center(child: CircularProgressIndicator()),
+          const Expanded(
+            child: ShimmerLoading(
+              width: double.infinity,
+              height: double.infinity,
             ),
           ),
           Padding(
             padding: const EdgeInsets.all(8),
-            child: Container(
-              height: 12,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(4),
-              ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: const ShimmerLoading(width: double.infinity, height: 12),
             ),
           ),
           const SizedBox(height: 4),

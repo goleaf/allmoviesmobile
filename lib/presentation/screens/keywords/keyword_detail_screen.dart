@@ -389,6 +389,7 @@ class _KeywordMediaCard extends StatelessWidget {
       posterPath: movie.posterPath,
       voteAverage: movie.voteAverage,
       releaseDate: movie.releaseDate,
+      heroTag: isTv ? 'tvPoster-${movie.id}' : 'moviePoster-${movie.id}',
       onTap: () {
         if (isTv) {
           Navigator.of(context).push(

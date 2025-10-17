@@ -444,6 +444,7 @@ class _MoviesCarousel extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
+                  heroTag: 'moviePoster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       MovieDetailScreen.routeName,
@@ -491,6 +492,7 @@ class _SeriesCarousel extends StatelessWidget {
                   posterPath: show.posterPath,
                   voteAverage: show.voteAverage,
                   releaseDate: show.releaseDate,
+                  heroTag: 'tvPoster-${show.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       TVDetailScreen.routeName,
@@ -645,6 +647,7 @@ class _RecommendationsSection extends StatelessWidget {
                   posterPath: movie.posterPath,
                   voteAverage: movie.voteAverage,
                   releaseDate: movie.releaseDate,
+                  heroTag: 'moviePoster-${movie.id}',
                   onTap: () {
                     Navigator.of(context).pushNamed(
                       MovieDetailScreen.routeName,
@@ -733,91 +736,69 @@ class _HorizontalMediaSectionState extends State<_HorizontalMediaSection> {
               ),
             ),
           ),
-          const SizedBox(height: 12),
-          if (widget.isLoading)
-            const SizedBox(
-              height: 220,
-              child: Center(child: LoadingIndicator()),
-            )
-          else if (widget.errorMessage != null &&
-              widget.errorMessage!.isNotEmpty)
-            SizedBox(
-              height: 220,
-              child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: ErrorDisplay(
-                    message: widget.errorMessage!,
-                  ),
-                ),
+        ),
+        const SizedBox(height: 12),
+        if (isLoading)
+          SizedBox(
+            height: 260,
+            child: ListView.separated(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) => const SizedBox(
+                width: 160,
+                child: _ShimmerMediaCard(),
               ),
-            )
-          else if (widget.items.isEmpty)
-            const SizedBox(
-              height: 220,
-              child: Center(child: Text('No items available')),
-            )
-          else
-            SizedBox(
-              height: scaledHeight,
-              child: Shortcuts(
-                shortcuts: const <ShortcutActivator, Intent>{
-                  SingleActivator(LogicalKeyboardKey.arrowRight):
-                      NextFocusIntent(),
-                  SingleActivator(LogicalKeyboardKey.arrowLeft):
-                      PreviousFocusIntent(),
-                  SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-                  SingleActivator(LogicalKeyboardKey.select): ActivateIntent(),
-                },
-                child: Actions(
-                  actions: <Type, Action<Intent>>{
-                    NextFocusIntent: CallbackAction<NextFocusIntent>(
-                      onInvoke: (intent) {
-                        FocusScope.of(context).nextFocus();
-                        _scrollFocusedIntoView();
-                        return null;
-                      },
-                    ),
-                    PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
-                      onInvoke: (intent) {
-                        FocusScope.of(context).previousFocus();
-                        _scrollFocusedIntoView();
-                        return null;
-                      },
-                    ),
-                    ActivateIntent: CallbackAction<ActivateIntent>(
-                      onInvoke: (intent) {
-                        final focusedContext =
-                            FocusManager.instance.primaryFocus?.context;
-                        if (focusedContext != null) {
-                          Actions.invoke(focusedContext, intent);
-                        }
-                        return null;
-                      },
-                    ),
-                  },
-                  child: Scrollbar(
-                    controller: _controller,
-                    thumbVisibility: true,
-                    child: Semantics(
-                      explicitChildNodes: true,
-                      hint: sectionHint,
-                      child: ListView.separated(
-                        controller: _controller,
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        scrollDirection: Axis.horizontal,
-                        itemBuilder: (context, index) => SizedBox(
-                          width: 168,
-                          child: widget.items[index],
-                        ),
-                        separatorBuilder: (_, __) => const SizedBox(width: 12),
-                        itemCount: widget.items.length,
-                      ),
-                    ),
-                  ),
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemCount: 5,
+            ),
+          )
+        else if (errorMessage != null && errorMessage!.isNotEmpty)
+          SizedBox(
+            height: 220,
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: ErrorDisplay(
+                  message: errorMessage!,
                 ),
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Skeleton placeholder card used while carousel data loads.
+class _ShimmerMediaCard extends StatelessWidget {
+  const _ShimmerMediaCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Expanded(
+            child: ShimmerLoading(
+              width: double.infinity,
+              height: double.infinity,
+              borderRadius: BorderRadius.zero,
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: const [
+                ShimmerLoading(width: 120, height: 12),
+                SizedBox(height: 8),
+                ShimmerLoading(width: 80, height: 10),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -207,15 +207,18 @@ class _TVDetailView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: MediaImage(
-              path: posterPath,
-              type: MediaImageType.poster,
-              size: MediaImageSize.w500,
-              width: 120,
-              height: 180,
-              fit: BoxFit.cover,
+          Hero(
+            tag: 'tvPoster-${details.id}',
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: MediaImage(
+                path: posterPath,
+                type: MediaImageType.poster,
+                size: MediaImageSize.w500,
+                width: 120,
+                height: 180,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -1093,6 +1096,7 @@ class _TVDetailView extends StatelessWidget {
                   posterPath: show.posterPath,
                   voteAverage: show.voteAverage,
                   releaseDate: show.firstAirDate,
+                  heroTag: 'tvPoster-${show.id}',
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -1158,6 +1162,7 @@ class _TVDetailView extends StatelessWidget {
                   posterPath: show.posterPath,
                   voteAverage: show.voteAverage,
                   releaseDate: show.firstAirDate,
+                  heroTag: 'tvPoster-${show.id}',
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

@@ -51,10 +51,14 @@ dependencies:
   
   # Network images with caching
   cached_network_image: ^3.4.1
-  
+
   # HTTP client
   http: ^1.2.2
   dio: ^5.7.0
+
+  # Sharing and deep links
+  share_plus: ^10.1.3
+  url_launcher: ^6.3.1
   
   # JSON serialization
   json_annotation: ^4.9.0

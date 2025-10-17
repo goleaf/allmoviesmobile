@@ -23,6 +23,16 @@ MovieRef _$MovieRefFromJson(Map<String, dynamic> json) {
 mixin _$MovieRef {
   int get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
+  @JsonKey(name: 'poster_path')
+  String? get posterPath => throw _privateConstructorUsedError;
+  @JsonKey(name: 'backdrop_path')
+  String? get backdropPath => throw _privateConstructorUsedError;
+  @JsonKey(name: 'vote_average')
+  double? get voteAverage => throw _privateConstructorUsedError;
+  @JsonKey(name: 'release_date')
+  String? get releaseDate => throw _privateConstructorUsedError;
+  @JsonKey(name: 'media_type')
+  String? get mediaType => throw _privateConstructorUsedError;
 
   /// Serializes this MovieRef to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -39,7 +49,15 @@ abstract class $MovieRefCopyWith<$Res> {
   factory $MovieRefCopyWith(MovieRef value, $Res Function(MovieRef) then) =
       _$MovieRefCopyWithImpl<$Res, MovieRef>;
   @useResult
-  $Res call({int id, String title});
+  $Res call({
+    int id,
+    String title,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'vote_average') double? voteAverage,
+    @JsonKey(name: 'release_date') String? releaseDate,
+    @JsonKey(name: 'media_type') String? mediaType,
+  });
 }
 
 /// @nodoc
@@ -56,7 +74,15 @@ class _$MovieRefCopyWithImpl<$Res, $Val extends MovieRef>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? title = null}) {
+  $Res call({
+    Object? id = null,
+    Object? title = null,
+    Object? posterPath = freezed,
+    Object? backdropPath = freezed,
+    Object? voteAverage = freezed,
+    Object? releaseDate = freezed,
+    Object? mediaType = freezed,
+  }) {
     return _then(
       _value.copyWith(
             id: null == id
@@ -67,6 +93,26 @@ class _$MovieRefCopyWithImpl<$Res, $Val extends MovieRef>
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
                       as String,
+            posterPath: freezed == posterPath
+                ? _value.posterPath
+                : posterPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            backdropPath: freezed == backdropPath
+                ? _value.backdropPath
+                : backdropPath // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            voteAverage: freezed == voteAverage
+                ? _value.voteAverage
+                : voteAverage // ignore: cast_nullable_to_non_nullable
+                      as double?,
+            releaseDate: freezed == releaseDate
+                ? _value.releaseDate
+                : releaseDate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            mediaType: freezed == mediaType
+                ? _value.mediaType
+                : mediaType // ignore: cast_nullable_to_non_nullable
+                      as String?,
           )
           as $Val,
     );
@@ -82,7 +128,15 @@ abstract class _$$MovieRefImplCopyWith<$Res>
   ) = __$$MovieRefImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({int id, String title});
+  $Res call({
+    int id,
+    String title,
+    @JsonKey(name: 'poster_path') String? posterPath,
+    @JsonKey(name: 'backdrop_path') String? backdropPath,
+    @JsonKey(name: 'vote_average') double? voteAverage,
+    @JsonKey(name: 'release_date') String? releaseDate,
+    @JsonKey(name: 'media_type') String? mediaType,
+  });
 }
 
 /// @nodoc
@@ -98,7 +152,15 @@ class __$$MovieRefImplCopyWithImpl<$Res>
   /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? id = null, Object? title = null}) {
+  $Res call({
+    Object? id = null,
+    Object? title = null,
+    Object? posterPath = freezed,
+    Object? backdropPath = freezed,
+    Object? voteAverage = freezed,
+    Object? releaseDate = freezed,
+    Object? mediaType = freezed,
+  }) {
     return _then(
       _$MovieRefImpl(
         id: null == id
@@ -109,6 +171,26 @@ class __$$MovieRefImplCopyWithImpl<$Res>
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
                   as String,
+        posterPath: freezed == posterPath
+            ? _value.posterPath
+            : posterPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        backdropPath: freezed == backdropPath
+            ? _value.backdropPath
+            : backdropPath // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        voteAverage: freezed == voteAverage
+            ? _value.voteAverage
+            : voteAverage // ignore: cast_nullable_to_non_nullable
+                  as double?,
+        releaseDate: freezed == releaseDate
+            ? _value.releaseDate
+            : releaseDate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        mediaType: freezed == mediaType
+            ? _value.mediaType
+            : mediaType // ignore: cast_nullable_to_non_nullable
+                  as String?,
       ),
     );
   }
@@ -117,7 +199,15 @@ class __$$MovieRefImplCopyWithImpl<$Res>
 /// @nodoc
 @JsonSerializable()
 class _$MovieRefImpl implements _MovieRef {
-  const _$MovieRefImpl({required this.id, required this.title});
+  const _$MovieRefImpl({
+    required this.id,
+    required this.title,
+    @JsonKey(name: 'poster_path') this.posterPath,
+    @JsonKey(name: 'backdrop_path') this.backdropPath,
+    @JsonKey(name: 'vote_average') this.voteAverage,
+    @JsonKey(name: 'release_date') this.releaseDate,
+    @JsonKey(name: 'media_type') this.mediaType,
+  });
 
   factory _$MovieRefImpl.fromJson(Map<String, dynamic> json) =>
       _$$MovieRefImplFromJson(json);
@@ -126,10 +216,25 @@ class _$MovieRefImpl implements _MovieRef {
   final int id;
   @override
   final String title;
+  @override
+  @JsonKey(name: 'poster_path')
+  final String? posterPath;
+  @override
+  @JsonKey(name: 'backdrop_path')
+  final String? backdropPath;
+  @override
+  @JsonKey(name: 'vote_average')
+  final double? voteAverage;
+  @override
+  @JsonKey(name: 'release_date')
+  final String? releaseDate;
+  @override
+  @JsonKey(name: 'media_type')
+  final String? mediaType;
 
   @override
   String toString() {
-    return 'MovieRef(id: $id, title: $title)';
+    return 'MovieRef(id: $id, title: $title, posterPath: $posterPath, backdropPath: $backdropPath, voteAverage: $voteAverage, releaseDate: $releaseDate, mediaType: $mediaType)';
   }
 
   @override
@@ -138,12 +243,31 @@ class _$MovieRefImpl implements _MovieRef {
         (other.runtimeType == runtimeType &&
             other is _$MovieRefImpl &&
             (identical(other.id, id) || other.id == id) &&
-            (identical(other.title, title) || other.title == title));
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.posterPath, posterPath) ||
+                other.posterPath == posterPath) &&
+            (identical(other.backdropPath, backdropPath) ||
+                other.backdropPath == backdropPath) &&
+            (identical(other.voteAverage, voteAverage) ||
+                other.voteAverage == voteAverage) &&
+            (identical(other.releaseDate, releaseDate) ||
+                other.releaseDate == releaseDate) &&
+            (identical(other.mediaType, mediaType) ||
+                other.mediaType == mediaType));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, id, title);
+  int get hashCode => Object.hash(
+    runtimeType,
+    id,
+    title,
+    posterPath,
+    backdropPath,
+    voteAverage,
+    releaseDate,
+    mediaType,
+  );
 
   /// Create a copy of MovieRef
   /// with the given fields replaced by the non-null parameter values.
@@ -163,6 +287,11 @@ abstract class _MovieRef implements MovieRef {
   const factory _MovieRef({
     required final int id,
     required final String title,
+    @JsonKey(name: 'poster_path') final String? posterPath,
+    @JsonKey(name: 'backdrop_path') final String? backdropPath,
+    @JsonKey(name: 'vote_average') final double? voteAverage,
+    @JsonKey(name: 'release_date') final String? releaseDate,
+    @JsonKey(name: 'media_type') final String? mediaType,
   }) = _$MovieRefImpl;
 
   factory _MovieRef.fromJson(Map<String, dynamic> json) =
@@ -172,6 +301,21 @@ abstract class _MovieRef implements MovieRef {
   int get id;
   @override
   String get title;
+  @override
+  @JsonKey(name: 'poster_path')
+  String? get posterPath;
+  @override
+  @JsonKey(name: 'backdrop_path')
+  String? get backdropPath;
+  @override
+  @JsonKey(name: 'vote_average')
+  double? get voteAverage;
+  @override
+  @JsonKey(name: 'release_date')
+  String? get releaseDate;
+  @override
+  @JsonKey(name: 'media_type')
+  String? get mediaType;
 
   /// Create a copy of MovieRef
   /// with the given fields replaced by the non-null parameter values.

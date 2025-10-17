@@ -13,8 +13,12 @@ class WatchRegionProvider extends ChangeNotifier {
   String get region => _region;
 
   Future<void> setRegion(String regionCode) async {
-    if (regionCode == _region) return;
-    _region = regionCode.toUpperCase();
+    final normalized = regionCode.trim().toUpperCase();
+    // Ensure region is one of the supported codes; fallback to default for determinism
+    final supportedCodes = supportedRegions.map((r) => r['code']).whereType<String>().toSet();
+    final next = supportedCodes.contains(normalized) ? normalized : 'US';
+    if (next == _region) return;
+    _region = next;
     await _prefs.setString(_regionKey, _region);
     notifyListeners();
   }

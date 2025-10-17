@@ -6,6 +6,9 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/models/company_model.dart';
 import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/media_image.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../../core/utils/media_image_helper.dart';
 
 class CompaniesScreen extends StatefulWidget {
   static const routeName = '/companies';
@@ -245,10 +248,11 @@ class _CompanyLogo extends StatelessWidget {
       child: logoPath != null
           ? Padding(
               padding: const EdgeInsets.all(8),
-              child: CachedNetworkImage(
-                imageUrl: 'https://image.tmdb.org/t/p/w185$logoPath',
+              child: MediaImage(
+                path: logoPath,
+                type: MediaImageType.logo,
+                size: MediaImageSize.w185,
                 fit: BoxFit.contain,
-                errorWidget: (_, __, ___) => Icon(Icons.business, color: colorScheme.primary),
               ),
             )
           : Icon(Icons.business, color: colorScheme.primary),

@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../core/utils/media_image_helper.dart';
 
 import 'credit_model.dart';
 import 'episode_model.dart';
@@ -29,11 +30,16 @@ class Season with _$Season {
   factory Season.fromJson(Map<String, dynamic> json) =>
       _$SeasonFromJson(json);
 
-  String? get posterUrl =>
-      posterPath != null ? 'https://image.tmdb.org/t/p/w500$posterPath' : null;
+  String? get posterUrl => MediaImageHelper.buildUrl(
+        posterPath,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w500,
+      );
 
-  String? get backdropUrl => backdropPath != null
-      ? 'https://image.tmdb.org/t/p/w780$backdropPath'
-      : null;
+  String? get backdropUrl => MediaImageHelper.buildUrl(
+        backdropPath,
+        type: MediaImageType.backdrop,
+        size: MediaImageSize.w780,
+      );
 }
 

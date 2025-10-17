@@ -4,13 +4,16 @@ import 'package:provider/provider.dart';
 
 import 'package:allmovies_mobile/providers/keyword_browser_provider.dart';
 import 'package:allmovies_mobile/presentation/screens/keywords/keyword_browser_screen.dart';
+import 'package:allmovies_mobile/data/tmdb_repository.dart';
+
+class _FakeRepo extends TmdbRepository {}
 
 void main() {
   testWidgets('KeywordBrowserScreen builds with drawer and app bar', (tester) async {
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => KeywordBrowserProvider()),
+          ChangeNotifierProvider(create: (_) => KeywordBrowserProvider(_FakeRepo())),
         ],
         child: const MaterialApp(home: KeywordBrowserScreen()),
       ),

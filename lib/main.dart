@@ -141,6 +141,9 @@ class AllMoviesApp extends StatelessWidget {
                 },
                 onGenerateRoute: (settings) {
                   switch (settings.name) {
+                    case '/tv':
+                      settings = settings.copyWith(name: TVDetailScreen.routeName);
+                      // fall through
                     case MovieDetailScreen.routeName:
                       final args = settings.arguments;
                       if (args is Movie) {
@@ -180,6 +183,9 @@ class AllMoviesApp extends StatelessWidget {
                         );
                       }
                       return null;
+                    case '/person':
+                      settings = settings.copyWith(name: PersonDetailScreen.routeName);
+                      // fall through
                     case PersonDetailScreen.routeName:
                       final args = settings.arguments;
                       if (args is int) {

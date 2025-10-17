@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../data/models/company_model.dart';
 import '../../../../data/models/search_result_model.dart';
 import '../../movie_detail/movie_detail_screen.dart';
+import '../../../widgets/media_image.dart';
+import '../../../../core/config/app_config.dart';
 
 class SearchResultListTile extends StatelessWidget {
   const SearchResultListTile({
@@ -64,10 +66,10 @@ class SearchResultListTile extends StatelessWidget {
 
   String? get _posterImage {
     if (result.posterPath != null && result.posterPath!.isNotEmpty) {
-      return 'https://image.tmdb.org/t/p/w185${result.posterPath}';
+      return AppConfig.tmdbImageBaseUrl + '/w185' + (result.posterPath!.startsWith('/') ? '' : '/') + result.posterPath!;
     }
     if (result.profilePath != null && result.profilePath!.isNotEmpty) {
-      return 'https://image.tmdb.org/t/p/w185${result.profilePath}';
+      return AppConfig.tmdbImageBaseUrl + '/w185' + (result.profilePath!.startsWith('/') ? '' : '/') + result.profilePath!;
     }
     return null;
   }
@@ -153,12 +155,14 @@ class ResultThumbnail extends StatelessWidget {
 
     final image = ClipRRect(
       borderRadius: isCircular ? null : BorderRadius.circular(8),
-      child: Image.network(
-        imageUrl!,
+      child: MediaImage(
+        path: imageUrl,
+        type: isCircular ? MediaImageType.profile : MediaImageType.poster,
+        size: MediaImageSize.w185,
         width: 56,
         height: 56,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => placeholder,
+        errorWidget: placeholder,
       ),
     );
 

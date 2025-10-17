@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import '../../core/utils/media_image_helper.dart';
 
 /// Represents the type of media returned by TMDB.
 enum MediaKind {
@@ -71,11 +72,23 @@ class MediaSummary {
   final double? voteAverage;
   final int? voteCount;
 
-  String get posterUrl =>
-      posterPath != null ? 'https://image.tmdb.org/t/p/w342$posterPath' : '';
+  String get posterUrl {
+    final url = MediaImageHelper.buildUrl(
+      posterPath,
+      type: MediaImageType.poster,
+      size: MediaImageSize.w342,
+    );
+    return url ?? '';
+  }
 
-  String get backdropUrl =>
-      backdropPath != null ? 'https://image.tmdb.org/t/p/w780$backdropPath' : '';
+  String get backdropUrl {
+    final url = MediaImageHelper.buildUrl(
+      backdropPath,
+      type: MediaImageType.backdrop,
+      size: MediaImageSize.w780,
+    );
+    return url ?? '';
+  }
 
   String get releaseYear =>
       (releaseDate != null && releaseDate!.isNotEmpty) ? releaseDate!.split('-').first : '';

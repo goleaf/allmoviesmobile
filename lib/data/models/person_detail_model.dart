@@ -1,5 +1,6 @@
 import 'external_ids_model.dart';
 import 'image_model.dart';
+import '../../core/utils/media_image_helper.dart';
 
 class PersonDetail {
   PersonDetail({
@@ -104,8 +105,11 @@ class PersonDetail {
     );
   }
 
-  String? get profileUrl =>
-      profilePath != null ? 'https://image.tmdb.org/t/p/w500$profilePath' : null;
+  String? get profileUrl => MediaImageHelper.buildUrl(
+        profilePath,
+        type: MediaImageType.profile,
+        size: MediaImageSize.w500,
+      );
 }
 
 class PersonCredits {
@@ -201,8 +205,11 @@ class PersonCredit {
     return resolved.isEmpty ? 'Untitled' : resolved;
   }
 
-  String? get posterUrl =>
-      posterPath != null ? 'https://image.tmdb.org/t/p/w342$posterPath' : null;
+  String? get posterUrl => MediaImageHelper.buildUrl(
+        posterPath,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w342,
+      );
 
   DateTime? get parsedDate {
     final raw = (releaseDate?.isNotEmpty ?? false) == true

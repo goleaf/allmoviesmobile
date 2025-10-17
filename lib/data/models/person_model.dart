@@ -1,4 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+import '../../core/utils/media_image_helper.dart';
 
 part 'person_model.freezed.dart';
 part 'person_model.g.dart';
@@ -20,8 +21,6 @@ class Person with _$Person {
   factory Person.fromJson(Map<String, dynamic> json) =>
       _$PersonFromJson(json);
 }
-
-import '../../core/utils/media_image_helper.dart';
 
 extension PersonExtensions on Person {
   String? get profileUrl => MediaImageHelper.buildUrl(

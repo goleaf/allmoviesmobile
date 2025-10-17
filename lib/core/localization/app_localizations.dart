@@ -63,6 +63,7 @@ class AppLocalizations {
   Map<String, dynamic> get tv => _localizedStrings['tv'] ?? {};
   Map<String, dynamic> get person => _localizedStrings['person'] ?? {};
   Map<String, dynamic> get company => _localizedStrings['company'] ?? {};
+  Map<String, dynamic> get network => _localizedStrings['network'] ?? {};
   Map<String, dynamic> get search => _localizedStrings['search'] ?? {};
   Map<String, dynamic> get discover => _localizedStrings['discover'] ?? {};
   Map<String, dynamic> get favorites => _localizedStrings['favorites'] ?? {};

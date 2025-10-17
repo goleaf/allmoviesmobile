@@ -21,6 +21,7 @@ import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
+import 'presentation/screens/network_detail/network_detail_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/person_detail/person_detail_screen.dart';
@@ -111,6 +112,18 @@ class AllMoviesApp extends StatelessWidget {
               FavoritesScreen.routeName: (context) => const FavoritesScreen(),
               WatchlistScreen.routeName: (context) => const WatchlistScreen(),
               SettingsScreen.routeName: (context) => const SettingsScreen(),
+              NetworkDetailScreen.routeName: (context) {
+                final args =
+                    ModalRoute.of(context)?.settings.arguments as NetworkDetailArguments?;
+                if (args == null) {
+                  return const MissingNetworkArgumentsScreen();
+                }
+                return NetworkDetailScreen(
+                  networkId: args.networkId,
+                  initialName: args.name,
+                  initialLogoPath: args.logoPath,
+                );
+              },
             },
           );
         },

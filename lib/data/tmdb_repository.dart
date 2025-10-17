@@ -3,9 +3,11 @@ import 'package:http/http.dart' as http;
 import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
+import 'models/image_model.dart';
 import 'models/configuration_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
+import 'models/network_detailed_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
@@ -201,6 +203,88 @@ class TmdbRepository {
 
     _cache.set(cacheKey, response);
     return response;
+  }
+
+  Future<NetworkDetailed> fetchNetworkDetails(
+    int networkId, {
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'network-details-$networkId';
+    if (!forceRefresh) {
+      final cached = _cache.get<NetworkDetailed>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final results = await Future.wait([
+      _apiService.fetchNetworkDetails(networkId),
+      _apiService.fetchNetworkAlternativeNames(networkId),
+    ]);
+
+    final detailsPayload = results[0] as Map<String, dynamic>;
+    final alternativeNamesPayload = results[1] as Map<String, dynamic>;
+
+    final network = NetworkDetailed.fromJson(detailsPayload);
+    final alternativeNames = (alternativeNamesPayload['results'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(AlternativeName.fromJson)
+        .toList();
+
+    final enriched = network.copyWith(alternativeNames: alternativeNames);
+    _cache.set(cacheKey, enriched, ttlSeconds: CacheService.movieDetailsTTL);
+    return enriched;
+  }
+
+  Future<List<ImageModel>> fetchNetworkLogos(
+    int networkId, {
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'network-logos-$networkId';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<ImageModel>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchNetworkImages(networkId);
+    final logos = (payload['logos'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(ImageModel.fromJson)
+        .toList();
+
+    _cache.set(cacheKey, logos, ttlSeconds: CacheService.movieDetailsTTL);
+    return logos;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchNetworkTvShows({
+    required int networkId,
+    int page = 1,
+    bool forceRefresh = false,
+    String sortBy = 'popularity.desc',
+    double? minVoteAverage,
+    String? originalLanguage,
+  }) {
+    final filters = <String, String>{
+      'with_networks': '$networkId',
+      'sort_by': sortBy,
+      'include_null_first_air_dates': 'false',
+      'include_adult': 'false',
+      if (minVoteAverage != null) 'vote_average.gte': minVoteAverage.toString(),
+      if (originalLanguage != null && originalLanguage.isNotEmpty)
+        'with_original_language': originalLanguage,
+    };
+
+    return discoverTvSeries(
+      filters: filters,
+      page: page,
+      forceRefresh: forceRefresh,
+    );
   }
 
   Future<MovieDetailed> fetchMovieDetails(int movieId, {bool forceRefresh = false}) async {

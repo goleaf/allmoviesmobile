@@ -102,6 +102,37 @@
     "produced_movies": "Produced Movies",
     "produced_series": "Produced Series"
   },
+  "network": {
+    "details_title": "Network details",
+    "headquarters": "Headquarters",
+    "origin_country": "Origin country",
+    "homepage": "Homepage",
+    "alternative_names": "Alternative names",
+    "no_alternative_names": "No alternative names available.",
+    "logo_variations": "Logo variations",
+    "no_logo_variations": "No alternative logos available.",
+    "tv_shows": "TV shows on this network",
+    "empty_shows": "No shows match your filters yet.",
+    "sort_label": "Sort by",
+    "sort": {
+      "popularity": "Most popular",
+      "rating": "Highest rated",
+      "newest": "Newest first"
+    },
+    "filters": {
+      "rating_any": "Any rating",
+      "rating_seven": "Rating 7+",
+      "rating_eight": "Rating 8+",
+      "language_label": "Language",
+      "language_any": "Any language",
+      "language_en": "English",
+      "language_es": "Spanish",
+      "language_ko": "Korean"
+    },
+    "load_more": "Load more",
+    "retry": "Retry",
+    "copied": "Link copied to clipboard"
+  },
   "search": {
     "title": "Search",
     "search_placeholder": "Search movies, TV shows, people...",
@@ -198,6 +229,7 @@
     "less": "Less",
     "show_more": "Show More",
     "show_less": "Show Less",
+    "copy": "Copy link",
     "unknown": "Unknown",
     "not_available": "N/A"
   },
@@ -207,7 +239,8 @@
     "not_found": "Not found",
     "unknown_error": "An unknown error occurred",
     "load_failed": "Failed to load data",
-    "no_internet": "No internet connection"
+    "no_internet": "No internet connection",
+    "missing_network_args": "Missing network information. Please open this network again from a show."
   },
   "genres": {
     "action": "Action",

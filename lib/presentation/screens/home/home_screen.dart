@@ -6,8 +6,14 @@ import '../../../data/models/movie.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/trending_titles_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../companies/companies_screen.dart';
+import '../movies/movies_screen.dart';
+import '../people/people_screen.dart';
+import '../series/series_screen.dart';
 
 class HomeScreen extends StatefulWidget {
+  static const routeName = '/';
+
   const HomeScreen({super.key});
 
   @override
@@ -22,6 +28,29 @@ class _HomeScreenState extends State<HomeScreen> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _filterMovies(String query) {
+    final normalized = query.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      if (!identical(_visibleMovieIndices, _allMovieIndices)) {
+        setState(() {
+          _visibleMovieIndices = _allMovieIndices;
+        });
+      }
+      return;
+    }
+
+    final matches = <int>[];
+    for (var i = 0; i < _normalizedMovieTitles.length; i++) {
+      if (_normalizedMovieTitles[i].contains(normalized)) {
+        matches.add(i);
+      }
+    }
+
+    setState(() {
+      _visibleMovieIndices = matches;
+    });
   }
 
   @override
@@ -96,6 +125,30 @@ class _HomeScreenState extends State<HomeScreen> {
               tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
             ),
           ),
+          PopupMenuButton<String>(
+            tooltip: 'Open sections',
+            onSelected: (routeName) {
+              Navigator.pushNamed(context, routeName);
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(
+                value: MoviesScreen.routeName,
+                child: Text(AppStrings.movies),
+              ),
+              PopupMenuItem(
+                value: SeriesScreen.routeName,
+                child: Text(AppStrings.series),
+              ),
+              PopupMenuItem(
+                value: PeopleScreen.routeName,
+                child: Text(AppStrings.people),
+              ),
+              PopupMenuItem(
+                value: CompaniesScreen.routeName,
+                child: Text(AppStrings.companies),
+              ),
+            ],
+          ),
           const SizedBox(width: 8),
         ],
       ),
@@ -110,6 +163,11 @@ class _HomeScreenState extends State<HomeScreen> {
             Text(
               'Welcome, ${authProvider.currentUser?.fullName ?? "Guest"}!',
               style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              AppStrings.exploreCollections,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 24),
             Expanded(

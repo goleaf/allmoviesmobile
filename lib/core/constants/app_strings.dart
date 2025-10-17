@@ -39,5 +39,10 @@ class AppStrings {
   static const yourNewPassword = 'Your new password:';
   static const copyPassword = 'Copy Password';
   static const passwordCopied = 'Password copied to clipboard!';
+  static const movies = 'Movies';
+  static const series = 'Series';
+  static const people = 'People';
+  static const companies = 'Companies';
+  static const exploreCollections = 'Explore the latest highlights from our catalog.';
 }
 

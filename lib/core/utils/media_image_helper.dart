@@ -143,7 +143,7 @@ class MediaImageHelper {
 
   static MediaImageSize _resolveSize(MediaImageType type, MediaImageSize size) {
     final supported = _supportedSizes[type];
-    if (supported == null || supported.contains(size)) {
+    if (supported != null && supported.contains(size)) {
       return size;
     }
     return _defaultSizes[type] ?? MediaImageSize.original;

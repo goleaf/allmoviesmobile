@@ -1,0 +1,44 @@
+import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class WatchRegionProvider extends ChangeNotifier {
+  static const String _regionKey = 'watch_region_code';
+  final SharedPreferences _prefs;
+
+  String _region;
+
+  WatchRegionProvider(this._prefs)
+      : _region = _prefs.getString(_regionKey) ?? 'US';
+
+  String get region => _region;
+
+  Future<void> setRegion(String regionCode) async {
+    if (regionCode == _region) return;
+    _region = regionCode.toUpperCase();
+    await _prefs.setString(_regionKey, _region);
+    notifyListeners();
+  }
+
+  static const List<Map<String, String>> supportedRegions = [
+    {'code': 'US', 'name': 'United States'},
+    {'code': 'GB', 'name': 'United Kingdom'},
+    {'code': 'CA', 'name': 'Canada'},
+    {'code': 'DE', 'name': 'Germany'},
+    {'code': 'FR', 'name': 'France'},
+    {'code': 'ES', 'name': 'Spain'},
+    {'code': 'IT', 'name': 'Italy'},
+    {'code': 'IN', 'name': 'India'},
+    {'code': 'JP', 'name': 'Japan'},
+    {'code': 'KR', 'name': 'South Korea'},
+    {'code': 'BR', 'name': 'Brazil'},
+    {'code': 'AU', 'name': 'Australia'},
+  ];
+
+  String getRegionName(String code) {
+    final match = supportedRegions.firstWhere(
+      (r) => r['code'] == code.toUpperCase(),
+      orElse: () => const {'code': 'US', 'name': 'United States'},
+    );
+    return match['name']!;
+  }
+}

@@ -6,6 +6,7 @@ import '../../../data/models/movie.dart';
 import '../../../providers/movies_provider.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
+import '../../../providers/watch_region_provider.dart';
 
 class MoviesScreen extends StatefulWidget {
   static const routeName = '/movies';
@@ -95,6 +96,13 @@ class _MoviesScreenState extends State<MoviesScreen> {
               for (final section in sections) Tab(text: _labelForSection(section)),
             ],
           ),
+          actions: [
+            IconButton(
+              tooltip: 'Filters',
+              icon: const Icon(Icons.filter_list),
+              onPressed: _openFilters,
+            ),
+          ],
         ),
         drawer: const AppDrawer(),
         body: Column(
@@ -174,6 +182,296 @@ class _MoviesScreenState extends State<MoviesScreen> {
       case MovieSection.discover:
         return AppStrings.discover;
     }
+  }
+}
+
+extension on _MoviesScreenState {
+  void _openFilters() {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        final region = context.read<WatchRegionProvider>().region;
+        final moviesProvider = context.read<MoviesProvider>();
+        return Padding(
+          padding: const EdgeInsets.all(16),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    const Icon(Icons.filter_list),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Discover Filters',
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const Spacer(),
+                    Chip(label: Text('Region: $region')),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'By Decade',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final start in [1960, 1970, 1980, 1990, 2000, 2010, 2020])
+                      OutlinedButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await context.read<MoviesProvider>().applyDecadeFilter(start);
+                          if (mounted) {
+                            DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
+                          }
+                        },
+                        child: Text('${start}s'),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text('Certification', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final cert in ['G', 'PG', 'PG-13', 'R', 'NC-17'])
+                      OutlinedButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await moviesProvider.applyFilters(
+                            const DiscoverFilters().copyWith(
+                              certificationCountry: region,
+                              certificationLte: cert,
+                            ),
+                          );
+                          if (mounted) {
+                            DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
+                          }
+                        },
+                        child: Text(cert),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text('Original Language', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final lang in ['en', 'es', 'fr', 'de', 'it', 'ja', 'ko'])
+                      OutlinedButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await moviesProvider.applyFilters(
+                            const DiscoverFilters().copyWith(withOriginalLanguage: lang),
+                          );
+                          if (mounted) {
+                            DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
+                          }
+                        },
+                        child: Text(lang.toUpperCase()),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Text('Origin Country', style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    for (final country in ['US', 'GB', 'CA', 'DE', 'FR', 'IT', 'IN'])
+                      OutlinedButton(
+                        onPressed: () async {
+                          Navigator.pop(context);
+                          await moviesProvider.applyFilters(
+                            const DiscoverFilters().copyWith(withOriginCountry: country),
+                          );
+                          if (mounted) {
+                            DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
+                          }
+                        },
+                        child: Text(country),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                StatefulBuilder(
+                  builder: (context, setStateSB) {
+                    double voteMin = 5.0;
+                    double voteMax = 9.5;
+                    int runtimeMin = 60;
+                    int runtimeMax = 180;
+                    int voteCountMin = 100;
+                    bool includeAdult = false;
+                    final monetization = <String>{'flatrate', 'rent', 'buy'};
+                    String watchProviders = '';
+                    int? releaseType; // 1=Premiere,2=Theatrical (limited),3=Theatrical,4=Digital,5=Physical,6=TV
+                    void applyCurrent() async {
+                      Navigator.pop(context);
+                      await moviesProvider.applyFilters(
+                        const DiscoverFilters().copyWith(
+                          voteAverageGte: voteMin,
+                          voteAverageLte: voteMax,
+                          runtimeGte: runtimeMin,
+                          runtimeLte: runtimeMax,
+                          voteCountGte: voteCountMin,
+                          withWatchMonetizationTypes: monetization.join('|'),
+                          includeAdult: includeAdult,
+                          withWatchProviders: watchProviders.isNotEmpty ? watchProviders : null,
+                          withReleaseType: releaseType != null ? '$releaseType' : null,
+                        ),
+                      );
+                      if (mounted) {
+                        DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
+                      }
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Vote Average', style: Theme.of(context).textTheme.titleMedium),
+                        RangeSlider(
+                          values: RangeValues(voteMin, voteMax),
+                          min: 0,
+                          max: 10,
+                          divisions: 20,
+                          labels: RangeLabels(voteMin.toStringAsFixed(1), voteMax.toStringAsFixed(1)),
+                          onChanged: (values) {
+                            setStateSB(() {
+                              voteMin = values.start;
+                              voteMax = values.end;
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Runtime (minutes)', style: Theme.of(context).textTheme.titleMedium),
+                        RangeSlider(
+                          values: RangeValues(runtimeMin.toDouble(), runtimeMax.toDouble()),
+                          min: 0,
+                          max: 300,
+                          divisions: 30,
+                          labels: RangeLabels('$runtimeMin', '$runtimeMax'),
+                          onChanged: (values) {
+                            setStateSB(() {
+                              runtimeMin = values.start.round();
+                              runtimeMax = values.end.round();
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Vote Count Minimum', style: Theme.of(context).textTheme.titleMedium),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Slider(
+                                value: voteCountMin.toDouble(),
+                                min: 0,
+                                max: 5000,
+                                divisions: 50,
+                                label: '$voteCountMin',
+                                onChanged: (v) {
+                                  setStateSB(() => voteCountMin = v.round());
+                                },
+                              ),
+                            ),
+                            SizedBox(
+                              width: 64,
+                              child: Text('$voteCountMin', textAlign: TextAlign.end),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text('Monetization Types', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            for (final type in ['flatrate', 'rent', 'buy', 'ads', 'free'])
+                              FilterChip(
+                                label: Text(type),
+                                selected: monetization.contains(type),
+                                onSelected: (value) {
+                                  setStateSB(() {
+                                    if (value) {
+                                      monetization.add(type);
+                                    } else {
+                                      monetization.remove(type);
+                                    }
+                                  });
+                                },
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Watch Providers (IDs)', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        TextField(
+                          decoration: const InputDecoration(hintText: 'Comma-separated provider IDs, e.g., 8,9,337'),
+                          onChanged: (v) => setStateSB(() => watchProviders = v.replaceAll(' ', '')),
+                        ),
+                        const SizedBox(height: 12),
+                        Text('Release Type', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: [
+                            for (final entry in const [
+                              {'id': 1, 'name': 'Premiere'},
+                              {'id': 2, 'name': 'Theatrical (Limited)'},
+                              {'id': 3, 'name': 'Theatrical'},
+                              {'id': 4, 'name': 'Digital'},
+                              {'id': 5, 'name': 'Physical'},
+                              {'id': 6, 'name': 'TV'},
+                            ])
+                              FilterChip(
+                                label: Text(entry['name'] as String),
+                                selected: releaseType == entry['id'],
+                                onSelected: (val) {
+                                  setStateSB(() => releaseType = val ? entry['id'] as int : null);
+                                },
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        SwitchListTile(
+                          contentPadding: EdgeInsets.zero,
+                          title: const Text('Include Adult Content'),
+                          value: includeAdult,
+                          onChanged: (v) => setStateSB(() => includeAdult = v),
+                        ),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: FilledButton.icon(
+                            onPressed: applyCurrent,
+                            icon: const Icon(Icons.check),
+                            label: const Text('Apply Filters'),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Close'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 }
 

@@ -4,7 +4,7 @@ import 'movie.dart';
 
 @immutable
 class GenreTrend {
-  const GenreTrend({
+  GenreTrend({
     required this.genreId,
     required this.totalTitles,
     required this.averageRating,

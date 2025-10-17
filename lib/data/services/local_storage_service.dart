@@ -52,7 +52,7 @@ class LocalStorageService {
           (id) => SavedMediaItem(
             id: id,
             type: SavedMediaType.movie,
-            title: 'Movie #$id',
+            title: '', // Mark as incomplete
           ),
         )
         .toList(growable: false);
@@ -78,8 +78,7 @@ class LocalStorageService {
         .copyWith(updatedAt: DateTime.now());
 
     if (index >= 0) {
-      favorites[index] = favorites[index]
-          .copyWith(updatedAt: DateTime.now(), watched: updatedItem.watched);
+      favorites[index] = updatedItem;
     } else {
       favorites.add(updatedItem);
     }

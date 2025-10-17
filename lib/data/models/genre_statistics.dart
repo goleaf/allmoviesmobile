@@ -12,8 +12,8 @@ class GenreStatistics {
     required this.averageVoteCount,
     this.releaseYearRange,
     required List<String> topTitles,
-  })  : genreIds = Set<int>.unmodifiable(genreIds),
-        topTitles = List<String>.unmodifiable(topTitles);
+  })  : genreIds = Set<int>.unmodifiable(Set<int>.from(genreIds)),
+        topTitles = List<String>.unmodifiable(List<String>.from(topTitles));
 
   final Set<int> genreIds;
   final int sampleSize;
@@ -50,19 +50,19 @@ class GenreStatistics {
 
     for (final movie in movies) {
       final rating = movie.voteAverage;
-      if (rating != null && rating > 0) {
+      if (rating != null) {
         ratingSum += rating;
         ratingCount++;
       }
 
       final popularity = movie.popularity;
-      if (popularity != null && popularity > 0) {
+      if (popularity != null) {
         popularitySum += popularity;
         popularityCount++;
       }
 
       final votes = movie.voteCount;
-      if (votes != null && votes > 0) {
+      if (votes != null) {
         voteCountSum += votes.toDouble();
         voteCountCount++;
       }
@@ -84,10 +84,12 @@ class GenreStatistics {
           : '${years.first}-${years.last}';
     }
 
-    final sortedByRelevance = movies.toList()
+    final sortedByRelevance = movies
+      .where((m) => m.voteAverage != null && m.voteAverage! > 0)
+      .toList()
       ..sort((a, b) {
-        final ratingA = a.voteAverage ?? 0;
-        final ratingB = b.voteAverage ?? 0;
+        final ratingA = a.voteAverage!;
+        final ratingB = b.voteAverage!;
         if (ratingA != ratingB) {
           return ratingB.compareTo(ratingA);
         }

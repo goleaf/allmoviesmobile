@@ -30,6 +30,7 @@ import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/series_provider.dart';
+import 'providers/watch_region_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -69,10 +70,18 @@ class AllMoviesApp extends StatelessWidget {
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
         ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => MoviesProvider(tmdbRepository)),
+        ChangeNotifierProxyProvider<WatchRegionProvider, MoviesProvider>(
+          create: (_) => MoviesProvider(tmdbRepository),
+          update: (_, watchRegion, movies) {
+            movies ??= MoviesProvider(tmdbRepository);
+            movies.bindRegionProvider(watchRegion);
+            return movies;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => SeriesProvider(tmdbRepository)),
         ChangeNotifierProvider(create: (_) => PeopleProvider(tmdbRepository)),
         ChangeNotifierProvider(create: (_) => CompaniesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
         builder: (context, localeProvider, themeProvider, _) {

@@ -114,6 +114,21 @@ dependencies:
   
   # Video playback
   video_player: ^2.8.6
+  
+  # Pagination
+  infinite_scroll_pagination: ^4.0.0
+  
+  # Navigation
+  go_router: ^14.2.7
+  
+  # Carousel
+  carousel_slider: ^5.0.0
+  
+  # Pull to refresh
+  pull_to_refresh_flutter3: ^2.0.2
+  
+  # YouTube player
+  youtube_player_flutter: ^9.0.3
 
 dev_dependencies:
   flutter_test:

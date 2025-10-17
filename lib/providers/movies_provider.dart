@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import '../data/models/movie.dart';
 import '../data/tmdb_repository.dart';
+import '../data/models/discover_filters_model.dart';
+import 'watch_region_provider.dart';
 
 enum MovieSection {
   trending,
@@ -41,11 +43,18 @@ class MovieSectionState {
 }
 
 class MoviesProvider extends ChangeNotifier {
-  MoviesProvider(this._repository) {
+  MoviesProvider(this._repository, {WatchRegionProvider? regionProvider}) {
+    _regionProvider = regionProvider;
     _init();
   }
 
   final TmdbRepository _repository;
+  WatchRegionProvider? _regionProvider;
+
+  void bindRegionProvider(WatchRegionProvider provider) {
+    _regionProvider = provider;
+    notifyListeners();
+  }
 
   final Map<MovieSection, MovieSectionState> _sections = {
     for (final section in MovieSection.values) section: const MovieSectionState(),
@@ -83,13 +92,20 @@ class MoviesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final region = _regionProvider?.region;
+      final discoverFilters = DiscoverFilters(
+        sortBy: SortBy.popularityDesc,
+        watchRegion: region,
+        withWatchMonetizationTypes: 'flatrate|rent|buy|ads|free',
+      );
+
       final results = await Future.wait<List<Movie>>([
         _repository.fetchTrendingMovies(),
         _repository.fetchNowPlayingMovies(),
         _repository.fetchPopularMovies(),
         _repository.fetchTopRatedMovies(),
         _repository.fetchUpcomingMovies(),
-        _repository.discoverMovies(sortBy: 'popularity.desc'),
+        _repository.discoverMovies(discoverFilters: discoverFilters),
       ]);
 
       final sectionsList = MovieSection.values;
@@ -136,5 +152,52 @@ class MoviesProvider extends ChangeNotifier {
   void clearError() {
     _globalError = null;
     notifyListeners();
+  }
+
+  Future<void> applyDecadeFilter(int startYear) async {
+    // Example: startYear=1990 => 1990-01-01 to 1999-12-31
+    final endYear = startYear + 9;
+    final filters = DiscoverFilters(
+      sortBy: SortBy.popularityDesc,
+      releaseDateGte: '$startYear-01-01',
+      releaseDateLte: '$endYear-12-31',
+      watchRegion: _regionProvider?.region,
+    );
+
+    _sections[MovieSection.discover] = _sections[MovieSection.discover]!
+        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
+    notifyListeners();
+
+    try {
+      final response = await _repository.discoverMovies(discoverFilters: filters);
+      _sections[MovieSection.discover] = MovieSectionState(items: response.results);
+    } catch (error) {
+      _sections[MovieSection.discover] = _sections[MovieSection.discover]!
+          .copyWith(isLoading: false, errorMessage: '$error', items: const <Movie>[]);
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> applyFilters(DiscoverFilters filters) async {
+    final enriched = filters.copyWith(
+      watchRegion: filters.watchRegion ?? _regionProvider?.region,
+      withWatchMonetizationTypes:
+          filters.withWatchMonetizationTypes ?? 'flatrate|rent|buy|ads|free',
+    );
+
+    _sections[MovieSection.discover] = _sections[MovieSection.discover]!
+        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
+    notifyListeners();
+
+    try {
+      final response = await _repository.discoverMovies(discoverFilters: enriched);
+      _sections[MovieSection.discover] = MovieSectionState(items: response.results);
+    } catch (error) {
+      _sections[MovieSection.discover] = _sections[MovieSection.discover]!
+          .copyWith(isLoading: false, errorMessage: '$error', items: const <Movie>[]);
+    } finally {
+      notifyListeners();
+    }
   }
 }

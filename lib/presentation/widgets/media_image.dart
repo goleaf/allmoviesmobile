@@ -61,7 +61,11 @@ class _MediaImageState extends State<MediaImage> {
     if (widget.path != _lastPath) {
       _lastPath = widget.path;
       _isHighResReady = false;
-      _progress = 0;
+      if (widget.path != null && widget.path!.isNotEmpty) {
+        _progress = 0;
+      } else {
+        _progress = null;
+      }
     }
   }
 
@@ -109,13 +113,13 @@ class _MediaImageState extends State<MediaImage> {
       children: [
         if (preview != null) preview,
         image,
-        progressIndicator,
-      ],
-    );
-
     return _wrapWithSize(
       ClipRRect(
-        borderRadius: widget.borderRadius ?? BorderRadius.circular(8),
+        borderRadius: widget.borderRadius ?? BorderRadius.zero,
+        child: stack,
+      ),
+    );
+  }
         child: stack,
       ),
     );

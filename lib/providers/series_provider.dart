@@ -52,11 +52,13 @@ class SeriesProvider extends ChangeNotifier {
   bool _isInitialized = false;
   bool _isRefreshing = false;
   String? _globalError;
+  int? _activeNetworkId;
 
   Map<SeriesSection, SeriesSectionState> get sections => _sections;
   bool get isInitialized => _isInitialized;
   bool get isRefreshing => _isRefreshing;
   String? get globalError => _globalError;
+  int? get activeNetworkId => _activeNetworkId;
 
   SeriesSectionState sectionState(SeriesSection section) => _sections[section]!;
 
@@ -84,7 +86,7 @@ class SeriesProvider extends ChangeNotifier {
     try {
       final results = await Future.wait<List<Movie>>([
         _repository.fetchTrendingTv(),
-        _repository.fetchPopularTv(),
+        _loadPopularSeries(),
         _repository.fetchTopRatedTv(),
         _repository.fetchAiringTodayTv(),
         _repository.fetchOnTheAirTv(),
@@ -111,6 +113,16 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
+  Future<List<Movie>> _loadPopularSeries() async {
+    if (_activeNetworkId != null) {
+      final response = await _repository.fetchNetworkTvShows(
+        networkId: _activeNetworkId!,
+      );
+      return response.results;
+    }
+    return _repository.fetchPopularTv();
+  }
+
   void _setErrorForAll(String? message) {
     for (final section in SeriesSection.values) {
       _sections[section] = _sections[section]!.copyWith(
@@ -119,5 +131,43 @@ class SeriesProvider extends ChangeNotifier {
         items: const <Movie>[],
       );
     }
+  }
+
+  Future<void> applyNetworkFilter(int networkId) async {
+    _activeNetworkId = networkId;
+    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
+        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
+    notifyListeners();
+
+    try {
+      final response = await _repository.fetchNetworkTvShows(networkId: networkId);
+      _sections[SeriesSection.popular] = SeriesSectionState(items: response.results);
+    } catch (error) {
+      _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
+          .copyWith(isLoading: false, errorMessage: '$error', items: const <Movie>[]);
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> applyTvFilters(Map<String, String> filters) async {
+    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
+        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
+    notifyListeners();
+    try {
+      final response = await _repository.discoverTvSeries(filters: filters);
+      _sections[SeriesSection.popular] = SeriesSectionState(items: response.results);
+    } catch (error) {
+      _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
+          .copyWith(isLoading: false, errorMessage: '$error', items: const <Movie>[]);
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearNetworkFilter() async {
+    if (_activeNetworkId == null) return;
+    _activeNetworkId = null;
+    await refresh(force: true);
   }
 }

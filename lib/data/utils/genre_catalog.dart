@@ -92,7 +92,7 @@ class GenreCatalog {
     37: 'Western',
   };
 
-  /// Combined map of all unique genre IDs across movies and TV (28 entries).
+  /// Combined map of all unique genre IDs across movies and TV (27 entries).
   static const Map<int, String> allGenreNames = {
     ...movieGenreNames,
     ...tvGenreNames,

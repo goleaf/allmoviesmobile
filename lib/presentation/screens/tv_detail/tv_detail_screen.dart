@@ -1,18 +1,30 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../data/models/credit_model.dart';
+import '../../../data/models/episode_model.dart';
+import '../../../data/models/keyword_model.dart';
 import '../../../data/models/movie.dart';
-import '../../../data/services/api_config.dart';
+import '../../../data/models/network_model.dart';
+import '../../../data/models/season_model.dart';
+import '../../../data/models/tv_detailed_model.dart';
+import '../../../data/models/video_model.dart';
+import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../providers/tv_detail_provider.dart';
+import '../../../providers/watch_region_provider.dart';
 import '../../../providers/watchlist_provider.dart';
+import '../../widgets/error_display.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
-  
+
   final Movie tvShow;
 
   const TVDetailScreen({
@@ -22,22 +34,73 @@ class TVDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final repository = context.read<TmdbRepository>();
+
+    return ChangeNotifierProvider(
+      create: (_) => TvDetailProvider(repository, tvId: tvShow.id)..load(),
+      child: const _TVDetailView(),
+    );
+  }
+}
+
+class _TVDetailView extends StatelessWidget {
+  const _TVDetailView();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<TvDetailProvider>();
     final loc = AppLocalizations.of(context);
-    
+
+    if (provider.isLoading && provider.details == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Loading...')),
+        body: const Center(child: LoadingIndicator()),
+      );
+    }
+
+    if (provider.errorMessage != null && provider.details == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Error')),
+        body: Center(
+          child: ErrorDisplay(
+            message: provider.errorMessage!,
+            onRetry: () => provider.load(forceRefresh: true),
+          ),
+        ),
+      );
+    }
+
+    final details = provider.details;
+    if (details == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('TV Show')),
+        body: const Center(child: Text('No details available')),
+      );
+    }
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(context, loc),
+          _buildAppBar(context, details, loc),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context, loc),
-                _buildActions(context, loc),
-                _buildOverview(context, loc),
-                _buildMetadata(context, loc),
-                _buildAlternativeTitles(context, loc),
-                _buildGenres(context, loc),
+                _buildHeader(context, details, loc),
+                _buildActions(context, details, loc),
+                _buildOverview(context, details, loc),
+                _buildMetadata(context, details, loc),
+                _buildGenres(context, details, loc),
+                _buildNetworks(context, details, loc),
+                _buildSeasons(context, details, loc, provider),
+                _buildCast(context, details, loc),
+                _buildVideos(context, details, loc),
+                _buildKeywords(context, details, loc),
+                _buildWatchProviders(context, details),
+                _buildExternalLinks(context, details, loc),
+                _buildRecommendations(context, details, loc),
+                _buildSimilar(context, details, loc),
+                _buildProductionInfo(context, details, loc),
                 const SizedBox(height: 24),
               ],
             ),
@@ -47,14 +110,23 @@ class TVDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, AppLocalizations loc) {
-    final backdropUrl = tvShow.backdropUrl;
-    
+  Widget _buildAppBar(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    final backdropPath = details.backdropPath;
+    final backdropUrl = backdropPath != null
+        ? 'https://image.tmdb.org/t/p/w780$backdropPath'
+        : null;
+
     return SliverAppBar(
       expandedHeight: 250,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        background: backdropUrl != null && backdropUrl.isNotEmpty
+        title: Text(
+          details.name,
+          style: const TextStyle(
+            shadows: [Shadow(color: Colors.black, blurRadius: 8)],
+          ),
+        ),
+        background: backdropUrl != null
             ? Stack(
                 fit: StackFit.expand,
                 children: [
@@ -92,18 +164,20 @@ class TVDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppLocalizations loc) {
-    final posterUrl = tvShow.posterUrl;
-    
+  Widget _buildHeader(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    final posterPath = details.posterPath;
+    final posterUrl = posterPath != null
+        ? 'https://image.tmdb.org/t/p/w500$posterPath'
+        : null;
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Poster
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: posterUrl != null && posterUrl.isNotEmpty
+            child: posterUrl != null
                 ? CachedNetworkImage(
                     imageUrl: posterUrl,
                     width: 120,
@@ -130,63 +204,54 @@ class TVDetailScreen extends StatelessWidget {
                   ),
           ),
           const SizedBox(width: 16),
-          // Title and basic info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        tvShow.title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.tv,
-                        size: 14,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'TV Series',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: Theme.of(context).colorScheme.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (tvShow.releaseYear != null && tvShow.releaseYear!.isNotEmpty)
+                if (details.tagline != null && details.tagline!.isNotEmpty) ...[
                   Text(
-                    '${loc.t('tv.first_aired')}: ${tvShow.releaseYear}',
+                    details.tagline!,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
                           color: Colors.grey[600],
                         ),
                   ),
+                  const SizedBox(height: 8),
+                ],
+                Row(
+                  children: [
+                    const Icon(Icons.calendar_today, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      details.firstAirDate ?? 'Unknown',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ],
+                ),
                 const SizedBox(height: 8),
-                if (tvShow.voteAverage != null && tvShow.voteAverage! > 0)
+                if (details.numberOfSeasons != null && details.numberOfEpisodes != null) ...[
+                  Text(
+                    '${details.numberOfSeasons} ${details.numberOfSeasons == 1 ? 'Season' : 'Seasons'} • ${details.numberOfEpisodes} Episodes',
+                    style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+                if (details.voteAverage > 0)
                   RatingDisplay(
-                    rating: tvShow.voteAverage!,
-                    voteCount: tvShow.voteCount,
+                    rating: details.voteAverage,
+                    voteCount: details.voteCount,
                     size: 18,
+                  ),
+                const SizedBox(height: 8),
+                if (details.status != null)
+                  Chip(
+                    label: Text(details.status!),
+                    avatar: Icon(
+                      _getStatusIcon(details.status!),
+                      size: 16,
+                    ),
                   ),
               ],
             ),
@@ -196,21 +261,21 @@ class TVDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActions(BuildContext context, AppLocalizations loc) {
+  Widget _buildActions(BuildContext context, TVDetailed details, AppLocalizations loc) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
-    
-    final isFavorite = favoritesProvider.isFavorite(tvShow.id);
-    final isInWatchlist = watchlistProvider.isInWatchlist(tvShow.id);
+
+    final isFavorite = favoritesProvider.isFavorite(details.id);
+    final isInWatchlist = watchlistProvider.isInWatchlist(details.id);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
-            child: OutlinedButton.icon(
+            child: ElevatedButton.icon(
               onPressed: () {
-                favoritesProvider.toggleFavorite(tvShow.id);
+                favoritesProvider.toggleFavorite(details.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -222,22 +287,21 @@ class TVDetailScreen extends StatelessWidget {
                   ),
                 );
               },
-              icon: Icon(
-                isFavorite ? Icons.favorite : Icons.favorite_border,
-                color: isFavorite ? Colors.red : null,
-              ),
+              icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border),
               label: Text(
-                isFavorite
-                    ? loc.t('tv.remove_from_favorites')
-                    : loc.t('tv.add_to_favorites'),
+                isFavorite ? loc.t('tv.remove_from_favorites') : loc.t('tv.add_to_favorites'),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isFavorite ? Colors.red.withOpacity(0.1) : null,
+                foregroundColor: isFavorite ? Colors.red : null,
               ),
             ),
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: OutlinedButton.icon(
+            child: ElevatedButton.icon(
               onPressed: () {
-                watchlistProvider.toggleWatchlist(tvShow.id);
+                watchlistProvider.toggleWatchlist(details.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -249,14 +313,15 @@ class TVDetailScreen extends StatelessWidget {
                   ),
                 );
               },
-              icon: Icon(
-                isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
-                color: isInWatchlist ? Colors.blue : null,
-              ),
+              icon: Icon(isInWatchlist ? Icons.bookmark : Icons.bookmark_border),
               label: Text(
                 isInWatchlist
                     ? loc.t('tv.remove_from_watchlist')
                     : loc.t('tv.add_to_watchlist'),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isInWatchlist ? Colors.blue.withOpacity(0.1) : null,
+                foregroundColor: isInWatchlist ? Colors.blue : null,
               ),
             ),
           ),
@@ -265,8 +330,8 @@ class TVDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, AppLocalizations loc) {
-    if (tvShow.overview == null || tvShow.overview!.isEmpty) {
+  Widget _buildOverview(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.overview == null || details.overview!.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -283,7 +348,7 @@ class TVDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            tvShow.overview!,
+            details.overview!,
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],
@@ -291,28 +356,26 @@ class TVDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetadata(BuildContext context, AppLocalizations loc) {
+  Widget _buildMetadata(BuildContext context, TVDetailed details, AppLocalizations loc) {
     final metadata = <MapEntry<String, String>>[];
 
-    if (tvShow.releaseDate != null && tvShow.releaseDate!.isNotEmpty) {
+    if (details.firstAirDate != null && details.firstAirDate!.isNotEmpty) {
+      metadata.add(MapEntry('First Air Date', details.firstAirDate!));
+    }
+
+    if (details.lastAirDate != null && details.lastAirDate!.isNotEmpty) {
+      metadata.add(MapEntry('Last Air Date', details.lastAirDate!));
+    }
+
+    if (details.episodeRunTime.isNotEmpty) {
       metadata.add(MapEntry(
-        loc.t('tv.first_air_date'),
-        tvShow.releaseDate!,
+        'Episode Runtime',
+        '${details.episodeRunTime.first} min',
       ));
     }
 
-    if (tvShow.voteCount != null && tvShow.voteCount! > 0) {
-      metadata.add(MapEntry(
-        loc.t('tv.votes'),
-        tvShow.voteCount.toString(),
-      ));
-    }
-
-    if (tvShow.popularity != null) {
-      metadata.add(MapEntry(
-        loc.t('tv.popularity'),
-        tvShow.popularity!.toStringAsFixed(0),
-      ));
+    if (details.popularity != null) {
+      metadata.add(MapEntry('Popularity', details.popularity!.toStringAsFixed(1)));
     }
 
     if (metadata.isEmpty) {
@@ -320,50 +383,55 @@ class TVDetailScreen extends StatelessWidget {
     }
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Details',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          ...metadata.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Text(
-                        entry.key,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Details',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              ...metadata.map((entry) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 140,
+                          child: Text(
+                            entry.key,
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700],
+                            ),
+                          ),
                         ),
-                      ),
+                        Expanded(
+                          child: Text(entry.value),
+                        ),
+                      ],
                     ),
-                    Expanded(
-                      child: Text(entry.value),
-                    ),
-                  ],
-                ),
-              )),
-        ],
+                  )),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _buildGenres(BuildContext context, AppLocalizations loc) {
-    if (tvShow.genreIds.isEmpty) {
+  Widget _buildGenres(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.genres.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -377,12 +445,13 @@ class TVDetailScreen extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: tvShow.genreIds.map((genreId) {
-              // Get genre name from Movie.genreMap
-              final genreName = Movie.genreMap[genreId] ?? 'Genre $genreId';
+            children: details.genres.map((genre) {
               return Chip(
-                label: Text(genreName),
+                label: Text(genre.name),
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimaryContainer,
+                ),
               );
             }).toList(),
           ),
@@ -391,46 +460,1065 @@ class TVDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAlternativeTitles(BuildContext context, AppLocalizations loc) {
-    final titles = tvShow.alternativeTitles;
-    if (titles.isEmpty) {
+  Widget _buildNetworks(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.networks.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            loc.t('tv.alternative_titles'),
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
+            'Networks',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            height: 60,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: details.networks.length,
+              itemBuilder: (context, index) {
+                final network = details.networks[index];
+                return _NetworkLogo(network: network);
+              },
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSeasons(BuildContext context, TVDetailed details, AppLocalizations loc, TvDetailProvider provider) {
+    if (details.seasons.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    // Filter out specials (season 0) for main list
+    final mainSeasons = details.seasons.where((s) => s.seasonNumber > 0).toList();
+
+    if (mainSeasons.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Seasons',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        SizedBox(
+          height: 280,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: mainSeasons.length,
+            itemBuilder: (context, index) {
+              final season = mainSeasons[index];
+              return _SeasonCard(
+                season: season,
+                onTap: () => provider.selectSeason(season.seasonNumber),
+              );
+            },
+          ),
+        ),
+        if (provider.selectedSeasonNumber != null)
+          _buildSelectedSeasonDetails(context, details, loc, provider),
+      ],
+    );
+  }
+
+  Widget _buildSelectedSeasonDetails(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+    TvDetailProvider provider,
+  ) {
+    final seasonNumber = provider.selectedSeasonNumber!;
+    final season = provider.seasonForNumber(seasonNumber);
+    final isLoading = provider.isSeasonLoading(seasonNumber);
+    final error = provider.seasonError(seasonNumber);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Season $seasonNumber',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              if (isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (error != null)
+                ErrorDisplay(
+                  message: error,
+                  onRetry: () => provider.retrySeason(seasonNumber),
+                )
+              else if (season != null && season.episodes.isNotEmpty)
+                ...season.episodes.map((episode) => _EpisodeCard(
+                      episode: episode,
+                      tvId: details.id,
+                      seasonNumber: seasonNumber,
+                    ))
+              else
+                const Center(child: Text('No episodes available')),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCast(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.cast.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final displayCast = details.cast.take(10).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Cast',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        SizedBox(
+          height: 180,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: displayCast.length,
+            itemBuilder: (context, index) {
+              final castMember = displayCast[index];
+              return _CastCard(cast: castMember);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVideos(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.videos.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final trailers = details.videos
+        .where((video) => video.type == 'Trailer' || video.type == 'Teaser')
+        .take(5)
+        .toList();
+
+    if (trailers.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Videos & Trailers',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        SizedBox(
+          height: 140,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: trailers.length,
+            itemBuilder: (context, index) {
+              final video = trailers[index];
+              return _VideoCard(video: video);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildKeywords(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.keywords.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Keywords',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: titles
-                .map(
-                  (title) => Chip(
-                    label: Text(title),
-                    backgroundColor: colorScheme.secondaryContainer,
-                    labelStyle: theme.textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSecondaryContainer,
+            children: details.keywords.take(20).map((keyword) {
+              return Chip(
+                label: Text(keyword.name),
+                backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                labelStyle: TextStyle(
+                  color: Theme.of(context).colorScheme.onSecondaryContainer,
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWatchProviders(BuildContext context, TVDetailed details) {
+    final region = context.watch<WatchRegionProvider>().region;
+    final repository = context.read<TmdbRepository>();
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: FutureBuilder<Map<String, WatchProviderResults>>(
+            future: repository.fetchTvWatchProviders(details.id),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const SizedBox(
+                  height: 48,
+                  child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                );
+              }
+              if (snapshot.hasError || !snapshot.hasData || snapshot.data!.isEmpty) {
+                return const SizedBox.shrink();
+              }
+              final map = snapshot.data!;
+              final providers = map[region] ?? map['US'];
+              if (providers == null) return const SizedBox.shrink();
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Where to Watch ($region)',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const Spacer(),
+                      if ((providers.link ?? '').isNotEmpty)
+                        TextButton.icon(
+                          onPressed: () {
+                            final uri = Uri.parse(providers.link!);
+                            launchUrl(uri, mode: LaunchMode.externalApplication);
+                          },
+                          icon: const Icon(Icons.open_in_new),
+                          label: const Text('Open'),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (providers.flatrate.isNotEmpty) ...[
+                    const Text('Stream:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: providers.flatrate
+                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (providers.rent.isNotEmpty) ...[
+                    const Text('Rent:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: providers.rent
+                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
+                          .toList(),
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+                  if (providers.buy.isNotEmpty) ...[
+                    const Text('Buy:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: providers.buy
+                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
+                          .toList(),
+                    ),
+                  ],
+                  if (providers.ads.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Text('With Ads:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: providers.ads
+                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
+                          .toList(),
+                    ),
+                  ],
+                  if (providers.free.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    const Text('Free:', style: TextStyle(fontWeight: FontWeight.w600)),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: providers.free
+                          .map((p) => _ProviderLogo(logoPath: p.logoPath ?? ''))
+                          .toList(),
+                    ),
+                  ],
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExternalLinks(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    final links = <MapEntry<String, String>>[];
+
+    if (details.homepage != null && details.homepage!.isNotEmpty) {
+      links.add(MapEntry('Homepage', details.homepage!));
+    }
+
+    if (details.externalIds.imdbId != null) {
+      links.add(MapEntry(
+        'IMDb',
+        'https://www.imdb.com/title/${details.externalIds.imdbId}',
+      ));
+    }
+
+    if (details.externalIds.facebookId != null) {
+      links.add(MapEntry(
+        'Facebook',
+        'https://www.facebook.com/${details.externalIds.facebookId}',
+      ));
+    }
+
+    if (details.externalIds.twitterId != null) {
+      links.add(MapEntry(
+        'Twitter',
+        'https://twitter.com/${details.externalIds.twitterId}',
+      ));
+    }
+
+    if (details.externalIds.instagramId != null) {
+      links.add(MapEntry(
+        'Instagram',
+        'https://www.instagram.com/${details.externalIds.instagramId}',
+      ));
+    }
+
+    if (links.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'External Links',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: links.map((link) {
+                  return OutlinedButton.icon(
+                    onPressed: () => _launchURL(link.value),
+                    icon: Icon(_getIconForLink(link.key)),
+                    label: Text(link.key),
+                  );
+                }).toList(),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecommendations(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.recommendations.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Recommended TV Shows',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        SizedBox(
+          height: 250,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: details.recommendations.take(10).length,
+            itemBuilder: (context, index) {
+              final show = details.recommendations[index];
+              return SizedBox(
+                width: 140,
+                child: MovieCard(
+                  id: show.id,
+                  title: show.name,
+                  posterPath: show.posterPath,
+                  voteAverage: show.voteAverage,
+                  releaseDate: show.firstAirDate,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => TVDetailScreen(
+                          tvShow: Movie(
+                            id: show.id,
+                            title: show.name,
+                            posterPath: show.posterPath,
+                            backdropPath: show.backdropPath,
+                            voteAverage: show.voteAverage,
+                            voteCount: 0,
+                            releaseDate: show.firstAirDate,
+                            genreIds: [],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSimilar(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.similar.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            'Similar TV Shows',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ),
+        SizedBox(
+          height: 250,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            itemCount: details.similar.take(10).length,
+            itemBuilder: (context, index) {
+              final show = details.similar[index];
+              return SizedBox(
+                width: 140,
+                child: MovieCard(
+                  id: show.id,
+                  title: show.name,
+                  posterPath: show.posterPath,
+                  voteAverage: show.voteAverage,
+                  releaseDate: show.firstAirDate,
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => TVDetailScreen(
+                          tvShow: Movie(
+                            id: show.id,
+                            title: show.name,
+                            posterPath: show.posterPath,
+                            backdropPath: show.backdropPath,
+                            voteAverage: show.voteAverage,
+                            voteCount: 0,
+                            releaseDate: show.firstAirDate,
+                            genreIds: [],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildProductionInfo(BuildContext context, TVDetailed details, AppLocalizations loc) {
+    if (details.productionCompanies.isEmpty && details.productionCountries.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Production',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              if (details.productionCompanies.isNotEmpty) ...[
+                Text(
+                  'Companies:',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: details.productionCompanies
+                      .map((company) => Chip(label: Text(company.name)))
+                      .toList(),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (details.productionCountries.isNotEmpty) ...[
+                Text(
+                  'Countries:',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  details.productionCountries.map((c) => c.name).join(', '),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getStatusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'returning series':
+        return Icons.replay;
+      case 'ended':
+        return Icons.check_circle;
+      case 'canceled':
+        return Icons.cancel;
+      case 'in production':
+        return Icons.videocam;
+      default:
+        return Icons.info;
+    }
+  }
+
+  void _launchURL(String url, BuildContext context) async {
+    final uri = Uri.parse(url);
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Cannot open this link')),
+          );
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to open link: $e')),
+        );
+      }
+    }
+  }
+
+  IconData _getIconForLink(String linkName) {
+    switch (linkName.toLowerCase()) {
+      case 'homepage':
+        return Icons.language;
+      case 'imdb':
+        return Icons.movie;
+      case 'facebook':
+        return Icons.facebook;
+      case 'twitter':
+        return Icons.tag;
+      case 'instagram':
+        return Icons.photo_camera;
+      default:
+        return Icons.link;
+    }
+  }
+}
+
+class _NetworkLogo extends StatelessWidget {
+  final Network network;
+
+  const _NetworkLogo({required this.network});
+
+  @override
+  Widget build(BuildContext context) {
+    final logoPath = network.logoPath;
+    final logoUrl = logoPath != null
+        ? 'https://image.tmdb.org/t/p/w92$logoPath'
+        : null;
+
+    return Container(
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: logoUrl != null
+          ? CachedNetworkImage(
+              imageUrl: logoUrl,
+              height: 40,
+              fit: BoxFit.contain,
+              placeholder: (context, url) => Container(
+                width: 80,
+                height: 40,
+                color: Colors.grey[300],
+              ),
+              errorWidget: (context, url, error) => Container(
+                width: 80,
+                height: 40,
+                color: Colors.grey[300],
+                child: const Icon(Icons.tv),
+              ),
+            )
+          : Container(
+              width: 80,
+              height: 40,
+              alignment: Alignment.center,
+              child: Text(
+                network.name,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
+    );
+  }
+}
+
+class _SeasonCard extends StatelessWidget {
+  final Season season;
+  final VoidCallback onTap;
+
+  const _SeasonCard({required this.season, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final posterPath = season.posterPath;
+    final posterUrl = posterPath != null
+        ? 'https://image.tmdb.org/t/p/w342$posterPath'
+        : null;
+
+    return Container(
+      width: 140,
+      margin: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: posterUrl != null
+                  ? CachedNetworkImage(
+                      imageUrl: posterUrl,
+                      width: 140,
+                      height: 200,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        width: 140,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.tv),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        width: 140,
+                        height: 200,
+                        color: Colors.grey[300],
+                        child: const Icon(Icons.tv),
+                      ),
+                    )
+                  : Container(
+                      width: 140,
+                      height: 200,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.tv),
+                    ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              season.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+            if (season.episodeCount != null)
+              Text(
+                '${season.episodeCount} episodes',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EpisodeCard extends StatelessWidget {
+  final Episode episode;
+  final int tvId;
+  final int seasonNumber;
+
+  const _EpisodeCard({
+    required this.episode,
+    required this.tvId,
+    required this.seasonNumber,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final stillPath = episode.stillPath;
+    final stillUrl = stillPath != null
+        ? 'https://image.tmdb.org/t/p/w300$stillPath'
+        : null;
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () {
+          // TODO: Navigate to episode details
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (stillUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: CachedNetworkImage(
+                    imageUrl: stillUrl,
+                    width: 120,
+                    height: 68,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 120,
+                      height: 68,
+                      color: Colors.grey[300],
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 120,
+                      height: 68,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.tv, size: 32),
                     ),
                   ),
-                )
-                .toList(),
+                ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'E${episode.episodeNumber}: ${episode.name}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    if (episode.airDate != null)
+                      Text(
+                        episode.airDate!,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    if (episode.overview != null && episode.overview!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        episode.overview!,
+                        style: const TextStyle(fontSize: 12),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
+        ),
+      ),
+    );
+  }
+}
+
+class _CastCard extends StatelessWidget {
+  final Cast cast;
+
+  const _CastCard({required this.cast});
+
+  @override
+  Widget build(BuildContext context) {
+    final profilePath = cast.profilePath;
+    final profileUrl = profilePath != null
+        ? 'https://image.tmdb.org/t/p/w185$profilePath'
+        : null;
+
+    return Container(
+      width: 120,
+      margin: const EdgeInsets.only(right: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: profileUrl != null
+                ? CachedNetworkImage(
+                    imageUrl: profileUrl,
+                    width: 120,
+                    height: 120,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 120,
+                      height: 120,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.person),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 120,
+                      height: 120,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.person),
+                    ),
+                  )
+                : Container(
+                    width: 120,
+                    height: 120,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.person),
+                  ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            cast.name,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          if (cast.character != null)
+            Text(
+              cast.character!,
+              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
         ],
       ),
     );
   }
 }
 
+class _VideoCard extends StatelessWidget {
+  final Video video;
+
+  const _VideoCard({required this.video});
+
+  @override
+  Widget build(BuildContext context) {
+    final thumbnailUrl = video.site == 'YouTube'
+        ? 'https://img.youtube.com/vi/${video.key}/mqdefault.jpg'
+        : null;
+
+    return Container(
+      width: 240,
+      margin: const EdgeInsets.only(right: 12),
+      child: InkWell(
+        onTap: () => _launchVideo(video),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  if (thumbnailUrl != null)
+                    CachedNetworkImage(
+                      imageUrl: thumbnailUrl,
+                      width: 240,
+                      height: 100,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    Container(
+                      width: 240,
+                      height: 100,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.play_circle_outline, size: 48),
+                    ),
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.black.withOpacity(0.3),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.play_arrow,
+                      color: Colors.white,
+                      size: 48,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              video.name,
+              style: const TextStyle(fontWeight: FontWeight.bold),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _launchVideo(Video video) async {
+    if (video.site == 'YouTube') {
+      final url = 'https://www.youtube.com/watch?v=${video.key}';
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      }
+    }
+  }
+}
+
+class _ProviderLogo extends StatelessWidget {
+  final String logoPath;
+
+  const _ProviderLogo({required this.logoPath});
+
+  @override
+  Widget build(BuildContext context) {
+    final logoUrl = logoPath.isNotEmpty
+        ? 'https://image.tmdb.org/t/p/w92$logoPath'
+        : null;
+
+    return Container(
+      margin: const EdgeInsets.only(right: 8),
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 2,
+            offset: const Offset(0, 1),
+          ),
+        ],
+      ),
+      child: logoUrl != null
+          ? CachedNetworkImage(
+              imageUrl: logoUrl,
+              height: 30,
+              fit: BoxFit.contain,
+              placeholder: (context, url) => Container(
+                width: 40,
+                height: 30,
+                color: Colors.grey[300],
+              ),
+              errorWidget: (context, url, error) => Container(
+                width: 40,
+                height: 30,
+                color: Colors.grey[300],
+                child: const Icon(Icons.tv),
+              ),
+            )
+          : Container(
+              width: 40,
+              height: 30,
+              alignment: Alignment.center,
+              child: Text(
+                'N/A',
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ),
+    );
+  }
+}

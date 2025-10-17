@@ -9,7 +9,7 @@ enum NotificationCategory {
 
 @immutable
 class AppNotification {
-  const AppNotification({
+  AppNotification({
     required this.id,
     required this.title,
     required this.message,
@@ -30,8 +30,13 @@ class AppNotification {
         orElse: () => NotificationCategory.system,
       ),
       actionRoute: json['action_route'] as String?,
-      metadata: (json['metadata'] as Map?)?.cast<String, dynamic>() ??
-          const <String, dynamic>{},
+      metadata: json['metadata'] != null
+          ? Map<String, dynamic>.fromEntries(
+              (json['metadata'] as Map).entries.map(
+                    (e) => MapEntry(e.key.toString(), e.value),
+                  ),
+            )
+          : const <String, dynamic>{},
       createdAt: _parseDate(json['created_at']),
       isRead: json['is_read'] as bool? ?? false,
     );

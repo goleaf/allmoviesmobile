@@ -8,8 +8,9 @@ set -euo pipefail
 #   - iOS Simulator (Xcode tools)
 #   - Android emulator (Android SDK tools)
 #
-# Defaults to iOS Simulator on macOS if Xcode tools are available; otherwise
-# falls back to Android if ANDROID_SDK_ROOT is configured.
+# Defaults to Google Chrome (web) when no device is specified; otherwise prefers
+# iOS Simulator on macOS if Xcode tools are available, then Android if
+# ANDROID_SDK_ROOT is configured.
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}"
@@ -31,6 +32,9 @@ Options:
   --ios-device <nm>  iOS Simulator device name to prefer (best-effort).
   --skip-build       Skip `flutter pub get` (useful if deps are already fetched).
   --skip-emulator    Do not start or interact with simulator/emulator.
+
+Defaults:
+  If no device is specified and platform is 'auto', launches on 'chrome' (or 'web-server' if Chrome is unavailable).
 
 Environment variables:
   ANDROID_SDK_ROOT   Location of the Android SDK. Defaults to
@@ -305,6 +309,16 @@ main() {
   done
 
   require_flutter
+
+  # Default to Google Chrome (web) when no explicit device is provided and
+  # platform is auto-detected. If Chrome is unavailable, fall back to web-server.
+  if [[ -z "$DEVICE_ID" && "$PLATFORM" == "auto" ]]; then
+    if open -Ra "Google Chrome" >/dev/null 2>&1; then
+      DEVICE_ID="chrome"
+    else
+      DEVICE_ID="web-server"
+    fi
+  fi
 
   # If a desktop/web device is explicitly targeted, skip simulator/emulator.
   if [[ -n "$DEVICE_ID" ]]; then

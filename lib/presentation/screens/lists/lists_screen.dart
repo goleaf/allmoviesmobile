@@ -28,7 +28,7 @@ class ListsScreen extends StatelessWidget {
         builder: (context, provider, _) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
-          }
+              SnackBar(content: Text('Updated "$name"')),
 
           if (provider.errorMessage != null) {
             return _ErrorState(
@@ -207,12 +207,10 @@ class _ListCard extends StatelessWidget {
                           ),
                           label: Text(list.isPublic ? 'Public' : 'Private'),
                         ),
-                        if (list.isCollaborative || canEdit)
+                        if (list.isCollaborative)
                           Chip(
                             avatar: const Icon(Icons.group_add, size: 16),
-                            label: Text(list.isCollaborative
-                                ? 'Collaborative'
-                                : 'Invite collaborators'),
+                            label: const Text('Collaborative'),
                           ),
                         Chip(
                           avatar: const Icon(Icons.movie_outlined, size: 16),
@@ -493,10 +491,10 @@ class _ListEditorSheetState extends State<ListEditorSheet> {
   @override
   Widget build(BuildContext context) {
     final isEditing = widget.initialList != null;
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isEditing = widget.initialList != null;
 
     return Padding(
-      padding: EdgeInsets.fromLTRB(16, 24, 16, 16 + bottomInset),
+      padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
       child: Form(
         key: _formKey,
         child: Column(

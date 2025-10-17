@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/locale_provider.dart';
+import '../../../providers/watch_region_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   static const routeName = '/settings';
@@ -23,6 +24,7 @@ class SettingsScreen extends StatelessWidget {
           const _ThemeTile(),
           _SettingsHeader(title: l10n.localization),
           const _LanguageTile(),
+          const _RegionTile(),
           _SettingsHeader(title: l10n.about),
           _StaticInfoTile(
             icon: Icons.info_outline,
@@ -182,6 +184,69 @@ class _LanguageDialog extends StatelessWidget {
             },
           );
         }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+      ],
+    );
+  }
+}
+
+class _RegionTile extends StatelessWidget {
+  const _RegionTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final regionProvider = context.watch<WatchRegionProvider>();
+
+    return ListTile(
+      leading: const Icon(Icons.public),
+      title: Text(l10n.region),
+      subtitle: Text(regionProvider.getRegionName(regionProvider.region)),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => const _RegionDialog(),
+        );
+      },
+    );
+  }
+}
+
+class _RegionDialog extends StatelessWidget {
+  const _RegionDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final regionProvider = context.watch<WatchRegionProvider>();
+
+    return AlertDialog(
+      title: Text(l10n.chooseRegion),
+      content: SizedBox(
+        width: 360,
+        child: ListView(
+          shrinkWrap: true,
+          children: WatchRegionProvider.supportedRegions.map((r) {
+            final code = r['code']!;
+            final name = r['name']!;
+            return RadioListTile<String>(
+              title: Text(name),
+              value: code,
+              groupValue: regionProvider.region,
+              onChanged: (value) async {
+                if (value != null) {
+                  await regionProvider.setRegion(value);
+                  if (context.mounted) Navigator.pop(context);
+                }
+              },
+            );
+          }).toList(),
+        ),
       ),
       actions: [
         TextButton(

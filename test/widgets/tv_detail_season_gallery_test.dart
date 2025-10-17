@@ -171,9 +171,9 @@ void main() {
     await _scrollToGallery(tester);
 
     expect(find.text('Season images'), findsOneWidget);
-    expect(find.text('Posters'), findsOneWidget);
-    expect(find.text('Backdrops'), findsOneWidget);
-    expect(find.text('Stills'), findsOneWidget);
+    expect(find.text('Season posters'), findsOneWidget);
+    expect(find.text('Season backdrops'), findsOneWidget);
+    expect(find.text('Season stills'), findsOneWidget);
   });
 
   testWidgets('shows empty state when no images are returned', (tester) async {
@@ -185,7 +185,10 @@ void main() {
     await _pumpDetailScreen(tester, repo);
     await _scrollToGallery(tester);
 
-    expect(find.text('No images available for this season'), findsOneWidget);
+    expect(
+      find.text('No season images available yet.'),
+      findsOneWidget,
+    );
   });
 
   testWidgets('shows error state and retries image loading', (tester) async {
@@ -211,6 +214,6 @@ void main() {
     await _scrollToGallery(tester);
 
     expect(find.text('Season images'), findsOneWidget);
-    expect(find.text('Posters'), findsOneWidget);
+    expect(find.text('Season posters'), findsOneWidget);
   });
 }

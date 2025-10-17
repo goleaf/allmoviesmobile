@@ -54,6 +54,11 @@ class AppLocalizations {
         'overview': 'Overview',
         'season': 'Season',
         'episodes': 'Episodes',
+        'season_images': 'Season images',
+        'season_posters': 'Season posters',
+        'season_backdrops': 'Season backdrops',
+        'season_stills': 'Season stills',
+        'season_images_empty': 'No season images available yet.',
       },
       'movie': {
         'overview': 'Overview',

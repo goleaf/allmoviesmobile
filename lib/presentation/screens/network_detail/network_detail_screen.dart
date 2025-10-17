@@ -170,7 +170,7 @@ class _HeaderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final logoUrl = ApiConfig.getLogoUrl(logoPath, size: ApiConfig.logoSizeMedium);
+    final logoUrl = ApiConfig.getLogoUrl(logoPath, size: ApiConfig.posterSizeMedium);
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -452,7 +452,7 @@ class _LogoVariationsSection extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
                   final logo = logos[index];
-                  final url = ApiConfig.getLogoUrl(logo.filePath, size: ApiConfig.logoSizeMedium);
+                  final url = ApiConfig.getLogoUrl(logo.filePath, size: ApiConfig.posterSizeMedium);
                   return Container(
                     width: 180,
                     decoration: BoxDecoration(

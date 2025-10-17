@@ -11,6 +11,7 @@ import '../../../data/models/person_model.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/person_detail_provider.dart';
 import '../../widgets/media_image.dart';
+import '../../../core/utils/media_image_helper.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   static const routeName = '/person-detail';
@@ -1026,7 +1027,7 @@ class _ExternalLinksSection extends StatelessWidget {
         children: links
             .map(
               (link) => OutlinedButton.icon(
-                onPressed: () => _openLink(link.url),
+                onPressed: () => _openLink(link.url, context),
                 icon: Icon(link.icon),
                 label: Text(link.label),
               ),
@@ -1057,7 +1058,7 @@ class _TranslationsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final translations = detail.translations.withUniqueLocales();
+    final translations = detail.translations;
     if (translations.isEmpty) {
       return const SizedBox.shrink();
     }

@@ -50,7 +50,7 @@ void main() {
     await tester.pump();
 
     // Apply
-    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+    await tester.tap(find.byKey(const ValueKey('moviesApplyFilters')));
     await tester.pumpAndSettle();
 
     final result = await future;

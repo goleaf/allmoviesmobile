@@ -84,8 +84,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get home => 'Home';
 
   @override
-  String get exploreCollections =>
-      'Explore the latest highlights from our catalog.';
+  String get exploreCollections => 'Explore the latest highlights from our catalog.';
 
   @override
   String get noMoviesFound => 'No titles match your search yet.';
@@ -175,8 +174,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get withCrewHint => 'With Crew (comma-separated person IDs)';
 
   @override
-  String get withCompaniesHint =>
-      'With Companies (comma-separated company IDs)';
+  String get withCompaniesHint => 'With Companies (comma-separated company IDs)';
 
   @override
   String get withKeywordsHint => 'With Keywords (comma-separated keyword IDs)';

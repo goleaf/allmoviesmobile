@@ -4,6 +4,9 @@ import '../../../data/models/search_result_model.dart';
 import '../../../core/config/app_config.dart';
 import '../../../providers/search_provider.dart';
 import '../movie_detail/movie_detail_screen.dart';
+import '../tv_detail/tv_detail_screen.dart';
+import '../person_detail/person_detail_screen.dart';
+import '../../../core/config/app_config.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';

@@ -930,45 +930,66 @@ class TmdbComprehensiveService {
 
   /// Get countries list
   Future<List<Map<String, dynamic>>> getCountries() async {
-    final response = await _get('/configuration/countries');
-    if (response is List) {
-      return response.whereType<Map<String, dynamic>>().toList();
+    final data = await _client
+        .get(Uri.https('api.themoviedb.org', '/3/configuration/countries', {
+      'api_key': _apiKey,
+    }))
+        .timeout(AppConfig.requestTimeout);
+    final decoded = jsonDecode(data.body);
+    if (decoded is List) {
+      return decoded.whereType<Map<String, dynamic>>().toList();
     }
     return [];
   }
 
   /// Get jobs list
   Future<List<Map<String, dynamic>>> getJobs() async {
-    final response = await _get('/configuration/jobs');
-    if (response is List) {
-      return response.whereType<Map<String, dynamic>>().toList();
+    final resp = await _get('/configuration/jobs');
+    final results = resp['jobs'];
+    if (results is List) {
+      return results.whereType<Map<String, dynamic>>().toList();
     }
     return [];
   }
 
   /// Get languages list
   Future<List<Map<String, dynamic>>> getLanguages() async {
-    final response = await _get('/configuration/languages');
-    if (response is List) {
-      return response.whereType<Map<String, dynamic>>().toList();
+    final data = await _client
+        .get(Uri.https('api.themoviedb.org', '/3/configuration/languages', {
+      'api_key': _apiKey,
+    }))
+        .timeout(AppConfig.requestTimeout);
+    final decoded = jsonDecode(data.body);
+    if (decoded is List) {
+      return decoded.whereType<Map<String, dynamic>>().toList();
     }
     return [];
   }
 
   /// Get primary translations
   Future<List<String>> getPrimaryTranslations() async {
-    final response = await _get('/configuration/primary_translations');
-    if (response is List) {
-      return response.whereType<String>().toList();
+    final data = await _client
+        .get(Uri.https('api.themoviedb.org', '/3/configuration/primary_translations', {
+      'api_key': _apiKey,
+    }))
+        .timeout(AppConfig.requestTimeout);
+    final decoded = jsonDecode(data.body);
+    if (decoded is List) {
+      return decoded.whereType<String>().toList();
     }
     return [];
   }
 
   /// Get timezones
   Future<List<Map<String, dynamic>>> getTimezones() async {
-    final response = await _get('/configuration/timezones');
-    if (response is List) {
-      return response.whereType<Map<String, dynamic>>().toList();
+    final data = await _client
+        .get(Uri.https('api.themoviedb.org', '/3/configuration/timezones', {
+      'api_key': _apiKey,
+    }))
+        .timeout(AppConfig.requestTimeout);
+    final decoded = jsonDecode(data.body);
+    if (decoded is List) {
+      return decoded.whereType<Map<String, dynamic>>().toList();
     }
     return [];
   }

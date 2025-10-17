@@ -81,6 +81,16 @@ class ApiConfig {
     );
   }
 
+  static const String stillSizeLarge = 'w780';
+  static String getStillUrl(String? path, {String size = stillSizeLarge}) {
+    return _buildUrl(
+      path,
+      type: MediaImageType.still,
+      size: size,
+      fallback: stillSizeLarge,
+    );
+  }
+
   // Cache TTL values (in seconds)
   static const int cacheTTLShort = 300; // 5 minutes
   static const int cacheTTLMedium = 1800; // 30 minutes

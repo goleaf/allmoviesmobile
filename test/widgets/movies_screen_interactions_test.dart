@@ -37,9 +37,17 @@ void main() {
         providers: [
           ChangeNotifierProvider.value(value: moviesProvider),
         ],
-        child: const MaterialApp(
-          home: MoviesScreen(),
-          onGenerateRoute: _onGenerateRoute,
+        child: MaterialApp(
+          home: DefaultTabController(
+            length: MovieSection.values.length,
+            child: const MoviesScreen(),
+          ),
+          onGenerateRoute: (settings) {
+            if (settings.name == MoviesFiltersScreen.routeName) {
+              return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen());
+            }
+            return null;
+          },
         ),
       ),
     );
@@ -68,10 +76,7 @@ void main() {
         providers: [
           ChangeNotifierProvider.value(value: moviesProvider),
         ],
-        child: const MaterialApp(
-          home: MoviesScreen(),
-          onGenerateRoute: _onGenerateRoute,
-        ),
+        child: const MaterialApp(home: MoviesScreen()),
       ),
     );
 
@@ -86,13 +91,6 @@ void main() {
 
     expect(moviesProvider.trendingWindow, 'week');
   });
-}
-
-Route<dynamic> _onGenerateRoute(RouteSettings settings) {
-  if (settings.name == MoviesFiltersScreen.routeName) {
-    return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen(), settings: settings);
-  }
-  return MaterialPageRoute(builder: (_) => const SizedBox.shrink(), settings: settings);
 }
 
 

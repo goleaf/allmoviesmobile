@@ -84,12 +84,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get home => 'Inicio';
 
   @override
-  String get exploreCollections =>
-      'Explora lo más destacado de nuestro catálogo.';
+  String get exploreCollections => 'Explora lo más destacado de nuestro catálogo.';
 
   @override
-  String get noMoviesFound =>
-      'No se encontraron títulos que coincidan con tu búsqueda.';
+  String get noMoviesFound => 'No se encontraron títulos que coincidan con tu búsqueda.';
 
   @override
   String get tryAgain => 'Intentar de nuevo';
@@ -140,8 +138,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get watchProvidersIds => 'Proveedores (IDs)';
 
   @override
-  String get providerIdsHint =>
-      'IDs de proveedores separados por comas, p. ej., 8,9,337';
+  String get providerIdsHint => 'IDs de proveedores separados por comas, p. ej., 8,9,337';
 
   @override
   String get releaseType => 'Tipo de lanzamiento';
@@ -171,8 +168,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get peopleCompaniesKeywords => 'Personas y compañías y palabras clave';
 
   @override
-  String get withCastHint =>
-      'Con reparto (IDs de personas separados por comas)';
+  String get withCastHint => 'Con reparto (IDs de personas separados por comas)';
 
   @override
   String get withCrewHint => 'Con equipo (IDs de personas separados por comas)';

@@ -9,6 +9,10 @@ class TVRef with _$TVRef {
   const factory TVRef({
     required int id,
     required String name,
+    String? posterPath,
+    String? backdropPath,
+    double? voteAverage,
+    String? firstAirDate,
   }) = _TVRef;
 
   factory TVRef.fromJson(Map<String, dynamic> json) => _$TVRefFromJson(json);

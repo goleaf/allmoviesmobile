@@ -18,13 +18,12 @@ import '../../../providers/tv_detail_provider.dart';
 import '../../../providers/watch_region_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../widgets/error_widget.dart';
-import '../../../core/utils/media_image_helper.dart';
 import '../../../data/models/watch_provider_model.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
-import '../../../core/utils/media_image_helper.dart';
+// duplicate import removed
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -712,10 +711,7 @@ class _TVDetailView extends StatelessWidget {
                       const Spacer(),
                       if ((providers.link ?? '').isNotEmpty)
                         TextButton.icon(
-                          onPressed: () {
-                            final uri = Uri.parse(providers.link!);
-                            launchUrl(uri, mode: LaunchMode.externalApplication);
-                          },
+                          onPressed: () => _launchURL(providers.link!, context),
                           icon: const Icon(Icons.open_in_new),
                           label: const Text('Open'),
                         ),
@@ -849,7 +845,7 @@ class _TVDetailView extends StatelessWidget {
                 runSpacing: 8,
                 children: links.map((link) {
                   return OutlinedButton.icon(
-                    onPressed: () => _launchURL(link.value),
+                    onPressed: () => _launchURL(link.value, context),
                     icon: Icon(_getIconForLink(link.key)),
                     label: Text(link.key),
                   );

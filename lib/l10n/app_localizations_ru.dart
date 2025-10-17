@@ -92,4 +92,10 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get tryAgain => 'Повторить';
+
+  @override
+  String get keywords => 'Ключевые слова';
+
+  @override
+  String get apiExplorer => 'TMDB Эксплорер';
 }

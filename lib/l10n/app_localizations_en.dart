@@ -92,4 +92,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get tryAgain => 'Try again';
+
+  @override
+  String get keywords => 'Keywords';
+
+  @override
+  String get apiExplorer => 'TMDB Explorer';
 }

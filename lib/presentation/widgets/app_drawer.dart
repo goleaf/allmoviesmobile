@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_strings.dart';
+import '../../core/localization/app_localizations.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
 // HomeScreen import removed (not present); default to Movies as home
@@ -66,7 +67,7 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.home),
-            title: const Text('Home'),
+            title: Text(AppLocalizations.of(context).home),
             selected: currentRoute == MoviesScreen.routeName,
             onTap: () => _navigateTo(context, MoviesScreen.routeName),
           ),
@@ -109,18 +110,18 @@ class AppDrawer extends StatelessWidget {
           const Divider(),
           ListTile(
             leading: const Icon(Icons.settings_outlined),
-            title: const Text('Settings'),
+            title: Text(AppLocalizations.of(context).settings),
             selected: currentRoute == SettingsScreen.routeName,
             onTap: () => _navigateTo(context, SettingsScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.info),
-            title: const Text('About'),
+            title: Text(AppLocalizations.of(context).about),
             onTap: () {
               Navigator.pop(context);
               showAboutDialog(
                 context: context,
-                applicationName: AppStrings.appName,
+                applicationName: AppLocalizations.of(context).appName,
                 applicationVersion: '1.0.0',
                 applicationIcon: const Icon(Icons.movie_outlined, size: 48),
               );

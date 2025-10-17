@@ -8,6 +8,7 @@ import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/services/static_catalog_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -49,17 +50,22 @@ class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
   final TmdbRepository? tmdbRepository;
+  final StaticCatalogService? catalogService;
 
   const AllMoviesApp({
     super.key,
     required this.storageService,
     required this.prefs,
     this.tmdbRepository,
+    this.catalogService,
   });
 
   @override
   Widget build(BuildContext context) {
     final repo = tmdbRepository ?? TmdbRepository();
+    // Instantiate catalog service if provided or create default for DI/testing
+    // ignore: unused_local_variable
+    final StaticCatalogService _catalog = catalogService ?? StaticCatalogService(repo);
 
     return MultiProvider(
       providers: [

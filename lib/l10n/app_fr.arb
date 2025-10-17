@@ -27,6 +27,8 @@
   "home": "Accueil",
   "exploreCollections": "Découvrez les derniers moments forts de notre catalogue.",
   "noMoviesFound": "Aucun titre ne correspond à votre recherche.",
-  "tryAgain": "Réessayer"
+  "tryAgain": "Réessayer",
+  "keywords": "Mots-clés",
+  "apiExplorer": "Explorateur TMDB"
 }
 

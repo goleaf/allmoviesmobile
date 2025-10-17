@@ -93,4 +93,10 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get tryAgain => 'Intentar de nuevo';
+
+  @override
+  String get keywords => 'Palabras clave';
+
+  @override
+  String get apiExplorer => 'Explorador TMDB';
 }

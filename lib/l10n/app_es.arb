@@ -27,6 +27,8 @@
   "home": "Inicio",
   "exploreCollections": "Explora lo más destacado de nuestro catálogo.",
   "noMoviesFound": "No se encontraron títulos que coincidan con tu búsqueda.",
-  "tryAgain": "Intentar de nuevo"
+  "tryAgain": "Intentar de nuevo",
+  "keywords": "Palabras clave",
+  "apiExplorer": "Explorador TMDB"
 }
 

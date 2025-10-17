@@ -269,6 +269,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Try again'**
   String get tryAgain;
+
+  /// Keywords section
+  ///
+  /// In en, this message translates to:
+  /// **'Keywords'**
+  String get keywords;
+
+  /// API explorer entry
+  ///
+  /// In en, this message translates to:
+  /// **'TMDB Explorer'**
+  String get apiExplorer;
 }
 
 class _AppLocalizationsDelegate

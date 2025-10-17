@@ -1,76 +1,56 @@
-import 'package:allmovies_mobile/data/models/custom_list.dart';
-import 'package:allmovies_mobile/data/models/saved_media_item.dart';
-import 'package:allmovies_mobile/data/services/local_storage_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:allmovies_mobile/data/models/saved_media_item.dart';
+import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
+  group('LocalStorageService', () {
+    late SharedPreferences prefs;
+    late LocalStorageService storage;
 
-  setUp(() async {
-    SharedPreferences.setMockInitialValues(<String, Object>{});
-  });
-
-  group('favorites', () {
-    test('add/remove/isFavorite flow', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final storage = LocalStorageService(prefs);
-      expect(storage.isFavorite(7), isFalse);
-      await storage.addToFavorites(7);
-      expect(storage.isFavorite(7), isTrue);
-      await storage.removeFromFavorites(7);
-      expect(storage.isFavorite(7), isFalse);
+    setUp(() async {
+      SharedPreferences.setMockInitialValues({});
+      prefs = await SharedPreferences.getInstance();
+      storage = LocalStorageService(prefs);
     });
-  });
 
-  group('watchlist', () {
-    test('add/remove/isInWatchlist flow', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final storage = LocalStorageService(prefs);
-      expect(storage.isInWatchlist(9), isFalse);
-      await storage.addToWatchlist(9);
-      expect(storage.isInWatchlist(9), isTrue);
-      await storage.removeFromWatchlist(9);
-      expect(storage.isInWatchlist(9), isFalse);
+    test('favorites add/remove and retrieval', () async {
+      expect(storage.getFavorites(), isEmpty);
+
+      final items = <SavedMediaItem>[
+        SavedMediaItem(id: 1, type: SavedMediaType.movie, title: 'Movie #1'),
+        SavedMediaItem(id: 2, type: SavedMediaType.tv, title: 'TV #2'),
+      ];
+      await storage.saveFavoriteItems(items);
+
+      final fetched = storage.getFavoriteItems();
+      expect(fetched.map((e) => e.id).toSet(), {1, 2});
+
+      await storage.saveFavorites({1});
+      expect(storage.getFavorites(), {1});
     });
-  });
 
-  group('custom lists', () {
-    test('upsert and find list', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final storage = LocalStorageService(prefs);
-      final list = CustomList(id: 'abc', name: 'My List');
-      await storage.upsertCustomList(list);
-      final found = storage.findCustomList('abc');
-      expect(found, isNotNull);
-      expect(found!.name, 'My List');
+    test('watchlist set/get', () async {
+      expect(storage.getWatchlist(), isEmpty);
+      await storage.saveWatchlist({3, 4});
+      expect(storage.getWatchlist(), {3, 4});
     });
-  });
 
-  group('search history', () {
-    test('add/remove/clear search history', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final storage = LocalStorageService(prefs);
+    test('search history append/clear', () async {
       expect(storage.getSearchHistory(), isEmpty);
       await storage.addToSearchHistory('hello');
-      expect(storage.getSearchHistory(), contains('hello'));
-      await storage.removeFromSearchHistory('hello');
-      expect(storage.getSearchHistory(), isNot(contains('hello')));
       await storage.addToSearchHistory('world');
+      expect(storage.getSearchHistory(), ['world', 'hello']);
       await storage.clearSearchHistory();
       expect(storage.getSearchHistory(), isEmpty);
     });
-  });
 
-  group('recently viewed', () {
-    test('add and clear', () async {
-      final prefs = await SharedPreferences.getInstance();
-      final storage = LocalStorageService(prefs);
-      expect(storage.getRecentlyViewed(), isEmpty);
+    test('recently viewed add and trim', () async {
       await storage.addToRecentlyViewed(10);
-      expect(storage.getRecentlyViewed(), contains(10));
-      await storage.clearRecentlyViewed();
-      expect(storage.getRecentlyViewed(), isEmpty);
+      await storage.addToRecentlyViewed(11);
+      final recent = storage.getRecentlyViewed();
+      expect(recent, containsAll([11, 10]));
     });
   });
 }

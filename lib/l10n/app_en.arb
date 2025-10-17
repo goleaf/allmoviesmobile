@@ -111,6 +111,10 @@
   "tryAgain": "Try again",
   "@tryAgain": {
     "description": "Try again button"
-  }
+  },
+  "keywords": "Keywords",
+  "@keywords": {"description": "Keywords section"},
+  "apiExplorer": "TMDB Explorer",
+  "@apiExplorer": {"description": "API explorer entry"}
 }
 

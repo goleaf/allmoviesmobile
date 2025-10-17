@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'models/company_model.dart';
+import 'models/genre_model.dart';
 import 'models/movie.dart';
+import 'models/person_model.dart';
 
 class TmdbRepository {
   TmdbRepository({http.Client? client, String? apiKey})
@@ -187,22 +190,154 @@ class TmdbRepository {
   }
 
   // Genres
-  Future<List<Map<String, dynamic>>> fetchMovieGenres() async {
+  Future<List<Genre>> fetchMovieGenres() async {
     final payload = await _get('/genre/movie/list');
     final genres = payload['genres'] as List?;
 
     if (genres == null) return [];
 
-    return genres.whereType<Map<String, dynamic>>().toList(growable: false);
+    return genres
+        .whereType<Map<String, dynamic>>()
+        .map(Genre.fromJson)
+        .toList(growable: false);
   }
 
-  Future<List<Map<String, dynamic>>> fetchTVGenres() async {
+  Future<List<Genre>> fetchTVGenres() async {
     final payload = await _get('/genre/tv/list');
     final genres = payload['genres'] as List?;
 
     if (genres == null) return [];
 
-    return genres.whereType<Map<String, dynamic>>().toList(growable: false);
+    return genres
+        .whereType<Map<String, dynamic>>()
+        .map(Genre.fromJson)
+        .toList(growable: false);
+  }
+
+  // TV
+  Future<List<Movie>> fetchTrendingTv({String timeWindow = 'day'}) async {
+    final payload = await _get('/trending/tv/$timeWindow');
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Movie.fromJson)
+        .where((show) => show.title.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<Movie>> fetchPopularTv({int page = 1}) async {
+    final payload = await _get('/tv/popular', {'page': '$page'});
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Movie.fromJson)
+        .where((show) => show.title.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<Movie>> fetchTopRatedTv({int page = 1}) async {
+    final payload = await _get('/tv/top_rated', {'page': '$page'});
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Movie.fromJson)
+        .where((show) => show.title.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<Movie>> fetchAiringTodayTv({int page = 1}) async {
+    final payload = await _get('/tv/airing_today', {'page': '$page'});
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Movie.fromJson)
+        .where((show) => show.title.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  Future<List<Movie>> fetchOnTheAirTv({int page = 1}) async {
+    final payload = await _get('/tv/on_the_air', {'page': '$page'});
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Movie.fromJson)
+        .where((show) => show.title.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  // People
+  Future<List<Person>> fetchTrendingPeople({String timeWindow = 'day'}) async {
+    final payload = await _get('/trending/person/$timeWindow');
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Person.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<List<Person>> fetchPopularPeople({int page = 1}) async {
+    final payload = await _get('/person/popular', {'page': '$page'});
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Person.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<Person> fetchPersonDetails(int personId) async {
+    final payload = await _get('/person/$personId', {
+      'append_to_response': 'combined_credits,external_ids,images,tagged_images',
+    });
+    return Person.fromJson(payload);
+  }
+
+  // Companies
+  Future<List<Company>> searchCompanies(
+    String query, {
+    int page = 1,
+  }) async {
+    if (query.trim().isEmpty) {
+      return const <Company>[];
+    }
+
+    final payload = await _get('/search/company', {
+      'query': query,
+      'page': '$page',
+    });
+    final results = payload['results'] as List?;
+
+    if (results == null) return [];
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(Company.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<Company> fetchCompanyDetails(int companyId) async {
+    final payload = await _get('/company/$companyId');
+    return Company.fromJson(payload);
   }
 
   // Similar Movies

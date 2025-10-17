@@ -68,10 +68,10 @@ class AllMoviesApp extends StatelessWidget {
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
         ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => MoviesProvider()),
-        ChangeNotifierProvider(create: (_) => SeriesProvider()),
-        ChangeNotifierProvider(create: (_) => PeopleProvider()),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider()),
+        ChangeNotifierProvider(create: (_) => MoviesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => SeriesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => PeopleProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider(tmdbRepository)),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
         builder: (context, localeProvider, themeProvider, _) {

@@ -1,39 +1,123 @@
 import 'package:flutter/material.dart';
-import '../data/models/media_item.dart';
+
+import '../data/models/movie.dart';
+import '../data/tmdb_repository.dart';
+
+enum SeriesSection {
+  trending,
+  popular,
+  topRated,
+  airingToday,
+  onTheAir,
+}
+
+class SeriesSectionState {
+  const SeriesSectionState({
+    this.items = const <Movie>[],
+    this.isLoading = false,
+    this.errorMessage,
+  });
+
+  static const _sentinel = Object();
+
+  final List<Movie> items;
+  final bool isLoading;
+  final String? errorMessage;
+
+  SeriesSectionState copyWith({
+    List<Movie>? items,
+    bool? isLoading,
+    Object? errorMessage = _sentinel,
+  }) {
+    return SeriesSectionState(
+      items: items ?? this.items,
+      isLoading: isLoading ?? this.isLoading,
+      errorMessage:
+          errorMessage == _sentinel ? this.errorMessage : errorMessage as String?,
+    );
+  }
+}
 
 class SeriesProvider extends ChangeNotifier {
-  final List<MediaItem> _series = const [
-    MediaItem(
-      title: 'The Last of Us',
-      subtitle: '2023 • Drama',
-      overview: 'Joel and Ellie traverse a post-pandemic United States.',
-      rating: 8.9,
-    ),
-    MediaItem(
-      title: 'Succession',
-      subtitle: '2018 • Drama',
-      overview: 'The Roy family fights for control of their media empire.',
-      rating: 8.8,
-    ),
-    MediaItem(
-      title: 'The Bear',
-      subtitle: '2022 • Comedy-Drama',
-      overview: 'A chef returns home to run his family sandwich shop.',
-      rating: 8.5,
-    ),
-    MediaItem(
-      title: 'Arcane',
-      subtitle: '2021 • Animation',
-      overview: 'Sisters Vi and Jinx clash amid unrest in Piltover and Zaun.',
-      rating: 9.0,
-    ),
-    MediaItem(
-      title: 'Severance',
-      subtitle: '2022 • Sci-Fi',
-      overview: 'Office workers separate their memories between work and personal life.',
-      rating: 8.4,
-    ),
-  ];
+  SeriesProvider(this._repository) {
+    _init();
+  }
 
-  List<MediaItem> get series => List.unmodifiable(_series);
+  final TmdbRepository _repository;
+
+  final Map<SeriesSection, SeriesSectionState> _sections = {
+    for (final section in SeriesSection.values) section: const SeriesSectionState(),
+  };
+
+  bool _isInitialized = false;
+  bool _isRefreshing = false;
+  String? _globalError;
+
+  Map<SeriesSection, SeriesSectionState> get sections => _sections;
+  bool get isInitialized => _isInitialized;
+  bool get isRefreshing => _isRefreshing;
+  String? get globalError => _globalError;
+
+  SeriesSectionState sectionState(SeriesSection section) => _sections[section]!;
+
+  Future<void> _init() async {
+    await refresh(force: true);
+  }
+
+  Future<void> refresh({bool force = false}) async {
+    if (_isRefreshing) {
+      return;
+    }
+
+    if (_isInitialized && !force) {
+      return;
+    }
+
+    _isRefreshing = true;
+    _globalError = null;
+    for (final section in SeriesSection.values) {
+      _sections[section] =
+          _sections[section]!.copyWith(isLoading: true, errorMessage: null);
+    }
+    notifyListeners();
+
+    try {
+      final results = await Future.wait<List<Movie>>([
+        _repository.fetchTrendingTv(),
+        _repository.fetchPopularTv(),
+        _repository.fetchTopRatedTv(),
+        _repository.fetchAiringTodayTv(),
+        _repository.fetchOnTheAirTv(),
+      ]);
+
+      final sectionsList = SeriesSection.values;
+      for (var index = 0; index < sectionsList.length; index++) {
+        final section = sectionsList[index];
+        final sectionItems = results[index];
+        _sections[section] = SeriesSectionState(items: sectionItems);
+      }
+
+      _globalError = null;
+      _isInitialized = true;
+    } on TmdbException catch (error) {
+      _globalError = error.message;
+      _setErrorForAll(error.message);
+    } catch (error) {
+      _globalError = 'Failed to load series: $error';
+      _setErrorForAll(_globalError);
+    } finally {
+      _isRefreshing = false;
+      notifyListeners();
+    }
+  }
+
+  void _setErrorForAll(String? message) {
+    for (final section in SeriesSection.values) {
+      _sections[section] = _sections[section]!.copyWith(
+        isLoading: false,
+        errorMessage: message,
+        items: const <Movie>[],
+      );
+    }
+  }
 }

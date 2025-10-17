@@ -1,34 +1,75 @@
 import 'package:flutter/material.dart';
-import '../data/models/company_item.dart';
+
+import '../data/models/company_model.dart';
+import '../data/tmdb_repository.dart';
 
 class CompaniesProvider extends ChangeNotifier {
-  final List<CompanyItem> _companies = const [
-    CompanyItem(
-      name: 'A24',
-      originCountry: 'United States',
-      description: 'Independent studio championing distinctive storytelling across film and television.',
-    ),
-    CompanyItem(
-      name: 'Studio Ghibli',
-      originCountry: 'Japan',
-      description: 'Beloved animation house behind timeless adventures and hand-drawn artistry.',
-    ),
-    CompanyItem(
-      name: 'Marvel Studios',
-      originCountry: 'United States',
-      description: 'Superhero powerhouse shaping the Marvel Cinematic Universe since 2008.',
-    ),
-    CompanyItem(
-      name: 'Bad Robot Productions',
-      originCountry: 'United States',
-      description: 'Production company blending mystery-box storytelling with blockbuster spectacle.',
-    ),
-    CompanyItem(
-      name: 'BBC Studios',
-      originCountry: 'United Kingdom',
-      description: 'Global content studio delivering acclaimed drama, documentaries, and natural history.',
-    ),
-  ];
+  CompaniesProvider(this._repository);
 
-  List<CompanyItem> get companies => List.unmodifiable(_companies);
+  final TmdbRepository _repository;
+
+  final List<Company> _searchResults = [];
+  bool _isSearching = false;
+  String? _errorMessage;
+  String _lastQuery = '';
+
+  List<Company> get searchResults => List.unmodifiable(_searchResults);
+  bool get isSearching => _isSearching;
+  String? get errorMessage => _errorMessage;
+  String get lastQuery => _lastQuery;
+
+  Future<void> searchCompanies(String query) async {
+    final normalized = query.trim();
+    if (normalized.isEmpty) {
+      _searchResults
+        ..clear();
+      _errorMessage = null;
+      _lastQuery = '';
+      notifyListeners();
+      return;
+    }
+
+    if (_isSearching && normalized == _lastQuery) {
+      return;
+    }
+
+    _isSearching = true;
+    _errorMessage = null;
+    _lastQuery = normalized;
+    notifyListeners();
+
+    try {
+      final results = await _repository.searchCompanies(normalized);
+      _searchResults
+        ..clear()
+        ..addAll(results);
+      _errorMessage = null;
+    } on TmdbException catch (error) {
+      _errorMessage = error.message;
+      _searchResults.clear();
+    } catch (error) {
+      _errorMessage = 'Failed to search companies: $error';
+      _searchResults.clear();
+    } finally {
+      _isSearching = false;
+      notifyListeners();
+    }
+  }
+
+  Future<Company?> fetchCompanyDetails(int companyId) async {
+    try {
+      return await _repository.fetchCompanyDetails(companyId);
+    } catch (error) {
+      _errorMessage = 'Failed to load company details: $error';
+      notifyListeners();
+      return null;
+    }
+  }
+
+  void clear() {
+    _searchResults.clear();
+    _errorMessage = null;
+    _lastQuery = '';
+    notifyListeners();
+  }
 }

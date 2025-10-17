@@ -1,18 +1,29 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 
 /// Centralized error handling for the application
 class ErrorHandler {
-  static final _logger = Logger(
-    printer: PrettyPrinter(
-      methodCount: 2,
-      errorMethodCount: 8,
-      lineLength: 120,
-      colors: true,
-      printEmojis: true,
-      dateTimeFormat: DateTimeFormat.none,
-    ),
-  );
+  static Logger? _logger;
+  
+  static Logger get logger {
+    _logger ??= Logger(
+      printer: PrettyPrinter(
+        methodCount: 2,
+        errorMethodCount: 8,
+        lineLength: 120,
+        colors: true,
+        printEmojis: true,
+        dateTimeFormat: DateTimeFormat.none,
+      ),
+    );
+    return _logger!;
+  }
+  
+  /// Disable logging (useful for tests)
+  static void disableLogging() {
+    _logger = null;
+  }
 
   /// Log an error with context
   static void logError(
@@ -20,22 +31,38 @@ class ErrorHandler {
     dynamic error, [
     StackTrace? stackTrace,
   ]) {
-    _logger.e(message, error: error, stackTrace: stackTrace);
+    if (_logger != null) {
+      logger.e(message, error: error, stackTrace: stackTrace);
+    } else if (kDebugMode) {
+      print('ERROR: $message - $error');
+    }
   }
 
   /// Log a warning
   static void logWarning(String message, [dynamic data]) {
-    _logger.w(message, error: data);
+    if (_logger != null) {
+      logger.w(message, error: data);
+    } else if (kDebugMode) {
+      print('WARNING: $message');
+    }
   }
 
   /// Log info
   static void logInfo(String message, [dynamic data]) {
-    _logger.i(message, error: data);
+    if (_logger != null) {
+      logger.i(message, error: data);
+    } else if (kDebugMode) {
+      print('INFO: $message');
+    }
   }
 
   /// Log debug info
   static void logDebug(String message, [dynamic data]) {
-    _logger.d(message, error: data);
+    if (_logger != null) {
+      logger.d(message, error: data);
+    } else if (kDebugMode) {
+      print('DEBUG: $message');
+    }
   }
 
   /// Convert errors to user-friendly messages

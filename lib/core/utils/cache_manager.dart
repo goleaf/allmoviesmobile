@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 
 /// Enhanced cache manager with TTL and automatic cleanup
 class CacheManager {
@@ -83,7 +82,6 @@ class CacheManager {
 
   /// Get cache statistics
   Map<String, dynamic> getStatistics() {
-    final now = DateTime.now();
     var expiredCount = 0;
     var validCount = 0;
 

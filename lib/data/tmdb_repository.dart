@@ -38,11 +38,13 @@ class TmdbRepository {
   TmdbRepository({
     http.Client? client,
     CacheService? cacheService,
+    NetworkQualityNotifier? networkQualityNotifier,
     String? apiKey,
     String? language,
     NetworkQualityNotifier? networkQuality,
   }) : _client = client ?? http.Client(),
        _cache = cacheService,
+       _networkQualityNotifier = networkQualityNotifier,
        _language = language ?? AppConfig.defaultLanguage,
        _networkQuality = networkQuality,
        _apiKey = (() {
@@ -53,21 +55,30 @@ class TmdbRepository {
            return provided;
          }
          return AppConfig.tmdbApiKey;
-       })();
+       })() {
+    _networkQualityNotifier?.addListener(_handleNetworkQualityChange);
+    _handleNetworkQualityChange();
+  }
 
   static const _host = 'api.themoviedb.org';
   static const _basePath = '/3';
 
   final http.Client _client;
   final CacheService? _cache;
+  final NetworkQualityNotifier? _networkQualityNotifier;
   final String _apiKey;
   final String _language;
   final NetworkQualityNotifier? _networkQuality;
   final RateLimiter _globalRateLimiter = RateLimiter(
-    const Duration(milliseconds: 250),
+    const Duration(milliseconds: 200),
   );
   final Map<String, RateLimiter> _endpointLimiters = {};
-  final Map<String, Future<void>> _pendingRevalidations = {};
+  Duration _networkAwareDelay = Duration.zero;
+
+  void initialize() {
+    _networkQualityNotifier?.addListener(_handleNetworkQualityChange);
+    _handleNetworkQualityChange();
+  }
 
   void _ensureApiKey() {
     if (_apiKey.isEmpty) {
@@ -84,6 +95,11 @@ class TmdbRepository {
     return Uri.https(_host, '$_basePath$endpoint', params);
   }
 
+  /// Perform a TMDB GET request against a specific V3 endpoint.
+  ///
+  /// For example passing `'/movie/popular'` issues
+  /// `GET https://api.themoviedb.org/3/movie/popular` and returns JSON similar
+  /// to `{ "page": 1, "results": [ { "id": 238, "title": "The Godfather" } ] }`.
   Future<Map<String, dynamic>> _getJson(
     String endpoint, {
     Map<String, String>? query,
@@ -101,6 +117,9 @@ class TmdbRepository {
 
     Future<Map<String, dynamic>> request() async {
       try {
+        if (_networkAwareDelay > Duration.zero) {
+          await Future.delayed(_networkAwareDelay);
+        }
         final response = await _client
             .get(uri, headers: {'Accept': 'application/json'})
             .timeout(AppConfig.requestTimeout);
@@ -135,21 +154,12 @@ class TmdbRepository {
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);
 
-  void _setCached<T>(
-    String key,
-    T value, {
-    int ttlSeconds = 900,
-    CachePolicy? policy,
-  }) {
-    final cache = _cache;
-    if (cache == null) {
-      return;
-    }
-    if (policy != null) {
-      cache.set<T>(key, value, policy: policy);
-    } else {
-      cache.set<T>(key, value, ttlSeconds: ttlSeconds);
-    }
+  void _setCached<T>(String key, T value, {int ttlSeconds = 900}) {
+    _cache?.set<T>(
+      key,
+      value,
+      ttlSeconds: _resolveTtlSeconds(ttlSeconds),
+    );
   }
 
   Future<T> _cached<T>(
@@ -207,17 +217,49 @@ class TmdbRepository {
     return value;
   }
 
-  Duration _delayForQuality(NetworkQuality? quality) {
-    switch (quality) {
-      case NetworkQuality.constrained:
-        return const Duration(milliseconds: 300);
-      case NetworkQuality.balanced:
-        return const Duration(milliseconds: 150);
-      case NetworkQuality.excellent:
-      case NetworkQuality.offline:
-      case null:
-        return Duration.zero;
+  int _resolveTtlSeconds(int baseSeconds) {
+    final quality = _networkQualityNotifier?.quality;
+    if (quality == null) {
+      return baseSeconds;
     }
+
+    switch (quality) {
+      case NetworkQuality.offline:
+        return baseSeconds * 4;
+      case NetworkQuality.constrained:
+        return (baseSeconds * 5) ~/ 2;
+      case NetworkQuality.balanced:
+        return (baseSeconds * 3) ~/ 2;
+      case NetworkQuality.excellent:
+        return baseSeconds;
+    }
+  }
+
+  void _handleNetworkQualityChange() {
+    final quality = _networkQualityNotifier?.quality;
+    if (quality == null) {
+      _networkAwareDelay = Duration.zero;
+      return;
+    }
+
+    switch (quality) {
+      case NetworkQuality.offline:
+        _networkAwareDelay = const Duration(seconds: 2);
+        break;
+      case NetworkQuality.constrained:
+        _networkAwareDelay = const Duration(milliseconds: 600);
+        break;
+      case NetworkQuality.balanced:
+        _networkAwareDelay = const Duration(milliseconds: 300);
+        break;
+      case NetworkQuality.excellent:
+        _networkAwareDelay = Duration.zero;
+        break;
+    }
+  }
+
+  void dispose() {
+    _networkQualityNotifier?.removeListener(_handleNetworkQualityChange);
   }
 
   PaginatedResponse<T> _mapPaginated<T>(

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:collection';
 
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,13 +37,21 @@ class CachePolicy {
 class CacheService {
   CacheService({
     SharedPreferences? prefs,
-    int maxEntries = defaultMaxEntries,
+    Duration cleanupInterval = const Duration(minutes: 5),
+    int maxEntries = 256,
+    int maxEntryBytes = 256 * 1024,
   })  : _prefs = prefs,
-        _maxEntries = maxEntries.clamp(32, 2048);
+        _maxEntries = maxEntries,
+        _maxEntryBytes = maxEntryBytes {
+    // Schedule eager cleanup so that in-memory caches remain fresh even if the
+    // UI does not actively query for values. This improves cache lifecycle
+    // management by aggressively pruning stale data.
+    _cleanupTimer = schedulePeriodicCleanup(interval: cleanupInterval);
+  }
 
   final Logger _logger = Logger();
-  final LinkedHashMap<String, _CacheEntry> _cache = LinkedHashMap();
-  final int _maxEntries;
+  final Map<String, _CacheEntry> _cache = LinkedHashMap<String, _CacheEntry>();
+  final Map<String, int> _inflightPersistentWrites = {};
 
   // Default TTL values (in seconds)
   static const int defaultMaxEntries = 256;
@@ -53,6 +62,21 @@ class CacheService {
   static const String _persistentPrefix = '__cache_service__';
 
   SharedPreferences? _prefs;
+  Timer? _cleanupTimer;
+  int _maxEntries;
+  int _maxEntryBytes;
+  int _totalBytes = 0;
+
+  /// Update cache capacity controls at runtime.
+  void configure({int? maxEntries, int? maxEntryBytes}) {
+    if (maxEntries != null && maxEntries > 0) {
+      _maxEntries = maxEntries;
+    }
+    if (maxEntryBytes != null && maxEntryBytes > 0) {
+      _maxEntryBytes = maxEntryBytes;
+    }
+    _evictIfNeeded();
+  }
 
   /// Get a value from cache without metadata.
   T? get<T>(String key) {
@@ -75,22 +99,13 @@ class CacheService {
     if (entry.isExpired) {
       _logger.d('Cache expired: $key');
       _cache.remove(key);
-      return CacheLookupResult<T>.expired();
-    }
-
-    if (!allowStale && entry.isStale) {
-      _logger.d('Cache stale (discarded): $key');
-      _cache.remove(key);
-      return CacheLookupResult<T>.stale();
+      _totalBytes -= entry.estimatedSize;
+      return null;
     }
 
     entry.touch();
-    _logger.d('Cache hit: $key (stale: ${entry.isStale})');
-    return CacheLookupResult<T>(
-      value: entry.value as T?,
-      isStale: entry.isStale,
-      isExpired: false,
-    );
+    _logger.d('Cache hit: $key');
+    return entry.value as T?;
   }
 
   /// Set a value in cache with optional TTL
@@ -100,17 +115,26 @@ class CacheService {
     int? ttlSeconds,
     CachePolicy? policy,
   }) {
+    final previous = _cache.remove(key);
+    if (previous != null) {
+      _totalBytes -= previous.estimatedSize;
+    }
+
     final effectivePolicy = policy ??
         (ttlSeconds != null
             ? CachePolicy.fromSeconds(ttlSeconds)
             : const CachePolicy(ttl: Duration(seconds: defaultTTL)));
 
+    final estimatedSize = _estimateSize(value);
+
     _cache[key] = _CacheEntry(
       value: value,
       createdAt: DateTime.now(),
       policy: effectivePolicy,
+      estimatedSize: estimatedSize,
     );
 
+    _totalBytes += estimatedSize;
     _evictIfNeeded();
 
     _logger.d('Cache set: $key (TTL: ${effectivePolicy.ttl.inSeconds}s)');
@@ -118,7 +142,10 @@ class CacheService {
 
   /// Remove a specific key from cache
   void remove(String key) {
-    _cache.remove(key);
+    final removed = _cache.remove(key);
+    if (removed != null) {
+      _totalBytes -= removed.estimatedSize;
+    }
     _logger.d('Cache removed: $key');
   }
 
@@ -130,7 +157,10 @@ class CacheService {
         .toList();
 
     for (final key in keysToRemove) {
-      _cache.remove(key);
+      final removed = _cache.remove(key);
+      if (removed != null) {
+        _totalBytes -= removed.estimatedSize;
+      }
     }
 
     _logger.d('Cache removed pattern: $pattern (${keysToRemove.length} keys)');
@@ -139,6 +169,7 @@ class CacheService {
   /// Clear all cache
   void clear() {
     _cache.clear();
+    _totalBytes = 0;
     _logger.d('Cache cleared');
   }
 
@@ -150,7 +181,10 @@ class CacheService {
         .toList();
 
     for (final key in expiredKeys) {
-      _cache.remove(key);
+      final removed = _cache.remove(key);
+      if (removed != null) {
+        _totalBytes -= removed.estimatedSize;
+      }
     }
 
     _logger.d('Cleaned ${expiredKeys.length} expired cache entries');
@@ -271,7 +305,15 @@ class CacheService {
       'refreshAfter': refreshAfter,
     });
 
+    // Track inflight persistent writes to avoid overwhelming disk with the
+    // same large payload repeatedly (basic throttling for image compression
+    // metadata).
+    final writeTicket = DateTime.now().millisecondsSinceEpoch;
+    _inflightPersistentWrites[key] = writeTicket;
     await prefs.setString(_persistentKey(key), payload);
+    if (_inflightPersistentWrites[key] == writeTicket) {
+      _inflightPersistentWrites.remove(key);
+    }
     _logger.d(
       'Persistent cache set: $key (TTL: ${effectivePolicy.ttl.inSeconds}s)',
     );
@@ -354,23 +396,48 @@ class CacheService {
 
   /// Dispose timers and clear caches
   Future<void> dispose() async {
+    _cleanupTimer?.cancel();
     _cache.clear();
+    _totalBytes = 0;
     await clearPersistent();
   }
 
   void _evictIfNeeded() {
-    if (_cache.length <= _maxEntries) {
+    if (_cache.length <= _maxEntries && _totalBytes <= _maxEntryBytes) {
       return;
     }
-    final overflow = _cache.length - _maxEntries;
+
     final entries = _cache.entries.toList()
-      ..sort(
-        (a, b) => a.value.lastAccessed.compareTo(b.value.lastAccessed),
-      );
-    for (var i = 0; i < overflow; i++) {
-      final key = entries[i].key;
-      _cache.remove(key);
-      _logger.d('Cache evicted (LRU): $key');
+      ..sort((a, b) => a.value.lastAccessed.compareTo(b.value.lastAccessed));
+    var index = 0;
+
+    while ((_cache.length > _maxEntries || _totalBytes > _maxEntryBytes) &&
+        index < entries.length) {
+      final key = entries[index].key;
+      final removed = _cache.remove(key);
+      if (removed != null) {
+        _totalBytes -= removed.estimatedSize;
+      }
+      index++;
+    }
+
+    if (index > 0) {
+      _logger.d('Evicted $index cache entries due to memory pressure');
+    }
+  }
+
+  int _estimateSize(Object? value) {
+    try {
+      if (value is String) {
+        return utf8.encode(value).length;
+      }
+      if (value is List<int>) {
+        return value.length;
+      }
+      final encoded = jsonEncode(value);
+      return utf8.encode(encoded).length;
+    } catch (_) {
+      return 512; // Fallback heuristic when serialization fails
     }
   }
 }
@@ -379,13 +446,15 @@ class _CacheEntry {
   final dynamic value;
   final DateTime createdAt;
   final CachePolicy policy;
+  final int estimatedSize;
   DateTime lastAccessed;
 
   _CacheEntry({
     required this.value,
     required this.createdAt,
     required this.policy,
-  }) : lastAccessed = DateTime.now();
+    required this.estimatedSize,
+  }) : lastAccessed = createdAt;
 
   DateTime get expiresAt => createdAt.add(policy.ttl);
 

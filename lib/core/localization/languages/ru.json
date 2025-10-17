@@ -155,6 +155,23 @@
     "added": "Добавлено в список",
     "removed": "Удалено из списка"
   },
+  "collection": {
+    "title": "Коллекция",
+    "overview": "Описание",
+    "parts": "Фильмы",
+    "release_timeline": "Хронология релизов",
+    "images": "Галерея",
+    "total_revenue": "Общие сборы",
+    "translations": "Переводы",
+    "no_overview": "Описание коллекции недоступно.",
+    "revenue_label": "Сборы",
+    "no_timeline_data": "Данные о хронологии отсутствуют.",
+    "unknown_release_date": "Неизвестная дата релиза",
+    "no_translation_title": "Нет локализованного названия",
+    "translation_overview": "Описание",
+    "no_translation_overview": "Описание для этого перевода недоступно.",
+    "translation_homepage": "Домашняя страница"
+  },
   "settings": {
     "title": "Настройки",
     "appearance": "Внешний Вид",

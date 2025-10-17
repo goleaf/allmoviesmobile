@@ -155,6 +155,23 @@
     "added": "Додано до списку",
     "removed": "Видалено зі списку"
   },
+  "collection": {
+    "title": "Колекція",
+    "overview": "Опис",
+    "parts": "Фільми",
+    "release_timeline": "Хронологія релізів",
+    "images": "Галерея",
+    "total_revenue": "Загальні збори",
+    "translations": "Переклади",
+    "no_overview": "Опис колекції недоступний.",
+    "revenue_label": "Касові збори",
+    "no_timeline_data": "Дані хронології відсутні.",
+    "unknown_release_date": "Невідома дата релізу",
+    "no_translation_title": "Немає локалізованої назви",
+    "translation_overview": "Опис",
+    "no_translation_overview": "Опис для цього перекладу недоступний.",
+    "translation_homepage": "Домашня сторінка"
+  },
   "settings": {
     "title": "Налаштування",
     "appearance": "Зовнішній Вигляд",

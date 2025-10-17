@@ -155,6 +155,23 @@
     "added": "Added to watchlist",
     "removed": "Removed from watchlist"
   },
+  "collection": {
+    "title": "Collection",
+    "overview": "Overview",
+    "parts": "Parts",
+    "release_timeline": "Release Timeline",
+    "images": "Images",
+    "total_revenue": "Total Revenue",
+    "translations": "Translations",
+    "no_overview": "No overview available for this collection.",
+    "revenue_label": "Revenue",
+    "no_timeline_data": "Timeline data is not available.",
+    "unknown_release_date": "Unknown release date",
+    "no_translation_title": "No localized title",
+    "translation_overview": "Overview",
+    "no_translation_overview": "Overview not available for this translation.",
+    "translation_homepage": "Homepage"
+  },
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",

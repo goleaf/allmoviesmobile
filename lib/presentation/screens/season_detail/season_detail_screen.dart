@@ -6,6 +6,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/episode_model.dart';
 import '../../../data/models/season_model.dart';
 import '../../../presentation/widgets/media_image.dart';
+import '../../widgets/image_gallery.dart';
 import '../../../data/models/media_images.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../presentation/widgets/error_widget.dart';
@@ -14,7 +15,6 @@ import '../../../presentation/widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../episode_detail/episode_detail_screen.dart';
 import '../../../providers/season_detail_provider.dart';
-// duplicate import removed
 
 class SeasonDetailScreen extends StatelessWidget {
   static const routeName = '/season';
@@ -364,6 +364,7 @@ class _SeasonDetailView extends StatelessWidget {
     final args =
         (ModalRoute.of(context)?.settings.arguments) as SeasonDetailArgs?;
     if (args == null) return const SizedBox.shrink();
+
     return FutureBuilder<MediaImages>(
       future: repository.fetchTvSeasonImages(args.tvId, args.seasonNumber),
       builder: (context, snapshot) {
@@ -376,73 +377,67 @@ class _SeasonDetailView extends StatelessWidget {
             ),
           );
         }
-        if (!snapshot.hasData || !snapshot.data!.hasAny)
+
+        final data = snapshot.data;
+        if (data == null || !data.hasAny) {
           return const SizedBox.shrink();
-        final images = snapshot.data!;
-        final posters = images.posters.take(10).toList();
-        final backdrops = images.backdrops.take(10).toList();
-        return Padding(
+        }
+
+        final sections = <ImageGallerySectionConfig>[];
+        if (data.posters.isNotEmpty) {
+          sections.add(
+            ImageGallerySectionConfig(
+              title: loc.t('movie.posters'),
+              images: data.posters,
+              type: MediaImageType.poster,
+              itemHeight: 210,
+              aspectRatio: 2 / 3,
+              thumbnailSize: MediaImageSize.w342,
+              previewSize: MediaImageSize.w154,
+              fullscreenSize: MediaImageSize.original,
+              displayLimit: 10,
+            ),
+          );
+        }
+        if (data.backdrops.isNotEmpty) {
+          sections.add(
+            ImageGallerySectionConfig(
+              title: loc.t('movie.backdrops'),
+              images: data.backdrops,
+              type: MediaImageType.backdrop,
+              itemHeight: 150,
+              aspectRatio: 16 / 9,
+              thumbnailSize: MediaImageSize.w780,
+              previewSize: MediaImageSize.w300,
+              fullscreenSize: MediaImageSize.original,
+              displayLimit: 10,
+            ),
+          );
+        }
+
+        return ImageGallery(
+          title: loc.t('movie.images'),
+          sections: sections,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocalizations.of(context).t('movie.images'),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              if (posters.isNotEmpty) ...[
-                SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: posters.length,
-                    itemBuilder: (context, index) {
-                      final img = posters[index];
-                      return Container(
-                        width: 140,
-                        margin: const EdgeInsets.only(right: 12),
-                        child: MediaImage(
-                          path: img.filePath,
-                          type: MediaImageType.poster,
-                          size: MediaImageSize.w342,
-                          width: 140,
-                          height: 200,
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (backdrops.isNotEmpty)
-                SizedBox(
-                  height: 140,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: backdrops.length,
-                    itemBuilder: (context, index) {
-                      final img = backdrops[index];
-                      return Container(
-                        width: 240,
-                        margin: const EdgeInsets.only(right: 12),
-                        child: MediaImage(
-                          path: img.filePath,
-                          type: MediaImageType.backdrop,
-                          size: MediaImageSize.w780,
-                          width: 240,
-                          height: 140,
-                          fit: BoxFit.cover,
-                        ),
-                      );
-                    },
-                  ),
-                ),
+          thumbnailOverlayGradient: const LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Color.fromARGB(160, 0, 0, 0),
+              Color.fromARGB(30, 0, 0, 0),
+              Color.fromARGB(0, 0, 0, 0),
             ],
           ),
+          dialogOverlayGradient: const LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Color.fromARGB(220, 0, 0, 0),
+              Color.fromARGB(60, 0, 0, 0),
+              Color.fromARGB(0, 0, 0, 0),
+            ],
+          ),
+          dialogBlurSigma: 2,
         );
       },
     );

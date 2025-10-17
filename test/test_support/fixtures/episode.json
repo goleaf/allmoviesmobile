@@ -1,0 +1,48 @@
+{
+  "id": 63056,
+  "episode_number": 7,
+  "season_number": 1,
+  "name": "A Golden Crown",
+  "overview": "Viserys is forced to accept that he will never be king.",
+  "air_date": "2011-05-22",
+  "runtime": 53,
+  "still_path": "/e7.jpg",
+  "vote_average": 8.3,
+  "vote_count": 3200,
+  "cast": [
+    {
+      "id": 7230,
+      "name": "Peter Dinklage",
+      "character": "Tyrion Lannister",
+      "profile_path": "/pd.png",
+      "order": 0
+    }
+  ],
+  "guest_stars": [
+    {
+      "id": 1223786,
+      "name": "Jason Momoa",
+      "character": "Khal Drogo",
+      "profile_path": "/3s.png"
+    }
+  ],
+  "crew": [
+    {
+      "id": 1223,
+      "name": "David Nutter",
+      "job": "Director",
+      "department": "Directing",
+      "profile_path": "/dn.png"
+    }
+  ],
+  "videos": [
+    {
+      "key": "promo",
+      "site": "YouTube",
+      "type": "Clip",
+      "name": "Episode 7 Preview",
+      "official": true,
+      "published_at": "2011-05-15T00:00:00Z"
+    }
+  ]
+}

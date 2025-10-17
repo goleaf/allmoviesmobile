@@ -1,0 +1,24 @@
+{
+  "link": "https://www.themoviedb.org/movie/603-the-matrix/watch",
+  "flatrate": [
+    {
+      "provider_id": 8,
+      "provider_name": "Netflix",
+      "logo_path": "/netflix.png",
+      "display_priority": 0,
+      "id": 8
+    }
+  ],
+  "rent": [
+    {
+      "provider_id": 3,
+      "provider_name": "Apple TV",
+      "logo_path": "/apple_tv.png",
+      "display_priority": 1,
+      "id": 3
+    }
+  ],
+  "buy": [],
+  "ads": null,
+  "free": null
+}

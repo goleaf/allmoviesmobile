@@ -1,0 +1,105 @@
+{
+  "page": 1,
+  "results": [
+    {
+      "id": 603,
+      "title": "The Matrix",
+      "original_title": "The Matrix",
+      "overview": null,
+      "tagline": null,
+      "release_date": null,
+      "runtime": null,
+      "genres": [],
+      "production_companies": [],
+      "production_countries": [],
+      "spoken_languages": [],
+      "poster_path": null,
+      "backdrop_path": null,
+      "vote_average": 8.2,
+      "vote_count": 25000,
+      "popularity": null,
+      "status": null,
+      "homepage": null,
+      "external_ids": {},
+      "budget": null,
+      "revenue": null,
+      "videos": [],
+      "images": [],
+      "recommendations": [],
+      "similar": []
+    },
+    {
+      "id": 6384,
+      "name": "Keanu Reeves",
+      "biography": null,
+      "birthday": null,
+      "deathday": null,
+      "place_of_birth": null,
+      "gender": null,
+      "known_for_department": null,
+      "also_known_as": [],
+      "profile_path": null,
+      "external_ids": {},
+      "images": [],
+      "combined_credits": {
+        "cast": [],
+        "crew": []
+      }
+    }
+  ],
+  "groups": {
+    "movies": [
+      {
+        "id": 603,
+        "title": "The Matrix",
+        "original_title": "The Matrix",
+        "overview": null,
+        "tagline": null,
+        "release_date": null,
+        "runtime": null,
+        "genres": [],
+        "production_companies": [],
+        "production_countries": [],
+        "spoken_languages": [],
+        "poster_path": null,
+        "backdrop_path": null,
+        "vote_average": 8.2,
+        "vote_count": 25000,
+        "popularity": null,
+        "status": null,
+        "homepage": null,
+        "external_ids": {},
+        "budget": null,
+        "revenue": null,
+        "videos": [],
+        "images": [],
+        "recommendations": [],
+        "similar": []
+      }
+    ],
+    "tv": [],
+    "people": [
+      {
+        "id": 6384,
+        "name": "Keanu Reeves",
+        "biography": null,
+        "birthday": null,
+        "deathday": null,
+        "place_of_birth": null,
+        "gender": null,
+        "known_for_department": null,
+        "also_known_as": [],
+        "profile_path": null,
+        "external_ids": {},
+        "images": [],
+        "combined_credits": {
+          "cast": [],
+          "crew": []
+        }
+      }
+    ],
+    "companies": []
+  },
+  "total_pages": 20,
+  "total_results": 384
+}

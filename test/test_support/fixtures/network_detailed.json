@@ -1,0 +1,11 @@
+{
+  "id": 49,
+  "name": "HBO",
+  "logo_path": "/hbo.png",
+  "origin_country": "US",
+  "headquarters": "New York",
+  "homepage": "https://www.hbo.com",
+  "alternative_names": [
+    { "name": "Home Box Office", "type": "Official" }
+  ]
+}

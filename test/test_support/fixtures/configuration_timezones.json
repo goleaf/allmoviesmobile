@@ -1,0 +1,10 @@
+[
+  {
+    "iso_3166_1": "US",
+    "zones": ["America/New_York", "America/Los_Angeles"]
+  },
+  {
+    "iso_3166_1": "GB",
+    "zones": ["Europe/London"]
+  }
+]

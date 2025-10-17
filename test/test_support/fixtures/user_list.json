@@ -1,0 +1,37 @@
+{
+  "id": "abc123",
+  "name": "Favorite Sci-Fi",
+  "description": "A curated list of sci-fi films.",
+  "created_by": "user42",
+  "items": [
+    {
+      "media_id": 603,
+      "media_type": "movie",
+      "title": "The Matrix",
+      "overview": "A hacker learns the truth.",
+      "poster_path": "/matrix.jpg",
+      "backdrop_path": "/matrix-bg.jpg",
+      "release_date": "1999-03-31",
+      "added_by": "user42",
+      "added_at": "2024-01-01T12:00:00Z",
+      "position": 1,
+      "vote_average": 8.7
+    }
+  ],
+  "comments": [
+    {
+      "id": "comment1",
+      "user_id": "friend",
+      "user_name": "Friend",
+      "message": "Great picks!",
+      "created_at": "2024-01-02T10:00:00Z"
+    }
+  ],
+  "collaborators": [
+    {
+      "user_id": "friend",
+      "display_name": "Friend",
+      "added_at": "2024-01-01T13:00:00Z"
+    }
+  ]
+}

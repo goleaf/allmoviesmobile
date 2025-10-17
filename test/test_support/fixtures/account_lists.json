@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "name": "Favorites",
+    "description": "  My favorite movies  ",
+    "poster_path": "/poster1.jpg",
+    "list_type": "movie",
+    "iso_639_1": "en",
+    "item_count": 10,
+    "favorite_count": 2
+  },
+  {
+    "id": "list_2",
+    "name": "Watch Later",
+    "description": null,
+    "poster_path": null,
+    "list_type": "tv",
+    "iso_639_1": "es",
+    "item_count": "5",
+    "favorite_count": "1"
+  }
+]

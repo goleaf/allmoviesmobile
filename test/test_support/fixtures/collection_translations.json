@@ -1,0 +1,15 @@
+{
+  "translations": [
+    {
+      "iso_639_1": "en",
+      "iso_3166_1": "US",
+      "name": "English",
+      "english_name": "English",
+      "data": {
+        "title": "The Matrix Collection",
+        "overview": "A trilogy following Neo.",
+        "homepage": "https://www.matrix.com"
+      }
+    }
+  ]
+}

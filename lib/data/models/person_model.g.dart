@@ -7,20 +7,19 @@ part of 'person_model.dart';
 // **************************************************************************
 
 _$PersonImpl _$$PersonImplFromJson(Map<String, dynamic> json) => _$PersonImpl(
-  id: (json['id'] as num).toInt(),
-  name: json['name'] as String,
-  profilePath: json['profile_path'] as String?,
-  biography: json['biography'] as String?,
-  knownForDepartment: json['known_for_department'] as String?,
-  birthday: json['birthday'] as String?,
-  placeOfBirth: json['place_of_birth'] as String?,
-  alsoKnownAs:
-      (json['also_known_as'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ??
-      const [],
-  popularity: (json['popularity'] as num?)?.toDouble(),
-);
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      profilePath: json['profile_path'] as String?,
+      biography: json['biography'] as String?,
+      knownForDepartment: json['known_for_department'] as String?,
+      birthday: json['birthday'] as String?,
+      placeOfBirth: json['place_of_birth'] as String?,
+      alsoKnownAs: (json['also_known_as'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+      popularity: (json['popularity'] as num?)?.toDouble(),
+    );
 
 Map<String, dynamic> _$$PersonImplToJson(_$PersonImpl instance) =>
     <String, dynamic>{

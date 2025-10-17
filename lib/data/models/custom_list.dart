@@ -4,7 +4,7 @@ import 'saved_media_item.dart';
 
 @immutable
 class CustomList {
-  const CustomList({
+  CustomList({
     required this.id,
     required this.name,
     this.description,

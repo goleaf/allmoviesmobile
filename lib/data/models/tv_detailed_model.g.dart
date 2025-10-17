@@ -19,33 +19,27 @@ _$TVDetailedImpl _$$TVDetailedImplFromJson(Map<String, dynamic> json) =>
       lastAirDate: json['last_air_date'] as String?,
       numberOfSeasons: (json['number_of_seasons'] as num?)?.toInt(),
       numberOfEpisodes: (json['number_of_episodes'] as num?)?.toInt(),
-      episodeRunTime:
-          (json['episode_run_time'] as List<dynamic>?)
+      episodeRunTime: (json['episode_run_time'] as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
-      genres:
-          (json['genres'] as List<dynamic>?)
+      genres: (json['genres'] as List<dynamic>?)
               ?.map((e) => Genre.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      productionCompanies:
-          (json['production_companies'] as List<dynamic>?)
+      productionCompanies: (json['production_companies'] as List<dynamic>?)
               ?.map((e) => Company.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      productionCountries:
-          (json['production_countries'] as List<dynamic>?)
+      productionCountries: (json['production_countries'] as List<dynamic>?)
               ?.map((e) => Country.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      spokenLanguages:
-          (json['spoken_languages'] as List<dynamic>?)
+      spokenLanguages: (json['spoken_languages'] as List<dynamic>?)
               ?.map((e) => Language.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      networks:
-          (json['networks'] as List<dynamic>?)
+      networks: (json['networks'] as List<dynamic>?)
               ?.map((e) => Network.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -61,33 +55,27 @@ _$TVDetailedImpl _$$TVDetailedImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      seasons:
-          (json['seasons'] as List<dynamic>?)
+      seasons: (json['seasons'] as List<dynamic>?)
               ?.map((e) => Season.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      videos:
-          (json['videos'] as List<dynamic>?)
+      videos: (json['videos'] as List<dynamic>?)
               ?.map((e) => Video.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      images:
-          (json['images'] as List<dynamic>?)
+      images: (json['images'] as List<dynamic>?)
               ?.map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      recommendations:
-          (json['recommendations'] as List<dynamic>?)
+      recommendations: (json['recommendations'] as List<dynamic>?)
               ?.map((e) => TVRef.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      similar:
-          (json['similar'] as List<dynamic>?)
+      similar: (json['similar'] as List<dynamic>?)
               ?.map((e) => TVRef.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      keywords:
-          (json['keywords'] as List<dynamic>?)
+      keywords: (json['keywords'] as List<dynamic>?)
               ?.map((e) => Keyword.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],

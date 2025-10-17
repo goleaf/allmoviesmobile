@@ -12,8 +12,7 @@ part of 'network_detailed_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 AlternativeName _$AlternativeNameFromJson(Map<String, dynamic> json) {
   return _AlternativeName.fromJson(json);
@@ -24,12 +23,8 @@ mixin _$AlternativeName {
   String get name => throw _privateConstructorUsedError;
   String get type => throw _privateConstructorUsedError;
 
-  /// Serializes this AlternativeName to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of AlternativeName
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $AlternativeNameCopyWith<AlternativeName> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -37,9 +32,8 @@ mixin _$AlternativeName {
 /// @nodoc
 abstract class $AlternativeNameCopyWith<$Res> {
   factory $AlternativeNameCopyWith(
-    AlternativeName value,
-    $Res Function(AlternativeName) then,
-  ) = _$AlternativeNameCopyWithImpl<$Res, AlternativeName>;
+          AlternativeName value, $Res Function(AlternativeName) then) =
+      _$AlternativeNameCopyWithImpl<$Res, AlternativeName>;
   @useResult
   $Res call({String name, String type});
 }
@@ -54,34 +48,31 @@ class _$AlternativeNameCopyWithImpl<$Res, $Val extends AlternativeName>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of AlternativeName
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? name = null, Object? type = null}) {
-    return _then(
-      _value.copyWith(
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            type: null == type
-                ? _value.type
-                : type // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? name = null,
+    Object? type = null,
+  }) {
+    return _then(_value.copyWith(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$AlternativeNameImplCopyWith<$Res>
     implements $AlternativeNameCopyWith<$Res> {
-  factory _$$AlternativeNameImplCopyWith(
-    _$AlternativeNameImpl value,
-    $Res Function(_$AlternativeNameImpl) then,
-  ) = __$$AlternativeNameImplCopyWithImpl<$Res>;
+  factory _$$AlternativeNameImplCopyWith(_$AlternativeNameImpl value,
+          $Res Function(_$AlternativeNameImpl) then) =
+      __$$AlternativeNameImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String name, String type});
@@ -92,27 +83,25 @@ class __$$AlternativeNameImplCopyWithImpl<$Res>
     extends _$AlternativeNameCopyWithImpl<$Res, _$AlternativeNameImpl>
     implements _$$AlternativeNameImplCopyWith<$Res> {
   __$$AlternativeNameImplCopyWithImpl(
-    _$AlternativeNameImpl _value,
-    $Res Function(_$AlternativeNameImpl) _then,
-  ) : super(_value, _then);
+      _$AlternativeNameImpl _value, $Res Function(_$AlternativeNameImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of AlternativeName
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? name = null, Object? type = null}) {
-    return _then(
-      _$AlternativeNameImpl(
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        type: null == type
-            ? _value.type
-            : type // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? name = null,
+    Object? type = null,
+  }) {
+    return _then(_$AlternativeNameImpl(
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      type: null == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
@@ -143,32 +132,29 @@ class _$AlternativeNameImpl implements _AlternativeName {
             (identical(other.type, type) || other.type == type));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, name, type);
 
-  /// Create a copy of AlternativeName
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$AlternativeNameImplCopyWith<_$AlternativeNameImpl> get copyWith =>
       __$$AlternativeNameImplCopyWithImpl<_$AlternativeNameImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$AlternativeNameImplToJson(this);
+    return _$$AlternativeNameImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _AlternativeName implements AlternativeName {
-  const factory _AlternativeName({
-    required final String name,
-    required final String type,
-  }) = _$AlternativeNameImpl;
+  const factory _AlternativeName(
+      {required final String name,
+      required final String type}) = _$AlternativeNameImpl;
 
   factory _AlternativeName.fromJson(Map<String, dynamic> json) =
       _$AlternativeNameImpl.fromJson;
@@ -177,11 +163,8 @@ abstract class _AlternativeName implements AlternativeName {
   String get name;
   @override
   String get type;
-
-  /// Create a copy of AlternativeName
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$AlternativeNameImplCopyWith<_$AlternativeNameImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -204,12 +187,8 @@ mixin _$NetworkDetailed {
   List<AlternativeName> get alternativeNames =>
       throw _privateConstructorUsedError;
 
-  /// Serializes this NetworkDetailed to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of NetworkDetailed
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $NetworkDetailedCopyWith<NetworkDetailed> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -217,19 +196,18 @@ mixin _$NetworkDetailed {
 /// @nodoc
 abstract class $NetworkDetailedCopyWith<$Res> {
   factory $NetworkDetailedCopyWith(
-    NetworkDetailed value,
-    $Res Function(NetworkDetailed) then,
-  ) = _$NetworkDetailedCopyWithImpl<$Res, NetworkDetailed>;
+          NetworkDetailed value, $Res Function(NetworkDetailed) then) =
+      _$NetworkDetailedCopyWithImpl<$Res, NetworkDetailed>;
   @useResult
-  $Res call({
-    int id,
-    String name,
-    @JsonKey(name: 'logo_path') String? logoPath,
-    @JsonKey(name: 'origin_country') String originCountry,
-    String? headquarters,
-    String? homepage,
-    @JsonKey(name: 'alternative_names') List<AlternativeName> alternativeNames,
-  });
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(name: 'logo_path') String? logoPath,
+      @JsonKey(name: 'origin_country') String originCountry,
+      String? headquarters,
+      String? homepage,
+      @JsonKey(name: 'alternative_names')
+      List<AlternativeName> alternativeNames});
 }
 
 /// @nodoc
@@ -242,8 +220,6 @@ class _$NetworkDetailedCopyWithImpl<$Res, $Val extends NetworkDetailed>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of NetworkDetailed
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -255,60 +231,56 @@ class _$NetworkDetailedCopyWithImpl<$Res, $Val extends NetworkDetailed>
     Object? homepage = freezed,
     Object? alternativeNames = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            logoPath: freezed == logoPath
-                ? _value.logoPath
-                : logoPath // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            originCountry: null == originCountry
-                ? _value.originCountry
-                : originCountry // ignore: cast_nullable_to_non_nullable
-                      as String,
-            headquarters: freezed == headquarters
-                ? _value.headquarters
-                : headquarters // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            homepage: freezed == homepage
-                ? _value.homepage
-                : homepage // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            alternativeNames: null == alternativeNames
-                ? _value.alternativeNames
-                : alternativeNames // ignore: cast_nullable_to_non_nullable
-                      as List<AlternativeName>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      logoPath: freezed == logoPath
+          ? _value.logoPath
+          : logoPath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      originCountry: null == originCountry
+          ? _value.originCountry
+          : originCountry // ignore: cast_nullable_to_non_nullable
+              as String,
+      headquarters: freezed == headquarters
+          ? _value.headquarters
+          : headquarters // ignore: cast_nullable_to_non_nullable
+              as String?,
+      homepage: freezed == homepage
+          ? _value.homepage
+          : homepage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      alternativeNames: null == alternativeNames
+          ? _value.alternativeNames
+          : alternativeNames // ignore: cast_nullable_to_non_nullable
+              as List<AlternativeName>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$NetworkDetailedImplCopyWith<$Res>
     implements $NetworkDetailedCopyWith<$Res> {
-  factory _$$NetworkDetailedImplCopyWith(
-    _$NetworkDetailedImpl value,
-    $Res Function(_$NetworkDetailedImpl) then,
-  ) = __$$NetworkDetailedImplCopyWithImpl<$Res>;
+  factory _$$NetworkDetailedImplCopyWith(_$NetworkDetailedImpl value,
+          $Res Function(_$NetworkDetailedImpl) then) =
+      __$$NetworkDetailedImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int id,
-    String name,
-    @JsonKey(name: 'logo_path') String? logoPath,
-    @JsonKey(name: 'origin_country') String originCountry,
-    String? headquarters,
-    String? homepage,
-    @JsonKey(name: 'alternative_names') List<AlternativeName> alternativeNames,
-  });
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(name: 'logo_path') String? logoPath,
+      @JsonKey(name: 'origin_country') String originCountry,
+      String? headquarters,
+      String? homepage,
+      @JsonKey(name: 'alternative_names')
+      List<AlternativeName> alternativeNames});
 }
 
 /// @nodoc
@@ -316,12 +288,9 @@ class __$$NetworkDetailedImplCopyWithImpl<$Res>
     extends _$NetworkDetailedCopyWithImpl<$Res, _$NetworkDetailedImpl>
     implements _$$NetworkDetailedImplCopyWith<$Res> {
   __$$NetworkDetailedImplCopyWithImpl(
-    _$NetworkDetailedImpl _value,
-    $Res Function(_$NetworkDetailedImpl) _then,
-  ) : super(_value, _then);
+      _$NetworkDetailedImpl _value, $Res Function(_$NetworkDetailedImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of NetworkDetailed
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -333,54 +302,52 @@ class __$$NetworkDetailedImplCopyWithImpl<$Res>
     Object? homepage = freezed,
     Object? alternativeNames = null,
   }) {
-    return _then(
-      _$NetworkDetailedImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        logoPath: freezed == logoPath
-            ? _value.logoPath
-            : logoPath // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        originCountry: null == originCountry
-            ? _value.originCountry
-            : originCountry // ignore: cast_nullable_to_non_nullable
-                  as String,
-        headquarters: freezed == headquarters
-            ? _value.headquarters
-            : headquarters // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        homepage: freezed == homepage
-            ? _value.homepage
-            : homepage // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        alternativeNames: null == alternativeNames
-            ? _value._alternativeNames
-            : alternativeNames // ignore: cast_nullable_to_non_nullable
-                  as List<AlternativeName>,
-      ),
-    );
+    return _then(_$NetworkDetailedImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      logoPath: freezed == logoPath
+          ? _value.logoPath
+          : logoPath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      originCountry: null == originCountry
+          ? _value.originCountry
+          : originCountry // ignore: cast_nullable_to_non_nullable
+              as String,
+      headquarters: freezed == headquarters
+          ? _value.headquarters
+          : headquarters // ignore: cast_nullable_to_non_nullable
+              as String?,
+      homepage: freezed == homepage
+          ? _value.homepage
+          : homepage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      alternativeNames: null == alternativeNames
+          ? _value._alternativeNames
+          : alternativeNames // ignore: cast_nullable_to_non_nullable
+              as List<AlternativeName>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$NetworkDetailedImpl implements _NetworkDetailed {
-  const _$NetworkDetailedImpl({
-    required this.id,
-    required this.name,
-    @JsonKey(name: 'logo_path') this.logoPath,
-    @JsonKey(name: 'origin_country') required this.originCountry,
-    this.headquarters,
-    this.homepage,
-    @JsonKey(name: 'alternative_names')
-    final List<AlternativeName> alternativeNames = const [],
-  }) : _alternativeNames = alternativeNames;
+  const _$NetworkDetailedImpl(
+      {required this.id,
+      required this.name,
+      @JsonKey(name: 'logo_path') this.logoPath,
+      @JsonKey(name: 'origin_country') required this.originCountry,
+      this.headquarters,
+      this.homepage,
+      @JsonKey(name: 'alternative_names')
+      final List<AlternativeName> alternativeNames = const []})
+      : _alternativeNames = alternativeNames;
 
   factory _$NetworkDetailedImpl.fromJson(Map<String, dynamic> json) =>
       _$$NetworkDetailedImplFromJson(json);
@@ -429,53 +396,47 @@ class _$NetworkDetailedImpl implements _NetworkDetailed {
                 other.headquarters == headquarters) &&
             (identical(other.homepage, homepage) ||
                 other.homepage == homepage) &&
-            const DeepCollectionEquality().equals(
-              other._alternativeNames,
-              _alternativeNames,
-            ));
+            const DeepCollectionEquality()
+                .equals(other._alternativeNames, _alternativeNames));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    name,
-    logoPath,
-    originCountry,
-    headquarters,
-    homepage,
-    const DeepCollectionEquality().hash(_alternativeNames),
-  );
+      runtimeType,
+      id,
+      name,
+      logoPath,
+      originCountry,
+      headquarters,
+      homepage,
+      const DeepCollectionEquality().hash(_alternativeNames));
 
-  /// Create a copy of NetworkDetailed
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$NetworkDetailedImplCopyWith<_$NetworkDetailedImpl> get copyWith =>
       __$$NetworkDetailedImplCopyWithImpl<_$NetworkDetailedImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$NetworkDetailedImplToJson(this);
+    return _$$NetworkDetailedImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _NetworkDetailed implements NetworkDetailed {
-  const factory _NetworkDetailed({
-    required final int id,
-    required final String name,
-    @JsonKey(name: 'logo_path') final String? logoPath,
-    @JsonKey(name: 'origin_country') required final String originCountry,
-    final String? headquarters,
-    final String? homepage,
-    @JsonKey(name: 'alternative_names')
-    final List<AlternativeName> alternativeNames,
-  }) = _$NetworkDetailedImpl;
+  const factory _NetworkDetailed(
+      {required final int id,
+      required final String name,
+      @JsonKey(name: 'logo_path') final String? logoPath,
+      @JsonKey(name: 'origin_country') required final String originCountry,
+      final String? headquarters,
+      final String? homepage,
+      @JsonKey(name: 'alternative_names')
+      final List<AlternativeName> alternativeNames}) = _$NetworkDetailedImpl;
 
   factory _NetworkDetailed.fromJson(Map<String, dynamic> json) =
       _$NetworkDetailedImpl.fromJson;
@@ -497,11 +458,8 @@ abstract class _NetworkDetailed implements NetworkDetailed {
   @override
   @JsonKey(name: 'alternative_names')
   List<AlternativeName> get alternativeNames;
-
-  /// Create a copy of NetworkDetailed
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$NetworkDetailedImplCopyWith<_$NetworkDetailedImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

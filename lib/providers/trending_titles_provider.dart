@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../data/models/paginated_response.dart';
+import '../data/models/movie.dart';
 import '../data/models/search_result_model.dart';
 import '../data/tmdb_repository.dart';
 
@@ -102,12 +103,31 @@ class TrendingTitlesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final PaginatedResponse<SearchResult> response =
+      final PaginatedResponse<Movie> response =
           await _repository.fetchTrendingTitles(
         mediaType: mediaType.value,
         timeWindow: window.value,
       );
-      _states[key] = TrendingState(items: response.results);
+      _states[key] = TrendingState(items: response.results
+          .map((m) => SearchResult(
+                id: m.id,
+                mediaType: mediaType == TrendingMediaType.person
+                    ? MediaType.person
+                    : (mediaType == TrendingMediaType.tv
+                        ? MediaType.tv
+                        : MediaType.movie),
+                title: m.title,
+                name: m.title,
+                overview: m.overview,
+                posterPath: m.posterPath,
+                profilePath: m.posterPath,
+                backdropPath: m.backdropPath,
+                popularity: m.popularity,
+                voteAverage: m.voteAverage,
+                voteCount: m.voteCount,
+                releaseDate: m.releaseDate,
+              ))
+          .toList());
     } on TmdbException catch (error) {
       _states[key] = TrendingState(
         items: const <SearchResult>[],

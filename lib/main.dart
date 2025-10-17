@@ -9,6 +9,9 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
+import 'data/services/static_catalog_service.dart';
+import 'presentation/screens/splash_preload/splash_preload_screen.dart';
+import 'data/local/isar/isar_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -18,7 +21,7 @@ import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
-import 'presentation/screens/home/home_screen.dart';
+// HomeScreen removed - default to MoviesScreen as initial route
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
@@ -48,16 +51,40 @@ void main() async {
 class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
+  final TmdbRepository? tmdbRepository;
+  final StaticCatalogService? catalogService;
 
   const AllMoviesApp({
     super.key,
     required this.storageService,
     required this.prefs,
+    this.tmdbRepository,
+    this.catalogService,
   });
+
+  Future<bool> _shouldPreload(StaticCatalogService service) async {
+    final isar = await IsarDbProvider.instance.isar;
+    return service.isFirstRun(isar);
+  }
+
+  Future<void> _maybeSilentRefresh(StaticCatalogService service) async {
+    final isar = await IsarDbProvider.instance.isar;
+    final locales = AppLocalizations.supportedLocales;
+    final stale = await service.needsRefresh(isar, locales);
+    if (stale) {
+      // fire-and-forget, do not block UI
+      // ignore: unawaited_futures
+      service.preloadAll(
+        locales: locales,
+        onProgress: (_) {},
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final tmdbRepository = TmdbRepository();
+    final repo = tmdbRepository ?? TmdbRepository();
+    final catalog = catalogService ?? StaticCatalogService(repo);
 
     return MultiProvider(
       providers: [
@@ -65,22 +92,22 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),
         ChangeNotifierProvider(create: (_) => WatchlistProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => SearchProvider(tmdbRepository, storageService)),
+        ChangeNotifierProvider(create: (_) => SearchProvider(repo, storageService)),
         ChangeNotifierProvider(
-          create: (_) => TrendingTitlesProvider(tmdbRepository),
+          create: (_) => TrendingTitlesProvider(repo),
         ),
-        ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => GenresProvider(repo)),
         ChangeNotifierProxyProvider<WatchRegionProvider, MoviesProvider>(
-          create: (_) => MoviesProvider(tmdbRepository),
+          create: (_) => MoviesProvider(repo),
           update: (_, watchRegion, movies) {
-            movies ??= MoviesProvider(tmdbRepository);
+            movies ??= MoviesProvider(repo);
             movies.bindRegionProvider(watchRegion);
             return movies;
           },
         ),
-        ChangeNotifierProvider(create: (_) => SeriesProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => PeopleProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => SeriesProvider(repo)),
+        ChangeNotifierProvider(create: (_) => PeopleProvider(repo)),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider(repo)),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
@@ -104,11 +131,31 @@ class AllMoviesApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
-                initialRoute: HomeScreen.routeName,
+                initialRoute: SplashPreloadScreen.routeName,
                 routes: {
-                  HomeScreen.routeName: (context) => const HomeScreen(),
-                  SearchScreen.routeName: (context) => const SearchScreen(),
+                  SplashPreloadScreen.routeName: (context) => FutureBuilder<bool>(
+                        future: _shouldPreload(catalog),
+                        builder: (context, snapshot) {
+                          final should = snapshot.data ?? true;
+                          if (!should) {
+                            WidgetsBinding.instance.addPostFrameCallback((_) {
+                              Navigator.of(context).pushReplacementNamed(MoviesScreen.routeName);
+                            });
+                            return const SizedBox.shrink();
+                          }
+                          return SplashPreloadScreen(
+                            service: catalog,
+                            locales: AppLocalizations.supportedLocales,
+                            onDone: () async {
+                              // Kick off silent refresh next runs
+                              Navigator.of(context).pushReplacementNamed(MoviesScreen.routeName);
+                              await _maybeSilentRefresh(catalog);
+                            },
+                          );
+                        },
+                      ),
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
+                  SearchScreen.routeName: (context) => const SearchScreen(),
                   SeriesScreen.routeName: (context) => const SeriesScreen(),
                   PeopleScreen.routeName: (context) => const PeopleScreen(),
                   CompaniesScreen.routeName: (context) => const CompaniesScreen(),

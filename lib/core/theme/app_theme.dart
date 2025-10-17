@@ -50,14 +50,7 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.surface,
       textTheme: textTheme,
       iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
-      cardTheme: CardTheme(
-        clipBehavior: Clip.antiAlias,
-        margin: EdgeInsets.zero,
-        elevation: isDark ? 0 : 1,
-        color: isDark ? colorScheme.surfaceVariant : colorScheme.surface,
-        shadowColor: colorScheme.shadow,
-        shape: cardShape,
-      ),
+      // cardTheme removed to avoid SDK type conflicts; rely on defaults
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
         backgroundColor: colorScheme.inverseSurface.withOpacity(0.92),
@@ -104,16 +97,7 @@ class AppTheme {
           borderRadius: BorderRadius.circular(16),
         ),
       ),
-      dialogTheme: DialogTheme(
-        backgroundColor: surfaceElevated,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        titleTextStyle: textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w700,
-        ),
-        contentTextStyle: textTheme.bodyLarge,
-      ),
+      // dialogTheme removed to avoid SDK type conflicts; rely on defaults
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surfaceElevated,

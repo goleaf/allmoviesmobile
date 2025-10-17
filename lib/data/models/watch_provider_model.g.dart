@@ -25,47 +25,54 @@ Map<String, dynamic> _$$WatchProviderImplToJson(_$WatchProviderImpl instance) =>
     };
 
 _$WatchProviderResultsImpl _$$WatchProviderResultsImplFromJson(
-  Map<String, dynamic> json,
-) => _$WatchProviderResultsImpl(
-  link: json['link'] as String?,
-  flatrate:
-      (json['flatrate'] as List<dynamic>?)
-          ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  buy:
-      (json['buy'] as List<dynamic>?)
-          ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  rent:
-      (json['rent'] as List<dynamic>?)
-          ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-);
+        Map<String, dynamic> json) =>
+    _$WatchProviderResultsImpl(
+      link: json['link'] as String?,
+      flatrate: (json['flatrate'] as List<dynamic>?)
+              ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      buy: (json['buy'] as List<dynamic>?)
+              ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      rent: (json['rent'] as List<dynamic>?)
+              ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      ads: (json['ads'] as List<dynamic>?)
+              ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      free: (json['free'] as List<dynamic>?)
+              ?.map((e) => WatchProvider.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
 
 Map<String, dynamic> _$$WatchProviderResultsImplToJson(
-  _$WatchProviderResultsImpl instance,
-) => <String, dynamic>{
-  'link': instance.link,
-  'flatrate': instance.flatrate,
-  'buy': instance.buy,
-  'rent': instance.rent,
-};
+        _$WatchProviderResultsImpl instance) =>
+    <String, dynamic>{
+      'link': instance.link,
+      'flatrate': instance.flatrate,
+      'buy': instance.buy,
+      'rent': instance.rent,
+      'ads': instance.ads,
+      'free': instance.free,
+    };
 
 _$WatchProviderRegionImpl _$$WatchProviderRegionImplFromJson(
-  Map<String, dynamic> json,
-) => _$WatchProviderRegionImpl(
-  countryCode: json['iso_3166_1'] as String,
-  englishName: json['english_name'] as String,
-  nativeName: json['native_name'] as String?,
-);
+        Map<String, dynamic> json) =>
+    _$WatchProviderRegionImpl(
+      countryCode: json['iso_3166_1'] as String,
+      englishName: json['english_name'] as String,
+      nativeName: json['native_name'] as String?,
+    );
 
 Map<String, dynamic> _$$WatchProviderRegionImplToJson(
-  _$WatchProviderRegionImpl instance,
-) => <String, dynamic>{
-  'iso_3166_1': instance.countryCode,
-  'english_name': instance.englishName,
-  'native_name': instance.nativeName,
-};
+        _$WatchProviderRegionImpl instance) =>
+    <String, dynamic>{
+      'iso_3166_1': instance.countryCode,
+      'english_name': instance.englishName,
+      'native_name': instance.nativeName,
+    };

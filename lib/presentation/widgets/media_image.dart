@@ -113,13 +113,13 @@ class _MediaImageState extends State<MediaImage> {
       children: [
         if (preview != null) preview,
         image,
+        progressIndicator,
+      ],
+    );
+
     return _wrapWithSize(
       ClipRRect(
         borderRadius: widget.borderRadius ?? BorderRadius.zero,
-        child: stack,
-      ),
-    );
-  }
         child: stack,
       ),
     );

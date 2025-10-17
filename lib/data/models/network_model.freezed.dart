@@ -12,8 +12,7 @@ part of 'network_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Network _$NetworkFromJson(Map<String, dynamic> json) {
   return _Network.fromJson(json);
@@ -28,12 +27,8 @@ mixin _$Network {
   @JsonKey(name: 'origin_country')
   String? get originCountry => throw _privateConstructorUsedError;
 
-  /// Serializes this Network to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Network
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $NetworkCopyWith<Network> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -42,12 +37,11 @@ abstract class $NetworkCopyWith<$Res> {
   factory $NetworkCopyWith(Network value, $Res Function(Network) then) =
       _$NetworkCopyWithImpl<$Res, Network>;
   @useResult
-  $Res call({
-    int id,
-    String name,
-    @JsonKey(name: 'logo_path') String? logoPath,
-    @JsonKey(name: 'origin_country') String? originCountry,
-  });
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(name: 'logo_path') String? logoPath,
+      @JsonKey(name: 'origin_country') String? originCountry});
 }
 
 /// @nodoc
@@ -60,8 +54,6 @@ class _$NetworkCopyWithImpl<$Res, $Val extends Network>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Network
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -70,44 +62,39 @@ class _$NetworkCopyWithImpl<$Res, $Val extends Network>
     Object? logoPath = freezed,
     Object? originCountry = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            logoPath: freezed == logoPath
-                ? _value.logoPath
-                : logoPath // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            originCountry: freezed == originCountry
-                ? _value.originCountry
-                : originCountry // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      logoPath: freezed == logoPath
+          ? _value.logoPath
+          : logoPath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      originCountry: freezed == originCountry
+          ? _value.originCountry
+          : originCountry // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$NetworkImplCopyWith<$Res> implements $NetworkCopyWith<$Res> {
   factory _$$NetworkImplCopyWith(
-    _$NetworkImpl value,
-    $Res Function(_$NetworkImpl) then,
-  ) = __$$NetworkImplCopyWithImpl<$Res>;
+          _$NetworkImpl value, $Res Function(_$NetworkImpl) then) =
+      __$$NetworkImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int id,
-    String name,
-    @JsonKey(name: 'logo_path') String? logoPath,
-    @JsonKey(name: 'origin_country') String? originCountry,
-  });
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(name: 'logo_path') String? logoPath,
+      @JsonKey(name: 'origin_country') String? originCountry});
 }
 
 /// @nodoc
@@ -115,12 +102,9 @@ class __$$NetworkImplCopyWithImpl<$Res>
     extends _$NetworkCopyWithImpl<$Res, _$NetworkImpl>
     implements _$$NetworkImplCopyWith<$Res> {
   __$$NetworkImplCopyWithImpl(
-    _$NetworkImpl _value,
-    $Res Function(_$NetworkImpl) _then,
-  ) : super(_value, _then);
+      _$NetworkImpl _value, $Res Function(_$NetworkImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of Network
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -129,38 +113,35 @@ class __$$NetworkImplCopyWithImpl<$Res>
     Object? logoPath = freezed,
     Object? originCountry = freezed,
   }) {
-    return _then(
-      _$NetworkImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        logoPath: freezed == logoPath
-            ? _value.logoPath
-            : logoPath // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        originCountry: freezed == originCountry
-            ? _value.originCountry
-            : originCountry // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$NetworkImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      logoPath: freezed == logoPath
+          ? _value.logoPath
+          : logoPath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      originCountry: freezed == originCountry
+          ? _value.originCountry
+          : originCountry // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$NetworkImpl implements _Network {
-  const _$NetworkImpl({
-    required this.id,
-    required this.name,
-    @JsonKey(name: 'logo_path') this.logoPath,
-    @JsonKey(name: 'origin_country') this.originCountry,
-  });
+  const _$NetworkImpl(
+      {required this.id,
+      required this.name,
+      @JsonKey(name: 'logo_path') this.logoPath,
+      @JsonKey(name: 'origin_country') this.originCountry});
 
   factory _$NetworkImpl.fromJson(Map<String, dynamic> json) =>
       _$$NetworkImplFromJson(json);
@@ -194,14 +175,12 @@ class _$NetworkImpl implements _Network {
                 other.originCountry == originCountry));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, name, logoPath, originCountry);
 
-  /// Create a copy of Network
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$NetworkImplCopyWith<_$NetworkImpl> get copyWith =>
@@ -209,17 +188,19 @@ class _$NetworkImpl implements _Network {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$NetworkImplToJson(this);
+    return _$$NetworkImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Network implements Network {
-  const factory _Network({
-    required final int id,
-    required final String name,
-    @JsonKey(name: 'logo_path') final String? logoPath,
-    @JsonKey(name: 'origin_country') final String? originCountry,
-  }) = _$NetworkImpl;
+  const factory _Network(
+          {required final int id,
+          required final String name,
+          @JsonKey(name: 'logo_path') final String? logoPath,
+          @JsonKey(name: 'origin_country') final String? originCountry}) =
+      _$NetworkImpl;
 
   factory _Network.fromJson(Map<String, dynamic> json) = _$NetworkImpl.fromJson;
 
@@ -233,11 +214,8 @@ abstract class _Network implements Network {
   @override
   @JsonKey(name: 'origin_country')
   String? get originCountry;
-
-  /// Create a copy of Network
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$NetworkImplCopyWith<_$NetworkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

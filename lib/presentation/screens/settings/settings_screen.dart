@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../providers/watch_region_provider.dart';
@@ -171,7 +171,7 @@ class _LanguageDialog extends StatelessWidget {
       title: Text(l10n.chooseLanguage),
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: LocaleProvider.supportedLocales.map((locale) {
+        children: AppLocalizations.supportedLocales.map((locale) {
           return RadioListTile<Locale>(
             title: Text(localeProvider.getLanguageName(locale)),
             value: locale,
@@ -205,7 +205,7 @@ class _RegionTile extends StatelessWidget {
 
     return ListTile(
       leading: const Icon(Icons.public),
-      title: Text(l10n.region),
+      title: const Text('Region'),
       subtitle: Text(regionProvider.getRegionName(regionProvider.region)),
       onTap: () {
         showDialog(
@@ -226,7 +226,7 @@ class _RegionDialog extends StatelessWidget {
     final regionProvider = context.watch<WatchRegionProvider>();
 
     return AlertDialog(
-      title: Text(l10n.chooseRegion),
+      title: const Text('Choose Region'),
       content: SizedBox(
         width: 360,
         child: ListView(

@@ -93,10 +93,10 @@ class GenreCatalog {
   };
 
   /// Combined map of all unique genre IDs across movies and TV (27 entries).
-  static const Map<int, String> allGenreNames = {
-    ...movieGenreNames,
-    ...tvGenreNames,
-  };
+  static Map<int, String> get allGenreNames => {
+        ...movieGenreNames,
+        ...tvGenreNames,
+      };
 
   /// Returns a fallback list of genres for the given flag.
   static List<Genre> fallbackGenres({required bool isTv}) {

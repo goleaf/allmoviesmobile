@@ -12,8 +12,7 @@ part of 'change_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ChangeValue _$ChangeValueFromJson(Map<String, dynamic> json) {
   return _ChangeValue.fromJson(json);
@@ -23,12 +22,8 @@ ChangeValue _$ChangeValueFromJson(Map<String, dynamic> json) {
 mixin _$ChangeValue {
   dynamic get value => throw _privateConstructorUsedError;
 
-  /// Serializes this ChangeValue to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ChangeValue
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ChangeValueCopyWith<ChangeValue> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -36,9 +31,8 @@ mixin _$ChangeValue {
 /// @nodoc
 abstract class $ChangeValueCopyWith<$Res> {
   factory $ChangeValueCopyWith(
-    ChangeValue value,
-    $Res Function(ChangeValue) then,
-  ) = _$ChangeValueCopyWithImpl<$Res, ChangeValue>;
+          ChangeValue value, $Res Function(ChangeValue) then) =
+      _$ChangeValueCopyWithImpl<$Res, ChangeValue>;
   @useResult
   $Res call({dynamic value});
 }
@@ -53,20 +47,17 @@ class _$ChangeValueCopyWithImpl<$Res, $Val extends ChangeValue>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ChangeValue
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? value = freezed}) {
-    return _then(
-      _value.copyWith(
-            value: freezed == value
-                ? _value.value
-                : value // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? value = freezed,
+  }) {
+    return _then(_value.copyWith(
+      value: freezed == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ) as $Val);
   }
 }
 
@@ -74,9 +65,8 @@ class _$ChangeValueCopyWithImpl<$Res, $Val extends ChangeValue>
 abstract class _$$ChangeValueImplCopyWith<$Res>
     implements $ChangeValueCopyWith<$Res> {
   factory _$$ChangeValueImplCopyWith(
-    _$ChangeValueImpl value,
-    $Res Function(_$ChangeValueImpl) then,
-  ) = __$$ChangeValueImplCopyWithImpl<$Res>;
+          _$ChangeValueImpl value, $Res Function(_$ChangeValueImpl) then) =
+      __$$ChangeValueImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({dynamic value});
@@ -87,23 +77,20 @@ class __$$ChangeValueImplCopyWithImpl<$Res>
     extends _$ChangeValueCopyWithImpl<$Res, _$ChangeValueImpl>
     implements _$$ChangeValueImplCopyWith<$Res> {
   __$$ChangeValueImplCopyWithImpl(
-    _$ChangeValueImpl _value,
-    $Res Function(_$ChangeValueImpl) _then,
-  ) : super(_value, _then);
+      _$ChangeValueImpl _value, $Res Function(_$ChangeValueImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ChangeValue
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? value = freezed}) {
-    return _then(
-      _$ChangeValueImpl(
-        value: freezed == value
-            ? _value.value
-            : value // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-      ),
-    );
+  $Res call({
+    Object? value = freezed,
+  }) {
+    return _then(_$ChangeValueImpl(
+      value: freezed == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ));
   }
 }
 
@@ -131,14 +118,12 @@ class _$ChangeValueImpl implements _ChangeValue {
             const DeepCollectionEquality().equals(other.value, value));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(value));
 
-  /// Create a copy of ChangeValue
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ChangeValueImplCopyWith<_$ChangeValueImpl> get copyWith =>
@@ -146,7 +131,9 @@ class _$ChangeValueImpl implements _ChangeValue {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ChangeValueImplToJson(this);
+    return _$$ChangeValueImplToJson(
+      this,
+    );
   }
 }
 
@@ -158,11 +145,8 @@ abstract class _ChangeValue implements ChangeValue {
 
   @override
   dynamic get value;
-
-  /// Create a copy of ChangeValue
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ChangeValueImplCopyWith<_$ChangeValueImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -184,12 +168,8 @@ mixin _$ChangeItem {
   @JsonKey(name: 'original_value')
   dynamic get originalValue => throw _privateConstructorUsedError;
 
-  /// Serializes this ChangeItem to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ChangeItem
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ChangeItemCopyWith<ChangeItem> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -197,19 +177,17 @@ mixin _$ChangeItem {
 /// @nodoc
 abstract class $ChangeItemCopyWith<$Res> {
   factory $ChangeItemCopyWith(
-    ChangeItem value,
-    $Res Function(ChangeItem) then,
-  ) = _$ChangeItemCopyWithImpl<$Res, ChangeItem>;
+          ChangeItem value, $Res Function(ChangeItem) then) =
+      _$ChangeItemCopyWithImpl<$Res, ChangeItem>;
   @useResult
-  $Res call({
-    String id,
-    String action,
-    String time,
-    @JsonKey(name: 'iso_639_1') String? language,
-    @JsonKey(name: 'iso_3166_1') String? country,
-    dynamic value,
-    @JsonKey(name: 'original_value') dynamic originalValue,
-  });
+  $Res call(
+      {String id,
+      String action,
+      String time,
+      @JsonKey(name: 'iso_639_1') String? language,
+      @JsonKey(name: 'iso_3166_1') String? country,
+      dynamic value,
+      @JsonKey(name: 'original_value') dynamic originalValue});
 }
 
 /// @nodoc
@@ -222,8 +200,6 @@ class _$ChangeItemCopyWithImpl<$Res, $Val extends ChangeItem>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ChangeItem
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -235,39 +211,36 @@ class _$ChangeItemCopyWithImpl<$Res, $Val extends ChangeItem>
     Object? value = freezed,
     Object? originalValue = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as String,
-            action: null == action
-                ? _value.action
-                : action // ignore: cast_nullable_to_non_nullable
-                      as String,
-            time: null == time
-                ? _value.time
-                : time // ignore: cast_nullable_to_non_nullable
-                      as String,
-            language: freezed == language
-                ? _value.language
-                : language // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            country: freezed == country
-                ? _value.country
-                : country // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            value: freezed == value
-                ? _value.value
-                : value // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-            originalValue: freezed == originalValue
-                ? _value.originalValue
-                : originalValue // ignore: cast_nullable_to_non_nullable
-                      as dynamic,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      action: null == action
+          ? _value.action
+          : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      time: null == time
+          ? _value.time
+          : time // ignore: cast_nullable_to_non_nullable
+              as String,
+      language: freezed == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String?,
+      country: freezed == country
+          ? _value.country
+          : country // ignore: cast_nullable_to_non_nullable
+              as String?,
+      value: freezed == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      originalValue: freezed == originalValue
+          ? _value.originalValue
+          : originalValue // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ) as $Val);
   }
 }
 
@@ -275,20 +248,18 @@ class _$ChangeItemCopyWithImpl<$Res, $Val extends ChangeItem>
 abstract class _$$ChangeItemImplCopyWith<$Res>
     implements $ChangeItemCopyWith<$Res> {
   factory _$$ChangeItemImplCopyWith(
-    _$ChangeItemImpl value,
-    $Res Function(_$ChangeItemImpl) then,
-  ) = __$$ChangeItemImplCopyWithImpl<$Res>;
+          _$ChangeItemImpl value, $Res Function(_$ChangeItemImpl) then) =
+      __$$ChangeItemImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String id,
-    String action,
-    String time,
-    @JsonKey(name: 'iso_639_1') String? language,
-    @JsonKey(name: 'iso_3166_1') String? country,
-    dynamic value,
-    @JsonKey(name: 'original_value') dynamic originalValue,
-  });
+  $Res call(
+      {String id,
+      String action,
+      String time,
+      @JsonKey(name: 'iso_639_1') String? language,
+      @JsonKey(name: 'iso_3166_1') String? country,
+      dynamic value,
+      @JsonKey(name: 'original_value') dynamic originalValue});
 }
 
 /// @nodoc
@@ -296,12 +267,9 @@ class __$$ChangeItemImplCopyWithImpl<$Res>
     extends _$ChangeItemCopyWithImpl<$Res, _$ChangeItemImpl>
     implements _$$ChangeItemImplCopyWith<$Res> {
   __$$ChangeItemImplCopyWithImpl(
-    _$ChangeItemImpl _value,
-    $Res Function(_$ChangeItemImpl) _then,
-  ) : super(_value, _then);
+      _$ChangeItemImpl _value, $Res Function(_$ChangeItemImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ChangeItem
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -313,53 +281,50 @@ class __$$ChangeItemImplCopyWithImpl<$Res>
     Object? value = freezed,
     Object? originalValue = freezed,
   }) {
-    return _then(
-      _$ChangeItemImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as String,
-        action: null == action
-            ? _value.action
-            : action // ignore: cast_nullable_to_non_nullable
-                  as String,
-        time: null == time
-            ? _value.time
-            : time // ignore: cast_nullable_to_non_nullable
-                  as String,
-        language: freezed == language
-            ? _value.language
-            : language // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        country: freezed == country
-            ? _value.country
-            : country // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        value: freezed == value
-            ? _value.value
-            : value // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-        originalValue: freezed == originalValue
-            ? _value.originalValue
-            : originalValue // ignore: cast_nullable_to_non_nullable
-                  as dynamic,
-      ),
-    );
+    return _then(_$ChangeItemImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as String,
+      action: null == action
+          ? _value.action
+          : action // ignore: cast_nullable_to_non_nullable
+              as String,
+      time: null == time
+          ? _value.time
+          : time // ignore: cast_nullable_to_non_nullable
+              as String,
+      language: freezed == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String?,
+      country: freezed == country
+          ? _value.country
+          : country // ignore: cast_nullable_to_non_nullable
+              as String?,
+      value: freezed == value
+          ? _value.value
+          : value // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      originalValue: freezed == originalValue
+          ? _value.originalValue
+          : originalValue // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ChangeItemImpl implements _ChangeItem {
-  const _$ChangeItemImpl({
-    required this.id,
-    required this.action,
-    required this.time,
-    @JsonKey(name: 'iso_639_1') this.language,
-    @JsonKey(name: 'iso_3166_1') this.country,
-    this.value,
-    @JsonKey(name: 'original_value') this.originalValue,
-  });
+  const _$ChangeItemImpl(
+      {required this.id,
+      required this.action,
+      required this.time,
+      @JsonKey(name: 'iso_639_1') this.language,
+      @JsonKey(name: 'iso_3166_1') this.country,
+      this.value,
+      @JsonKey(name: 'original_value') this.originalValue});
 
   factory _$ChangeItemImpl.fromJson(Map<String, dynamic> json) =>
       _$$ChangeItemImplFromJson(json);
@@ -399,28 +364,23 @@ class _$ChangeItemImpl implements _ChangeItem {
                 other.language == language) &&
             (identical(other.country, country) || other.country == country) &&
             const DeepCollectionEquality().equals(other.value, value) &&
-            const DeepCollectionEquality().equals(
-              other.originalValue,
-              originalValue,
-            ));
+            const DeepCollectionEquality()
+                .equals(other.originalValue, originalValue));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    action,
-    time,
-    language,
-    country,
-    const DeepCollectionEquality().hash(value),
-    const DeepCollectionEquality().hash(originalValue),
-  );
+      runtimeType,
+      id,
+      action,
+      time,
+      language,
+      country,
+      const DeepCollectionEquality().hash(value),
+      const DeepCollectionEquality().hash(originalValue));
 
-  /// Create a copy of ChangeItem
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ChangeItemImplCopyWith<_$ChangeItemImpl> get copyWith =>
@@ -428,20 +388,22 @@ class _$ChangeItemImpl implements _ChangeItem {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ChangeItemImplToJson(this);
+    return _$$ChangeItemImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ChangeItem implements ChangeItem {
-  const factory _ChangeItem({
-    required final String id,
-    required final String action,
-    required final String time,
-    @JsonKey(name: 'iso_639_1') final String? language,
-    @JsonKey(name: 'iso_3166_1') final String? country,
-    final dynamic value,
-    @JsonKey(name: 'original_value') final dynamic originalValue,
-  }) = _$ChangeItemImpl;
+  const factory _ChangeItem(
+          {required final String id,
+          required final String action,
+          required final String time,
+          @JsonKey(name: 'iso_639_1') final String? language,
+          @JsonKey(name: 'iso_3166_1') final String? country,
+          final dynamic value,
+          @JsonKey(name: 'original_value') final dynamic originalValue}) =
+      _$ChangeItemImpl;
 
   factory _ChangeItem.fromJson(Map<String, dynamic> json) =
       _$ChangeItemImpl.fromJson;
@@ -463,11 +425,8 @@ abstract class _ChangeItem implements ChangeItem {
   @override
   @JsonKey(name: 'original_value')
   dynamic get originalValue;
-
-  /// Create a copy of ChangeItem
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ChangeItemImplCopyWith<_$ChangeItemImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -481,12 +440,8 @@ mixin _$Change {
   String get key => throw _privateConstructorUsedError;
   List<ChangeItem> get items => throw _privateConstructorUsedError;
 
-  /// Serializes this Change to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Change
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ChangeCopyWith<Change> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -508,33 +463,30 @@ class _$ChangeCopyWithImpl<$Res, $Val extends Change>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Change
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? key = null, Object? items = null}) {
-    return _then(
-      _value.copyWith(
-            key: null == key
-                ? _value.key
-                : key // ignore: cast_nullable_to_non_nullable
-                      as String,
-            items: null == items
-                ? _value.items
-                : items // ignore: cast_nullable_to_non_nullable
-                      as List<ChangeItem>,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? key = null,
+    Object? items = null,
+  }) {
+    return _then(_value.copyWith(
+      key: null == key
+          ? _value.key
+          : key // ignore: cast_nullable_to_non_nullable
+              as String,
+      items: null == items
+          ? _value.items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<ChangeItem>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ChangeImplCopyWith<$Res> implements $ChangeCopyWith<$Res> {
   factory _$$ChangeImplCopyWith(
-    _$ChangeImpl value,
-    $Res Function(_$ChangeImpl) then,
-  ) = __$$ChangeImplCopyWithImpl<$Res>;
+          _$ChangeImpl value, $Res Function(_$ChangeImpl) then) =
+      __$$ChangeImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String key, List<ChangeItem> items});
@@ -545,37 +497,34 @@ class __$$ChangeImplCopyWithImpl<$Res>
     extends _$ChangeCopyWithImpl<$Res, _$ChangeImpl>
     implements _$$ChangeImplCopyWith<$Res> {
   __$$ChangeImplCopyWithImpl(
-    _$ChangeImpl _value,
-    $Res Function(_$ChangeImpl) _then,
-  ) : super(_value, _then);
+      _$ChangeImpl _value, $Res Function(_$ChangeImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of Change
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? key = null, Object? items = null}) {
-    return _then(
-      _$ChangeImpl(
-        key: null == key
-            ? _value.key
-            : key // ignore: cast_nullable_to_non_nullable
-                  as String,
-        items: null == items
-            ? _value._items
-            : items // ignore: cast_nullable_to_non_nullable
-                  as List<ChangeItem>,
-      ),
-    );
+  $Res call({
+    Object? key = null,
+    Object? items = null,
+  }) {
+    return _then(_$ChangeImpl(
+      key: null == key
+          ? _value.key
+          : key // ignore: cast_nullable_to_non_nullable
+              as String,
+      items: null == items
+          ? _value._items
+          : items // ignore: cast_nullable_to_non_nullable
+              as List<ChangeItem>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ChangeImpl implements _Change {
-  const _$ChangeImpl({
-    required this.key,
-    final List<ChangeItem> items = const [],
-  }) : _items = items;
+  const _$ChangeImpl(
+      {required this.key, final List<ChangeItem> items = const []})
+      : _items = items;
 
   factory _$ChangeImpl.fromJson(Map<String, dynamic> json) =>
       _$$ChangeImplFromJson(json);
@@ -605,17 +554,12 @@ class _$ChangeImpl implements _Change {
             const DeepCollectionEquality().equals(other._items, _items));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    key,
-    const DeepCollectionEquality().hash(_items),
-  );
+      runtimeType, key, const DeepCollectionEquality().hash(_items));
 
-  /// Create a copy of Change
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ChangeImplCopyWith<_$ChangeImpl> get copyWith =>
@@ -623,15 +567,15 @@ class _$ChangeImpl implements _Change {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ChangeImplToJson(this);
+    return _$$ChangeImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Change implements Change {
-  const factory _Change({
-    required final String key,
-    final List<ChangeItem> items,
-  }) = _$ChangeImpl;
+  const factory _Change(
+      {required final String key, final List<ChangeItem> items}) = _$ChangeImpl;
 
   factory _Change.fromJson(Map<String, dynamic> json) = _$ChangeImpl.fromJson;
 
@@ -639,11 +583,8 @@ abstract class _Change implements Change {
   String get key;
   @override
   List<ChangeItem> get items;
-
-  /// Create a copy of Change
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ChangeImplCopyWith<_$ChangeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -656,12 +597,8 @@ ChangesResponse _$ChangesResponseFromJson(Map<String, dynamic> json) {
 mixin _$ChangesResponse {
   List<Change> get changes => throw _privateConstructorUsedError;
 
-  /// Serializes this ChangesResponse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ChangesResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ChangesResponseCopyWith<ChangesResponse> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -669,9 +606,8 @@ mixin _$ChangesResponse {
 /// @nodoc
 abstract class $ChangesResponseCopyWith<$Res> {
   factory $ChangesResponseCopyWith(
-    ChangesResponse value,
-    $Res Function(ChangesResponse) then,
-  ) = _$ChangesResponseCopyWithImpl<$Res, ChangesResponse>;
+          ChangesResponse value, $Res Function(ChangesResponse) then) =
+      _$ChangesResponseCopyWithImpl<$Res, ChangesResponse>;
   @useResult
   $Res call({List<Change> changes});
 }
@@ -686,30 +622,26 @@ class _$ChangesResponseCopyWithImpl<$Res, $Val extends ChangesResponse>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ChangesResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? changes = null}) {
-    return _then(
-      _value.copyWith(
-            changes: null == changes
-                ? _value.changes
-                : changes // ignore: cast_nullable_to_non_nullable
-                      as List<Change>,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? changes = null,
+  }) {
+    return _then(_value.copyWith(
+      changes: null == changes
+          ? _value.changes
+          : changes // ignore: cast_nullable_to_non_nullable
+              as List<Change>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ChangesResponseImplCopyWith<$Res>
     implements $ChangesResponseCopyWith<$Res> {
-  factory _$$ChangesResponseImplCopyWith(
-    _$ChangesResponseImpl value,
-    $Res Function(_$ChangesResponseImpl) then,
-  ) = __$$ChangesResponseImplCopyWithImpl<$Res>;
+  factory _$$ChangesResponseImplCopyWith(_$ChangesResponseImpl value,
+          $Res Function(_$ChangesResponseImpl) then) =
+      __$$ChangesResponseImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({List<Change> changes});
@@ -720,23 +652,20 @@ class __$$ChangesResponseImplCopyWithImpl<$Res>
     extends _$ChangesResponseCopyWithImpl<$Res, _$ChangesResponseImpl>
     implements _$$ChangesResponseImplCopyWith<$Res> {
   __$$ChangesResponseImplCopyWithImpl(
-    _$ChangesResponseImpl _value,
-    $Res Function(_$ChangesResponseImpl) _then,
-  ) : super(_value, _then);
+      _$ChangesResponseImpl _value, $Res Function(_$ChangesResponseImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ChangesResponse
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? changes = null}) {
-    return _then(
-      _$ChangesResponseImpl(
-        changes: null == changes
-            ? _value._changes
-            : changes // ignore: cast_nullable_to_non_nullable
-                  as List<Change>,
-      ),
-    );
+  $Res call({
+    Object? changes = null,
+  }) {
+    return _then(_$ChangesResponseImpl(
+      changes: null == changes
+          ? _value._changes
+          : changes // ignore: cast_nullable_to_non_nullable
+              as List<Change>,
+    ));
   }
 }
 
@@ -744,7 +673,7 @@ class __$$ChangesResponseImplCopyWithImpl<$Res>
 @JsonSerializable()
 class _$ChangesResponseImpl implements _ChangesResponse {
   const _$ChangesResponseImpl({final List<Change> changes = const []})
-    : _changes = changes;
+      : _changes = changes;
 
   factory _$ChangesResponseImpl.fromJson(Map<String, dynamic> json) =>
       _$$ChangesResponseImplFromJson(json);
@@ -771,25 +700,23 @@ class _$ChangesResponseImpl implements _ChangesResponse {
             const DeepCollectionEquality().equals(other._changes, _changes));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, const DeepCollectionEquality().hash(_changes));
 
-  /// Create a copy of ChangesResponse
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ChangesResponseImplCopyWith<_$ChangesResponseImpl> get copyWith =>
       __$$ChangesResponseImplCopyWithImpl<_$ChangesResponseImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ChangesResponseImplToJson(this);
+    return _$$ChangesResponseImplToJson(
+      this,
+    );
   }
 }
 
@@ -802,11 +729,8 @@ abstract class _ChangesResponse implements ChangesResponse {
 
   @override
   List<Change> get changes;
-
-  /// Create a copy of ChangesResponse
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ChangesResponseImplCopyWith<_$ChangesResponseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

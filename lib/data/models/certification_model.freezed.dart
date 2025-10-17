@@ -12,8 +12,7 @@ part of 'certification_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Certification _$CertificationFromJson(Map<String, dynamic> json) {
   return _Certification.fromJson(json);
@@ -25,12 +24,8 @@ mixin _$Certification {
   String get meaning => throw _privateConstructorUsedError;
   int get order => throw _privateConstructorUsedError;
 
-  /// Serializes this Certification to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Certification
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CertificationCopyWith<Certification> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -38,9 +33,8 @@ mixin _$Certification {
 /// @nodoc
 abstract class $CertificationCopyWith<$Res> {
   factory $CertificationCopyWith(
-    Certification value,
-    $Res Function(Certification) then,
-  ) = _$CertificationCopyWithImpl<$Res, Certification>;
+          Certification value, $Res Function(Certification) then) =
+      _$CertificationCopyWithImpl<$Res, Certification>;
   @useResult
   $Res call({String certification, String meaning, int order});
 }
@@ -55,8 +49,6 @@ class _$CertificationCopyWithImpl<$Res, $Val extends Certification>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Certification
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -64,23 +56,20 @@ class _$CertificationCopyWithImpl<$Res, $Val extends Certification>
     Object? meaning = null,
     Object? order = null,
   }) {
-    return _then(
-      _value.copyWith(
-            certification: null == certification
-                ? _value.certification
-                : certification // ignore: cast_nullable_to_non_nullable
-                      as String,
-            meaning: null == meaning
-                ? _value.meaning
-                : meaning // ignore: cast_nullable_to_non_nullable
-                      as String,
-            order: null == order
-                ? _value.order
-                : order // ignore: cast_nullable_to_non_nullable
-                      as int,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      certification: null == certification
+          ? _value.certification
+          : certification // ignore: cast_nullable_to_non_nullable
+              as String,
+      meaning: null == meaning
+          ? _value.meaning
+          : meaning // ignore: cast_nullable_to_non_nullable
+              as String,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as int,
+    ) as $Val);
   }
 }
 
@@ -88,9 +77,8 @@ class _$CertificationCopyWithImpl<$Res, $Val extends Certification>
 abstract class _$$CertificationImplCopyWith<$Res>
     implements $CertificationCopyWith<$Res> {
   factory _$$CertificationImplCopyWith(
-    _$CertificationImpl value,
-    $Res Function(_$CertificationImpl) then,
-  ) = __$$CertificationImplCopyWithImpl<$Res>;
+          _$CertificationImpl value, $Res Function(_$CertificationImpl) then) =
+      __$$CertificationImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String certification, String meaning, int order});
@@ -101,12 +89,9 @@ class __$$CertificationImplCopyWithImpl<$Res>
     extends _$CertificationCopyWithImpl<$Res, _$CertificationImpl>
     implements _$$CertificationImplCopyWith<$Res> {
   __$$CertificationImplCopyWithImpl(
-    _$CertificationImpl _value,
-    $Res Function(_$CertificationImpl) _then,
-  ) : super(_value, _then);
+      _$CertificationImpl _value, $Res Function(_$CertificationImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of Certification
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -114,33 +99,30 @@ class __$$CertificationImplCopyWithImpl<$Res>
     Object? meaning = null,
     Object? order = null,
   }) {
-    return _then(
-      _$CertificationImpl(
-        certification: null == certification
-            ? _value.certification
-            : certification // ignore: cast_nullable_to_non_nullable
-                  as String,
-        meaning: null == meaning
-            ? _value.meaning
-            : meaning // ignore: cast_nullable_to_non_nullable
-                  as String,
-        order: null == order
-            ? _value.order
-            : order // ignore: cast_nullable_to_non_nullable
-                  as int,
-      ),
-    );
+    return _then(_$CertificationImpl(
+      certification: null == certification
+          ? _value.certification
+          : certification // ignore: cast_nullable_to_non_nullable
+              as String,
+      meaning: null == meaning
+          ? _value.meaning
+          : meaning // ignore: cast_nullable_to_non_nullable
+              as String,
+      order: null == order
+          ? _value.order
+          : order // ignore: cast_nullable_to_non_nullable
+              as int,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CertificationImpl implements _Certification {
-  const _$CertificationImpl({
-    required this.certification,
-    required this.meaning,
-    required this.order,
-  });
+  const _$CertificationImpl(
+      {required this.certification,
+      required this.meaning,
+      required this.order});
 
   factory _$CertificationImpl.fromJson(Map<String, dynamic> json) =>
       _$$CertificationImplFromJson(json);
@@ -168,13 +150,11 @@ class _$CertificationImpl implements _Certification {
             (identical(other.order, order) || other.order == order));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, certification, meaning, order);
 
-  /// Create a copy of Certification
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CertificationImplCopyWith<_$CertificationImpl> get copyWith =>
@@ -182,16 +162,17 @@ class _$CertificationImpl implements _Certification {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CertificationImplToJson(this);
+    return _$$CertificationImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Certification implements Certification {
-  const factory _Certification({
-    required final String certification,
-    required final String meaning,
-    required final int order,
-  }) = _$CertificationImpl;
+  const factory _Certification(
+      {required final String certification,
+      required final String meaning,
+      required final int order}) = _$CertificationImpl;
 
   factory _Certification.fromJson(Map<String, dynamic> json) =
       _$CertificationImpl.fromJson;
@@ -202,11 +183,8 @@ abstract class _Certification implements Certification {
   String get meaning;
   @override
   int get order;
-
-  /// Create a copy of Certification
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CertificationImplCopyWith<_$CertificationImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -225,12 +203,8 @@ mixin _$ReleaseDates {
   String? get releaseDate => throw _privateConstructorUsedError;
   int? get type => throw _privateConstructorUsedError;
 
-  /// Serializes this ReleaseDates to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ReleaseDates
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ReleaseDatesCopyWith<ReleaseDates> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -238,17 +212,15 @@ mixin _$ReleaseDates {
 /// @nodoc
 abstract class $ReleaseDatesCopyWith<$Res> {
   factory $ReleaseDatesCopyWith(
-    ReleaseDates value,
-    $Res Function(ReleaseDates) then,
-  ) = _$ReleaseDatesCopyWithImpl<$Res, ReleaseDates>;
+          ReleaseDates value, $Res Function(ReleaseDates) then) =
+      _$ReleaseDatesCopyWithImpl<$Res, ReleaseDates>;
   @useResult
-  $Res call({
-    String certification,
-    @JsonKey(name: 'iso_639_1') String? language,
-    String? note,
-    @JsonKey(name: 'release_date') String? releaseDate,
-    int? type,
-  });
+  $Res call(
+      {String certification,
+      @JsonKey(name: 'iso_639_1') String? language,
+      String? note,
+      @JsonKey(name: 'release_date') String? releaseDate,
+      int? type});
 }
 
 /// @nodoc
@@ -261,8 +233,6 @@ class _$ReleaseDatesCopyWithImpl<$Res, $Val extends ReleaseDates>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ReleaseDates
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -272,31 +242,28 @@ class _$ReleaseDatesCopyWithImpl<$Res, $Val extends ReleaseDates>
     Object? releaseDate = freezed,
     Object? type = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            certification: null == certification
-                ? _value.certification
-                : certification // ignore: cast_nullable_to_non_nullable
-                      as String,
-            language: freezed == language
-                ? _value.language
-                : language // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            note: freezed == note
-                ? _value.note
-                : note // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            releaseDate: freezed == releaseDate
-                ? _value.releaseDate
-                : releaseDate // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            type: freezed == type
-                ? _value.type
-                : type // ignore: cast_nullable_to_non_nullable
-                      as int?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      certification: null == certification
+          ? _value.certification
+          : certification // ignore: cast_nullable_to_non_nullable
+              as String,
+      language: freezed == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String?,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+      releaseDate: freezed == releaseDate
+          ? _value.releaseDate
+          : releaseDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ) as $Val);
   }
 }
 
@@ -304,18 +271,16 @@ class _$ReleaseDatesCopyWithImpl<$Res, $Val extends ReleaseDates>
 abstract class _$$ReleaseDatesImplCopyWith<$Res>
     implements $ReleaseDatesCopyWith<$Res> {
   factory _$$ReleaseDatesImplCopyWith(
-    _$ReleaseDatesImpl value,
-    $Res Function(_$ReleaseDatesImpl) then,
-  ) = __$$ReleaseDatesImplCopyWithImpl<$Res>;
+          _$ReleaseDatesImpl value, $Res Function(_$ReleaseDatesImpl) then) =
+      __$$ReleaseDatesImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String certification,
-    @JsonKey(name: 'iso_639_1') String? language,
-    String? note,
-    @JsonKey(name: 'release_date') String? releaseDate,
-    int? type,
-  });
+  $Res call(
+      {String certification,
+      @JsonKey(name: 'iso_639_1') String? language,
+      String? note,
+      @JsonKey(name: 'release_date') String? releaseDate,
+      int? type});
 }
 
 /// @nodoc
@@ -323,12 +288,9 @@ class __$$ReleaseDatesImplCopyWithImpl<$Res>
     extends _$ReleaseDatesCopyWithImpl<$Res, _$ReleaseDatesImpl>
     implements _$$ReleaseDatesImplCopyWith<$Res> {
   __$$ReleaseDatesImplCopyWithImpl(
-    _$ReleaseDatesImpl _value,
-    $Res Function(_$ReleaseDatesImpl) _then,
-  ) : super(_value, _then);
+      _$ReleaseDatesImpl _value, $Res Function(_$ReleaseDatesImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ReleaseDates
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -338,43 +300,40 @@ class __$$ReleaseDatesImplCopyWithImpl<$Res>
     Object? releaseDate = freezed,
     Object? type = freezed,
   }) {
-    return _then(
-      _$ReleaseDatesImpl(
-        certification: null == certification
-            ? _value.certification
-            : certification // ignore: cast_nullable_to_non_nullable
-                  as String,
-        language: freezed == language
-            ? _value.language
-            : language // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        note: freezed == note
-            ? _value.note
-            : note // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        releaseDate: freezed == releaseDate
-            ? _value.releaseDate
-            : releaseDate // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        type: freezed == type
-            ? _value.type
-            : type // ignore: cast_nullable_to_non_nullable
-                  as int?,
-      ),
-    );
+    return _then(_$ReleaseDatesImpl(
+      certification: null == certification
+          ? _value.certification
+          : certification // ignore: cast_nullable_to_non_nullable
+              as String,
+      language: freezed == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String?,
+      note: freezed == note
+          ? _value.note
+          : note // ignore: cast_nullable_to_non_nullable
+              as String?,
+      releaseDate: freezed == releaseDate
+          ? _value.releaseDate
+          : releaseDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      type: freezed == type
+          ? _value.type
+          : type // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ReleaseDatesImpl implements _ReleaseDates {
-  const _$ReleaseDatesImpl({
-    required this.certification,
-    @JsonKey(name: 'iso_639_1') this.language,
-    this.note,
-    @JsonKey(name: 'release_date') this.releaseDate,
-    this.type,
-  });
+  const _$ReleaseDatesImpl(
+      {required this.certification,
+      @JsonKey(name: 'iso_639_1') this.language,
+      this.note,
+      @JsonKey(name: 'release_date') this.releaseDate,
+      this.type});
 
   factory _$ReleaseDatesImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReleaseDatesImplFromJson(json);
@@ -412,20 +371,12 @@ class _$ReleaseDatesImpl implements _ReleaseDates {
             (identical(other.type, type) || other.type == type));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    certification,
-    language,
-    note,
-    releaseDate,
-    type,
-  );
+      runtimeType, certification, language, note, releaseDate, type);
 
-  /// Create a copy of ReleaseDates
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ReleaseDatesImplCopyWith<_$ReleaseDatesImpl> get copyWith =>
@@ -433,18 +384,19 @@ class _$ReleaseDatesImpl implements _ReleaseDates {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ReleaseDatesImplToJson(this);
+    return _$$ReleaseDatesImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ReleaseDates implements ReleaseDates {
-  const factory _ReleaseDates({
-    required final String certification,
-    @JsonKey(name: 'iso_639_1') final String? language,
-    final String? note,
-    @JsonKey(name: 'release_date') final String? releaseDate,
-    final int? type,
-  }) = _$ReleaseDatesImpl;
+  const factory _ReleaseDates(
+      {required final String certification,
+      @JsonKey(name: 'iso_639_1') final String? language,
+      final String? note,
+      @JsonKey(name: 'release_date') final String? releaseDate,
+      final int? type}) = _$ReleaseDatesImpl;
 
   factory _ReleaseDates.fromJson(Map<String, dynamic> json) =
       _$ReleaseDatesImpl.fromJson;
@@ -461,11 +413,8 @@ abstract class _ReleaseDates implements ReleaseDates {
   String? get releaseDate;
   @override
   int? get type;
-
-  /// Create a copy of ReleaseDates
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ReleaseDatesImplCopyWith<_$ReleaseDatesImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -480,12 +429,8 @@ mixin _$ReleaseDatesResult {
   String get countryCode => throw _privateConstructorUsedError;
   List<ReleaseDates> get releaseDates => throw _privateConstructorUsedError;
 
-  /// Serializes this ReleaseDatesResult to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ReleaseDatesResult
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ReleaseDatesResultCopyWith<ReleaseDatesResult> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -493,14 +438,12 @@ mixin _$ReleaseDatesResult {
 /// @nodoc
 abstract class $ReleaseDatesResultCopyWith<$Res> {
   factory $ReleaseDatesResultCopyWith(
-    ReleaseDatesResult value,
-    $Res Function(ReleaseDatesResult) then,
-  ) = _$ReleaseDatesResultCopyWithImpl<$Res, ReleaseDatesResult>;
+          ReleaseDatesResult value, $Res Function(ReleaseDatesResult) then) =
+      _$ReleaseDatesResultCopyWithImpl<$Res, ReleaseDatesResult>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'iso_3166_1') String countryCode,
-    List<ReleaseDates> releaseDates,
-  });
+  $Res call(
+      {@JsonKey(name: 'iso_3166_1') String countryCode,
+      List<ReleaseDates> releaseDates});
 }
 
 /// @nodoc
@@ -513,78 +456,72 @@ class _$ReleaseDatesResultCopyWithImpl<$Res, $Val extends ReleaseDatesResult>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ReleaseDatesResult
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? countryCode = null, Object? releaseDates = null}) {
-    return _then(
-      _value.copyWith(
-            countryCode: null == countryCode
-                ? _value.countryCode
-                : countryCode // ignore: cast_nullable_to_non_nullable
-                      as String,
-            releaseDates: null == releaseDates
-                ? _value.releaseDates
-                : releaseDates // ignore: cast_nullable_to_non_nullable
-                      as List<ReleaseDates>,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? countryCode = null,
+    Object? releaseDates = null,
+  }) {
+    return _then(_value.copyWith(
+      countryCode: null == countryCode
+          ? _value.countryCode
+          : countryCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      releaseDates: null == releaseDates
+          ? _value.releaseDates
+          : releaseDates // ignore: cast_nullable_to_non_nullable
+              as List<ReleaseDates>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ReleaseDatesResultImplCopyWith<$Res>
     implements $ReleaseDatesResultCopyWith<$Res> {
-  factory _$$ReleaseDatesResultImplCopyWith(
-    _$ReleaseDatesResultImpl value,
-    $Res Function(_$ReleaseDatesResultImpl) then,
-  ) = __$$ReleaseDatesResultImplCopyWithImpl<$Res>;
+  factory _$$ReleaseDatesResultImplCopyWith(_$ReleaseDatesResultImpl value,
+          $Res Function(_$ReleaseDatesResultImpl) then) =
+      __$$ReleaseDatesResultImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'iso_3166_1') String countryCode,
-    List<ReleaseDates> releaseDates,
-  });
+  $Res call(
+      {@JsonKey(name: 'iso_3166_1') String countryCode,
+      List<ReleaseDates> releaseDates});
 }
 
 /// @nodoc
 class __$$ReleaseDatesResultImplCopyWithImpl<$Res>
     extends _$ReleaseDatesResultCopyWithImpl<$Res, _$ReleaseDatesResultImpl>
     implements _$$ReleaseDatesResultImplCopyWith<$Res> {
-  __$$ReleaseDatesResultImplCopyWithImpl(
-    _$ReleaseDatesResultImpl _value,
-    $Res Function(_$ReleaseDatesResultImpl) _then,
-  ) : super(_value, _then);
+  __$$ReleaseDatesResultImplCopyWithImpl(_$ReleaseDatesResultImpl _value,
+      $Res Function(_$ReleaseDatesResultImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ReleaseDatesResult
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? countryCode = null, Object? releaseDates = null}) {
-    return _then(
-      _$ReleaseDatesResultImpl(
-        countryCode: null == countryCode
-            ? _value.countryCode
-            : countryCode // ignore: cast_nullable_to_non_nullable
-                  as String,
-        releaseDates: null == releaseDates
-            ? _value._releaseDates
-            : releaseDates // ignore: cast_nullable_to_non_nullable
-                  as List<ReleaseDates>,
-      ),
-    );
+  $Res call({
+    Object? countryCode = null,
+    Object? releaseDates = null,
+  }) {
+    return _then(_$ReleaseDatesResultImpl(
+      countryCode: null == countryCode
+          ? _value.countryCode
+          : countryCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      releaseDates: null == releaseDates
+          ? _value._releaseDates
+          : releaseDates // ignore: cast_nullable_to_non_nullable
+              as List<ReleaseDates>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ReleaseDatesResultImpl implements _ReleaseDatesResult {
-  const _$ReleaseDatesResultImpl({
-    @JsonKey(name: 'iso_3166_1') required this.countryCode,
-    final List<ReleaseDates> releaseDates = const [],
-  }) : _releaseDates = releaseDates;
+  const _$ReleaseDatesResultImpl(
+      {@JsonKey(name: 'iso_3166_1') required this.countryCode,
+      final List<ReleaseDates> releaseDates = const []})
+      : _releaseDates = releaseDates;
 
   factory _$ReleaseDatesResultImpl.fromJson(Map<String, dynamic> json) =>
       _$$ReleaseDatesResultImplFromJson(json);
@@ -613,42 +550,34 @@ class _$ReleaseDatesResultImpl implements _ReleaseDatesResult {
             other is _$ReleaseDatesResultImpl &&
             (identical(other.countryCode, countryCode) ||
                 other.countryCode == countryCode) &&
-            const DeepCollectionEquality().equals(
-              other._releaseDates,
-              _releaseDates,
-            ));
+            const DeepCollectionEquality()
+                .equals(other._releaseDates, _releaseDates));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    countryCode,
-    const DeepCollectionEquality().hash(_releaseDates),
-  );
+  int get hashCode => Object.hash(runtimeType, countryCode,
+      const DeepCollectionEquality().hash(_releaseDates));
 
-  /// Create a copy of ReleaseDatesResult
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ReleaseDatesResultImplCopyWith<_$ReleaseDatesResultImpl> get copyWith =>
       __$$ReleaseDatesResultImplCopyWithImpl<_$ReleaseDatesResultImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ReleaseDatesResultImplToJson(this);
+    return _$$ReleaseDatesResultImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ReleaseDatesResult implements ReleaseDatesResult {
-  const factory _ReleaseDatesResult({
-    @JsonKey(name: 'iso_3166_1') required final String countryCode,
-    final List<ReleaseDates> releaseDates,
-  }) = _$ReleaseDatesResultImpl;
+  const factory _ReleaseDatesResult(
+      {@JsonKey(name: 'iso_3166_1') required final String countryCode,
+      final List<ReleaseDates> releaseDates}) = _$ReleaseDatesResultImpl;
 
   factory _ReleaseDatesResult.fromJson(Map<String, dynamic> json) =
       _$ReleaseDatesResultImpl.fromJson;
@@ -658,11 +587,8 @@ abstract class _ReleaseDatesResult implements ReleaseDatesResult {
   String get countryCode;
   @override
   List<ReleaseDates> get releaseDates;
-
-  /// Create a copy of ReleaseDatesResult
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ReleaseDatesResultImplCopyWith<_$ReleaseDatesResultImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

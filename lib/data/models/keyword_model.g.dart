@@ -13,7 +13,10 @@ _$KeywordImpl _$$KeywordImplFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$$KeywordImplToJson(_$KeywordImpl instance) =>
-    <String, dynamic>{'id': instance.id, 'name': instance.name};
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+    };
 
 _$KeywordDetailsImpl _$$KeywordDetailsImplFromJson(Map<String, dynamic> json) =>
     _$KeywordDetailsImpl(
@@ -22,5 +25,8 @@ _$KeywordDetailsImpl _$$KeywordDetailsImplFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$$KeywordDetailsImplToJson(
-  _$KeywordDetailsImpl instance,
-) => <String, dynamic>{'id': instance.id, 'name': instance.name};
+        _$KeywordDetailsImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+    };

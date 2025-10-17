@@ -193,7 +193,7 @@ class Movie {
   }
 
   // Map genre IDs to genre names (movie + TV, 28 total)
-  static const Map<int, String> genreMap = GenreCatalog.allGenreNames;
+  static Map<int, String> get genreMap => GenreCatalog.allGenreNames;
 
   List<String> get genres {
     if (genreIds == null || genreIds!.isEmpty) {

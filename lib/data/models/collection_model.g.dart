@@ -23,27 +23,26 @@ Map<String, dynamic> _$$CollectionImplToJson(_$CollectionImpl instance) =>
     };
 
 _$CollectionDetailsImpl _$$CollectionDetailsImplFromJson(
-  Map<String, dynamic> json,
-) => _$CollectionDetailsImpl(
-  id: (json['id'] as num).toInt(),
-  name: json['name'] as String,
-  overview: json['overview'] as String?,
-  posterPath: json['poster_path'] as String?,
-  backdropPath: json['backdrop_path'] as String?,
-  parts:
-      (json['parts'] as List<dynamic>?)
-          ?.map((e) => MovieRef.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-);
+        Map<String, dynamic> json) =>
+    _$CollectionDetailsImpl(
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      overview: json['overview'] as String?,
+      posterPath: json['poster_path'] as String?,
+      backdropPath: json['backdrop_path'] as String?,
+      parts: (json['parts'] as List<dynamic>?)
+              ?.map((e) => MovieRef.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
 
 Map<String, dynamic> _$$CollectionDetailsImplToJson(
-  _$CollectionDetailsImpl instance,
-) => <String, dynamic>{
-  'id': instance.id,
-  'name': instance.name,
-  'overview': instance.overview,
-  'poster_path': instance.posterPath,
-  'backdrop_path': instance.backdropPath,
-  'parts': instance.parts,
-};
+        _$CollectionDetailsImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'overview': instance.overview,
+      'poster_path': instance.posterPath,
+      'backdrop_path': instance.backdropPath,
+      'parts': instance.parts,
+    };

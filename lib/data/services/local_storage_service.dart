@@ -64,7 +64,7 @@ class LocalStorageService {
     SavedMediaItem? item,
     SavedMediaType type = SavedMediaType.movie,
   }) async {
-    final favorites = getFavoriteItems();
+    final favorites = getFavoriteItems().toList();
     final storageId = item?.storageId ?? '${type.storageKey}_$id';
     final index =
         favorites.indexWhere((candidate) => candidate.storageId == storageId);

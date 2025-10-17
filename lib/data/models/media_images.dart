@@ -12,9 +12,9 @@ class MediaImages {
         stills = List.unmodifiable(stills);
 
   MediaImages.empty()
-      : posters = const UnmodifiableListView<ImageModel>([]),
-        backdrops = const UnmodifiableListView<ImageModel>([]),
-        stills = const UnmodifiableListView<ImageModel>([]);
+      : posters = const [],
+        backdrops = const [],
+        stills = const [];
 
   final List<ImageModel> posters;
   final List<ImageModel> backdrops;

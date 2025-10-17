@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/movie.dart';
 import '../../../providers/movies_provider.dart';
+import '../../../data/models/discover_filters_model.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../../providers/watch_region_provider.dart';
@@ -257,7 +258,7 @@ extension on _MoviesScreenState {
                         onPressed: () async {
                           Navigator.pop(context);
                           await moviesProvider.applyFilters(
-                            const DiscoverFilters().copyWith(
+                            DiscoverFilters().copyWith(
                               certificationCountry: region,
                               certificationLte: cert,
                             ),
@@ -280,7 +281,7 @@ extension on _MoviesScreenState {
                     Future<void> applyDates() async {
                       Navigator.pop(context);
                       await moviesProvider.applyFilters(
-                        const DiscoverFilters().copyWith(
+                        DiscoverFilters().copyWith(
                           releaseDateGte: fromDate != null ? fromDate!.toIso8601String().split('T').first : null,
                           releaseDateLte: toDate != null ? toDate!.toIso8601String().split('T').first : null,
                         ),
@@ -349,8 +350,8 @@ extension on _MoviesScreenState {
                     String withKeywords = '';
                     void applyCurrent() async {
                       Navigator.pop(context);
-                      await moviesProvider.applyFilters(
-                        const DiscoverFilters().copyWith(
+                       await moviesProvider.applyFilters(
+                         DiscoverFilters().copyWith(
                           voteAverageGte: voteMin,
                           voteAverageLte: voteMax,
                           runtimeGte: runtimeMin,

@@ -39,19 +39,18 @@ Map<String, dynamic> _$$ReleaseDatesImplToJson(_$ReleaseDatesImpl instance) =>
     };
 
 _$ReleaseDatesResultImpl _$$ReleaseDatesResultImplFromJson(
-  Map<String, dynamic> json,
-) => _$ReleaseDatesResultImpl(
-  countryCode: json['iso_3166_1'] as String,
-  releaseDates:
-      (json['releaseDates'] as List<dynamic>?)
-          ?.map((e) => ReleaseDates.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-);
+        Map<String, dynamic> json) =>
+    _$ReleaseDatesResultImpl(
+      countryCode: json['iso_3166_1'] as String,
+      releaseDates: (json['releaseDates'] as List<dynamic>?)
+              ?.map((e) => ReleaseDates.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
 
 Map<String, dynamic> _$$ReleaseDatesResultImplToJson(
-  _$ReleaseDatesResultImpl instance,
-) => <String, dynamic>{
-  'iso_3166_1': instance.countryCode,
-  'releaseDates': instance.releaseDates,
-};
+        _$ReleaseDatesResultImpl instance) =>
+    <String, dynamic>{
+      'iso_3166_1': instance.countryCode,
+      'releaseDates': instance.releaseDates,
+    };

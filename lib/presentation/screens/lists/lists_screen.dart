@@ -28,8 +28,8 @@ class ListsScreen extends StatelessWidget {
         builder: (context, provider, _) {
           if (provider.isLoading) {
             return const Center(child: CircularProgressIndicator());
-              SnackBar(content: Text('Updated "$name"')),
-
+          }
+          
           if (provider.errorMessage != null) {
             return _ErrorState(
               message: provider.errorMessage!,
@@ -490,7 +490,6 @@ class _ListEditorSheetState extends State<ListEditorSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isEditing = widget.initialList != null;
     final isEditing = widget.initialList != null;
 
     return Padding(

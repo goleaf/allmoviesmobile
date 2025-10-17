@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
-import '../screens/home/home_screen.dart';
+// HomeScreen import removed (not present); default to Movies as home
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
@@ -67,8 +67,8 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home),
             title: const Text('Home'),
-            selected: currentRoute == HomeScreen.routeName,
-            onTap: () => _navigateTo(context, HomeScreen.routeName),
+            selected: currentRoute == MoviesScreen.routeName,
+            onTap: () => _navigateTo(context, MoviesScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.movie_creation_outlined),

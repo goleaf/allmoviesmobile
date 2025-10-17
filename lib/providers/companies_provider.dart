@@ -39,10 +39,10 @@ class CompaniesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final results = await _repository.searchCompanies(normalized);
+      final response = await _repository.fetchCompanies(query: normalized, page: 1);
       _searchResults
         ..clear()
-        ..addAll(results);
+        ..addAll(response.results);
       _errorMessage = null;
     } on TmdbException catch (error) {
       _errorMessage = error.message;

@@ -18,16 +18,15 @@ _$CompanyImpl _$$CompanyImplFromJson(Map<String, dynamic> json) =>
       parentCompany: json['parent_company'] == null
           ? null
           : ParentCompany.fromJson(
-              json['parent_company'] as Map<String, dynamic>,
-            ),
-      alternativeNames:
-          (json['alternative_names'] as List<dynamic>? ?? const [])
-              .map((e) => e as String)
-              .toList(),
-      logoGallery: (json['logo_gallery'] as List<dynamic>? ?? const [])
-          .map((e) =>
-              CompanyLogo.fromJson(e as Map<String, dynamic>))
-          .toList(),
+              json['parent_company'] as Map<String, dynamic>),
+      alternativeNames: (json['alternative_names'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
+      logoGallery: (json['logo_gallery'] as List<dynamic>?)
+              ?.map((e) => CompanyLogo.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const <CompanyLogo>[],
       producedMovies: json['produced_movies'] as List<dynamic>? ?? const [],
       producedSeries: json['produced_series'] as List<dynamic>? ?? const [],
     );
@@ -41,9 +40,9 @@ Map<String, dynamic> _$$CompanyImplToJson(_$CompanyImpl instance) =>
       'description': instance.description,
       'headquarters': instance.headquarters,
       'homepage': instance.homepage,
-      'parent_company': instance.parentCompany?.toJson(),
+      'parent_company': instance.parentCompany,
       'alternative_names': instance.alternativeNames,
-      'logo_gallery': instance.logoGallery.map((e) => e.toJson()).toList(),
+      'logo_gallery': instance.logoGallery,
       'produced_movies': instance.producedMovies,
       'produced_series': instance.producedSeries,
     };
@@ -56,8 +55,7 @@ _$ParentCompanyImpl _$$ParentCompanyImplFromJson(Map<String, dynamic> json) =>
       originCountry: json['origin_country'] as String?,
     );
 
-Map<String, dynamic> _$$ParentCompanyImplToJson(
-        _$ParentCompanyImpl instance) =>
+Map<String, dynamic> _$$ParentCompanyImplToJson(_$ParentCompanyImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'name': instance.name,

@@ -53,8 +53,7 @@ const _$MediaTypeEnumMap = {
 _$SearchResponseImpl _$$SearchResponseImplFromJson(Map<String, dynamic> json) =>
     _$SearchResponseImpl(
       page: (json['page'] as num?)?.toInt() ?? 1,
-      results:
-          (json['results'] as List<dynamic>?)
+      results: (json['results'] as List<dynamic>?)
               ?.map((e) => SearchResult.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -63,10 +62,10 @@ _$SearchResponseImpl _$$SearchResponseImplFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$$SearchResponseImplToJson(
-  _$SearchResponseImpl instance,
-) => <String, dynamic>{
-  'page': instance.page,
-  'results': instance.results,
-  'total_pages': instance.totalPages,
-  'total_results': instance.totalResults,
-};
+        _$SearchResponseImpl instance) =>
+    <String, dynamic>{
+      'page': instance.page,
+      'results': instance.results,
+      'total_pages': instance.totalPages,
+      'total_results': instance.totalResults,
+    };

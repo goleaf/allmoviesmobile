@@ -12,8 +12,7 @@ part of 'translation_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 TranslationData _$TranslationDataFromJson(Map<String, dynamic> json) {
   return _TranslationData.fromJson(json);
@@ -26,12 +25,8 @@ mixin _$TranslationData {
   String? get homepage => throw _privateConstructorUsedError;
   String? get tagline => throw _privateConstructorUsedError;
 
-  /// Serializes this TranslationData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of TranslationData
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TranslationDataCopyWith<TranslationData> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -39,16 +34,11 @@ mixin _$TranslationData {
 /// @nodoc
 abstract class $TranslationDataCopyWith<$Res> {
   factory $TranslationDataCopyWith(
-    TranslationData value,
-    $Res Function(TranslationData) then,
-  ) = _$TranslationDataCopyWithImpl<$Res, TranslationData>;
+          TranslationData value, $Res Function(TranslationData) then) =
+      _$TranslationDataCopyWithImpl<$Res, TranslationData>;
   @useResult
-  $Res call({
-    String? title,
-    String? overview,
-    String? homepage,
-    String? tagline,
-  });
+  $Res call(
+      {String? title, String? overview, String? homepage, String? tagline});
 }
 
 /// @nodoc
@@ -61,8 +51,6 @@ class _$TranslationDataCopyWithImpl<$Res, $Val extends TranslationData>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of TranslationData
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -71,45 +59,37 @@ class _$TranslationDataCopyWithImpl<$Res, $Val extends TranslationData>
     Object? homepage = freezed,
     Object? tagline = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            title: freezed == title
-                ? _value.title
-                : title // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            overview: freezed == overview
-                ? _value.overview
-                : overview // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            homepage: freezed == homepage
-                ? _value.homepage
-                : homepage // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            tagline: freezed == tagline
-                ? _value.tagline
-                : tagline // ignore: cast_nullable_to_non_nullable
-                      as String?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      title: freezed == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String?,
+      overview: freezed == overview
+          ? _value.overview
+          : overview // ignore: cast_nullable_to_non_nullable
+              as String?,
+      homepage: freezed == homepage
+          ? _value.homepage
+          : homepage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tagline: freezed == tagline
+          ? _value.tagline
+          : tagline // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$TranslationDataImplCopyWith<$Res>
     implements $TranslationDataCopyWith<$Res> {
-  factory _$$TranslationDataImplCopyWith(
-    _$TranslationDataImpl value,
-    $Res Function(_$TranslationDataImpl) then,
-  ) = __$$TranslationDataImplCopyWithImpl<$Res>;
+  factory _$$TranslationDataImplCopyWith(_$TranslationDataImpl value,
+          $Res Function(_$TranslationDataImpl) then) =
+      __$$TranslationDataImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String? title,
-    String? overview,
-    String? homepage,
-    String? tagline,
-  });
+  $Res call(
+      {String? title, String? overview, String? homepage, String? tagline});
 }
 
 /// @nodoc
@@ -117,12 +97,9 @@ class __$$TranslationDataImplCopyWithImpl<$Res>
     extends _$TranslationDataCopyWithImpl<$Res, _$TranslationDataImpl>
     implements _$$TranslationDataImplCopyWith<$Res> {
   __$$TranslationDataImplCopyWithImpl(
-    _$TranslationDataImpl _value,
-    $Res Function(_$TranslationDataImpl) _then,
-  ) : super(_value, _then);
+      _$TranslationDataImpl _value, $Res Function(_$TranslationDataImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of TranslationData
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -131,38 +108,32 @@ class __$$TranslationDataImplCopyWithImpl<$Res>
     Object? homepage = freezed,
     Object? tagline = freezed,
   }) {
-    return _then(
-      _$TranslationDataImpl(
-        title: freezed == title
-            ? _value.title
-            : title // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        overview: freezed == overview
-            ? _value.overview
-            : overview // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        homepage: freezed == homepage
-            ? _value.homepage
-            : homepage // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        tagline: freezed == tagline
-            ? _value.tagline
-            : tagline // ignore: cast_nullable_to_non_nullable
-                  as String?,
-      ),
-    );
+    return _then(_$TranslationDataImpl(
+      title: freezed == title
+          ? _value.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String?,
+      overview: freezed == overview
+          ? _value.overview
+          : overview // ignore: cast_nullable_to_non_nullable
+              as String?,
+      homepage: freezed == homepage
+          ? _value.homepage
+          : homepage // ignore: cast_nullable_to_non_nullable
+              as String?,
+      tagline: freezed == tagline
+          ? _value.tagline
+          : tagline // ignore: cast_nullable_to_non_nullable
+              as String?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TranslationDataImpl implements _TranslationData {
-  const _$TranslationDataImpl({
-    this.title,
-    this.overview,
-    this.homepage,
-    this.tagline,
-  });
+  const _$TranslationDataImpl(
+      {this.title, this.overview, this.homepage, this.tagline});
 
   factory _$TranslationDataImpl.fromJson(Map<String, dynamic> json) =>
       _$$TranslationDataImplFromJson(json);
@@ -194,35 +165,32 @@ class _$TranslationDataImpl implements _TranslationData {
             (identical(other.tagline, tagline) || other.tagline == tagline));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, title, overview, homepage, tagline);
 
-  /// Create a copy of TranslationData
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TranslationDataImplCopyWith<_$TranslationDataImpl> get copyWith =>
       __$$TranslationDataImplCopyWithImpl<_$TranslationDataImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TranslationDataImplToJson(this);
+    return _$$TranslationDataImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _TranslationData implements TranslationData {
-  const factory _TranslationData({
-    final String? title,
-    final String? overview,
-    final String? homepage,
-    final String? tagline,
-  }) = _$TranslationDataImpl;
+  const factory _TranslationData(
+      {final String? title,
+      final String? overview,
+      final String? homepage,
+      final String? tagline}) = _$TranslationDataImpl;
 
   factory _TranslationData.fromJson(Map<String, dynamic> json) =
       _$TranslationDataImpl.fromJson;
@@ -235,11 +203,8 @@ abstract class _TranslationData implements TranslationData {
   String? get homepage;
   @override
   String? get tagline;
-
-  /// Create a copy of TranslationData
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$TranslationDataImplCopyWith<_$TranslationDataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -259,12 +224,8 @@ mixin _$Translation {
   String get englishName => throw _privateConstructorUsedError;
   TranslationData get data => throw _privateConstructorUsedError;
 
-  /// Serializes this Translation to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Translation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $TranslationCopyWith<Translation> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -272,17 +233,15 @@ mixin _$Translation {
 /// @nodoc
 abstract class $TranslationCopyWith<$Res> {
   factory $TranslationCopyWith(
-    Translation value,
-    $Res Function(Translation) then,
-  ) = _$TranslationCopyWithImpl<$Res, Translation>;
+          Translation value, $Res Function(Translation) then) =
+      _$TranslationCopyWithImpl<$Res, Translation>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'iso_3166_1') String iso31661,
-    @JsonKey(name: 'iso_639_1') String iso6391,
-    String name,
-    @JsonKey(name: 'english_name') String englishName,
-    TranslationData data,
-  });
+  $Res call(
+      {@JsonKey(name: 'iso_3166_1') String iso31661,
+      @JsonKey(name: 'iso_639_1') String iso6391,
+      String name,
+      @JsonKey(name: 'english_name') String englishName,
+      TranslationData data});
 
   $TranslationDataCopyWith<$Res> get data;
 }
@@ -297,8 +256,6 @@ class _$TranslationCopyWithImpl<$Res, $Val extends Translation>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Translation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -308,35 +265,30 @@ class _$TranslationCopyWithImpl<$Res, $Val extends Translation>
     Object? englishName = null,
     Object? data = null,
   }) {
-    return _then(
-      _value.copyWith(
-            iso31661: null == iso31661
-                ? _value.iso31661
-                : iso31661 // ignore: cast_nullable_to_non_nullable
-                      as String,
-            iso6391: null == iso6391
-                ? _value.iso6391
-                : iso6391 // ignore: cast_nullable_to_non_nullable
-                      as String,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            englishName: null == englishName
-                ? _value.englishName
-                : englishName // ignore: cast_nullable_to_non_nullable
-                      as String,
-            data: null == data
-                ? _value.data
-                : data // ignore: cast_nullable_to_non_nullable
-                      as TranslationData,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      iso31661: null == iso31661
+          ? _value.iso31661
+          : iso31661 // ignore: cast_nullable_to_non_nullable
+              as String,
+      iso6391: null == iso6391
+          ? _value.iso6391
+          : iso6391 // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      englishName: null == englishName
+          ? _value.englishName
+          : englishName // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as TranslationData,
+    ) as $Val);
   }
 
-  /// Create a copy of Translation
-  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $TranslationDataCopyWith<$Res> get data {
@@ -350,18 +302,16 @@ class _$TranslationCopyWithImpl<$Res, $Val extends Translation>
 abstract class _$$TranslationImplCopyWith<$Res>
     implements $TranslationCopyWith<$Res> {
   factory _$$TranslationImplCopyWith(
-    _$TranslationImpl value,
-    $Res Function(_$TranslationImpl) then,
-  ) = __$$TranslationImplCopyWithImpl<$Res>;
+          _$TranslationImpl value, $Res Function(_$TranslationImpl) then) =
+      __$$TranslationImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'iso_3166_1') String iso31661,
-    @JsonKey(name: 'iso_639_1') String iso6391,
-    String name,
-    @JsonKey(name: 'english_name') String englishName,
-    TranslationData data,
-  });
+  $Res call(
+      {@JsonKey(name: 'iso_3166_1') String iso31661,
+      @JsonKey(name: 'iso_639_1') String iso6391,
+      String name,
+      @JsonKey(name: 'english_name') String englishName,
+      TranslationData data});
 
   @override
   $TranslationDataCopyWith<$Res> get data;
@@ -372,12 +322,9 @@ class __$$TranslationImplCopyWithImpl<$Res>
     extends _$TranslationCopyWithImpl<$Res, _$TranslationImpl>
     implements _$$TranslationImplCopyWith<$Res> {
   __$$TranslationImplCopyWithImpl(
-    _$TranslationImpl _value,
-    $Res Function(_$TranslationImpl) _then,
-  ) : super(_value, _then);
+      _$TranslationImpl _value, $Res Function(_$TranslationImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of Translation
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -387,43 +334,40 @@ class __$$TranslationImplCopyWithImpl<$Res>
     Object? englishName = null,
     Object? data = null,
   }) {
-    return _then(
-      _$TranslationImpl(
-        iso31661: null == iso31661
-            ? _value.iso31661
-            : iso31661 // ignore: cast_nullable_to_non_nullable
-                  as String,
-        iso6391: null == iso6391
-            ? _value.iso6391
-            : iso6391 // ignore: cast_nullable_to_non_nullable
-                  as String,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        englishName: null == englishName
-            ? _value.englishName
-            : englishName // ignore: cast_nullable_to_non_nullable
-                  as String,
-        data: null == data
-            ? _value.data
-            : data // ignore: cast_nullable_to_non_nullable
-                  as TranslationData,
-      ),
-    );
+    return _then(_$TranslationImpl(
+      iso31661: null == iso31661
+          ? _value.iso31661
+          : iso31661 // ignore: cast_nullable_to_non_nullable
+              as String,
+      iso6391: null == iso6391
+          ? _value.iso6391
+          : iso6391 // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      englishName: null == englishName
+          ? _value.englishName
+          : englishName // ignore: cast_nullable_to_non_nullable
+              as String,
+      data: null == data
+          ? _value.data
+          : data // ignore: cast_nullable_to_non_nullable
+              as TranslationData,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$TranslationImpl implements _Translation {
-  const _$TranslationImpl({
-    @JsonKey(name: 'iso_3166_1') required this.iso31661,
-    @JsonKey(name: 'iso_639_1') required this.iso6391,
-    required this.name,
-    @JsonKey(name: 'english_name') required this.englishName,
-    required this.data,
-  });
+  const _$TranslationImpl(
+      {@JsonKey(name: 'iso_3166_1') required this.iso31661,
+      @JsonKey(name: 'iso_639_1') required this.iso6391,
+      required this.name,
+      @JsonKey(name: 'english_name') required this.englishName,
+      required this.data});
 
   factory _$TranslationImpl.fromJson(Map<String, dynamic> json) =>
       _$$TranslationImplFromJson(json);
@@ -461,14 +405,12 @@ class _$TranslationImpl implements _Translation {
             (identical(other.data, data) || other.data == data));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode =>
       Object.hash(runtimeType, iso31661, iso6391, name, englishName, data);
 
-  /// Create a copy of Translation
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$TranslationImplCopyWith<_$TranslationImpl> get copyWith =>
@@ -476,18 +418,19 @@ class _$TranslationImpl implements _Translation {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$TranslationImplToJson(this);
+    return _$$TranslationImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Translation implements Translation {
-  const factory _Translation({
-    @JsonKey(name: 'iso_3166_1') required final String iso31661,
-    @JsonKey(name: 'iso_639_1') required final String iso6391,
-    required final String name,
-    @JsonKey(name: 'english_name') required final String englishName,
-    required final TranslationData data,
-  }) = _$TranslationImpl;
+  const factory _Translation(
+      {@JsonKey(name: 'iso_3166_1') required final String iso31661,
+      @JsonKey(name: 'iso_639_1') required final String iso6391,
+      required final String name,
+      @JsonKey(name: 'english_name') required final String englishName,
+      required final TranslationData data}) = _$TranslationImpl;
 
   factory _Translation.fromJson(Map<String, dynamic> json) =
       _$TranslationImpl.fromJson;
@@ -505,11 +448,8 @@ abstract class _Translation implements Translation {
   String get englishName;
   @override
   TranslationData get data;
-
-  /// Create a copy of Translation
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$TranslationImplCopyWith<_$TranslationImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

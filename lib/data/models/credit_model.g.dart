@@ -7,12 +7,12 @@ part of 'credit_model.dart';
 // **************************************************************************
 
 _$CastImpl _$$CastImplFromJson(Map<String, dynamic> json) => _$CastImpl(
-  id: (json['id'] as num).toInt(),
-  name: json['name'] as String,
-  character: json['character'] as String?,
-  profilePath: json['profile_path'] as String?,
-  order: (json['order'] as num?)?.toInt() ?? 0,
-);
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      character: json['character'] as String?,
+      profilePath: json['profile_path'] as String?,
+      order: (json['order'] as num?)?.toInt() ?? 0,
+    );
 
 Map<String, dynamic> _$$CastImplToJson(_$CastImpl instance) =>
     <String, dynamic>{
@@ -24,12 +24,12 @@ Map<String, dynamic> _$$CastImplToJson(_$CastImpl instance) =>
     };
 
 _$CrewImpl _$$CrewImplFromJson(Map<String, dynamic> json) => _$CrewImpl(
-  id: (json['id'] as num).toInt(),
-  name: json['name'] as String,
-  job: json['job'] as String,
-  department: json['department'] as String,
-  profilePath: json['profile_path'] as String?,
-);
+      id: (json['id'] as num).toInt(),
+      name: json['name'] as String,
+      job: json['job'] as String,
+      department: json['department'] as String,
+      profilePath: json['profile_path'] as String?,
+    );
 
 Map<String, dynamic> _$$CrewImplToJson(_$CrewImpl instance) =>
     <String, dynamic>{
@@ -42,17 +42,18 @@ Map<String, dynamic> _$$CrewImplToJson(_$CrewImpl instance) =>
 
 _$CreditsImpl _$$CreditsImplFromJson(Map<String, dynamic> json) =>
     _$CreditsImpl(
-      cast:
-          (json['cast'] as List<dynamic>?)
+      cast: (json['cast'] as List<dynamic>?)
               ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      crew:
-          (json['crew'] as List<dynamic>?)
+      crew: (json['crew'] as List<dynamic>?)
               ?.map((e) => Crew.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
     );
 
 Map<String, dynamic> _$$CreditsImplToJson(_$CreditsImpl instance) =>
-    <String, dynamic>{'cast': instance.cast, 'crew': instance.crew};
+    <String, dynamic>{
+      'cast': instance.cast,
+      'crew': instance.crew,
+    };

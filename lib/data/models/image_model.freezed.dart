@@ -12,8 +12,7 @@ part of 'image_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ImageModel _$ImageModelFromJson(Map<String, dynamic> json) {
   return _ImageModel.fromJson(json);
@@ -32,12 +31,8 @@ mixin _$ImageModel {
   @JsonKey(name: 'vote_count')
   int? get voteCount => throw _privateConstructorUsedError;
 
-  /// Serializes this ImageModel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of ImageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $ImageModelCopyWith<ImageModel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -45,18 +40,16 @@ mixin _$ImageModel {
 /// @nodoc
 abstract class $ImageModelCopyWith<$Res> {
   factory $ImageModelCopyWith(
-    ImageModel value,
-    $Res Function(ImageModel) then,
-  ) = _$ImageModelCopyWithImpl<$Res, ImageModel>;
+          ImageModel value, $Res Function(ImageModel) then) =
+      _$ImageModelCopyWithImpl<$Res, ImageModel>;
   @useResult
-  $Res call({
-    @JsonKey(name: 'file_path') String filePath,
-    int width,
-    int height,
-    @JsonKey(name: 'aspect_ratio') double aspectRatio,
-    @JsonKey(name: 'vote_average') double? voteAverage,
-    @JsonKey(name: 'vote_count') int? voteCount,
-  });
+  $Res call(
+      {@JsonKey(name: 'file_path') String filePath,
+      int width,
+      int height,
+      @JsonKey(name: 'aspect_ratio') double aspectRatio,
+      @JsonKey(name: 'vote_average') double? voteAverage,
+      @JsonKey(name: 'vote_count') int? voteCount});
 }
 
 /// @nodoc
@@ -69,8 +62,6 @@ class _$ImageModelCopyWithImpl<$Res, $Val extends ImageModel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of ImageModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -81,35 +72,32 @@ class _$ImageModelCopyWithImpl<$Res, $Val extends ImageModel>
     Object? voteAverage = freezed,
     Object? voteCount = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            filePath: null == filePath
-                ? _value.filePath
-                : filePath // ignore: cast_nullable_to_non_nullable
-                      as String,
-            width: null == width
-                ? _value.width
-                : width // ignore: cast_nullable_to_non_nullable
-                      as int,
-            height: null == height
-                ? _value.height
-                : height // ignore: cast_nullable_to_non_nullable
-                      as int,
-            aspectRatio: null == aspectRatio
-                ? _value.aspectRatio
-                : aspectRatio // ignore: cast_nullable_to_non_nullable
-                      as double,
-            voteAverage: freezed == voteAverage
-                ? _value.voteAverage
-                : voteAverage // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            voteCount: freezed == voteCount
-                ? _value.voteCount
-                : voteCount // ignore: cast_nullable_to_non_nullable
-                      as int?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      filePath: null == filePath
+          ? _value.filePath
+          : filePath // ignore: cast_nullable_to_non_nullable
+              as String,
+      width: null == width
+          ? _value.width
+          : width // ignore: cast_nullable_to_non_nullable
+              as int,
+      height: null == height
+          ? _value.height
+          : height // ignore: cast_nullable_to_non_nullable
+              as int,
+      aspectRatio: null == aspectRatio
+          ? _value.aspectRatio
+          : aspectRatio // ignore: cast_nullable_to_non_nullable
+              as double,
+      voteAverage: freezed == voteAverage
+          ? _value.voteAverage
+          : voteAverage // ignore: cast_nullable_to_non_nullable
+              as double?,
+      voteCount: freezed == voteCount
+          ? _value.voteCount
+          : voteCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ) as $Val);
   }
 }
 
@@ -117,19 +105,17 @@ class _$ImageModelCopyWithImpl<$Res, $Val extends ImageModel>
 abstract class _$$ImageModelImplCopyWith<$Res>
     implements $ImageModelCopyWith<$Res> {
   factory _$$ImageModelImplCopyWith(
-    _$ImageModelImpl value,
-    $Res Function(_$ImageModelImpl) then,
-  ) = __$$ImageModelImplCopyWithImpl<$Res>;
+          _$ImageModelImpl value, $Res Function(_$ImageModelImpl) then) =
+      __$$ImageModelImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    @JsonKey(name: 'file_path') String filePath,
-    int width,
-    int height,
-    @JsonKey(name: 'aspect_ratio') double aspectRatio,
-    @JsonKey(name: 'vote_average') double? voteAverage,
-    @JsonKey(name: 'vote_count') int? voteCount,
-  });
+  $Res call(
+      {@JsonKey(name: 'file_path') String filePath,
+      int width,
+      int height,
+      @JsonKey(name: 'aspect_ratio') double aspectRatio,
+      @JsonKey(name: 'vote_average') double? voteAverage,
+      @JsonKey(name: 'vote_count') int? voteCount});
 }
 
 /// @nodoc
@@ -137,12 +123,9 @@ class __$$ImageModelImplCopyWithImpl<$Res>
     extends _$ImageModelCopyWithImpl<$Res, _$ImageModelImpl>
     implements _$$ImageModelImplCopyWith<$Res> {
   __$$ImageModelImplCopyWithImpl(
-    _$ImageModelImpl _value,
-    $Res Function(_$ImageModelImpl) _then,
-  ) : super(_value, _then);
+      _$ImageModelImpl _value, $Res Function(_$ImageModelImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of ImageModel
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -153,48 +136,45 @@ class __$$ImageModelImplCopyWithImpl<$Res>
     Object? voteAverage = freezed,
     Object? voteCount = freezed,
   }) {
-    return _then(
-      _$ImageModelImpl(
-        filePath: null == filePath
-            ? _value.filePath
-            : filePath // ignore: cast_nullable_to_non_nullable
-                  as String,
-        width: null == width
-            ? _value.width
-            : width // ignore: cast_nullable_to_non_nullable
-                  as int,
-        height: null == height
-            ? _value.height
-            : height // ignore: cast_nullable_to_non_nullable
-                  as int,
-        aspectRatio: null == aspectRatio
-            ? _value.aspectRatio
-            : aspectRatio // ignore: cast_nullable_to_non_nullable
-                  as double,
-        voteAverage: freezed == voteAverage
-            ? _value.voteAverage
-            : voteAverage // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        voteCount: freezed == voteCount
-            ? _value.voteCount
-            : voteCount // ignore: cast_nullable_to_non_nullable
-                  as int?,
-      ),
-    );
+    return _then(_$ImageModelImpl(
+      filePath: null == filePath
+          ? _value.filePath
+          : filePath // ignore: cast_nullable_to_non_nullable
+              as String,
+      width: null == width
+          ? _value.width
+          : width // ignore: cast_nullable_to_non_nullable
+              as int,
+      height: null == height
+          ? _value.height
+          : height // ignore: cast_nullable_to_non_nullable
+              as int,
+      aspectRatio: null == aspectRatio
+          ? _value.aspectRatio
+          : aspectRatio // ignore: cast_nullable_to_non_nullable
+              as double,
+      voteAverage: freezed == voteAverage
+          ? _value.voteAverage
+          : voteAverage // ignore: cast_nullable_to_non_nullable
+              as double?,
+      voteCount: freezed == voteCount
+          ? _value.voteCount
+          : voteCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ImageModelImpl implements _ImageModel {
-  const _$ImageModelImpl({
-    @JsonKey(name: 'file_path') required this.filePath,
-    required this.width,
-    required this.height,
-    @JsonKey(name: 'aspect_ratio') required this.aspectRatio,
-    @JsonKey(name: 'vote_average') this.voteAverage,
-    @JsonKey(name: 'vote_count') this.voteCount,
-  });
+  const _$ImageModelImpl(
+      {@JsonKey(name: 'file_path') required this.filePath,
+      required this.width,
+      required this.height,
+      @JsonKey(name: 'aspect_ratio') required this.aspectRatio,
+      @JsonKey(name: 'vote_average') this.voteAverage,
+      @JsonKey(name: 'vote_count') this.voteCount});
 
   factory _$ImageModelImpl.fromJson(Map<String, dynamic> json) =>
       _$$ImageModelImplFromJson(json);
@@ -238,21 +218,12 @@ class _$ImageModelImpl implements _ImageModel {
                 other.voteCount == voteCount));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    filePath,
-    width,
-    height,
-    aspectRatio,
-    voteAverage,
-    voteCount,
-  );
+  int get hashCode => Object.hash(runtimeType, filePath, width, height,
+      aspectRatio, voteAverage, voteCount);
 
-  /// Create a copy of ImageModel
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$ImageModelImplCopyWith<_$ImageModelImpl> get copyWith =>
@@ -260,19 +231,20 @@ class _$ImageModelImpl implements _ImageModel {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ImageModelImplToJson(this);
+    return _$$ImageModelImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ImageModel implements ImageModel {
-  const factory _ImageModel({
-    @JsonKey(name: 'file_path') required final String filePath,
-    required final int width,
-    required final int height,
-    @JsonKey(name: 'aspect_ratio') required final double aspectRatio,
-    @JsonKey(name: 'vote_average') final double? voteAverage,
-    @JsonKey(name: 'vote_count') final int? voteCount,
-  }) = _$ImageModelImpl;
+  const factory _ImageModel(
+      {@JsonKey(name: 'file_path') required final String filePath,
+      required final int width,
+      required final int height,
+      @JsonKey(name: 'aspect_ratio') required final double aspectRatio,
+      @JsonKey(name: 'vote_average') final double? voteAverage,
+      @JsonKey(name: 'vote_count') final int? voteCount}) = _$ImageModelImpl;
 
   factory _ImageModel.fromJson(Map<String, dynamic> json) =
       _$ImageModelImpl.fromJson;
@@ -293,11 +265,8 @@ abstract class _ImageModel implements ImageModel {
   @override
   @JsonKey(name: 'vote_count')
   int? get voteCount;
-
-  /// Create a copy of ImageModel
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$ImageModelImplCopyWith<_$ImageModelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

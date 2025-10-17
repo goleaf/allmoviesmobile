@@ -12,8 +12,7 @@ part of 'country_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Country _$CountryFromJson(Map<String, dynamic> json) {
   return _Country.fromJson(json);
@@ -25,12 +24,8 @@ mixin _$Country {
   String get iso31661 => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
 
-  /// Serializes this Country to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Country
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $CountryCopyWith<Country> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -52,33 +47,30 @@ class _$CountryCopyWithImpl<$Res, $Val extends Country>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Country
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? iso31661 = null, Object? name = null}) {
-    return _then(
-      _value.copyWith(
-            iso31661: null == iso31661
-                ? _value.iso31661
-                : iso31661 // ignore: cast_nullable_to_non_nullable
-                      as String,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+  $Res call({
+    Object? iso31661 = null,
+    Object? name = null,
+  }) {
+    return _then(_value.copyWith(
+      iso31661: null == iso31661
+          ? _value.iso31661
+          : iso31661 // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$CountryImplCopyWith<$Res> implements $CountryCopyWith<$Res> {
   factory _$$CountryImplCopyWith(
-    _$CountryImpl value,
-    $Res Function(_$CountryImpl) then,
-  ) = __$$CountryImplCopyWithImpl<$Res>;
+          _$CountryImpl value, $Res Function(_$CountryImpl) then) =
+      __$$CountryImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: 'iso_3166_1') String iso31661, String name});
@@ -89,37 +81,34 @@ class __$$CountryImplCopyWithImpl<$Res>
     extends _$CountryCopyWithImpl<$Res, _$CountryImpl>
     implements _$$CountryImplCopyWith<$Res> {
   __$$CountryImplCopyWithImpl(
-    _$CountryImpl _value,
-    $Res Function(_$CountryImpl) _then,
-  ) : super(_value, _then);
+      _$CountryImpl _value, $Res Function(_$CountryImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of Country
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
-  $Res call({Object? iso31661 = null, Object? name = null}) {
-    return _then(
-      _$CountryImpl(
-        iso31661: null == iso31661
-            ? _value.iso31661
-            : iso31661 // ignore: cast_nullable_to_non_nullable
-                  as String,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+  $Res call({
+    Object? iso31661 = null,
+    Object? name = null,
+  }) {
+    return _then(_$CountryImpl(
+      iso31661: null == iso31661
+          ? _value.iso31661
+          : iso31661 // ignore: cast_nullable_to_non_nullable
+              as String,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$CountryImpl implements _Country {
-  const _$CountryImpl({
-    @JsonKey(name: 'iso_3166_1') required this.iso31661,
-    required this.name,
-  });
+  const _$CountryImpl(
+      {@JsonKey(name: 'iso_3166_1') required this.iso31661,
+      required this.name});
 
   factory _$CountryImpl.fromJson(Map<String, dynamic> json) =>
       _$$CountryImplFromJson(json);
@@ -145,13 +134,11 @@ class _$CountryImpl implements _Country {
             (identical(other.name, name) || other.name == name));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(runtimeType, iso31661, name);
 
-  /// Create a copy of Country
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$CountryImplCopyWith<_$CountryImpl> get copyWith =>
@@ -159,15 +146,16 @@ class _$CountryImpl implements _Country {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$CountryImplToJson(this);
+    return _$$CountryImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Country implements Country {
-  const factory _Country({
-    @JsonKey(name: 'iso_3166_1') required final String iso31661,
-    required final String name,
-  }) = _$CountryImpl;
+  const factory _Country(
+      {@JsonKey(name: 'iso_3166_1') required final String iso31661,
+      required final String name}) = _$CountryImpl;
 
   factory _Country.fromJson(Map<String, dynamic> json) = _$CountryImpl.fromJson;
 
@@ -176,11 +164,8 @@ abstract class _Country implements Country {
   String get iso31661;
   @override
   String get name;
-
-  /// Create a copy of Country
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   _$$CountryImplCopyWith<_$CountryImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -78,7 +78,7 @@ class PeopleProvider extends ChangeNotifier {
     try {
       final results = await Future.wait<List<Person>>([
         _repository.fetchTrendingPeople(),
-        _repository.fetchPopularPeople(),
+        _repository.fetchPopularPeople().then((r) => r.results),
       ]);
 
       final sectionsList = PeopleSection.values;

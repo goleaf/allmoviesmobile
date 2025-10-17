@@ -7,10 +7,14 @@ part of 'change_model.dart';
 // **************************************************************************
 
 _$ChangeValueImpl _$$ChangeValueImplFromJson(Map<String, dynamic> json) =>
-    _$ChangeValueImpl(value: json['value']);
+    _$ChangeValueImpl(
+      value: json['value'],
+    );
 
 Map<String, dynamic> _$$ChangeValueImplToJson(_$ChangeValueImpl instance) =>
-    <String, dynamic>{'value': instance.value};
+    <String, dynamic>{
+      'value': instance.value,
+    };
 
 _$ChangeItemImpl _$$ChangeItemImplFromJson(Map<String, dynamic> json) =>
     _$ChangeItemImpl(
@@ -35,27 +39,30 @@ Map<String, dynamic> _$$ChangeItemImplToJson(_$ChangeItemImpl instance) =>
     };
 
 _$ChangeImpl _$$ChangeImplFromJson(Map<String, dynamic> json) => _$ChangeImpl(
-  key: json['key'] as String,
-  items:
-      (json['items'] as List<dynamic>?)
-          ?.map((e) => ChangeItem.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-);
+      key: json['key'] as String,
+      items: (json['items'] as List<dynamic>?)
+              ?.map((e) => ChangeItem.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
 
 Map<String, dynamic> _$$ChangeImplToJson(_$ChangeImpl instance) =>
-    <String, dynamic>{'key': instance.key, 'items': instance.items};
+    <String, dynamic>{
+      'key': instance.key,
+      'items': instance.items,
+    };
 
 _$ChangesResponseImpl _$$ChangesResponseImplFromJson(
-  Map<String, dynamic> json,
-) => _$ChangesResponseImpl(
-  changes:
-      (json['changes'] as List<dynamic>?)
-          ?.map((e) => Change.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-);
+        Map<String, dynamic> json) =>
+    _$ChangesResponseImpl(
+      changes: (json['changes'] as List<dynamic>?)
+              ?.map((e) => Change.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+    );
 
 Map<String, dynamic> _$$ChangesResponseImplToJson(
-  _$ChangesResponseImpl instance,
-) => <String, dynamic>{'changes': instance.changes};
+        _$ChangesResponseImpl instance) =>
+    <String, dynamic>{
+      'changes': instance.changes,
+    };

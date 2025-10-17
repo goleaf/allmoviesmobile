@@ -18,23 +18,19 @@ _$EpisodeImpl _$$EpisodeImplFromJson(Map<String, dynamic> json) =>
       voteAverage: (json['vote_average'] as num?)?.toDouble(),
       voteCount: (json['vote_count'] as num?)?.toInt(),
       runtime: (json['runtime'] as num?)?.toInt(),
-      cast:
-          (json['cast'] as List<dynamic>?)
+      cast: (json['cast'] as List<dynamic>?)
               ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      guestStars:
-          (json['guest_stars'] as List<dynamic>?)
+      guestStars: (json['guest_stars'] as List<dynamic>?)
               ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      crew:
-          (json['crew'] as List<dynamic>?)
+      crew: (json['crew'] as List<dynamic>?)
               ?.map((e) => Crew.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      videos:
-          (json['videos'] as List<dynamic>?)
+      videos: (json['videos'] as List<dynamic>?)
               ?.map((e) => Video.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],

@@ -13,4 +13,7 @@ _$LanguageImpl _$$LanguageImplFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$$LanguageImplToJson(_$LanguageImpl instance) =>
-    <String, dynamic>{'iso_639_1': instance.iso6391, 'name': instance.name};
+    <String, dynamic>{
+      'iso_639_1': instance.iso6391,
+      'name': instance.name,
+    };

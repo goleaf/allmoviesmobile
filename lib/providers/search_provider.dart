@@ -71,7 +71,7 @@ class SearchProvider with ChangeNotifier {
       final response = await _repository.fetchTrendingTitles(page: 1);
       final seen = <String>{};
       _trendingSearches = response.results
-          .map((movie) => (movie.title ?? movie.name ?? '').trim())
+          .map((movie) => movie.title.trim())
           .where((title) => title.isNotEmpty && seen.add(title))
           .take(10)
           .toList();

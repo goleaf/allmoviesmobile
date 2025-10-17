@@ -115,7 +115,9 @@ class MoviesProvider extends ChangeNotifier {
         _repository.fetchPopularMovies(),
         _repository.fetchTopRatedMovies(),
         _repository.fetchUpcomingMovies(),
-        _repository.discoverMovies(discoverFilters: discoverFilters),
+        _repository
+            .discoverMovies(discoverFilters: discoverFilters)
+            .then((r) => r.results),
       ]);
 
       final sectionsList = MovieSection.values;
@@ -151,7 +153,8 @@ class MoviesProvider extends ChangeNotifier {
 
   Future<List<Movie>> search(String query) async {
     try {
-      return await _repository.searchMovies(query);
+      final res = await _repository.searchMovies(query);
+      return res.results;
     } catch (error) {
       _globalError = 'Search failed: $error';
       notifyListeners();

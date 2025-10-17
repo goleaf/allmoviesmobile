@@ -13,4 +13,7 @@ _$CountryImpl _$$CountryImplFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$$CountryImplToJson(_$CountryImpl instance) =>
-    <String, dynamic>{'iso_3166_1': instance.iso31661, 'name': instance.name};
+    <String, dynamic>{
+      'iso_3166_1': instance.iso31661,
+      'name': instance.name,
+    };

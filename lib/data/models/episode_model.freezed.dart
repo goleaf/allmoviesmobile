@@ -12,8 +12,7 @@ part of 'episode_model.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Episode _$EpisodeFromJson(Map<String, dynamic> json) {
   return _Episode.fromJson(json);
@@ -38,15 +37,13 @@ mixin _$Episode {
   int? get voteCount => throw _privateConstructorUsedError;
   int? get runtime => throw _privateConstructorUsedError;
   List<Cast> get cast => throw _privateConstructorUsedError;
+  @JsonKey(name: 'guest_stars')
   List<Cast> get guestStars => throw _privateConstructorUsedError;
   List<Crew> get crew => throw _privateConstructorUsedError;
+  List<Video> get videos => throw _privateConstructorUsedError;
 
-  /// Serializes this Episode to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-
-  /// Create a copy of Episode
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   $EpisodeCopyWith<Episode> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -55,21 +52,21 @@ abstract class $EpisodeCopyWith<$Res> {
   factory $EpisodeCopyWith(Episode value, $Res Function(Episode) then) =
       _$EpisodeCopyWithImpl<$Res, Episode>;
   @useResult
-  $Res call({
-    int id,
-    String name,
-    @JsonKey(name: 'episode_number') int episodeNumber,
-    @JsonKey(name: 'season_number') int seasonNumber,
-    String? overview,
-    @JsonKey(name: 'air_date') String? airDate,
-    @JsonKey(name: 'still_path') String? stillPath,
-    @JsonKey(name: 'vote_average') double? voteAverage,
-    @JsonKey(name: 'vote_count') int? voteCount,
-    int? runtime,
-    List<Cast> cast,
-    List<Cast> guestStars,
-    List<Crew> crew,
-  });
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(name: 'episode_number') int episodeNumber,
+      @JsonKey(name: 'season_number') int seasonNumber,
+      String? overview,
+      @JsonKey(name: 'air_date') String? airDate,
+      @JsonKey(name: 'still_path') String? stillPath,
+      @JsonKey(name: 'vote_average') double? voteAverage,
+      @JsonKey(name: 'vote_count') int? voteCount,
+      int? runtime,
+      List<Cast> cast,
+      @JsonKey(name: 'guest_stars') List<Cast> guestStars,
+      List<Crew> crew,
+      List<Video> videos});
 }
 
 /// @nodoc
@@ -82,8 +79,6 @@ class _$EpisodeCopyWithImpl<$Res, $Val extends Episode>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
-  /// Create a copy of Episode
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -100,90 +95,91 @@ class _$EpisodeCopyWithImpl<$Res, $Val extends Episode>
     Object? cast = null,
     Object? guestStars = null,
     Object? crew = null,
+    Object? videos = null,
   }) {
-    return _then(
-      _value.copyWith(
-            id: null == id
-                ? _value.id
-                : id // ignore: cast_nullable_to_non_nullable
-                      as int,
-            name: null == name
-                ? _value.name
-                : name // ignore: cast_nullable_to_non_nullable
-                      as String,
-            episodeNumber: null == episodeNumber
-                ? _value.episodeNumber
-                : episodeNumber // ignore: cast_nullable_to_non_nullable
-                      as int,
-            seasonNumber: null == seasonNumber
-                ? _value.seasonNumber
-                : seasonNumber // ignore: cast_nullable_to_non_nullable
-                      as int,
-            overview: freezed == overview
-                ? _value.overview
-                : overview // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            airDate: freezed == airDate
-                ? _value.airDate
-                : airDate // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            stillPath: freezed == stillPath
-                ? _value.stillPath
-                : stillPath // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            voteAverage: freezed == voteAverage
-                ? _value.voteAverage
-                : voteAverage // ignore: cast_nullable_to_non_nullable
-                      as double?,
-            voteCount: freezed == voteCount
-                ? _value.voteCount
-                : voteCount // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            runtime: freezed == runtime
-                ? _value.runtime
-                : runtime // ignore: cast_nullable_to_non_nullable
-                      as int?,
-            cast: null == cast
-                ? _value.cast
-                : cast // ignore: cast_nullable_to_non_nullable
-                    as List<Cast>,
-            guestStars: null == guestStars
-                ? _value.guestStars
-                : guestStars // ignore: cast_nullable_to_non_nullable
-                    as List<Cast>,
-            crew: null == crew
-                ? _value.crew
-                : crew // ignore: cast_nullable_to_non_nullable
-                    as List<Crew>,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      episodeNumber: null == episodeNumber
+          ? _value.episodeNumber
+          : episodeNumber // ignore: cast_nullable_to_non_nullable
+              as int,
+      seasonNumber: null == seasonNumber
+          ? _value.seasonNumber
+          : seasonNumber // ignore: cast_nullable_to_non_nullable
+              as int,
+      overview: freezed == overview
+          ? _value.overview
+          : overview // ignore: cast_nullable_to_non_nullable
+              as String?,
+      airDate: freezed == airDate
+          ? _value.airDate
+          : airDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stillPath: freezed == stillPath
+          ? _value.stillPath
+          : stillPath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      voteAverage: freezed == voteAverage
+          ? _value.voteAverage
+          : voteAverage // ignore: cast_nullable_to_non_nullable
+              as double?,
+      voteCount: freezed == voteCount
+          ? _value.voteCount
+          : voteCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      runtime: freezed == runtime
+          ? _value.runtime
+          : runtime // ignore: cast_nullable_to_non_nullable
+              as int?,
+      cast: null == cast
+          ? _value.cast
+          : cast // ignore: cast_nullable_to_non_nullable
+              as List<Cast>,
+      guestStars: null == guestStars
+          ? _value.guestStars
+          : guestStars // ignore: cast_nullable_to_non_nullable
+              as List<Cast>,
+      crew: null == crew
+          ? _value.crew
+          : crew // ignore: cast_nullable_to_non_nullable
+              as List<Crew>,
+      videos: null == videos
+          ? _value.videos
+          : videos // ignore: cast_nullable_to_non_nullable
+              as List<Video>,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$EpisodeImplCopyWith<$Res> implements $EpisodeCopyWith<$Res> {
   factory _$$EpisodeImplCopyWith(
-    _$EpisodeImpl value,
-    $Res Function(_$EpisodeImpl) then,
-  ) = __$$EpisodeImplCopyWithImpl<$Res>;
+          _$EpisodeImpl value, $Res Function(_$EpisodeImpl) then) =
+      __$$EpisodeImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    int id,
-    String name,
-    @JsonKey(name: 'episode_number') int episodeNumber,
-    @JsonKey(name: 'season_number') int seasonNumber,
-    String? overview,
-    @JsonKey(name: 'air_date') String? airDate,
-    @JsonKey(name: 'still_path') String? stillPath,
-    @JsonKey(name: 'vote_average') double? voteAverage,
-    @JsonKey(name: 'vote_count') int? voteCount,
-    int? runtime,
-    List<Cast> cast,
-    List<Cast> guestStars,
-    List<Crew> crew,
-  });
+  $Res call(
+      {int id,
+      String name,
+      @JsonKey(name: 'episode_number') int episodeNumber,
+      @JsonKey(name: 'season_number') int seasonNumber,
+      String? overview,
+      @JsonKey(name: 'air_date') String? airDate,
+      @JsonKey(name: 'still_path') String? stillPath,
+      @JsonKey(name: 'vote_average') double? voteAverage,
+      @JsonKey(name: 'vote_count') int? voteCount,
+      int? runtime,
+      List<Cast> cast,
+      @JsonKey(name: 'guest_stars') List<Cast> guestStars,
+      List<Crew> crew,
+      List<Video> videos});
 }
 
 /// @nodoc
@@ -191,12 +187,9 @@ class __$$EpisodeImplCopyWithImpl<$Res>
     extends _$EpisodeCopyWithImpl<$Res, _$EpisodeImpl>
     implements _$$EpisodeImplCopyWith<$Res> {
   __$$EpisodeImplCopyWithImpl(
-    _$EpisodeImpl _value,
-    $Res Function(_$EpisodeImpl) _then,
-  ) : super(_value, _then);
+      _$EpisodeImpl _value, $Res Function(_$EpisodeImpl) _then)
+      : super(_value, _then);
 
-  /// Create a copy of Episode
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -213,86 +206,91 @@ class __$$EpisodeImplCopyWithImpl<$Res>
     Object? cast = null,
     Object? guestStars = null,
     Object? crew = null,
+    Object? videos = null,
   }) {
-    return _then(
-      _$EpisodeImpl(
-        id: null == id
-            ? _value.id
-            : id // ignore: cast_nullable_to_non_nullable
-                  as int,
-        name: null == name
-            ? _value.name
-            : name // ignore: cast_nullable_to_non_nullable
-                  as String,
-        episodeNumber: null == episodeNumber
-            ? _value.episodeNumber
-            : episodeNumber // ignore: cast_nullable_to_non_nullable
-                  as int,
-        seasonNumber: null == seasonNumber
-            ? _value.seasonNumber
-            : seasonNumber // ignore: cast_nullable_to_non_nullable
-                  as int,
-        overview: freezed == overview
-            ? _value.overview
-            : overview // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        airDate: freezed == airDate
-            ? _value.airDate
-            : airDate // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        stillPath: freezed == stillPath
-            ? _value.stillPath
-            : stillPath // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        voteAverage: freezed == voteAverage
-            ? _value.voteAverage
-            : voteAverage // ignore: cast_nullable_to_non_nullable
-                  as double?,
-        voteCount: freezed == voteCount
-            ? _value.voteCount
-            : voteCount // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        runtime: freezed == runtime
-            ? _value.runtime
-            : runtime // ignore: cast_nullable_to_non_nullable
-                  as int?,
-        cast: null == cast
-            ? _value._cast
-            : cast // ignore: cast_nullable_to_non_nullable
-                as List<Cast>,
-        guestStars: null == guestStars
-            ? _value._guestStars
-            : guestStars // ignore: cast_nullable_to_non_nullable
-                as List<Cast>,
-        crew: null == crew
-            ? _value._crew
-            : crew // ignore: cast_nullable_to_non_nullable
-                as List<Crew>,
-      ),
-    );
+    return _then(_$EpisodeImpl(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      name: null == name
+          ? _value.name
+          : name // ignore: cast_nullable_to_non_nullable
+              as String,
+      episodeNumber: null == episodeNumber
+          ? _value.episodeNumber
+          : episodeNumber // ignore: cast_nullable_to_non_nullable
+              as int,
+      seasonNumber: null == seasonNumber
+          ? _value.seasonNumber
+          : seasonNumber // ignore: cast_nullable_to_non_nullable
+              as int,
+      overview: freezed == overview
+          ? _value.overview
+          : overview // ignore: cast_nullable_to_non_nullable
+              as String?,
+      airDate: freezed == airDate
+          ? _value.airDate
+          : airDate // ignore: cast_nullable_to_non_nullable
+              as String?,
+      stillPath: freezed == stillPath
+          ? _value.stillPath
+          : stillPath // ignore: cast_nullable_to_non_nullable
+              as String?,
+      voteAverage: freezed == voteAverage
+          ? _value.voteAverage
+          : voteAverage // ignore: cast_nullable_to_non_nullable
+              as double?,
+      voteCount: freezed == voteCount
+          ? _value.voteCount
+          : voteCount // ignore: cast_nullable_to_non_nullable
+              as int?,
+      runtime: freezed == runtime
+          ? _value.runtime
+          : runtime // ignore: cast_nullable_to_non_nullable
+              as int?,
+      cast: null == cast
+          ? _value._cast
+          : cast // ignore: cast_nullable_to_non_nullable
+              as List<Cast>,
+      guestStars: null == guestStars
+          ? _value._guestStars
+          : guestStars // ignore: cast_nullable_to_non_nullable
+              as List<Cast>,
+      crew: null == crew
+          ? _value._crew
+          : crew // ignore: cast_nullable_to_non_nullable
+              as List<Crew>,
+      videos: null == videos
+          ? _value._videos
+          : videos // ignore: cast_nullable_to_non_nullable
+              as List<Video>,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$EpisodeImpl implements _Episode {
-  const _$EpisodeImpl({
-    required this.id,
-    required this.name,
-    @JsonKey(name: 'episode_number') required this.episodeNumber,
-    @JsonKey(name: 'season_number') required this.seasonNumber,
-    this.overview,
-    @JsonKey(name: 'air_date') this.airDate,
-    @JsonKey(name: 'still_path') this.stillPath,
-    @JsonKey(name: 'vote_average') this.voteAverage,
-    @JsonKey(name: 'vote_count') this.voteCount,
-    this.runtime,
-    final List<Cast> cast = const [],
-    @JsonKey(name: 'guest_stars') final List<Cast> guestStars = const [],
-    final List<Crew> crew = const [],
-  })  : _cast = cast,
+  const _$EpisodeImpl(
+      {required this.id,
+      required this.name,
+      @JsonKey(name: 'episode_number') required this.episodeNumber,
+      @JsonKey(name: 'season_number') required this.seasonNumber,
+      this.overview,
+      @JsonKey(name: 'air_date') this.airDate,
+      @JsonKey(name: 'still_path') this.stillPath,
+      @JsonKey(name: 'vote_average') this.voteAverage,
+      @JsonKey(name: 'vote_count') this.voteCount,
+      this.runtime,
+      final List<Cast> cast = const [],
+      @JsonKey(name: 'guest_stars') final List<Cast> guestStars = const [],
+      final List<Crew> crew = const [],
+      final List<Video> videos = const []})
+      : _cast = cast,
         _guestStars = guestStars,
-        _crew = crew;
+        _crew = crew,
+        _videos = videos;
 
   factory _$EpisodeImpl.fromJson(Map<String, dynamic> json) =>
       _$$EpisodeImplFromJson(json);
@@ -350,9 +348,18 @@ class _$EpisodeImpl implements _Episode {
     return EqualUnmodifiableListView(_crew);
   }
 
+  final List<Video> _videos;
+  @override
+  @JsonKey()
+  List<Video> get videos {
+    if (_videos is EqualUnmodifiableListView) return _videos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_videos);
+  }
+
   @override
   String toString() {
-    return 'Episode(id: $id, name: $name, episodeNumber: $episodeNumber, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, stillPath: $stillPath, voteAverage: $voteAverage, voteCount: $voteCount, runtime: $runtime, cast: $cast, guestStars: $guestStars, crew: $crew)';
+    return 'Episode(id: $id, name: $name, episodeNumber: $episodeNumber, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, stillPath: $stillPath, voteAverage: $voteAverage, voteCount: $voteCount, runtime: $runtime, cast: $cast, guestStars: $guestStars, crew: $crew, videos: $videos)';
   }
 
   @override
@@ -379,31 +386,30 @@ class _$EpisodeImpl implements _Episode {
             const DeepCollectionEquality().equals(other._cast, _cast) &&
             const DeepCollectionEquality()
                 .equals(other._guestStars, _guestStars) &&
-            const DeepCollectionEquality().equals(other._crew, _crew));
+            const DeepCollectionEquality().equals(other._crew, _crew) &&
+            const DeepCollectionEquality().equals(other._videos, _videos));
   }
 
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   int get hashCode => Object.hash(
-        runtimeType,
-        id,
-        name,
-        episodeNumber,
-        seasonNumber,
-        overview,
-        airDate,
-        stillPath,
-        voteAverage,
-        voteCount,
-        runtime,
-        const DeepCollectionEquality().hash(_cast),
-        const DeepCollectionEquality().hash(_guestStars),
-        const DeepCollectionEquality().hash(_crew),
-      );
+      runtimeType,
+      id,
+      name,
+      episodeNumber,
+      seasonNumber,
+      overview,
+      airDate,
+      stillPath,
+      voteAverage,
+      voteCount,
+      runtime,
+      const DeepCollectionEquality().hash(_cast),
+      const DeepCollectionEquality().hash(_guestStars),
+      const DeepCollectionEquality().hash(_crew),
+      const DeepCollectionEquality().hash(_videos));
 
-  /// Create a copy of Episode
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
   _$$EpisodeImplCopyWith<_$EpisodeImpl> get copyWith =>
@@ -411,26 +417,28 @@ class _$EpisodeImpl implements _Episode {
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$EpisodeImplToJson(this);
+    return _$$EpisodeImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _Episode implements Episode {
-  const factory _Episode({
-    required final int id,
-    required final String name,
-    @JsonKey(name: 'episode_number') required final int episodeNumber,
-    @JsonKey(name: 'season_number') required final int seasonNumber,
-    final String? overview,
-    @JsonKey(name: 'air_date') final String? airDate,
-    @JsonKey(name: 'still_path') final String? stillPath,
-    @JsonKey(name: 'vote_average') final double? voteAverage,
-    @JsonKey(name: 'vote_count') final int? voteCount,
-    final int? runtime,
-    final List<Cast> cast,
-    @JsonKey(name: 'guest_stars') final List<Cast> guestStars,
-    final List<Crew> crew,
-  }) = _$EpisodeImpl;
+  const factory _Episode(
+      {required final int id,
+      required final String name,
+      @JsonKey(name: 'episode_number') required final int episodeNumber,
+      @JsonKey(name: 'season_number') required final int seasonNumber,
+      final String? overview,
+      @JsonKey(name: 'air_date') final String? airDate,
+      @JsonKey(name: 'still_path') final String? stillPath,
+      @JsonKey(name: 'vote_average') final double? voteAverage,
+      @JsonKey(name: 'vote_count') final int? voteCount,
+      final int? runtime,
+      final List<Cast> cast,
+      @JsonKey(name: 'guest_stars') final List<Cast> guestStars,
+      final List<Crew> crew,
+      final List<Video> videos}) = _$EpisodeImpl;
 
   factory _Episode.fromJson(Map<String, dynamic> json) = _$EpisodeImpl.fromJson;
 
@@ -467,11 +475,10 @@ abstract class _Episode implements Episode {
   List<Cast> get guestStars;
   @override
   List<Crew> get crew;
-
-  /// Create a copy of Episode
-  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
+  List<Video> get videos;
+  @override
+  @JsonKey(ignore: true)
   _$$EpisodeImplCopyWith<_$EpisodeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

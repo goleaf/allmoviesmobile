@@ -83,7 +83,6 @@ class MovieDetailed with _$MovieDetailed {
     @Default([]) List<ImageModel> images,
     @Default([]) List<MovieRef> recommendations,
     @Default([]) List<MovieRef> similar,
-    @Default([]) List<Keyword> keywords,
   }) = _MovieDetailed;
 
   factory MovieDetailed.fromJson(Map<String, dynamic> json) =>

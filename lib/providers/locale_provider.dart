@@ -27,6 +27,19 @@ class LocaleProvider with ChangeNotifier {
     }
   }
 
+  String getLanguageName(Locale locale) {
+    switch (locale.languageCode) {
+      case 'en':
+        return 'English';
+      case 'ru':
+        return 'Русский';
+      case 'uk':
+        return 'Українська';
+      default:
+        return 'English';
+    }
+  }
+
   Future<void> setLocale(Locale locale) async {
     if (_locale == locale) return;
 

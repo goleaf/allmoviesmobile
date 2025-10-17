@@ -56,7 +56,7 @@ class KeywordBrowserProvider extends ChangeNotifier {
       final keywords = await _repository.fetchTrendingKeywords(
         forceRefresh: forceRefresh,
       );
-      _trendingKeywords = keywords;
+      _trendingKeywords = keywords.results;
     } catch (error) {
       _trendingError = 'Failed to load trending keywords: $error';
       _trendingKeywords = const [];

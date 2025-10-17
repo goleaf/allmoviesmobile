@@ -41,7 +41,7 @@ extension SavedMediaTypeX on SavedMediaType {
 
 @immutable
 class SavedMediaItem {
-  const SavedMediaItem({
+  SavedMediaItem({
     required this.id,
     required this.type,
     required this.title,
@@ -151,7 +151,7 @@ class SavedMediaItem {
     DateTime? addedAt,
     DateTime? updatedAt,
     bool? watched,
-    DateTime? watchedAt = _sentinelDateTime,
+    Object? watchedAt = _sentinelDateTime,
   }) {
     return SavedMediaItem(
       id: id,
@@ -173,9 +173,9 @@ class SavedMediaItem {
       addedAt: addedAt ?? this.addedAt,
       updatedAt: updatedAt ?? DateTime.now(),
       watched: watched ?? this.watched,
-      watchedAt: watchedAt == _sentinelDateTime
+      watchedAt: identical(watchedAt, _sentinelDateTime)
           ? this.watchedAt
-          : watchedAt, // explicit null allowed
+          : watchedAt as DateTime?, // explicit null allowed
     );
   }
 

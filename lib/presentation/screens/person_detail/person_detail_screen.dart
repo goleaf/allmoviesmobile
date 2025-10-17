@@ -926,6 +926,7 @@ class _TaggedImagesSection extends StatelessWidget {
           itemBuilder: (context, index) {
             final image = tagged[index];
             final imageUrl = _imageUrl(image.filePath, size: 'w300');
+            final mediaTitle = image.media?.titleOrName;
             return SizedBox(
               width: 200,
               child: Column(
@@ -949,7 +950,6 @@ class _TaggedImagesSection extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  final mediaTitle = image.media?.titleOrName;
                   if (mediaTitle != null && mediaTitle.isNotEmpty)
                     Text(
                       mediaTitle,

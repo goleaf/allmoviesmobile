@@ -58,6 +58,7 @@ class AppStrings {
   static const people = 'People';
   static const companies = 'Companies';
   static const apiExplorer = 'TMDB Explorer';
+  static const tmdbV4Reference = 'TMDB v4 Reference';
   static const exploreCollections = 'Explore the latest highlights from our catalog.';
 }
 

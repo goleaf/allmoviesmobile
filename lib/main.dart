@@ -8,6 +8,7 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
+import 'data/tmdb_v4_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -18,6 +19,7 @@ import 'providers/watchlist_provider.dart';
 import 'providers/api_explorer_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
+import 'presentation/screens/explorer/tmdb_v4_reference_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
@@ -61,10 +63,12 @@ class AllMoviesApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tmdbRepository = TmdbRepository();
+    final tmdbV4Repository = TmdbV4Repository();
 
     return MultiProvider(
       providers: [
         Provider<TmdbRepository>.value(value: tmdbRepository),
+        Provider<TmdbV4Repository>.value(value: tmdbV4Repository),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),
@@ -108,6 +112,8 @@ class AllMoviesApp extends StatelessWidget {
               PeopleScreen.routeName: (context) => const PeopleScreen(),
               CompaniesScreen.routeName: (context) => const CompaniesScreen(),
               ApiExplorerScreen.routeName: (context) => const ApiExplorerScreen(),
+              TmdbV4ReferenceScreen.routeName: (context) =>
+                  const TmdbV4ReferenceScreen(),
               FavoritesScreen.routeName: (context) => const FavoritesScreen(),
               WatchlistScreen.routeName: (context) => const WatchlistScreen(),
               SettingsScreen.routeName: (context) => const SettingsScreen(),

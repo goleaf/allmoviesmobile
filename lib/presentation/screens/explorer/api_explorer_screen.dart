@@ -9,6 +9,7 @@ import '../../../data/models/person_model.dart';
 import '../../../data/models/watch_provider_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../../providers/api_explorer_provider.dart';
+import 'content_ratings_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/error_widget.dart';
 
@@ -137,11 +138,35 @@ class _ApiExplorerScreenState extends State<ApiExplorerScreen> {
                   title: 'Movie certifications',
                   snapshot: snapshot,
                   certifications: snapshot.movieCertifications,
+                  onViewAll: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ContentRatingsScreen(
+                          countries: snapshot.countries,
+                          movieCertifications: snapshot.movieCertifications,
+                          tvCertifications: snapshot.tvCertifications,
+                          initialTab: 0,
+                        ),
+                      ),
+                    );
+                  },
                 ),
                 _CertificationSection(
                   title: 'TV certifications',
                   snapshot: snapshot,
                   certifications: snapshot.tvCertifications,
+                  onViewAll: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ContentRatingsScreen(
+                          countries: snapshot.countries,
+                          movieCertifications: snapshot.movieCertifications,
+                          tvCertifications: snapshot.tvCertifications,
+                          initialTab: 1,
+                        ),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),
@@ -847,11 +872,13 @@ class _CertificationSection extends StatelessWidget {
     required this.title,
     required this.snapshot,
     required this.certifications,
+    this.onViewAll,
   });
 
   final String title;
   final ApiExplorerSnapshot snapshot;
   final Map<String, List<Certification>> certifications;
+  final VoidCallback? onViewAll;
 
   @override
   Widget build(BuildContext context) {
@@ -883,11 +910,23 @@ class _CertificationSection extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                    if (onViewAll != null)
+                      TextButton(
+                        onPressed: onViewAll,
+                        child: const Text('View all'),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(

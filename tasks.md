@@ -1127,7 +1127,7 @@ All search types are fully implemented in repository and accessible via search p
 **Status**: 🔴 Not Started  
 **Priority**: LOW
 
-- [ ] Watch time statistics
+- [x] Watch time statistics
 - [ ] Charts for:
   - Box office trends
   - Rating distributions

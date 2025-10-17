@@ -13,6 +13,7 @@ import '../../../data/services/local_storage_service.dart';
 import '../../../data/services/offline_service.dart';
 import '../../../providers/preferences_provider.dart';
 import '../../../providers/offline_provider.dart';
+import '../statistics/statistics_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   static const routeName = '/settings';
@@ -22,6 +23,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final stats = l.statistics;
 
     return Scaffold(
       appBar: AppBar(title: Text(l.t('settings.title'))),
@@ -51,6 +53,19 @@ class SettingsScreen extends StatelessWidget {
           _ClearCacheTile(),
           const _OfflineStorageTile(),
           _ClearSearchHistoryTile(),
+          _SettingsHeader(title: l.settings['insights'] ?? 'Insights'),
+          ListTile(
+            leading: const Icon(Icons.query_stats_outlined),
+            title: Text(stats['title'] ?? 'Viewing statistics'),
+            subtitle: Text(
+              stats['tile_subtitle'] ??
+                  'Understand your watch habits at a glance.',
+            ),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => Navigator.of(context).pushNamed(
+              StatisticsScreen.routeName,
+            ),
+          ),
           _SettingsHeader(title: l.t('settings.about')),
           _StaticInfoTile(
             icon: Icons.info_outline,

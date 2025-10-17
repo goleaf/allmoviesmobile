@@ -355,6 +355,24 @@
     "text_size": "Text size",
     "text_size_description": "Adjust interface text scale."
   },
+  "statistics": {
+    "title": "Viewing statistics",
+    "tile_subtitle": "Understand your watch habits at a glance.",
+    "watch_time": "Watch time",
+    "watch_time_hours": "{hours} hours watched",
+    "watch_time_days": "{days} days total",
+    "watch_time_caption": "Based on {titles} completed titles",
+    "movies_watched": "Movies watched",
+    "series_watched": "Series watched",
+    "average_runtime": "Average runtime",
+    "rating_distribution": "Rating distribution",
+    "genre_breakdown": "Genre popularity",
+    "genre_empty": "Not enough data to calculate genre insights yet.",
+    "unknown_genre": "Unknown",
+    "other_genre": "Other",
+    "empty_title": "No watch history yet",
+    "empty_message": "Mark items as watched from your watchlist to unlock insights."
+  },
   "offline": {
     "banner_offline": "Offline mode: showing cached data",
     "banner_syncing": "Back online! Syncing offline actions…",

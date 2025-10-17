@@ -11,7 +11,10 @@ class AppDrawer extends StatelessWidget {
     final authProvider = context.watch<AuthProvider>();
     final user = authProvider.currentUser;
 
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Drawer(
+      width: screenWidth,
       child: Column(
         children: [
           UserAccountsDrawerHeader(
@@ -71,16 +74,17 @@ class AppDrawer extends StatelessWidget {
           ),
           const Spacer(),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text(AppStrings.logout),
-            onTap: () async {
-              await authProvider.logout();
-              if (context.mounted) {
-                Navigator.pop(context);
-              }
-            },
-          ),
+          if (user != null)
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text(AppStrings.logout),
+              onTap: () async {
+                await authProvider.logout();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
           const SizedBox(height: 16),
         ],
       ),

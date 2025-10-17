@@ -62,6 +62,7 @@ class AllMoviesApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
+        Provider<TmdbRepository>.value(value: tmdbRepository),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),

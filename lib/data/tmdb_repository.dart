@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
+import '../core/utils/memory_optimizer.dart';
 import 'models/certification_model.dart';
 import 'models/collection_model.dart';
 import 'models/company_model.dart';
@@ -42,22 +43,45 @@ class TmdbRepository {
     NetworkQualityNotifier? networkQualityNotifier,
     String? apiKey,
     String? language,
-    NetworkQualityNotifier? networkQualityNotifier,
-  })  : _client = client ?? http.Client(),
-        _cache = cacheService,
+  }) : _client = client ?? http.Client(),
+       _cache = cacheService,
         _language = language ?? AppConfig.defaultLanguage,
-        _networkQualityNotifier = networkQualityNotifier,
         _apiKey = (() {
-         final provided =
-             apiKey ??
-             const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
-         if (provided.isNotEmpty) {
-           return provided;
-         }
-         return AppConfig.tmdbApiKey;
+          final provided =
+              apiKey ??
+              const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
+          if (provided.isNotEmpty) {
+            return provided;
+          }
+          return AppConfig.tmdbApiKey;
        })() {
-    _networkQualityNotifier?.addListener(_handleNetworkQualityChange);
-    _handleNetworkQualityChange();
+    if (_cache != null) {
+      MemoryOptimizer.instance.registerCacheService(_cache);
+      _cache!
+        ..configureLimits(maxEntries: 800)
+        ..registerPolicyOverride(
+          pattern: RegExp(r'^trending::'),
+          policy: _policyFromSeconds(CacheService.trendingTTL),
+        )
+        ..registerPolicyOverride(
+          pattern: RegExp(r'^movie::detail::'),
+          policy: CachePolicy(
+            ttl: const Duration(hours: 6),
+            refreshAfter: const Duration(hours: 3),
+          ),
+        )
+        ..registerPolicyOverride(
+          pattern: RegExp(r'^tv::detail::'),
+          policy: CachePolicy(
+            ttl: const Duration(hours: 6),
+            refreshAfter: const Duration(hours: 3),
+          ),
+        )
+        ..registerPolicyOverride(
+          pattern: RegExp(r'^search::'),
+          policy: _policyFromSeconds(CacheService.searchTTL),
+        );
+    }
   }
 
   static const _host = 'api.themoviedb.org';
@@ -68,22 +92,17 @@ class TmdbRepository {
   final NetworkQualityNotifier? _networkQualityNotifier;
   final String _apiKey;
   final String _language;
-  final NetworkQualityNotifier? _networkQualityNotifier;
-  late final RequestThrottler _throttler = () {
-    final throttler = RequestThrottler();
-    final quality = _networkQualityNotifier?.quality;
-    if (quality != null) {
-      throttler.applyNetworkQuality(quality);
-    }
-    _networkQualityNotifier?.addListener(_handleNetworkQualityChanged);
-    return throttler;
-  }();
+  final RateLimiter _globalRateLimiter = RateLimiter(
+    const Duration(milliseconds: 250),
+  );
+  final Map<String, RateLimiter> _endpointLimiters = {};
+  final Map<String, Future<Map<String, dynamic>>> _inFlight = {};
 
-  void _handleNetworkQualityChanged() {
-    final quality = _networkQualityNotifier?.quality;
-    if (quality != null) {
-      _throttler.applyNetworkQuality(quality);
-    }
+  CachePolicy _policyFromSeconds(int ttlSeconds) {
+    return CachePolicy(
+      ttl: Duration(seconds: ttlSeconds),
+      refreshAfter: Duration(seconds: (ttlSeconds * 0.6).round()),
+    );
   }
 
   void _ensureApiKey() {
@@ -148,7 +167,24 @@ class TmdbRepository {
       }
     }
 
-    return _throttler.schedule(request);
+    final limiter = _endpointLimiters.putIfAbsent(
+      endpoint,
+      () => RateLimiter(const Duration(milliseconds: 250)),
+    );
+    final key = uri.toString();
+    final existing = _inFlight[key];
+    if (existing != null) {
+      return existing;
+    }
+
+    final future = _globalRateLimiter.schedule(
+      () => limiter.schedule(request),
+    );
+    _inFlight[key] = future;
+
+    return future.whenComplete(() {
+      _inFlight.remove(key);
+    });
   }
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);
@@ -157,7 +193,7 @@ class TmdbRepository {
     _cache?.set<T>(
       key,
       value,
-      ttlSeconds: _resolveTtlSeconds(ttlSeconds),
+      policy: _policyFromSeconds(ttlSeconds),
     );
   }
 
@@ -167,53 +203,30 @@ class TmdbRepository {
     bool forceRefresh = false,
     int ttlSeconds = 900,
     CachePolicy? policy,
-    int? refreshAfterSeconds,
+    bool allowStale = true,
   }) async {
     final cache = _cache;
-    final computedRefreshAfter = refreshAfterSeconds ??
-        (ttlSeconds >= 120 ? ttlSeconds ~/ 2 : null);
-    final effectivePolicy = policy ?? CachePolicy(
-      ttl: Duration(seconds: ttlSeconds),
-      refreshAfter: computedRefreshAfter != null && computedRefreshAfter > 0
-          ? Duration(seconds: computedRefreshAfter)
-          : null,
-    );
+    final resolvedPolicy = policy ?? _policyFromSeconds(ttlSeconds);
 
-    if (!forceRefresh && cache != null) {
-      final lookup = cache.getWithMeta<T>(key);
-      if (lookup != null && lookup.hasValue) {
-        final cachedValue = lookup.value;
-        if (cachedValue == null) {
-          // Defensive guard; treat as miss if value vanished.
-          _cache?.remove(key);
-          return await _cached(
-            key,
-            loader,
-            forceRefresh: true,
-            ttlSeconds: ttlSeconds,
-            policy: policy,
-            refreshAfterSeconds: refreshAfterSeconds,
-          );
-        }
-        if (lookup.isStale) {
-          _scheduleRevalidation<T>(
-            key,
-            loader,
-            effectivePolicy,
-          );
-        }
-        return cachedValue as T;
-      }
+    if (cache == null) {
+      return loader();
     }
 
-    final value = await loader();
-    _setCached<T>(
+    if (forceRefresh) {
+      final value = await loader();
+      cache.set<T>(key, value, policy: resolvedPolicy);
+      return value;
+    }
+
+    return cache.getOrLoad<T>(
       key,
-      value,
-      ttlSeconds: ttlSeconds,
-      policy: effectivePolicy,
+      () async {
+        final value = await loader();
+        return value;
+      },
+      policy: resolvedPolicy,
+      allowStale: allowStale,
     );
-    return value;
   }
 
   int _resolveTtlSeconds(int baseSeconds) {
@@ -334,6 +347,15 @@ class TmdbRepository {
     return response.results;
   }
 
+  Future<void> prefetchTrendingBundle() async {
+    await Future.wait<void>([
+      fetchTrendingTitles(forceRefresh: false),
+      fetchTrendingMovies(forceRefresh: false),
+      fetchTrendingTv(forceRefresh: false),
+      fetchTrendingPeople(),
+    ]);
+  }
+
   // ---------------------------------------------------------------------------
   // Movies
   // ---------------------------------------------------------------------------
@@ -370,6 +392,15 @@ class TmdbRepository {
   Future<List<Movie>> fetchUpcomingMovies({int page = 1}) async {
     final response = await fetchUpcomingMoviesPaginated(page: page);
     return response.results;
+  }
+
+  Future<void> prefetchMoviesDashboard() async {
+    await Future.wait<void>([
+      fetchNowPlayingMoviesPaginated(page: 1),
+      fetchPopularMoviesPaginated(page: 1),
+      fetchUpcomingMoviesPaginated(page: 1),
+      fetchTopRatedMoviesPaginated(page: 1),
+    ]);
   }
 
   // Paginated wrappers for movie sections

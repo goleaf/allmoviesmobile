@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:collection';
 import 'dart:convert';
-import 'dart:collection';
+import 'dart:math';
 
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -50,8 +50,11 @@ class CacheService {
   }
 
   final Logger _logger = Logger();
-  final Map<String, _CacheEntry> _cache = LinkedHashMap<String, _CacheEntry>();
-  final Map<String, int> _inflightPersistentWrites = {};
+  final Map<String, _CacheEntry> _cache = {};
+  final Map<String, Future<void>> _refreshing = {};
+  final List<_PolicyOverride> _policyOverrides = <_PolicyOverride>[];
+  final StreamController<CacheEvent> _events =
+      StreamController<CacheEvent>.broadcast();
 
   // Default TTL values (in seconds)
   static const int defaultMaxEntries = 256;
@@ -60,12 +63,32 @@ class CacheService {
   static const int trendingTTL = 1800; // 30 minutes
   static const int searchTTL = 600; // 10 minutes
   static const String _persistentPrefix = '__cache_service__';
+  static const double _defaultRefreshFactor = 0.6;
 
   SharedPreferences? _prefs;
-  Timer? _cleanupTimer;
-  int _maxEntries;
-  int _maxEntryBytes;
-  int _totalBytes = 0;
+  int _maxEntries = 400;
+
+  Stream<CacheEvent> get events => _events.stream;
+
+  void configureLimits({int? maxEntries}) {
+    if (maxEntries != null && maxEntries > 0) {
+      _maxEntries = maxEntries;
+      _evictOverflow();
+    }
+  }
+
+  void registerPolicyOverride({
+    required Pattern pattern,
+    required CachePolicy policy,
+  }) {
+    _policyOverrides.removeWhere((override) => override.pattern == pattern);
+    _policyOverrides
+        .add(_PolicyOverride(pattern: pattern, policy: policy));
+  }
+
+  void clearPolicyOverrides() {
+    _policyOverrides.clear();
+  }
 
   /// Update cache capacity controls at runtime.
   void configure({int? maxEntries, int? maxEntryBytes}) {
@@ -80,32 +103,11 @@ class CacheService {
 
   /// Get a value from cache without metadata.
   T? get<T>(String key) {
-    final result = getWithMeta<T>(key, allowStale: false);
-    return result?.value;
-  }
-
-  /// Retrieve a cache entry while exposing metadata about its freshness.
-  CacheLookupResult<T>? getWithMeta<T>(
-    String key, {
-    bool allowStale = true,
-  }) {
-    final entry = _cache[key];
-
-    if (entry == null) {
-      _logger.d('Cache miss: $key');
-      return null;
+    final result = lookup<T>(key, removeStale: true);
+    if (result.status == CacheStatus.hit) {
+      return result.value;
     }
-
-    if (entry.isExpired) {
-      _logger.d('Cache expired: $key');
-      _cache.remove(key);
-      _totalBytes -= entry.estimatedSize;
-      return null;
-    }
-
-    entry.touch();
-    _logger.d('Cache hit: $key');
-    return entry.value as T?;
+    return null;
   }
 
   /// Set a value in cache with optional TTL
@@ -115,38 +117,32 @@ class CacheService {
     int? ttlSeconds,
     CachePolicy? policy,
   }) {
-    final previous = _cache.remove(key);
-    if (previous != null) {
-      _totalBytes -= previous.estimatedSize;
-    }
-
-    final effectivePolicy = policy ??
-        (ttlSeconds != null
-            ? CachePolicy.fromSeconds(ttlSeconds)
-            : const CachePolicy(ttl: Duration(seconds: defaultTTL)));
+    final resolvedPolicy = _resolvePolicy(
+      key,
+      policy ??
+          (ttlSeconds != null
+              ? CachePolicy.fromSeconds(ttlSeconds)
+              : const CachePolicy(ttl: Duration(seconds: defaultTTL))),
+    );
 
     final estimatedSize = _estimateSize(value);
 
     _cache[key] = _CacheEntry(
       value: value,
       createdAt: DateTime.now(),
-      policy: effectivePolicy,
-      estimatedSize: estimatedSize,
+      policy: resolvedPolicy,
     );
-
-    _totalBytes += estimatedSize;
-    _evictIfNeeded();
-
-    _logger.d('Cache set: $key (TTL: ${effectivePolicy.ttl.inSeconds}s)');
+    _emit(CacheEvent.set(key: key, valueType: value.runtimeType));
+    _logger.d('Cache set: $key (TTL: ${resolvedPolicy.ttl.inSeconds}s)');
+    _evictOverflow();
   }
 
   /// Remove a specific key from cache
   void remove(String key) {
-    final removed = _cache.remove(key);
-    if (removed != null) {
-      _totalBytes -= removed.estimatedSize;
+    if (_cache.remove(key) != null) {
+      _emit(CacheEvent.evict(key: key));
+      _logger.d('Cache removed: $key');
     }
-    _logger.d('Cache removed: $key');
   }
 
   /// Remove all keys matching a pattern
@@ -157,13 +153,14 @@ class CacheService {
         .toList();
 
     for (final key in keysToRemove) {
-      final removed = _cache.remove(key);
-      if (removed != null) {
-        _totalBytes -= removed.estimatedSize;
-      }
+      remove(key);
     }
 
-    _logger.d('Cache removed pattern: $pattern (${keysToRemove.length} keys)');
+    if (keysToRemove.isNotEmpty) {
+      _logger.d(
+        'Cache removed pattern: $pattern (${keysToRemove.length} keys)',
+      );
+    }
   }
 
   /// Clear all cache
@@ -176,18 +173,17 @@ class CacheService {
   /// Clean up expired entries
   void cleanExpired() {
     final expiredKeys = _cache.entries
-        .where((entry) => entry.value.isExpired || entry.value.isStale)
+        .where((entry) => entry.value.isExpired || entry.value.isHardStale)
         .map((entry) => entry.key)
         .toList();
 
     for (final key in expiredKeys) {
-      final removed = _cache.remove(key);
-      if (removed != null) {
-        _totalBytes -= removed.estimatedSize;
-      }
+      remove(key);
     }
 
-    _logger.d('Cleaned ${expiredKeys.length} expired cache entries');
+    if (expiredKeys.isNotEmpty) {
+      _logger.d('Cleaned ${expiredKeys.length} expired cache entries');
+    }
   }
 
   /// Clean expired entries from persistent storage
@@ -216,11 +212,13 @@ class CacheService {
         if (expired || stale) {
           await prefs.remove(key);
           removed++;
+          _emit(CacheEvent.evict(key: key));
         }
       } catch (error) {
         _logger.w('Failed to decode persistent cache entry for $key: $error');
         await prefs.remove(key);
         removed++;
+        _emit(CacheEvent.evict(key: key));
       }
     }
 
@@ -286,15 +284,18 @@ class CacheService {
       return;
     }
 
-    final effectivePolicy = policy ??
-        (ttlSeconds != null
-            ? CachePolicy.fromSeconds(ttlSeconds)
-            : const CachePolicy(ttl: Duration(seconds: defaultTTL)));
+    final resolvedPolicy = _resolvePolicy(
+      key,
+      policy ??
+          (ttlSeconds != null
+              ? CachePolicy.fromSeconds(ttlSeconds)
+              : const CachePolicy(ttl: Duration(seconds: defaultTTL))),
+    );
     final now = DateTime.now();
-    final expiresAt = now.add(effectivePolicy.ttl).millisecondsSinceEpoch;
-    final refreshAfter = effectivePolicy.refreshAfter == null
+    final expiresAt = now.add(resolvedPolicy.ttl).millisecondsSinceEpoch;
+    final refreshAfter = resolvedPolicy.refreshAfter == null
         ? null
-        : now.add(effectivePolicy.refreshAfter!).millisecondsSinceEpoch;
+        : now.add(resolvedPolicy.refreshAfter!).millisecondsSinceEpoch;
     final isString = value is String;
     final serialized = isString ? value as String : jsonEncode(value);
 
@@ -311,11 +312,9 @@ class CacheService {
     final writeTicket = DateTime.now().millisecondsSinceEpoch;
     _inflightPersistentWrites[key] = writeTicket;
     await prefs.setString(_persistentKey(key), payload);
-    if (_inflightPersistentWrites[key] == writeTicket) {
-      _inflightPersistentWrites.remove(key);
-    }
+    _emit(CacheEvent.set(key: key, valueType: value.runtimeType));
     _logger.d(
-      'Persistent cache set: $key (TTL: ${effectivePolicy.ttl.inSeconds}s)',
+      'Persistent cache set: $key (TTL: ${resolvedPolicy.ttl.inSeconds}s)',
     );
   }
 
@@ -344,6 +343,7 @@ class CacheService {
       final now = DateTime.now().millisecondsSinceEpoch;
       if (expiresAt != null && now > expiresAt) {
         await prefs.remove(_persistentKey(key));
+        _emit(CacheEvent.expired(key: key));
         _logger.d('Persistent cache expired: $key');
         return null;
       }
@@ -351,6 +351,7 @@ class CacheService {
       final refreshAfter = decoded['refreshAfter'] as int?;
       if (refreshAfter != null && now > refreshAfter) {
         await prefs.remove(_persistentKey(key));
+        _emit(CacheEvent.stale(key: key));
         _logger.d('Persistent cache stale: $key');
         return null;
       }
@@ -360,6 +361,7 @@ class CacheService {
       }
 
       final value = isString ? serialized : jsonDecode(serialized);
+      _emit(CacheEvent.hit(key: key));
       _logger.d('Persistent cache hit: $key');
       return value as T?;
     } catch (error) {
@@ -373,7 +375,10 @@ class CacheService {
   Future<void> removePersistent(String key) async {
     final prefs = _prefs;
     if (prefs == null) return;
-    await prefs.remove(_persistentKey(key));
+    final removed = await prefs.remove(_persistentKey(key));
+    if (removed) {
+      _emit(CacheEvent.evict(key: key));
+    }
   }
 
   /// Clear persistent cache namespace
@@ -387,9 +392,12 @@ class CacheService {
         .toList();
     for (final key in keys) {
       await prefs.remove(key);
+      _emit(CacheEvent.evict(key: key));
     }
 
-    _logger.d('Persistent cache cleared (${keys.length} keys)');
+    if (keys.isNotEmpty) {
+      _logger.d('Persistent cache cleared (${keys.length} keys)');
+    }
   }
 
   String _persistentKey(String key) => '$_persistentPrefix$key';
@@ -400,6 +408,159 @@ class CacheService {
     _cache.clear();
     _totalBytes = 0;
     await clearPersistent();
+    await _events.close();
+  }
+
+  CachePolicy _resolvePolicy(String key, CachePolicy base) {
+    for (final override in _policyOverrides) {
+      if (override.matches(key)) {
+        return override.policy;
+      }
+    }
+
+    if (base.refreshAfter == null) {
+      return CachePolicy(
+        ttl: base.ttl,
+        refreshAfter: Duration(
+          seconds: max(
+            1,
+            (base.ttl.inSeconds * _defaultRefreshFactor).round(),
+          ),
+        ),
+      );
+    }
+
+    return base;
+  }
+
+  void _evictOverflow() {
+    if (_cache.length <= _maxEntries) {
+      return;
+    }
+
+    final overflow = _cache.length - _maxEntries;
+    final entries = _cache.entries.toList()
+      ..sort(
+        (a, b) => a.value.lastAccessed.compareTo(b.value.lastAccessed),
+      );
+
+    for (var i = 0; i < overflow && i < entries.length; i++) {
+      final key = entries[i].key;
+      _cache.remove(key);
+      _emit(CacheEvent.evict(key: key));
+      _logger.d('Cache evicted (overflow): $key');
+    }
+  }
+
+  CacheLookupResult<T> lookup<T>(String key, {bool removeStale = false}) {
+    final entry = _cache[key];
+
+    if (entry == null) {
+      _emit(CacheEvent.miss(key: key));
+      _logger.d('Cache miss: $key');
+      return CacheLookupResult.miss();
+    }
+
+    if (entry.isExpired) {
+      _emit(CacheEvent.expired(key: key));
+      _logger.d('Cache expired: $key');
+      _cache.remove(key);
+      return CacheLookupResult.expired();
+    }
+
+    if (entry.isStale) {
+      _emit(CacheEvent.stale(key: key));
+      _logger.d('Cache stale: $key');
+      if (removeStale) {
+        _cache.remove(key);
+      }
+      return CacheLookupResult.stale(entry.value as T?);
+    }
+
+    entry.touch();
+    _emit(CacheEvent.hit(key: key));
+    _logger.d('Cache hit: $key');
+    return CacheLookupResult.hit(entry.value as T?);
+  }
+
+  Future<T> getOrLoad<T>(
+    String key,
+    Future<T> Function() loader, {
+    CachePolicy? policy,
+    bool allowStale = true,
+  }) async {
+    final resolvedPolicy =
+        _resolvePolicy(key, policy ?? const CachePolicy(ttl: Duration(seconds: defaultTTL)));
+
+    final lookupResult = lookup<T>(key);
+    switch (lookupResult.status) {
+      case CacheStatus.hit:
+        return lookupResult.value as T;
+      case CacheStatus.stale:
+        if (allowStale && lookupResult.value != null) {
+          _scheduleRefresh(key, loader, resolvedPolicy);
+          return lookupResult.value as T;
+        }
+        break;
+      case CacheStatus.miss:
+      case CacheStatus.expired:
+        break;
+    }
+
+    final value = await loader();
+    set<T>(key, value, policy: resolvedPolicy);
+    return value;
+  }
+
+  Future<void> refresh<T>(
+    String key,
+    Future<T> Function() loader, {
+    CachePolicy? policy,
+  }) {
+    return _scheduleRefresh(
+      key,
+      loader,
+      _resolvePolicy(
+        key,
+        policy ?? const CachePolicy(ttl: Duration(seconds: defaultTTL)),
+      ),
+    );
+  }
+
+  Future<void> _scheduleRefresh<T>(
+    String key,
+    Future<T> Function() loader,
+    CachePolicy policy,
+  ) async {
+    if (_refreshing.containsKey(key)) {
+      return _refreshing[key]!;
+    }
+
+    final completer = Completer<void>();
+    _refreshing[key] = completer.future;
+    _emit(CacheEvent.refreshScheduled(key: key));
+
+    try {
+      final value = await loader();
+      set<T>(key, value, policy: policy);
+      _emit(CacheEvent.refreshCompleted(key: key));
+    } catch (error, stackTrace) {
+      _logger.w('Failed to refresh cache for $key: $error', error, stackTrace);
+      _emit(CacheEvent.refreshFailed(key: key, error: error));
+    } finally {
+      _refreshing.remove(key);
+      completer.complete();
+    }
+
+    return completer.future;
+  }
+
+  void _emit(CacheEvent event) {
+    if (!_events.hasListener) {
+      return;
+    }
+
+    _events.add(event);
   }
 
   void _evictIfNeeded() {
@@ -446,14 +607,12 @@ class _CacheEntry {
   final dynamic value;
   final DateTime createdAt;
   final CachePolicy policy;
-  final int estimatedSize;
   DateTime lastAccessed;
 
   _CacheEntry({
     required this.value,
     required this.createdAt,
     required this.policy,
-    required this.estimatedSize,
   }) : lastAccessed = createdAt;
 
   DateTime get expiresAt => createdAt.add(policy.ttl);
@@ -467,6 +626,8 @@ class _CacheEntry {
     }
     return DateTime.now().isAfter(createdAt.add(refreshAfter));
   }
+
+  bool get isHardStale => isExpired || isStale;
 
   void touch() {
     lastAccessed = DateTime.now();
@@ -492,28 +653,94 @@ class CacheStats {
   }
 }
 
+enum CacheStatus { hit, miss, stale, expired }
+
 class CacheLookupResult<T> {
-  const CacheLookupResult({
-    required this.value,
-    required this.isStale,
-    required this.isExpired,
-  });
+  CacheLookupResult._(this.status, this.value);
 
-  factory CacheLookupResult.expired() => const CacheLookupResult(
-        value: null,
-        isStale: false,
-        isExpired: true,
-      );
-
-  factory CacheLookupResult.stale() => const CacheLookupResult(
-        value: null,
-        isStale: true,
-        isExpired: false,
-      );
-
+  final CacheStatus status;
   final T? value;
-  final bool isStale;
-  final bool isExpired;
 
-  bool get hasValue => value != null && !isExpired;
+  factory CacheLookupResult.hit(T? value) => CacheLookupResult._(CacheStatus.hit, value);
+
+  factory CacheLookupResult.miss() => CacheLookupResult._(CacheStatus.miss, null);
+
+  factory CacheLookupResult.stale(T? value) => CacheLookupResult._(CacheStatus.stale, value);
+
+  factory CacheLookupResult.expired() => CacheLookupResult._(CacheStatus.expired, null);
+}
+
+class CacheEvent {
+  CacheEvent({
+    required this.type,
+    required this.key,
+    this.valueType,
+    this.error,
+  }) : timestamp = DateTime.now();
+
+  final CacheEventType type;
+  final String key;
+  final DateTime timestamp;
+  final Type? valueType;
+  final Object? error;
+
+  factory CacheEvent.hit({required String key}) =>
+      CacheEvent(type: CacheEventType.hit, key: key);
+
+  factory CacheEvent.miss({required String key}) =>
+      CacheEvent(type: CacheEventType.miss, key: key);
+
+  factory CacheEvent.stale({required String key}) =>
+      CacheEvent(type: CacheEventType.stale, key: key);
+
+  factory CacheEvent.expired({required String key}) =>
+      CacheEvent(type: CacheEventType.expired, key: key);
+
+  factory CacheEvent.set({required String key, Type? valueType}) => CacheEvent(
+        type: CacheEventType.set,
+        key: key,
+        valueType: valueType,
+      );
+
+  factory CacheEvent.evict({required String key}) =>
+      CacheEvent(type: CacheEventType.evict, key: key);
+
+  factory CacheEvent.refreshScheduled({required String key}) => CacheEvent(
+        type: CacheEventType.refreshScheduled,
+        key: key,
+      );
+
+  factory CacheEvent.refreshCompleted({required String key}) => CacheEvent(
+        type: CacheEventType.refreshCompleted,
+        key: key,
+      );
+
+  factory CacheEvent.refreshFailed({
+    required String key,
+    required Object error,
+  }) =>
+      CacheEvent(type: CacheEventType.refreshFailed, key: key, error: error);
+}
+
+enum CacheEventType {
+  hit,
+  miss,
+  stale,
+  expired,
+  set,
+  evict,
+  refreshScheduled,
+  refreshCompleted,
+  refreshFailed,
+}
+
+class _PolicyOverride {
+  const _PolicyOverride({required this.pattern, required this.policy});
+
+  final Pattern pattern;
+  final CachePolicy policy;
+
+  bool matches(String key) {
+    return pattern.matchAsPrefix(key) != null;
+  }
 }

@@ -6,6 +6,7 @@ import '../../../data/models/search_result_model.dart';
 import '../../../providers/search_provider.dart';
 import 'widgets/search_list_tiles.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../widgets/virtualized_list_view.dart';
 
 class SearchResultsListArgs {
   const SearchResultsListArgs({this.mediaType, this.showCompanies = false})
@@ -94,42 +95,35 @@ class _MediaResultsBody extends StatelessWidget {
 
         final controller = provider.mediaPagingController(mediaType);
 
-        return PagedListView<int, SearchResult>(
-          pagingController: controller,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          builderDelegate: PagedChildBuilderDelegate<SearchResult>(
-            itemBuilder: (context, item, index) =>
-                SearchResultListTile(result: item),
-            firstPageProgressIndicatorBuilder: (_) =>
-                const Center(child: CircularProgressIndicator()),
-            newPageProgressIndicatorBuilder: (_) => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            noItemsFoundIndicatorBuilder: (_) => Center(
-              child: Text(
-                AppLocalizations.of(context).search['no_results'] ??
-                    'No results found',
-              ),
-            ),
-            firstPageErrorIndicatorBuilder: (_) => Center(
-              child: Text(
-                provider.errorMessage ??
-                    (AppLocalizations.of(context).search['no_results'] ??
-                        'No results found'),
-              ),
-            ),
-            newPageErrorIndicatorBuilder: (_) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: Text(
-                  provider.errorMessage ??
-                      (AppLocalizations.of(context)
-                              .search['no_results'] ??
-                          'No results found'),
-                ),
-              ),
-            ),
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            final metrics = notification.metrics;
+            final shouldLoadMore =
+                metrics.pixels >= metrics.maxScrollExtent - 200 &&
+                provider.canLoadMore &&
+                !provider.isLoadingMore;
+
+            if (shouldLoadMore) {
+              provider.loadMore();
+            }
+
+            return false;
+          },
+          child: VirtualizedListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            itemCount: itemCount,
+            cacheExtent: 800,
+            addAutomaticKeepAlives: true,
+            itemBuilder: (context, index) {
+              if (index >= results.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              return SearchResultListTile(result: results[index]);
+            },
           ),
         );
       },
@@ -162,42 +156,35 @@ class _CompanyResultsBody extends StatelessWidget {
 
         final controller = provider.companyPagingController;
 
-        return PagedListView<int, Company>(
-          pagingController: controller,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          builderDelegate: PagedChildBuilderDelegate<Company>(
-            itemBuilder: (context, item, index) =>
-                CompanyResultTile(company: item),
-            firstPageProgressIndicatorBuilder: (_) =>
-                const Center(child: CircularProgressIndicator()),
-            newPageProgressIndicatorBuilder: (_) => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 16),
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            noItemsFoundIndicatorBuilder: (_) => Center(
-              child: Text(
-                AppLocalizations.of(context).search['no_results'] ??
-                    'No results found',
-              ),
-            ),
-            firstPageErrorIndicatorBuilder: (_) => Center(
-              child: Text(
-                provider.errorMessage ??
-                    (AppLocalizations.of(context).search['no_results'] ??
-                        'No results found'),
-              ),
-            ),
-            newPageErrorIndicatorBuilder: (_) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              child: Center(
-                child: Text(
-                  provider.errorMessage ??
-                      (AppLocalizations.of(context)
-                              .search['no_results'] ??
-                          'No results found'),
-                ),
-              ),
-            ),
+        return NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            final metrics = notification.metrics;
+            final shouldLoadMore =
+                metrics.pixels >= metrics.maxScrollExtent - 200 &&
+                provider.canLoadMoreCompanies &&
+                !provider.isLoadingMoreCompanies;
+
+            if (shouldLoadMore) {
+              provider.loadMoreCompanies();
+            }
+
+            return false;
+          },
+          child: VirtualizedListView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            itemCount: itemCount,
+            cacheExtent: 800,
+            addAutomaticKeepAlives: true,
+            itemBuilder: (context, index) {
+              if (index >= results.length) {
+                return const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+
+              return CompanyResultTile(company: results[index]);
+            },
           ),
         );
       },

@@ -12,6 +12,8 @@ import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../series/series_filters_screen.dart';
+import '../../../data/services/local_storage_service.dart';
+import '../../widgets/virtualized_list_view.dart';
 
 class SeriesScreen extends StatefulWidget {
   static const routeName = '/series';
@@ -24,27 +26,25 @@ class SeriesScreen extends StatefulWidget {
 
 class _SeriesScreenState extends State<SeriesScreen>
     with SingleTickerProviderStateMixin {
-  late final TabController _tabController;
   late final LocalStorageService _storageService;
-  late final Map<SeriesSection, ItemScrollController> _scrollControllers;
-  late final Map<SeriesSection, ItemPositionsListener> _positionsListeners;
-  late final Map<SeriesSection, VoidCallback> _positionCallbacks;
-  late final Map<SeriesSection, int?> _initialScrollIndexes;
-  late final Map<SeriesSection, int?> _lastPersistedIndexes;
+  late final TabController _tabController;
+  final Map<SeriesSection, ScrollController> _scrollControllers = {};
+  final Map<SeriesSection, VoidCallback> _scrollListeners = {};
+  final Map<SeriesSection, Timer?> _scrollDebouncers = {};
+  late final List<SeriesSection> _sections;
 
   @override
   void initState() {
     super.initState();
     _storageService = context.read<LocalStorageService>();
-    final sections = SeriesSection.values;
-    final initialTabIndex = _storageService.getSeriesTabIndex().clamp(
-      0,
-      sections.length - 1,
-    );
+    _sections = SeriesSection.values;
+    final initialIndex = _storageService
+        .getSeriesTabIndex()
+        .clamp(0, _sections.length - 1);
     _tabController = TabController(
-      length: sections.length,
+      length: _sections.length,
       vsync: this,
-      initialIndex: initialTabIndex,
+      initialIndex: initialIndex,
     );
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
@@ -53,38 +53,26 @@ class _SeriesScreenState extends State<SeriesScreen>
       unawaited(_storageService.setSeriesTabIndex(_tabController.index));
     });
 
-    _scrollControllers = {
-      for (final section in sections) section: ItemScrollController()
-    };
-    _positionsListeners = {
-      for (final section in sections) section: ItemPositionsListener.create()
-    };
-    _initialScrollIndexes = {
-      for (final section in sections)
-        section: _storageService.getSeriesScrollIndex(section.name)
-    };
-    _lastPersistedIndexes = Map<SeriesSection, int?>.from(_initialScrollIndexes);
-    _positionCallbacks = {
-      for (final section in sections)
-        section: () {
-          final positions =
-              _positionsListeners[section]!.itemPositions.value.toList();
-          if (positions.isEmpty) return;
-          positions.sort((a, b) => a.index.compareTo(b.index));
-          final firstVisible = positions.first.index;
-          if (_lastPersistedIndexes[section] == firstVisible) {
-            return;
-          }
-          _lastPersistedIndexes[section] = firstVisible;
+    for (final section in _sections) {
+      final offset = _storageService.getSeriesScrollOffset(section.name);
+      final controller = ScrollController(
+        initialScrollOffset: offset ?? 0.0,
+      );
+      void listener() {
+        _scrollDebouncers[section]?.cancel();
+        _scrollDebouncers[section] = Timer(const Duration(milliseconds: 400), () {
           unawaited(
-            _storageService.setSeriesScrollIndex(section.name, firstVisible),
+            _storageService.setSeriesScrollOffset(
+              section.name,
+              controller.offset,
+            ),
           );
-        }
-    };
-    for (final entry in _positionCallbacks.entries) {
-      _positionsListeners[entry.key]!
-          .itemPositions
-          .addListener(entry.value);
+        });
+      }
+
+      controller.addListener(listener);
+      _scrollControllers[section] = controller;
+      _scrollListeners[section] = listener;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -112,8 +100,6 @@ class _SeriesScreenState extends State<SeriesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final sections = SeriesSection.values;
-
     final l = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
@@ -122,11 +108,8 @@ class _SeriesScreenState extends State<SeriesScreen>
           controller: _tabController,
           isScrollable: true,
           tabs: [
-            for (final section in sections)
-              _SeriesSectionView(
-                section: section,
-                onRefreshSection: _refreshSection,
-              ),
+            for (final section in _sections)
+              Tab(text: _labelForSection(section, l)),
           ],
         ),
         actions: [
@@ -141,17 +124,36 @@ class _SeriesScreenState extends State<SeriesScreen>
       body: TabBarView(
         controller: _tabController,
         children: [
-          for (final section in sections)
+          for (final section in _sections)
             _SeriesSectionView(
               section: section,
               onRefreshAll: _refreshAll,
-              scrollController: _scrollControllers[section]!,
-              positionsListener: _positionsListeners[section]!,
-              initialScrollIndex: _initialScrollIndexes[section],
+              controller: _scrollControllers[section],
             ),
         ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    for (final section in _sections) {
+      _scrollDebouncers[section]?.cancel();
+      final controller = _scrollControllers[section];
+      final listener = _scrollListeners[section];
+      if (controller != null && listener != null) {
+        controller.removeListener(listener);
+        unawaited(
+          _storageService.setSeriesScrollOffset(
+            section.name,
+            controller.offset,
+          ),
+        );
+        controller.dispose();
+      }
+    }
+    super.dispose();
   }
 
   String _labelForSection(SeriesSection section, AppLocalizations l) {
@@ -190,12 +192,6 @@ extension on _SeriesScreenState {
               presetName: result.presetName,
             );
         if (!mounted) return;
-        DefaultTabController.of(
-          context,
-        ).animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
-      } else if (result is Map<String, String>) {
-        await context.read<SeriesProvider>().applyTvFilters(result);
-        if (!mounted) return;
         _tabController.animateTo(
           SeriesSection.values.indexOf(SeriesSection.popular),
         );
@@ -220,11 +216,12 @@ class _NetworkChip extends StatelessWidget {
       onPressed: () async {
         Navigator.pop(context);
         await context.read<SeriesProvider>().applyNetworkFilter(id);
-        final seriesState =
-            context.findAncestorStateOfType<_SeriesScreenState>();
-        seriesState?._tabController.animateTo(
-          SeriesSection.values.indexOf(SeriesSection.popular),
-        );
+        final screenState = context.findAncestorStateOfType<_SeriesScreenState>();
+        if (screenState != null) {
+          screenState._tabController.animateTo(
+            SeriesSection.values.indexOf(SeriesSection.popular),
+          );
+        }
       },
       icon: const Icon(Icons.tv),
       label: Text(name),
@@ -235,12 +232,13 @@ class _NetworkChip extends StatelessWidget {
 class _SeriesSectionView extends StatelessWidget {
   const _SeriesSectionView({
     required this.section,
-    required this.onRefreshSection,
+    required this.onRefreshAll,
+    this.controller,
   });
 
   final SeriesSection section;
-  final Future<void> Function(BuildContext context, SeriesSection section)
-      onRefreshSection;
+  final Future<void> Function(BuildContext context) onRefreshAll;
+  final ScrollController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -267,8 +265,11 @@ class _SeriesSectionView extends StatelessWidget {
               const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: refreshSection,
-                child: _SeriesList(series: state.items),
+                onRefresh: () => onRefreshAll(context),
+                child: _SeriesList(
+                  series: state.items,
+                  controller: controller,
+                ),
               ),
             ),
             if (state.errorMessage != null && state.items.isNotEmpty)
@@ -322,18 +323,11 @@ class _SeriesSectionView extends StatelessWidget {
   }
 }
 
-class _SeriesList extends StatefulWidget {
-  const _SeriesList({
-    required this.series,
-    required this.emptyMessage,
-    this.scrollController,
-    this.positionsListener,
-  });
+class _SeriesList extends StatelessWidget {
+  const _SeriesList({required this.series, this.controller});
 
   final List<Movie> series;
-  final String emptyMessage;
-  final ItemScrollController? scrollController;
-  final ItemPositionsListener? positionsListener;
+  final ScrollController? controller;
 
   @override
   State<_SeriesList> createState() => _SeriesListState();
@@ -344,6 +338,7 @@ class _SeriesListState extends State<_SeriesList> {
   Widget build(BuildContext context) {
     if (widget.series.isEmpty) {
       return ListView(
+        controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 120),
@@ -363,9 +358,8 @@ class _SeriesListState extends State<_SeriesList> {
       );
     }
 
-    return ScrollablePositionedList.separated(
-      itemScrollController: widget.scrollController,
-      itemPositionsListener: widget.positionsListener,
+    return VirtualizedSeparatedListView(
+      controller: controller,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
       itemCount: widget.series.length,
@@ -374,6 +368,8 @@ class _SeriesListState extends State<_SeriesList> {
         final show = widget.series[index];
         return _SeriesCard(show: show);
       },
+      cacheExtent: 720,
+      addAutomaticKeepAlives: true,
     );
   }
 }

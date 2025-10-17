@@ -14,7 +14,9 @@ import 'core/utils/foreground_refresh_observer.dart';
 import 'core/utils/memory_optimizer.dart';
 import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
-import 'data/services/offline_service.dart';
+import 'data/services/background_sync_service.dart';
+import 'data/services/network_quality_service.dart';
+import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -170,8 +172,21 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           create: (_) => OfflineProvider(offlineService),
         ),
         Provider<TmdbRepository>.value(value: repo),
-        ChangeNotifierProvider(
-          create: (_) => DeepLinkHandler()..initialize(),
+        Provider<BackgroundPrefetchService>(
+          create: (_) {
+            final service = BackgroundPrefetchService(
+              repository: repo,
+              networkQualityNotifier: networkQualityNotifier,
+            );
+            service.initialize();
+            return service;
+          },
+          dispose: (_, service) => service.dispose(),
+        ),
+        Provider<LocalStorageService>.value(value: storageService),
+        Provider<SharedPreferences>.value(value: prefs),
+        ChangeNotifierProvider<NetworkQualityNotifier>.value(
+          value: networkQualityNotifier,
         ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),

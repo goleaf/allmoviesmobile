@@ -13,6 +13,7 @@ enum SeriesSection { trending, popular, topRated, airingToday, onTheAir }
 
 enum TvFilterPersistenceAction { keep, save, clear }
 
+/// Immutable snapshot of a section's pagination state and cached page data.
 class SeriesSectionState {
   const SeriesSectionState({
     this.items = const <Movie>[],
@@ -252,11 +253,20 @@ class SeriesProvider extends ChangeNotifier {
     return loadSectionPage(section, previousPage);
   }
 
+  /// Loads the given [page] for [section], bypassing sequential pagination.
+  Future<void> jumpToPage(SeriesSection section, int page) {
+    return loadSectionPage(section, page);
+  }
+
   Future<void> refreshSection(SeriesSection section) {
     final currentPage = sectionState(section).currentPage;
     return loadSectionPage(section, currentPage, forceReload: true);
   }
 
+  /// Requests and caches the specified [page] for a [section].
+  ///
+  /// The method keeps pagination metadata in sync, serving cached page data
+  /// when available and gracefully surfacing range or network errors.
   Future<void> loadSectionPage(
     SeriesSection section,
     int page, {

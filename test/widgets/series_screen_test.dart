@@ -7,8 +7,9 @@ import 'package:allmovies_mobile/data/models/paginated_response.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 import 'package:allmovies_mobile/providers/series_provider.dart';
 import 'package:allmovies_mobile/presentation/screens/series/series_screen.dart';
+import 'package:allmovies_mobile/core/constants/app_strings.dart';
 
-PaginatedResponse<Movie> _page(String prefix, int page, {int totalPages = 3}) {
+PaginatedResponse<Movie> _page(String prefix, int page, {int totalPages = 5}) {
   return PaginatedResponse<Movie>(
     page: page,
     totalPages: totalPages,
@@ -63,5 +64,44 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('Page 2'), findsWidgets);
+  });
+
+  testWidgets('SeriesScreen jump-to-page flow updates pagination state',
+      (tester) async {
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => SeriesProvider(_FakeRepo())),
+        ],
+        child: const MaterialApp(home: SeriesScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Page 1 of 5'), findsWidgets);
+
+    await tester.tap(find.text(AppStrings.jump));
+    await tester.pumpAndSettle();
+
+    final sheet = find.byType(BottomSheet);
+    expect(sheet, findsOneWidget);
+
+    await tester.enterText(
+      find.descendant(of: sheet, matching: find.byType(TextField)).first,
+      '3',
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text(AppStrings.go));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Page 3 of 5'), findsWidgets);
+
+    await tester.tap(find.byTooltip('Next page'));
+    await tester.pump();
+    await tester.pumpAndSettle();
+
+    expect(find.text('Page 4 of 5'), findsWidgets);
   });
 }

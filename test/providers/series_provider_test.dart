@@ -186,6 +186,19 @@ void main() {
           'Filtered 2');
     });
 
+    test('jumpToPage loads arbitrary discover results', () async {
+      final provider = SeriesProvider(_FakeRepo());
+      await provider.initialized;
+
+      await provider.applyTvFilters({'sort_by': 'vote_average.desc'});
+      await provider.jumpToPage(SeriesSection.popular, 3);
+
+      final state = provider.sectionState(SeriesSection.popular);
+      expect(state.currentPage, 3);
+      expect(state.items.first.title, 'Filtered 3');
+      expect(state.pageResults.containsKey(3), isTrue);
+    });
+
     test('loadSectionPage reuses cached data for previously fetched pages',
         () async {
       final repo = _CountingRepo();

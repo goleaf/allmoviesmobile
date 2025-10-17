@@ -26,12 +26,11 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
-import '../../../core/utils/media_image_helper.dart';
-// duplicate import removed
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../season_detail/season_detail_screen.dart';
 import '../../widgets/watch_providers_section.dart';
+import '../episode_detail/episode_detail_screen.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -601,6 +600,7 @@ class _TVDetailView extends StatelessWidget {
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
+        _buildEpisodeGroupSelector(context, provider, loc),
         SizedBox(
           height: 280,
           child: ListView.builder(
@@ -628,6 +628,70 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
+  Widget _buildEpisodeGroupSelector(
+    BuildContext context,
+    TvDetailProvider provider,
+    AppLocalizations loc,
+  ) {
+    final groups = provider.episodeGroups;
+    if (groups.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final chips = <Widget>[
+      Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: ChoiceChip(
+          label: Text(loc.t('tv.episode_group_default')),
+          selected: provider.selectedEpisodeGroupId == null,
+          onSelected: (_) => provider.selectEpisodeGroup(null),
+        ),
+      ),
+      ...groups.map(
+        (group) => Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: ChoiceChip(
+            label: Text(group.name),
+            selected: provider.selectedEpisodeGroupId == group.id,
+            onSelected: (_) => provider.selectEpisodeGroup(group.id),
+          ),
+        ),
+      ),
+    ];
+
+    final selectedDescription = provider.selectedEpisodeGroup?.description;
+    final showDescription =
+        selectedDescription != null && selectedDescription.trim().isNotEmpty;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('tv.episode_group_label'),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(children: chips),
+          ),
+          if (showDescription) ...[
+            const SizedBox(height: 8),
+            Text(
+              selectedDescription!,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildSelectedSeasonDetails(
     BuildContext context,
     TVDetailed details,
@@ -641,6 +705,7 @@ class _TVDetailView extends StatelessWidget {
     final images = provider.seasonImagesForNumber(seasonNumber);
     final imagesLoading = provider.isSeasonImagesLoading(seasonNumber);
     final imagesError = provider.seasonImagesError(seasonNumber);
+    final episodes = provider.episodesForSeason(seasonNumber);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -672,14 +737,12 @@ class _TVDetailView extends StatelessWidget {
                   message: error,
                   onRetry: () => provider.retrySeason(seasonNumber),
                 )
-              else if (season != null && season.episodes.isNotEmpty)
-                ...season.episodes.map(
-                  (episode) => _EpisodeCard(
-                        episode: episode,
-                        tvId: details.id,
-                        seasonNumber: seasonNumber,
-                      ),
-                )
+              else if (season != null && episodes.isNotEmpty)
+                ...episodes.map(
+                      (episode) => _EpisodeCard(
+                            episode: episode,
+                          ),
+                    )
               else
                 const Center(child: Text('No episodes available')),
             ],
@@ -1396,13 +1459,9 @@ class _SeasonImageGallery extends StatelessWidget {
 
 class _EpisodeCard extends StatelessWidget {
   final Episode episode;
-  final int tvId;
-  final int seasonNumber;
 
   const _EpisodeCard({
     required this.episode,
-    required this.tvId,
-    required this.seasonNumber,
   });
 
   @override
@@ -1413,7 +1472,10 @@ class _EpisodeCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to episode details
+          Navigator.of(context).pushNamed(
+            EpisodeDetailScreen.routeName,
+            arguments: episode,
+          );
         },
         child: Padding(
           padding: const EdgeInsets.all(12),

@@ -555,7 +555,7 @@ class TmdbRepository {
           '/tv/$tvId',
           query: {
             'append_to_response':
-                'videos,images,aggregate_credits,keywords,recommendations,similar,watch/providers,translations',
+                'videos,images,aggregate_credits,keywords,recommendations,similar,watch/providers,translations,episode_groups',
           },
         );
 
@@ -600,6 +600,9 @@ class TmdbRepository {
 
         final translations = payload['translations'] as Map<String, dynamic>?;
         setList('translations', translations?['translations'] as List?);
+
+        final episodeGroups = payload['episode_groups'] as Map<String, dynamic>?;
+        setList('episode_groups', episodeGroups?['results'] as List?);
 
         return TVDetailed.fromJson(normalized);
       },

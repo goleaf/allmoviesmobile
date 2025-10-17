@@ -74,6 +74,8 @@
     "episodes": "Епізоди",
     "season": "Сезон",
     "episode": "Епізод",
+    "episode_group_label": "Порядок епізодів",
+    "episode_group_default": "Порядок за замовчуванням",
     "first_air_date": "Дата Першого Виходу",
     "last_air_date": "Дата Останнього Виходу",
     "number_of_seasons": "Кількість Сезонів",

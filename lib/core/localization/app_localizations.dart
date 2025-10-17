@@ -54,6 +54,8 @@ class AppLocalizations {
         'overview': 'Overview',
         'season': 'Season',
         'episodes': 'Episodes',
+        'episode_group_label': 'Episode order',
+        'episode_group_default': 'Default order',
       },
       'movie': {
         'overview': 'Overview',

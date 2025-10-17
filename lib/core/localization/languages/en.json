@@ -90,6 +90,8 @@
     "episodes": "Episodes",
     "season": "Season",
     "episode": "Episode",
+    "episode_group_label": "Episode order",
+    "episode_group_default": "Default order",
     "first_air_date": "First Air Date",
     "last_air_date": "Last Air Date",
     "number_of_seasons": "Number of Seasons",

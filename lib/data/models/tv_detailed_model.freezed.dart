@@ -65,6 +65,8 @@ mixin _$TVDetailed {
   List<TVRef> get recommendations => throw _privateConstructorUsedError;
   List<TVRef> get similar => throw _privateConstructorUsedError;
   List<Keyword> get keywords => throw _privateConstructorUsedError;
+  @JsonKey(name: 'episode_groups')
+  List<EpisodeGroup> get episodeGroups => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -110,6 +112,7 @@ abstract class $TVDetailedCopyWith<$Res> {
     List<TVRef> recommendations,
     List<TVRef> similar,
     List<Keyword> keywords,
+    @JsonKey(name: 'episode_groups') List<EpisodeGroup> episodeGroups,
   });
 
   $ExternalIdsCopyWith<$Res> get externalIds;
@@ -158,6 +161,7 @@ class _$TVDetailedCopyWithImpl<$Res, $Val extends TVDetailed>
     Object? recommendations = null,
     Object? similar = null,
     Object? keywords = null,
+    Object? episodeGroups = null,
   }) {
     return _then(
       _value.copyWith(
@@ -335,6 +339,7 @@ abstract class _$$TVDetailedImplCopyWith<$Res>
     List<TVRef> recommendations,
     List<TVRef> similar,
     List<Keyword> keywords,
+    @JsonKey(name: 'episode_groups') List<EpisodeGroup> episodeGroups,
   });
 
   @override
@@ -383,6 +388,7 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
     Object? recommendations = null,
     Object? similar = null,
     Object? keywords = null,
+    Object? episodeGroups = null,
   }) {
     return _then(
       _$TVDetailedImpl(
@@ -506,6 +512,10 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
             ? _value._keywords
             : keywords // ignore: cast_nullable_to_non_nullable
                   as List<Keyword>,
+        episodeGroups: null == episodeGroups
+            ? _value._episodeGroups
+            : episodeGroups // ignore: cast_nullable_to_non_nullable
+                  as List<EpisodeGroup>,
       ),
     );
   }
@@ -549,6 +559,8 @@ class _$TVDetailedImpl implements _TVDetailed {
     final List<TVRef> recommendations = const [],
     final List<TVRef> similar = const [],
     final List<Keyword> keywords = const [],
+    @JsonKey(name: 'episode_groups')
+    final List<EpisodeGroup> episodeGroups = const [],
   }) : _episodeRunTime = episodeRunTime,
        _genres = genres,
        _productionCompanies = productionCompanies,
@@ -561,7 +573,8 @@ class _$TVDetailedImpl implements _TVDetailed {
        _images = images,
        _recommendations = recommendations,
        _similar = similar,
-       _keywords = keywords;
+       _keywords = keywords,
+       _episodeGroups = episodeGroups;
 
   factory _$TVDetailedImpl.fromJson(Map<String, dynamic> json) =>
       _$$TVDetailedImplFromJson(json);
@@ -729,9 +742,18 @@ class _$TVDetailedImpl implements _TVDetailed {
     return EqualUnmodifiableListView(_keywords);
   }
 
+  final List<EpisodeGroup> _episodeGroups;
+  @override
+  @JsonKey(name: 'episode_groups')
+  List<EpisodeGroup> get episodeGroups {
+    if (_episodeGroups is EqualUnmodifiableListView) return _episodeGroups;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_episodeGroups);
+  }
+
   @override
   String toString() {
-    return 'TVDetailed(id: $id, name: $name, originalName: $originalName, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, firstAirDate: $firstAirDate, lastAirDate: $lastAirDate, numberOfSeasons: $numberOfSeasons, numberOfEpisodes: $numberOfEpisodes, episodeRunTime: $episodeRunTime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, networks: $networks, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, cast: $cast, seasons: $seasons, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar, keywords: $keywords)';
+    return 'TVDetailed(id: $id, name: $name, originalName: $originalName, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, firstAirDate: $firstAirDate, lastAirDate: $lastAirDate, numberOfSeasons: $numberOfSeasons, numberOfEpisodes: $numberOfEpisodes, episodeRunTime: $episodeRunTime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, networks: $networks, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, cast: $cast, seasons: $seasons, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar, keywords: $keywords, episodeGroups: $episodeGroups)';
   }
 
   @override
@@ -796,7 +818,9 @@ class _$TVDetailedImpl implements _TVDetailed {
               _recommendations,
             ) &&
             const DeepCollectionEquality().equals(other._similar, _similar) &&
-            const DeepCollectionEquality().equals(other._keywords, _keywords));
+            const DeepCollectionEquality().equals(other._keywords, _keywords) &&
+            const DeepCollectionEquality()
+                .equals(other._episodeGroups, _episodeGroups));
   }
 
   @JsonKey(ignore: true)
@@ -833,6 +857,7 @@ class _$TVDetailedImpl implements _TVDetailed {
     const DeepCollectionEquality().hash(_recommendations),
     const DeepCollectionEquality().hash(_similar),
     const DeepCollectionEquality().hash(_keywords),
+    const DeepCollectionEquality().hash(_episodeGroups),
   ]);
 
   @JsonKey(ignore: true)
@@ -881,6 +906,7 @@ abstract class _TVDetailed implements TVDetailed {
     final List<TVRef> recommendations,
     final List<TVRef> similar,
     final List<Keyword> keywords,
+    @JsonKey(name: 'episode_groups') final List<EpisodeGroup> episodeGroups,
   }) = _$TVDetailedImpl;
 
   factory _TVDetailed.fromJson(Map<String, dynamic> json) =
@@ -960,6 +986,9 @@ abstract class _TVDetailed implements TVDetailed {
   List<TVRef> get similar;
   @override
   List<Keyword> get keywords;
+  @override
+  @JsonKey(name: 'episode_groups')
+  List<EpisodeGroup> get episodeGroups;
   @override
   @JsonKey(ignore: true)
   _$$TVDetailedImplCopyWith<_$TVDetailedImpl> get copyWith =>

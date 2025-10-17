@@ -92,6 +92,11 @@ _$TVDetailedImpl _$$TVDetailedImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Keyword.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      episodeGroups:
+          (json['episode_groups'] as List<dynamic>?)
+              ?.map((e) => EpisodeGroup.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$TVDetailedImplToJson(_$TVDetailedImpl instance) =>
@@ -126,4 +131,5 @@ Map<String, dynamic> _$$TVDetailedImplToJson(_$TVDetailedImpl instance) =>
       'recommendations': instance.recommendations,
       'similar': instance.similar,
       'keywords': instance.keywords,
+      'episode_groups': instance.episodeGroups,
     };

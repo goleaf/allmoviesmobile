@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../data/models/episode_group_model.dart';
 import '../data/models/episode_model.dart';
 import '../data/models/media_images.dart';
 import '../data/models/season_model.dart';
@@ -18,6 +19,7 @@ class TvDetailProvider extends ChangeNotifier {
   bool _isLoading = false;
   String? _errorMessage;
   int? _selectedSeasonNumber;
+  String? _selectedEpisodeGroupId;
   final Map<int, Season> _seasonDetails = <int, Season>{};
   final Set<int> _loadingSeasons = <int>{};
   final Map<int, String> _seasonErrors = <int, String>{};
@@ -29,6 +31,23 @@ class TvDetailProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   int? get selectedSeasonNumber => _selectedSeasonNumber;
+  String? get selectedEpisodeGroupId => _selectedEpisodeGroupId;
+
+  List<EpisodeGroup> get episodeGroups =>
+      _details?.episodeGroups ?? const <EpisodeGroup>[];
+
+  EpisodeGroup? get selectedEpisodeGroup {
+    final selectedId = _selectedEpisodeGroupId;
+    if (selectedId == null) {
+      return null;
+    }
+    for (final group in episodeGroups) {
+      if (group.id == selectedId) {
+        return group;
+      }
+    }
+    return null;
+  }
 
   List<Season> get seasons => _details?.seasons ?? const [];
 
@@ -51,7 +70,55 @@ class TvDetailProvider extends ChangeNotifier {
     if (season == null) {
       return const [];
     }
-    return season.episodes;
+    final episodes = List<Episode>.of(season.episodes);
+    final group = selectedEpisodeGroup;
+    if (group == null || group.groups.isEmpty) {
+      return episodes;
+    }
+
+    final orderedEpisodes = <Episode>[];
+    final usedEpisodeIds = <int>{};
+
+    Episode? resolveEpisode(EpisodeGroupEpisode reference) {
+      for (final episode in episodes) {
+        if (episode.id == reference.id) {
+          return episode;
+        }
+      }
+      for (final episode in episodes) {
+        if (episode.seasonNumber == reference.seasonNumber &&
+            episode.episodeNumber == reference.episodeNumber) {
+          return episode;
+        }
+      }
+      return null;
+    }
+
+    for (final node in group.groups) {
+      for (final reference in node.episodes) {
+        if (reference.seasonNumber != season.seasonNumber) {
+          continue;
+        }
+        final episode = resolveEpisode(reference);
+        if (episode == null || usedEpisodeIds.contains(episode.id)) {
+          continue;
+        }
+        orderedEpisodes.add(episode);
+        usedEpisodeIds.add(episode.id);
+      }
+    }
+
+    if (orderedEpisodes.isEmpty) {
+      return episodes;
+    }
+
+    for (final episode in episodes) {
+      if (!usedEpisodeIds.contains(episode.id)) {
+        orderedEpisodes.add(episode);
+      }
+    }
+
+    return orderedEpisodes;
   }
 
   bool isSeasonLoading(int seasonNumber) =>
@@ -92,6 +159,7 @@ class TvDetailProvider extends ChangeNotifier {
       _loadingSeasonImages.clear();
 
       _selectedSeasonNumber = _resolveInitialSeasonNumber(details);
+      _selectedEpisodeGroupId = _resolveInitialEpisodeGroupId(details);
       notifyListeners();
 
       final selected = _selectedSeasonNumber;
@@ -119,6 +187,18 @@ class TvDetailProvider extends ChangeNotifier {
       _ensureSeasonLoaded(seasonNumber),
       _ensureSeasonImagesLoaded(seasonNumber),
     ]);
+  }
+
+  void selectEpisodeGroup(String? groupId) {
+    if (_selectedEpisodeGroupId == groupId) {
+      return;
+    }
+    if (groupId != null &&
+        episodeGroups.every((group) => group.id != groupId)) {
+      return;
+    }
+    _selectedEpisodeGroupId = groupId;
+    notifyListeners();
   }
 
   Future<void> retrySeason(int seasonNumber) =>
@@ -224,6 +304,19 @@ class TvDetailProvider extends ChangeNotifier {
       }
     }
     return seasons.first.seasonNumber;
+  }
+
+  String? _resolveInitialEpisodeGroupId(TVDetailed details) {
+    final groups = details.episodeGroups;
+    if (groups.isEmpty) {
+      return null;
+    }
+    for (final group in groups) {
+      if (group.type == 1 && group.id.isNotEmpty) {
+        return group.id;
+      }
+    }
+    return groups.first.id.isEmpty ? null : groups.first.id;
   }
 
   Season? _findSeason(int seasonNumber) {

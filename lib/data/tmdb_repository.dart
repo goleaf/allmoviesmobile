@@ -15,6 +15,7 @@ import 'models/search_result_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
+import 'models/video_model.dart';
 import 'services/cache_service.dart';
 import 'services/tmdb_api_service.dart';
 
@@ -261,6 +262,41 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
+  }
+
+  Future<List<Video>> fetchEpisodeVideos({
+    required int tvId,
+    required int seasonNumber,
+    required int episodeNumber,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey =
+        'episode-videos-$tvId-$seasonNumber-$episodeNumber';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<Video>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchEpisodeVideos(
+      tvId,
+      seasonNumber,
+      episodeNumber,
+    );
+
+    final results = payload['results'];
+    final videos = results is List
+        ? results
+            .whereType<Map<String, dynamic>>()
+            .map(Video.fromJson)
+            .toList()
+        : <Video>[];
+
+    _cache.set(cacheKey, videos);
+    return videos;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({

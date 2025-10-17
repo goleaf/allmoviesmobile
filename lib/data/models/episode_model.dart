@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'credit_model.dart';
+import 'video_model.dart';
 
 part 'episode_model.freezed.dart';
 part 'episode_model.g.dart';
@@ -19,6 +20,7 @@ class Episode with _$Episode {
     int? runtime,
     @Default([]) List<Cast> cast,
     @Default([]) List<Crew> crew,
+    @Default([]) List<Video> videos,
   }) = _Episode;
 
   factory Episode.fromJson(Map<String, dynamic> json) =>

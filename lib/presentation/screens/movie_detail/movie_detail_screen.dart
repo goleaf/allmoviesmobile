@@ -1,38 +1,43 @@
-import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
+import '../../../data/services/api_config.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/watchlist_provider.dart';
+import '../../widgets/loading_indicator.dart';
+import '../../widgets/rating_display.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
+  
+  final Movie movie;
 
   const MovieDetailScreen({
     super.key,
     required this.movie,
   });
 
-  final Movie movie;
-
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildSliverAppBar(context),
-          SliverToBoxAdapter(
-            child: _buildActionButtons(context),
-          ),
+          _buildAppBar(context, loc),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildMainInfo(context),
-                if (movie.overview != null && movie.overview!.isNotEmpty)
-                  _buildOverview(context),
-                _buildMetadata(context),
-                const SizedBox(height: 32),
+                _buildHeader(context, loc),
+                _buildActions(context, loc),
+                _buildOverview(context, loc),
+                _buildMetadata(context, loc),
+                _buildGenres(context, loc),
+                const SizedBox(height: 24),
               ],
             ),
           ),
@@ -41,27 +46,14 @@ class MovieDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context) {
-    final backdropUrl = movie.backdropUrl ?? movie.posterUrl;
+  Widget _buildAppBar(BuildContext context, AppLocalizations loc) {
+    final backdropUrl = movie.backdropUrl;
     
     return SliverAppBar(
-      expandedHeight: 300,
+      expandedHeight: 250,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        title: Text(
-          movie.title,
-          style: const TextStyle(
-            fontWeight: FontWeight.bold,
-            shadows: [
-              Shadow(
-                offset: Offset(0, 1),
-                blurRadius: 4.0,
-                color: Colors.black54,
-              ),
-            ],
-          ),
-        ),
-        background: backdropUrl != null
+        background: backdropUrl != null && backdropUrl.isNotEmpty
             ? Stack(
                 fit: StackFit.expand,
                 children: [
@@ -69,13 +61,11 @@ class MovieDetailScreen extends StatelessWidget {
                     imageUrl: backdropUrl,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                      child: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                      color: Colors.grey[300],
+                      child: const Center(child: CircularProgressIndicator()),
                     ),
                     errorWidget: (context, url, error) => Container(
-                      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Colors.grey[300],
                       child: const Icon(Icons.broken_image, size: 64),
                     ),
                   ),
@@ -86,7 +76,7 @@ class MovieDetailScreen extends StatelessWidget {
                         end: Alignment.bottomCenter,
                         colors: [
                           Colors.transparent,
-                          Colors.black.withValues(alpha: 0.7),
+                          Colors.black.withOpacity(0.7),
                         ],
                       ),
                     ),
@@ -94,41 +84,77 @@ class MovieDetailScreen extends StatelessWidget {
                 ],
               )
             : Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                color: Colors.grey[300],
                 child: const Icon(Icons.movie, size: 64),
               ),
       ),
     );
   }
 
-  Widget _buildMainInfo(BuildContext context) {
+  Widget _buildHeader(BuildContext context, AppLocalizations loc) {
+    final posterUrl = movie.posterUrl;
+    
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildPoster(context),
+          // Poster
+          ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: posterUrl != null && posterUrl.isNotEmpty
+                ? CachedNetworkImage(
+                    imageUrl: posterUrl,
+                    width: 120,
+                    height: 180,
+                    fit: BoxFit.cover,
+                    placeholder: (context, url) => Container(
+                      width: 120,
+                      height: 180,
+                      color: Colors.grey[300],
+                      child: const Center(child: CircularProgressIndicator()),
+                    ),
+                    errorWidget: (context, url, error) => Container(
+                      width: 120,
+                      height: 180,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.broken_image),
+                    ),
+                  )
+                : Container(
+                    width: 120,
+                    height: 180,
+                    color: Colors.grey[300],
+                    child: const Icon(Icons.movie),
+                  ),
+          ),
           const SizedBox(width: 16),
+          // Title and basic info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (movie.releaseYear != null)
+                Text(
+                  movie.title,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                if (movie.releaseYear != null && movie.releaseYear!.isNotEmpty)
                   Text(
                     movie.releaseYear!,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
+                          color: Colors.grey[600],
                         ),
                   ),
                 const SizedBox(height: 8),
-                Text(
-                  movie.mediaLabel,
-                  style: Theme.of(context).textTheme.bodyLarge,
-                ),
-                const SizedBox(height: 16),
-                _buildRatingInfo(context),
-                const SizedBox(height: 16),
-                if (movie.genres.isNotEmpty) _buildGenres(context),
+                if (movie.voteAverage != null && movie.voteAverage! > 0)
+                  RatingDisplay(
+                    rating: movie.voteAverage!,
+                    voteCount: movie.voteCount,
+                    size: 18,
+                  ),
               ],
             ),
           ),
@@ -137,211 +163,15 @@ class MovieDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPoster(BuildContext context) {
-    final posterUrl = movie.posterUrl;
-    
-    return Container(
-      width: 120,
-      height: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.3),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(12),
-        child: posterUrl != null
-            ? CachedNetworkImage(
-                imageUrl: posterUrl,
-                fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                ),
-                errorWidget: (context, url, error) => Container(
-                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                  child: const Icon(Icons.broken_image),
-                ),
-              )
-            : Container(
-                color: Theme.of(context).colorScheme.surfaceContainerHighest,
-                child: const Icon(Icons.movie_outlined, size: 48),
-              ),
-      ),
-    );
-  }
-
-  Widget _buildRatingInfo(BuildContext context) {
-    if (movie.voteAverage == null || movie.voteAverage! <= 0) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            const Icon(
-              Icons.star,
-              color: Colors.amber,
-              size: 32,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              movie.voteAverage!.toStringAsFixed(1),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            Text(
-              ' / 10',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.color
-                        ?.withValues(alpha: 0.6),
-                  ),
-            ),
-          ],
-        ),
-        if (movie.voteCount != null && movie.voteCount! > 0)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              movie.formattedVoteCount,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildGenres(BuildContext context) {
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: movie.genres.take(5).map((genre) {
-        return Chip(
-          label: Text(genre),
-          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-          labelStyle: TextStyle(
-            color: Theme.of(context).colorScheme.onPrimaryContainer,
-            fontSize: 12,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        );
-      }).toList(),
-    );
-  }
-
-  Widget _buildOverview(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Overview',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            movie.overview!,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  height: 1.5,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetadata(BuildContext context) {
-    final metadata = <MapEntry<String, String>>[];
-
-    if (movie.originalTitle != null && movie.originalTitle != movie.title) {
-      metadata.add(MapEntry('Original Title', movie.originalTitle!));
-    }
-
-    if (movie.originalLanguage != null) {
-      metadata.add(MapEntry(
-        'Original Language',
-        movie.originalLanguage!.toUpperCase(),
-      ));
-    }
-
-    if (movie.popularity != null) {
-      metadata.add(MapEntry(
-        'Popularity',
-        movie.formattedPopularity,
-      ));
-    }
-
-    if (metadata.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Additional Information',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          ...metadata.map((entry) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: 140,
-                    child: Text(
-                      entry.key,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                          ),
-                    ),
-                  ),
-                  Expanded(
-                    child: Text(
-                      entry.value,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionButtons(BuildContext context) {
+  Widget _buildActions(BuildContext context, AppLocalizations loc) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
+    
     final isFavorite = favoritesProvider.isFavorite(movie.id);
     final isInWatchlist = watchlistProvider.isInWatchlist(movie.id);
 
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
           Expanded(
@@ -352,8 +182,8 @@ class MovieDetailScreen extends StatelessWidget {
                   SnackBar(
                     content: Text(
                       isFavorite
-                          ? 'Removed from favorites'
-                          : 'Added to favorites',
+                          ? loc.t('favorites.removed')
+                          : loc.t('favorites.added'),
                     ),
                     duration: const Duration(seconds: 2),
                   ),
@@ -363,13 +193,14 @@ class MovieDetailScreen extends StatelessWidget {
                 isFavorite ? Icons.favorite : Icons.favorite_border,
                 color: isFavorite ? Colors.red : null,
               ),
-              label: Text(isFavorite ? 'Favorited' : 'Favorite'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+              label: Text(
+                isFavorite
+                    ? loc.t('movie.remove_from_favorites')
+                    : loc.t('movie.add_to_favorites'),
               ),
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () {
@@ -378,8 +209,8 @@ class MovieDetailScreen extends StatelessWidget {
                   SnackBar(
                     content: Text(
                       isInWatchlist
-                          ? 'Removed from watchlist'
-                          : 'Added to watchlist',
+                          ? loc.t('watchlist.removed')
+                          : loc.t('watchlist.added'),
                     ),
                     duration: const Duration(seconds: 2),
                   ),
@@ -387,10 +218,12 @@ class MovieDetailScreen extends StatelessWidget {
               },
               icon: Icon(
                 isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
+                color: isInWatchlist ? Colors.blue : null,
               ),
-              label: Text(isInWatchlist ? 'In Watchlist' : 'Watchlist'),
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
+              label: Text(
+                isInWatchlist
+                    ? loc.t('movie.remove_from_watchlist')
+                    : loc.t('movie.add_to_watchlist'),
               ),
             ),
           ),
@@ -398,5 +231,129 @@ class MovieDetailScreen extends StatelessWidget {
       ),
     );
   }
-}
 
+  Widget _buildOverview(BuildContext context, AppLocalizations loc) {
+    if (movie.overview == null || movie.overview!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('movie.overview'),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            movie.overview!,
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadata(BuildContext context, AppLocalizations loc) {
+    final metadata = <MapEntry<String, String>>[];
+
+    if (movie.releaseDate != null && movie.releaseDate!.isNotEmpty) {
+      metadata.add(MapEntry(
+        loc.t('movie.release_date'),
+        movie.releaseDate!,
+      ));
+    }
+
+    if (movie.runtime != null && movie.runtime! > 0) {
+      metadata.add(MapEntry(
+        loc.t('movie.runtime'),
+        '${movie.runtime} ${loc.t('movie.minutes')}',
+      ));
+    }
+
+    if (movie.voteCount != null && movie.voteCount! > 0) {
+      metadata.add(MapEntry(
+        loc.t('movie.votes'),
+        movie.voteCount.toString(),
+      ));
+    }
+
+    if (metadata.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Details',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 12),
+          ...metadata.map((entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 120,
+                      child: Text(
+                        entry.key,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(entry.value),
+                    ),
+                  ],
+                ),
+              )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGenres(BuildContext context, AppLocalizations loc) {
+    if (movie.genreIds.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('movie.genres'),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: movie.genreIds.map((genreId) {
+              // TODO: Get genre name from GenresProvider
+              return Chip(
+                label: Text('Genre $genreId'),
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}

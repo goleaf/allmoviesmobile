@@ -21,6 +21,7 @@ class MediaImage extends StatefulWidget {
     this.enableProgress = true,
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
+    this.overlay = const MediaImageOverlay.none(),
   });
 
   final String? path;
@@ -36,6 +37,7 @@ class MediaImage extends StatefulWidget {
   final bool enableProgress;
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
+  final MediaImageOverlay overlay;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -115,9 +117,18 @@ class _MediaImageState extends State<MediaImage> {
         ? _buildProgressOverlay()
         : const SizedBox.shrink();
 
+    final overlayLayer = _buildOverlay(context);
+
+    final stackChildren = <Widget>[
+      if (preview != null) preview,
+      image,
+      if (overlayLayer != null) overlayLayer,
+      progressIndicator,
+    ];
+
     final stack = Stack(
       fit: StackFit.expand,
-      children: [if (preview != null) preview, image, progressIndicator],
+      children: stackChildren,
     );
 
     return _wrapWithSize(
@@ -234,6 +245,98 @@ class _MediaImageState extends State<MediaImage> {
         _progress = 1;
       });
     });
+  }
+
+  Widget? _buildOverlay(BuildContext context) {
+    if (widget.overlay.isEmpty) {
+      return null;
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final resolvedGradients =
+        widget.overlay.resolveGradients(theme, colorScheme);
+    final resolvedColor = widget.overlay.resolveColor(theme, colorScheme);
+
+    final overlayLayers = <Widget>[];
+
+    if (resolvedColor != null) {
+      overlayLayers.add(
+        DecoratedBox(
+          decoration: BoxDecoration(color: resolvedColor),
+        ),
+      );
+    }
+
+    for (final gradient in resolvedGradients) {
+      overlayLayers.add(
+        DecoratedBox(
+          decoration: BoxDecoration(gradient: gradient),
+        ),
+      );
+    }
+
+    if (overlayLayers.isEmpty) {
+      return null;
+    }
+
+    Widget overlayWidget;
+    if (overlayLayers.length == 1) {
+      overlayWidget = overlayLayers.single;
+    } else {
+      overlayWidget = Stack(
+        fit: StackFit.expand,
+        children: overlayLayers,
+      );
+    }
+
+    return Positioned.fill(
+      child: IgnorePointer(
+        child: Padding(
+          padding: widget.overlay.padding,
+          child: overlayWidget,
+        ),
+      ),
+    );
+  }
+}
+
+typedef MediaImageGradientResolver = Gradient Function(
+  ThemeData theme,
+  ColorScheme colorScheme,
+);
+
+typedef MediaImageColorResolver = Color? Function(
+  ThemeData theme,
+  ColorScheme colorScheme,
+);
+
+class MediaImageOverlay {
+  const MediaImageOverlay({
+    this.gradientResolvers = const <MediaImageGradientResolver>[],
+    this.colorResolver,
+    this.padding = EdgeInsets.zero,
+  });
+
+  const MediaImageOverlay.none()
+      : gradientResolvers = const <MediaImageGradientResolver>[],
+        colorResolver = null,
+        padding = EdgeInsets.zero;
+
+  final List<MediaImageGradientResolver> gradientResolvers;
+  final MediaImageColorResolver? colorResolver;
+  final EdgeInsetsGeometry padding;
+
+  bool get isEmpty => gradientResolvers.isEmpty && colorResolver == null;
+
+  List<Gradient> resolveGradients(ThemeData theme, ColorScheme colorScheme) {
+    return [
+      for (final resolver in gradientResolvers) resolver(theme, colorScheme),
+    ];
+  }
+
+  Color? resolveColor(ThemeData theme, ColorScheme colorScheme) {
+    return colorResolver?.call(theme, colorScheme);
   }
 }
 

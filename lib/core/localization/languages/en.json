@@ -106,7 +106,14 @@
     "alternative_titles": "Alternative Titles",
     "similar": "Similar Shows",
     "no_images": "No images available for this season",
-    "season_images_title": "Season {seasonNumber} images"
+    "season_images_title": "Season {seasonNumber} images",
+    "episode_groups": "Episode Groups",
+    "episode_groups_hint": "Alternate episode orderings such as DVD releases or story arcs.",
+    "episode_groups_empty": "No alternate episode orderings are available.",
+    "episode_group_fallback": "Group {index}",
+    "episode_group_node_fallback": "Set {order}",
+    "episode_group_no_nodes": "This ordering does not include grouped episodes yet.",
+    "episode_group_no_episodes": "No episodes are listed inside this grouping."
   },
   "person": {
     "title": "Person",

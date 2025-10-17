@@ -106,7 +106,8 @@ class AllMoviesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final repo = tmdbRepository ?? TmdbRepository();
+    final repo = tmdbRepository ??
+        TmdbRepository(networkQuality: networkQualityNotifier);
 
     return MultiProvider(
       providers: [

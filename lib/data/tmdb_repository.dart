@@ -31,6 +31,7 @@ import 'models/tv_detailed_model.dart';
 import 'models/tv_ref_model.dart';
 import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
+import 'services/network_quality_service.dart';
 
 class TmdbRepository {
   TmdbRepository({
@@ -38,9 +39,11 @@ class TmdbRepository {
     CacheService? cacheService,
     String? apiKey,
     String? language,
+    NetworkQualityNotifier? networkQuality,
   }) : _client = client ?? http.Client(),
        _cache = cacheService,
        _language = language ?? AppConfig.defaultLanguage,
+       _networkQuality = networkQuality,
        _apiKey = (() {
          final provided =
              apiKey ??
@@ -58,6 +61,7 @@ class TmdbRepository {
   final CacheService? _cache;
   final String _apiKey;
   final String _language;
+  final NetworkQualityNotifier? _networkQuality;
   final RateLimiter _globalRateLimiter = RateLimiter(
     const Duration(milliseconds: 250),
   );
@@ -84,6 +88,14 @@ class TmdbRepository {
   }) async {
     _ensureApiKey();
     final uri = _buildUri(endpoint, query);
+    final quality = _networkQuality?.quality;
+    if (quality == NetworkQuality.offline) {
+      throw const TmdbException('No network connection available.');
+    }
+    final delay = _delayForQuality(quality);
+    if (delay != Duration.zero) {
+      await Future<void>.delayed(delay);
+    }
 
     Future<Map<String, dynamic>> request() async {
       try {
@@ -131,9 +143,14 @@ class TmdbRepository {
     bool forceRefresh = false,
     int ttlSeconds = 900,
   }) async {
-    if (!forceRefresh) {
-      final cached = _getCached<T>(key);
-      if (cached != null) {
+    final cached = _getCached<T>(key);
+    if (!forceRefresh && cached != null) {
+      return cached;
+    }
+
+    if (forceRefresh && cached != null) {
+      final quality = _networkQuality?.quality;
+      if (quality == NetworkQuality.offline || quality == NetworkQuality.constrained) {
         return cached;
       }
     }
@@ -141,6 +158,19 @@ class TmdbRepository {
     final value = await loader();
     _setCached<T>(key, value, ttlSeconds: ttlSeconds);
     return value;
+  }
+
+  Duration _delayForQuality(NetworkQuality? quality) {
+    switch (quality) {
+      case NetworkQuality.constrained:
+        return const Duration(milliseconds: 300);
+      case NetworkQuality.balanced:
+        return const Duration(milliseconds: 150);
+      case NetworkQuality.excellent:
+      case NetworkQuality.offline:
+      case null:
+        return Duration.zero;
+    }
   }
 
   PaginatedResponse<T> _mapPaginated<T>(

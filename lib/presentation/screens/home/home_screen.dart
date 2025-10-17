@@ -121,6 +121,66 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
 
+    final sectionBuilders = <WidgetBuilder>[
+      (_) => const SizedBox(height: 16),
+      (_) => _QuickAccessSection(
+            title: loc.home['quick_access'] ?? 'Quick Access',
+            items: [
+              _QuickAccessItem(
+                icon: Icons.explore,
+                label: loc.discover['title'] ?? 'Discover',
+                onTap: () => Navigator.of(context)
+                    .pushNamed(ApiExplorerScreen.routeName),
+              ),
+              _QuickAccessItem(
+                icon: Icons.local_fire_department_outlined,
+                label: loc.home['trending'] ?? 'Trending',
+                onTap: () => Navigator.of(context)
+                    .pushNamed(MoviesScreen.routeName),
+              ),
+              _QuickAccessItem(
+                icon: Icons.category_outlined,
+                label: loc.home['genres'] ?? 'Genres',
+                onTap: () => Navigator.of(context)
+                    .pushNamed(MoviesFiltersScreen.routeName),
+              ),
+            ],
+          ),
+      (_) => const SizedBox(height: 24),
+      (_) => _MoviesCarousel(
+            title: loc.home['of_the_moment_movies'] ?? 'Of the moment movies',
+            section: MovieSection.trending,
+          ),
+      (_) => const SizedBox(height: 24),
+      (_) => _SeriesCarousel(
+            title: loc.home['of_the_moment_tv'] ?? 'Of the moment TV',
+            section: SeriesSection.trending,
+          ),
+      (_) => const SizedBox(height: 24),
+      (_) => _PeopleCarousel(
+            title: loc.home['popular_people'] ?? 'Popular people',
+          ),
+      (_) => const SizedBox(height: 24),
+      (_) => _CollectionsCarousel(
+            title: loc.home['featured_collections'] ?? 'Featured collections',
+          ),
+      (_) => const SizedBox(height: 24),
+      (_) => _MoviesCarousel(
+            title: loc.home['new_releases'] ?? 'New releases',
+            section: MovieSection.nowPlaying,
+          ),
+      (_) => const SizedBox(height: 24),
+      (_) => _ContinueWatchingSection(
+            title: loc.home['continue_watching'] ?? 'Continue watching',
+          ),
+      (_) => const SizedBox(height: 24),
+      (_) => _RecommendationsSection(
+            title: loc.home['personalized_recommendations'] ??
+                'Recommended for you',
+          ),
+      (_) => const SizedBox(height: 24),
+    ];
+
     return Scaffold(
       appBar: AppBar(
         titleSpacing: 16,
@@ -147,70 +207,18 @@ class _HomeScreenState extends State<HomeScreen> {
       drawer: const AppDrawer(),
       body: RefreshIndicator(
         onRefresh: _refreshAll,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 24),
+        child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
-          children: [
-            const SizedBox(height: 16),
-            _QuickAccessSection(
-              title: loc.home['quick_access'] ?? 'Quick Access',
-              items: [
-                _QuickAccessItem(
-                  icon: Icons.explore,
-                  label: loc.discover['title'] ?? 'Discover',
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(ApiExplorerScreen.routeName),
+          slivers: [
+            SliverPadding(
+              padding: const EdgeInsets.only(bottom: 24),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, index) => sectionBuilders[index](context),
+                  childCount: sectionBuilders.length,
                 ),
-                _QuickAccessItem(
-                  icon: Icons.local_fire_department_outlined,
-                  label: loc.home['trending'] ?? 'Trending',
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(MoviesScreen.routeName),
-                ),
-                _QuickAccessItem(
-                  icon: Icons.category_outlined,
-                  label: loc.home['genres'] ?? 'Genres',
-                  onTap: () => Navigator.of(context)
-                      .pushNamed(MoviesFiltersScreen.routeName),
-                ),
-              ],
+              ),
             ),
-            const SizedBox(height: 24),
-            _MoviesCarousel(
-              title:
-                  loc.home['of_the_moment_movies'] ?? 'Of the moment movies',
-              section: MovieSection.trending,
-            ),
-            const SizedBox(height: 24),
-            _SeriesCarousel(
-              title: loc.home['of_the_moment_tv'] ?? 'Of the moment TV',
-              section: SeriesSection.trending,
-            ),
-            const SizedBox(height: 24),
-            _PeopleCarousel(
-              title: loc.home['popular_people'] ?? 'Popular people',
-            ),
-            const SizedBox(height: 24),
-            _CollectionsCarousel(
-              title:
-                  loc.home['featured_collections'] ?? 'Featured collections',
-            ),
-            const SizedBox(height: 24),
-            _MoviesCarousel(
-              title: loc.home['new_releases'] ?? 'New releases',
-              section: MovieSection.nowPlaying,
-            ),
-            const SizedBox(height: 24),
-            _ContinueWatchingSection(
-              title: loc.home['continue_watching'] ?? 'Continue watching',
-            ),
-            const SizedBox(height: 24),
-            _RecommendationsSection(
-              title:
-                  loc.home['personalized_recommendations'] ??
-                      'Recommended for you',
-            ),
-            const SizedBox(height: 24),
           ],
         ),
       ),

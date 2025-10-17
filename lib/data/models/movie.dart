@@ -15,7 +15,7 @@ class Movie {
     this.popularity,
     this.originalLanguage,
     this.originalTitle,
-    this.adult,
+    this.adult = false,
     this.genreIds,
   });
 
@@ -110,7 +110,7 @@ class Movie {
     if (popularity == null) {
       return '';
     }
-    return '${popularity!.toStringAsFixed(0)}';
+    return popularity!.toStringAsFixed(0);
   }
 
   // Map genre IDs to genre names

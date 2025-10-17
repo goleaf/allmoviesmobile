@@ -4,8 +4,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart' as legacy_provider;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:allmovies_mobile/core/localization/app_localizations.dart'
-    as core_l10n;
+import 'package:allmovies_mobile/core/localization/app_localizations.dart';
 import 'package:allmovies_mobile/providers/locale_provider.dart';
 import 'package:allmovies_mobile/providers/theme_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -72,9 +71,9 @@ class _TestAppState extends State<TestApp> {
             final effectiveLocale = widget.locale ?? const Locale('en');
             return MaterialApp(
               locale: effectiveLocale,
-              supportedLocales: core_l10n.AppLocalizations.supportedLocales,
+              supportedLocales: AppLocalizations.supportedLocales,
               localizationsDelegates: const [
-                core_l10n.AppLocalizations.delegate,
+                AppLocalizations.delegate,
                 GlobalMaterialLocalizations.delegate,
                 GlobalWidgetsLocalizations.delegate,
                 GlobalCupertinoLocalizations.delegate,
@@ -96,6 +95,7 @@ Future<void> pumpTestApp(
   Locale locale = const Locale('en'),
   Map<String, Object> initialPrefs = const {},
   List<Override> overrides = const [],
+  bool settle = true,
 }) async {
   SharedPreferences.setMockInitialValues(initialPrefs);
   final prefs = await SharedPreferences.getInstance();
@@ -103,5 +103,7 @@ Future<void> pumpTestApp(
     TestApp(child: child, locale: locale, prefs: prefs, overrides: overrides),
   );
   // Let localization delegates load if any async microtasks occur.
-  await tester.pumpAndSettle();
+  if (settle) {
+    await tester.pumpAndSettle();
+  }
 }

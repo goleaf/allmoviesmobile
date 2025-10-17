@@ -17,6 +17,7 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/api_explorer_provider.dart';
+import 'providers/dedicated_search_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/explorer/tmdb_v4_reference_screen.dart';
@@ -76,6 +77,12 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),
         ChangeNotifierProvider(create: (_) => WatchlistProvider(storageService)),
         ChangeNotifierProvider(create: (_) => SearchProvider(tmdbRepository, storageService)),
+        ChangeNotifierProvider(create: (_) => MovieSearchProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => TvSearchProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => PersonSearchProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => CompanySearchProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => KeywordSearchProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => CollectionSearchProvider(tmdbRepository)),
         ChangeNotifierProvider(
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),

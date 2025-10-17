@@ -2,15 +2,16 @@ import 'package:http/http.dart' as http;
 
 import 'models/account_model.dart';
 import 'models/certification_model.dart';
+import 'models/collection_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
-import 'models/credit_model.dart';
+import 'models/keyword_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
+import 'models/search_filters.dart';
 import 'models/search_result_model.dart';
-import 'models/season_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
@@ -105,7 +106,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      (json) => Movie.fromJson(json, mediaType: 'movie'),
+      Movie.fromJson,
     );
 
     _cache.set(cacheKey, response);
@@ -134,7 +135,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+      Movie.fromJson,
     );
 
     _cache.set(cacheKey, response);
@@ -166,7 +167,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      (json) => Movie.fromJson(json, mediaType: 'movie'),
+      Movie.fromJson,
     );
 
     _cache.set(cacheKey, response);
@@ -198,7 +199,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+      Movie.fromJson,
     );
 
     _cache.set(cacheKey, response);
@@ -230,23 +231,6 @@ class TmdbRepository {
     return movie;
   }
 
-  Future<Credits> fetchMovieCredits(int movieId, {bool forceRefresh = false}) async {
-    _checkApiKey();
-
-    final cacheKey = 'movie-credits-$movieId';
-    if (!forceRefresh) {
-      final cached = _cache.get<Credits>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.fetchMovieCredits(movieId);
-    final credits = Credits.fromJson(payload);
-    _cache.set(cacheKey, credits, ttlSeconds: CacheService.movieDetailsTTL);
-    return credits;
-  }
-
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
@@ -270,30 +254,6 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
-  }
-
-  Future<Season> fetchTvSeason(
-    int tvId,
-    int seasonNumber, {
-    bool forceRefresh = false,
-  }) async {
-    _checkApiKey();
-
-    final cacheKey = 'tv-season-$tvId-$seasonNumber';
-    if (forceRefresh) {
-      _cache.remove(cacheKey);
-    } else {
-      final cached = _cache.get<Season>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.fetchTvSeasonDetails(tvId, seasonNumber);
-    final normalized = _normalizeSeasonPayload(payload);
-    final season = Season.fromJson(normalized);
-    _cache.set(cacheKey, season, ttlSeconds: CacheService.movieDetailsTTL);
-    return season;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -416,6 +376,199 @@ class TmdbRepository {
 
     final payload = await _apiService.search('multi', trimmed, page: page);
     final response = SearchResponse.fromJson(payload);
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
+  Future<PaginatedResponse<Movie>> searchMovies(
+    String query, {
+    MovieSearchFilters? filters,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Movie>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Movie>[],
+      );
+    }
+
+    final sanitizedFilters = _sanitizeFilters(filters?.toQueryParameters());
+    final normalizedFilters = _normalizeFilters(sanitizedFilters);
+    final cacheKey = 'search-movie-$trimmed-$normalizedFilters-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search(
+      'movie',
+      trimmed,
+      page: page,
+      queryParameters: sanitizedFilters,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
+  Future<PaginatedResponse<Movie>> searchTvSeries(
+    String query, {
+    TvSearchFilters? filters,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Movie>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Movie>[],
+      );
+    }
+
+    final sanitizedFilters = _sanitizeFilters(filters?.toQueryParameters());
+    final normalizedFilters = _normalizeFilters(sanitizedFilters);
+    final cacheKey = 'search-tv-$trimmed-$normalizedFilters-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search(
+      'tv',
+      trimmed,
+      page: page,
+      queryParameters: sanitizedFilters,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
+  Future<PaginatedResponse<Person>> searchPeople(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Person>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Person>[],
+      );
+    }
+
+    final cacheKey = 'search-person-$trimmed-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Person>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search('person', trimmed, page: page);
+    final response = PaginatedResponse<Person>.fromJson(
+      payload,
+      Person.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
+  Future<PaginatedResponse<Keyword>> searchKeywords(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Keyword>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Keyword>[],
+      );
+    }
+
+    final cacheKey = 'search-keyword-$trimmed-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Keyword>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search('keyword', trimmed, page: page);
+    final response = PaginatedResponse<Keyword>.fromJson(
+      payload,
+      Keyword.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
+  Future<PaginatedResponse<Collection>> searchCollections(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Collection>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Collection>[],
+      );
+    }
+
+    final cacheKey = 'search-collection-$trimmed-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Collection>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search('collection', trimmed, page: page);
+    final response = PaginatedResponse<Collection>.fromJson(
+      payload,
+      Collection.fromJson,
+    );
+
     _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
     return response;
   }
@@ -822,36 +975,6 @@ class TmdbRepository {
 
     if (normalized['external_ids'] is! Map<String, dynamic>) {
       normalized['external_ids'] = const {};
-    }
-
-    return normalized;
-  }
-
-  Map<String, dynamic> _normalizeSeasonPayload(Map<String, dynamic> payload) {
-    final normalized = Map<String, dynamic>.from(payload);
-
-    final episodes = normalized['episodes'];
-    if (episodes is List) {
-      normalized['episodes'] = episodes
-          .whereType<Map<String, dynamic>>()
-          .map((episode) {
-        final episodeMap = Map<String, dynamic>.from(episode);
-
-        final guestStars = episodeMap['guest_stars'];
-        if (guestStars is List) {
-          episodeMap['cast'] =
-              guestStars.whereType<Map<String, dynamic>>().toList();
-        }
-
-        final crew = episodeMap['crew'];
-        if (crew is List) {
-          episodeMap['crew'] = crew.whereType<Map<String, dynamic>>().toList();
-        }
-
-        return episodeMap;
-      }).toList();
-    } else {
-      normalized['episodes'] = const <Map<String, dynamic>>[];
     }
 
     return normalized;

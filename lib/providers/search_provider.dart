@@ -263,6 +263,18 @@ class SearchProvider with ChangeNotifier {
     await search(query);
   }
 
+  Future<void> recordQuery(String searchQuery) async {
+    final trimmed = searchQuery.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+
+    _query = trimmed;
+    await _storage.addToSearchHistory(trimmed);
+    _searchHistory = _storage.getSearchHistory();
+    notifyListeners();
+  }
+
   Future<void> removeFromHistory(String query) async {
     await _storage.removeFromSearchHistory(query);
     _searchHistory = _storage.getSearchHistory();

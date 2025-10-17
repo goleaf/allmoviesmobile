@@ -29,7 +29,7 @@ class PersonDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final repository = context.read<TmdbRepository>();
 
-    return ChangeNotifierProvider<PersonDetailProvider>(
+    return ChangeNotifierProvider(
       create: (_) => PersonDetailProvider(
         repository,
         personId,
@@ -582,11 +582,13 @@ class _CombinedCreditsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
     final combined = detail.combinedCredits;
-    if (combined.cast.isEmpty && combined.crew.isEmpty) {
+    final cast = combined.cast ?? const [];
+    final crew = combined.crew ?? const [];
+    if (cast.isEmpty && crew.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    final combinedCredits = [...combined.cast, ...combined.crew];
+    final combinedCredits = [...cast, ...crew];
     combinedCredits.sort(
       (a, b) => (b.releaseYear ?? '').compareTo(a.releaseYear ?? ''),
     );

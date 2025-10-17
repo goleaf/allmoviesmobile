@@ -19,6 +19,7 @@ import 'models/network_detailed_model.dart';
 import 'models/network_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
+import 'models/person_detail_model.dart';
 import 'models/search_filters.dart';
 import 'models/search_result_model.dart';
 import 'models/season_model.dart';
@@ -609,7 +610,7 @@ class TmdbRepository {
     );
   }
 
-  Future<Person> fetchPersonDetails(
+  Future<PersonDetail> fetchPersonDetails(
     int personId, {
     bool forceRefresh = false,
   }) async {
@@ -619,7 +620,7 @@ class TmdbRepository {
         'append_to_response': 'combined_credits,external_ids,images,tagged_images',
       },
     );
-    return Person.fromJson(payload);
+    return PersonDetail.fromJson(payload);
   }
 
   // ---------------------------------------------------------------------------

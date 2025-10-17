@@ -5,6 +5,7 @@ import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/collection_model.dart';
 import 'models/configuration_model.dart';
+import 'models/keyword_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
@@ -73,6 +74,171 @@ class TmdbRepository {
       page: page,
     );
 
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.trendingTTL);
+    return response;
+  }
+
+  Future<List<Keyword>> fetchTrendingKeywords({
+    int limit = 20,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'trending-keywords-$limit';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<Keyword>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final trendingMovies = await fetchTrendingTitles(
+      mediaType: 'movie',
+      timeWindow: 'day',
+      forceRefresh: forceRefresh,
+    );
+    final trendingTv = await fetchTrendingTitles(
+      mediaType: 'tv',
+      timeWindow: 'day',
+      forceRefresh: forceRefresh,
+    );
+
+    final keywordCounts = <int, _KeywordAccumulator>{};
+    final keywordFutures = <Future<void>>[];
+
+    Future<void> collectKeywords(Future<List<Keyword>> Function() loader) async {
+      try {
+        final keywords = await loader();
+        for (final keyword in keywords) {
+          final existing = keywordCounts[keyword.id];
+          if (existing != null) {
+            existing.count += 1;
+          } else {
+            keywordCounts[keyword.id] = _KeywordAccumulator(keyword: keyword);
+          }
+        }
+      } catch (_) {
+        // Ignore errors for individual keyword fetches to ensure partial data
+      }
+    }
+
+    final sampleSize = limit.clamp(6, 20).toInt();
+    final perCategory = (sampleSize / 2).ceil();
+
+    for (final movie in trendingMovies.results.take(perCategory)) {
+      keywordFutures.add(
+        collectKeywords(
+          () => fetchMovieKeywords(movie.id, forceRefresh: forceRefresh),
+        ),
+      );
+    }
+
+    for (final show in trendingTv.results.take(perCategory)) {
+      keywordFutures.add(
+        collectKeywords(
+          () => fetchTvKeywords(show.id, forceRefresh: forceRefresh),
+        ),
+      );
+    }
+
+    await Future.wait(keywordFutures);
+
+    final sortedKeywords = keywordCounts.values.toList()
+      ..sort((a, b) {
+        final countCompare = b.count.compareTo(a.count);
+        if (countCompare != 0) {
+          return countCompare;
+        }
+        return a.keyword.name.toLowerCase().compareTo(b.keyword.name.toLowerCase());
+      });
+
+    final result = sortedKeywords.take(limit).map((entry) => entry.keyword).toList();
+
+    _cache.set(cacheKey, result, ttlSeconds: CacheService.trendingTTL);
+    return result;
+  }
+
+  Future<List<Keyword>> fetchMovieKeywords(
+    int movieId, {
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'movie-keywords-$movieId';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<Keyword>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieKeywords(movieId);
+    final keywords = _parseKeywords(payload);
+    _cache.set(cacheKey, keywords, ttlSeconds: CacheService.trendingTTL);
+    return keywords;
+  }
+
+  Future<List<Keyword>> fetchTvKeywords(
+    int tvId, {
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'tv-keywords-$tvId';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<Keyword>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTvKeywords(tvId);
+    final keywords = _parseKeywords(payload);
+    _cache.set(cacheKey, keywords, ttlSeconds: CacheService.trendingTTL);
+    return keywords;
+  }
+
+  Future<KeywordDetails> fetchKeywordDetails(
+    int keywordId, {
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'keyword-details-$keywordId';
+    if (!forceRefresh) {
+      final cached = _cache.get<KeywordDetails>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchKeywordDetails(keywordId);
+    final keyword = KeywordDetails.fromJson(payload);
+    _cache.set(cacheKey, keyword, ttlSeconds: CacheService.trendingTTL);
+    return keyword;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchKeywordMovies(
+    int keywordId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'keyword-$keywordId-movies-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchKeywordMovies(keywordId, page: page);
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
       Movie.fromJson,
@@ -433,6 +599,41 @@ class TmdbRepository {
     return response;
   }
 
+  Future<PaginatedResponse<Keyword>> searchKeywords(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Keyword>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Keyword>[],
+      );
+    }
+
+    final cacheKey = 'search-keywords-$trimmed-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Keyword>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search('keyword', trimmed, page: page);
+    final response = PaginatedResponse<Keyword>.fromJson(
+      payload,
+      Keyword.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
   Future<TmdbListDetails> fetchList(String listId, {int page = 1, bool forceRefresh = false}) async {
     _checkApiKey();
 
@@ -693,6 +894,17 @@ class TmdbRepository {
     return parsed;
   }
 
+  List<Keyword> _parseKeywords(Map<String, dynamic> payload) {
+    final keywordsRaw = payload['keywords'] ?? payload['results'];
+    if (keywordsRaw is List) {
+      return keywordsRaw
+          .whereType<Map<String, dynamic>>()
+          .map(Keyword.fromJson)
+          .toList();
+    }
+    return <Keyword>[];
+  }
+
   Map<String, String>? _sanitizeFilters(Map<String, String>? filters) {
     if (filters == null || filters.isEmpty) {
       return null;
@@ -839,6 +1051,13 @@ class TmdbRepository {
 
     return normalized;
   }
+}
+
+class _KeywordAccumulator {
+  _KeywordAccumulator({required this.keyword, this.count = 1});
+
+  final Keyword keyword;
+  int count;
 }
 
 class TmdbException implements Exception {

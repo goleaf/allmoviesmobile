@@ -366,6 +366,22 @@ class AllMoviesApp extends StatelessWidget {
                           fullscreenDialog: true,
                         );
                       }
+                      if (args is Map) {
+                        final id = args['id'];
+                        if (id is int) {
+                          return MaterialPageRoute(
+                            builder: (_) => CollectionDetailScreen(
+                              collectionId: id,
+                              initialName: args['name'] as String?,
+                              initialPosterPath: args['posterPath'] as String?,
+                              initialBackdropPath:
+                                  args['backdropPath'] as String?,
+                            ),
+                            settings: settings,
+                            fullscreenDialog: true,
+                          );
+                        }
+                      }
                       return null;
                   }
                   return null;

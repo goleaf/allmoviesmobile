@@ -7,6 +7,7 @@ import '../../data/models/movie_detailed_model.dart';
 import '../../data/services/api_config.dart';
 import '../../core/utils/media_image_helper.dart';
 import 'media_image.dart';
+import 'loading_indicator.dart';
 import '../../data/tmdb_repository.dart';
 
 class SavedMovieCard extends StatefulWidget {
@@ -101,9 +102,12 @@ class _LoadingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Container(
-              color: Colors.grey[300],
-              child: const Center(child: CircularProgressIndicator()),
+            child: LayoutBuilder(
+              builder: (context, constraints) => ShimmerLoading(
+                width: constraints.maxWidth,
+                height: constraints.maxHeight,
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
           Padding(
@@ -111,8 +115,12 @@ class _LoadingCard extends StatelessWidget {
             child: Container(
               height: 12,
               decoration: BoxDecoration(
-                color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(4),
+              ),
+              child: const ShimmerLoading(
+                width: double.infinity,
+                height: 12,
+                borderRadius: BorderRadius.all(Radius.circular(4)),
               ),
             ),
           ),

@@ -93,7 +93,12 @@ class _TVDetailView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context, details, loc),
+                _buildHeader(
+                  context,
+                  provider.tvId,
+                  details,
+                  loc,
+                ),
                 _buildActions(context, details, loc),
                 _buildOverview(context, details, loc),
                 _buildMetadata(context, details, loc),
@@ -169,6 +174,7 @@ class _TVDetailView extends StatelessWidget {
 
   Widget _buildHeader(
     BuildContext context,
+    int tvId,
     TVDetailed details,
     AppLocalizations loc,
   ) {
@@ -179,15 +185,26 @@ class _TVDetailView extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: MediaImage(
-              path: posterPath,
-              type: MediaImageType.poster,
-              size: MediaImageSize.w500,
-              width: 120,
-              height: 180,
-              fit: BoxFit.cover,
+          Hero(
+            tag: 'tv-poster-$tvId',
+            flightShuttleBuilder: (context, animation, direction, from, to) {
+              return FadeTransition(
+                opacity: animation.drive(
+                  CurveTween(curve: Curves.easeInOut),
+                ),
+                child: to.widget,
+              );
+            },
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: MediaImage(
+                path: posterPath,
+                type: MediaImageType.poster,
+                size: MediaImageSize.w500,
+                width: 120,
+                height: 180,
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -966,6 +983,7 @@ class _TVDetailView extends StatelessWidget {
                   posterPath: show.posterPath,
                   voteAverage: show.voteAverage,
                   releaseDate: show.firstAirDate,
+                  heroTag: 'tv-poster-${show.id}',
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(
@@ -1031,6 +1049,7 @@ class _TVDetailView extends StatelessWidget {
                   posterPath: show.posterPath,
                   voteAverage: show.voteAverage,
                   releaseDate: show.firstAirDate,
+                  heroTag: 'tv-poster-${show.id}',
                   onTap: () {
                     Navigator.of(context).push(
                       MaterialPageRoute(

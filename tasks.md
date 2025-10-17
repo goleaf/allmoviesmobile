@@ -929,9 +929,9 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Material 3 design
 - [x] Dynamic color theming
 - [x] Basic animations
-- [ ] Shared element transitions
-- [ ] Hero animations for images
-- [ ] Skeleton loading states (shimmer package)
+- [x] Shared element transitions
+- [x] Hero animations for images
+- [x] Skeleton loading states (shimmer package)
 - [x] Pull-to-refresh
 - [x] Swipe gestures
 - [x] Watched badge indicator in favorites list
@@ -940,7 +940,7 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Snackbars for feedback
 - [x] Chip-based filters UI
 - [x] Card-based layouts
-- [ ] Responsive grid layouts (2-3 columns)
+- [x] Responsive grid layouts (2-3 columns)
 - [x] Badge indicators (watched)
 
 **Files to Modify**:

@@ -17,6 +17,7 @@ class MovieCard extends StatelessWidget {
   final String? releaseDate;
   final String? showingLabel;
   final VoidCallback? onTap;
+  final String? heroTag;
 
   const MovieCard({
     super.key,
@@ -27,6 +28,7 @@ class MovieCard extends StatelessWidget {
     this.releaseDate,
     this.showingLabel,
     this.onTap,
+    this.heroTag,
   });
 
   @override
@@ -135,45 +137,69 @@ class MovieCard extends StatelessWidget {
   }
 
   Widget _buildPoster() {
+    final tag = heroTag ?? 'movie-poster-$id';
     if (posterPath == null || posterPath!.isEmpty) {
-      return Container(
-        color: Colors.grey[300],
-        child: const Center(
-          child: Icon(Icons.movie, size: 48, color: Colors.grey),
+      return Hero(
+        tag: tag,
+        flightShuttleBuilder: _buildFlightShuttle,
+        child: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.movie, size: 48, color: Colors.grey),
+          ),
         ),
       );
     }
 
-    return MediaImage(
-      path: posterPath,
-      type: MediaImageType.poster,
-      size: MediaImageSize.w342,
-      fit: BoxFit.cover,
-      overlay: MediaImageOverlay(
-        gradientResolvers: [
-          (theme, _) {
-            final isDark = theme.brightness == Brightness.dark;
-            return LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black.withOpacity(isDark ? 0.4 : 0.6),
-                Colors.black.withOpacity(0),
-              ],
-            );
-          },
-        ],
-      ),
-      placeholder: Container(
-        color: Colors.grey[300],
-        child: const Center(child: CircularProgressIndicator()),
-      ),
-      errorWidget: Container(
-        color: Colors.grey[300],
-        child: const Center(
-          child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+    return Hero(
+      tag: tag,
+      flightShuttleBuilder: _buildFlightShuttle,
+      child: MediaImage(
+        path: posterPath,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w342,
+        fit: BoxFit.cover,
+        overlay: MediaImageOverlay(
+          gradientResolvers: [
+            (theme, _) {
+              final isDark = theme.brightness == Brightness.dark;
+              return LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(isDark ? 0.4 : 0.6),
+                  Colors.black.withOpacity(0),
+                ],
+              );
+            },
+          ],
+        ),
+        placeholder: Container(
+          color: Colors.grey[300],
+          child: const Center(child: CircularProgressIndicator()),
+        ),
+        errorWidget: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+          ),
         ),
       ),
+    );
+  }
+
+  static Widget _buildFlightShuttle(
+    BuildContext flightContext,
+    Animation<double> animation,
+    HeroFlightDirection direction,
+    BuildContext fromHeroContext,
+    BuildContext toHeroContext,
+  ) {
+    return FadeTransition(
+      opacity: animation.drive(
+        CurveTween(curve: Curves.easeInOut),
+      ),
+      child: toHeroContext.widget,
     );
   }
 }

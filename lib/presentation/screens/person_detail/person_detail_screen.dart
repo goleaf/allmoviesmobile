@@ -96,6 +96,7 @@ class _PersonDetailView extends StatelessWidget {
         sliverScrollWrapper: (scroll) => scroll,
         slivers: [
           _PersonAppBar(
+            personId: provider.personId,
             name: name,
             department: department,
             popularity: popularity,
@@ -118,6 +119,7 @@ class _PersonDetailView extends StatelessWidget {
       ),
       slivers: [
         _PersonAppBar(
+          personId: provider.personId,
           name: name,
           department: department,
           popularity: popularity,
@@ -131,12 +133,14 @@ class _PersonDetailView extends StatelessWidget {
 
 class _PersonAppBar extends StatelessWidget {
   const _PersonAppBar({
+    required this.personId,
     required this.name,
     this.department,
     this.popularity,
     this.profileUrl,
   });
 
+  final int personId;
   final String name;
   final String? department;
   final double? popularity;
@@ -156,15 +160,26 @@ class _PersonAppBar extends StatelessWidget {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            if (resolvedProfileUrl != null)
-              MediaImage(
-                path: resolvedProfileUrl,
-                type: MediaImageType.profile,
-                size: MediaImageSize.h632,
-                fit: BoxFit.cover,
-              )
-            else
-              _FallbackProfile(name: name),
+            Hero(
+              tag: 'person-profile-$personId',
+              flightShuttleBuilder:
+                  (context, animation, direction, from, to) {
+                return FadeTransition(
+                  opacity: animation.drive(
+                    CurveTween(curve: Curves.easeInOut),
+                  ),
+                  child: to.widget,
+                );
+              },
+              child: resolvedProfileUrl != null
+                  ? MediaImage(
+                      path: resolvedProfileUrl,
+                      type: MediaImageType.profile,
+                      size: MediaImageSize.h632,
+                      fit: BoxFit.cover,
+                    )
+                  : _FallbackProfile(name: name),
+            ),
             Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(

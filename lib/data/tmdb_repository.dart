@@ -96,13 +96,29 @@ class TmdbRepository {
     const Duration(milliseconds: 250),
   );
   final Map<String, RateLimiter> _endpointLimiters = {};
-  final Map<String, Future<Map<String, dynamic>>> _inFlight = {};
+  final Map<String, Future<dynamic>> _inFlight = {};
+  Duration _networkAwareDelay = Duration.zero;
+  final Map<String, Future<void>> _pendingRevalidations = {};
 
   CachePolicy _policyFromSeconds(int ttlSeconds) {
     return CachePolicy(
       ttl: Duration(seconds: ttlSeconds),
       refreshAfter: Duration(seconds: (ttlSeconds * 0.6).round()),
     );
+  }
+
+  Duration _delayForQuality(NetworkQuality? quality) {
+    switch (quality) {
+      case NetworkQuality.offline:
+        return const Duration(seconds: 2);
+      case NetworkQuality.constrained:
+        return const Duration(milliseconds: 800);
+      case NetworkQuality.balanced:
+        return const Duration(milliseconds: 400);
+      case NetworkQuality.excellent:
+      case null:
+        return Duration.zero;
+    }
   }
 
   void _ensureApiKey() {
@@ -120,18 +136,20 @@ class TmdbRepository {
     return Uri.https(_host, '$_basePath$endpoint', params);
   }
 
-  /// Perform a TMDB GET request against a specific V3 endpoint.
+  /// Perform a TMDB GET request against a specific V3 endpoint and decode the
+  /// JSON payload without assuming its structure.
   ///
-  /// For example passing `'/movie/popular'` issues
-  /// `GET https://api.themoviedb.org/3/movie/popular` and returns JSON similar
-  /// to `{ "page": 1, "results": [ { "id": 238, "title": "The Godfather" } ] }`.
-  Future<Map<String, dynamic>> _getJson(
+  /// When calling `GET https://api.themoviedb.org/3/movie/popular` this helper
+  /// returns the decoded `Map<String, dynamic>` payload. For list-based
+  /// endpoints such as `/configuration/jobs` it will instead return a
+  /// `List<dynamic>`.
+  Future<dynamic> _getJsonPayload(
     String endpoint, {
     Map<String, String>? query,
   }) async {
     _ensureApiKey();
     final uri = _buildUri(endpoint, query);
-    final quality = _networkQuality?.quality;
+    final quality = _networkQualityNotifier?.quality;
     if (quality == NetworkQuality.offline) {
       throw const TmdbException('No network connection available.');
     }
@@ -140,7 +158,7 @@ class TmdbRepository {
       await Future<void>.delayed(delay);
     }
 
-    Future<Map<String, dynamic>> request() async {
+    Future<dynamic> request() async {
       try {
         if (_networkAwareDelay > Duration.zero) {
           await Future.delayed(_networkAwareDelay);
@@ -157,7 +175,7 @@ class TmdbRepository {
           );
         }
 
-        return jsonDecode(response.body) as Map<String, dynamic>;
+        return jsonDecode(response.body);
       } on TimeoutException {
         throw const TmdbException('Network timeout while contacting TMDB');
       } on SocketException catch (e) {
@@ -185,6 +203,25 @@ class TmdbRepository {
     return future.whenComplete(() {
       _inFlight.remove(key);
     });
+  }
+
+  /// Perform a TMDB GET request against a specific V3 endpoint and ensure the
+  /// response is a JSON object (`Map<String, dynamic>`).
+  ///
+  /// For example passing `'/movie/popular'` issues
+  /// `GET https://api.themoviedb.org/3/movie/popular` and returns JSON similar
+  /// to `{ "page": 1, "results": [ { "id": 238, "title": "The Godfather" } ] }`.
+  Future<Map<String, dynamic>> _getJson(
+    String endpoint, {
+    Map<String, String>? query,
+  }) async {
+    final payload = await _getJsonPayload(endpoint, query: query);
+    if (payload is Map<String, dynamic>) {
+      return payload;
+    }
+    throw TmdbException(
+      'Expected JSON object at $endpoint but received ${payload.runtimeType}',
+    );
   }
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);
@@ -1773,6 +1810,36 @@ class TmdbRepository {
               .toList(growable: false);
         }
         return const [];
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.movieDetailsTTL,
+    );
+  }
+
+  /// Fetches the catalog of TMDB crew departments and job titles from
+  /// `GET /3/configuration/jobs`.
+  ///
+  /// Example payload from TMDB:
+  /// ```json
+  /// [
+  ///   {"department": "Production", "jobs": ["Producer", "Executive Producer"]}
+  /// ]
+  /// ```
+  Future<List<Job>> fetchJobs({bool forceRefresh = false}) {
+    return _cached(
+      'jobs',
+      () async {
+        final payload = await _getJsonPayload('/configuration/jobs');
+        final list = payload is List ? payload : (payload is Map
+            ? payload['jobs']
+            : null);
+        if (list is List) {
+          return list
+              .whereType<Map<String, dynamic>>()
+              .map(Job.fromJson)
+              .toList(growable: false);
+        }
+        return const <Job>[];
       },
       forceRefresh: forceRefresh,
       ttlSeconds: CacheService.movieDetailsTTL,

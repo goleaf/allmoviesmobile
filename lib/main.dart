@@ -63,6 +63,7 @@ import 'presentation/screens/series/series_filters_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
+import 'providers/configuration_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/series_provider.dart';
@@ -72,6 +73,7 @@ import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'core/navigation/deep_link_handler.dart';
+import 'presentation/screens/config/config_info_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -254,6 +256,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
         ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
         ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => ConfigurationProvider(_repository)),
         ChangeNotifierProvider(
           create: (_) => ListsProvider(widget.storageService),
         ),
@@ -321,6 +324,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       SettingsScreen.routeName: (context) => const SettingsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
+                      ConfigInfoScreen.routeName: (context) =>
+                          const ConfigInfoScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
                           const KeywordBrowserScreen(),
                       NetworksScreen.routeName: (context) =>

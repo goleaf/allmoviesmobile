@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/localization/app_localizations.dart';
 import '../screens/companies/companies_screen.dart';
+import '../screens/config/config_info_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
@@ -115,6 +116,14 @@ class AppDrawer extends StatelessWidget {
             title: Text(AppLocalizations.of(context).t('discover.title')),
             selected: currentRoute == ApiExplorerScreen.routeName,
             onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.settings_input_component_outlined),
+            title: Text(
+              AppLocalizations.of(context).t('navigation.configuration'),
+            ),
+            selected: currentRoute == ConfigInfoScreen.routeName,
+            onTap: () => _navigateTo(context, ConfigInfoScreen.routeName),
           ),
           const Divider(),
           ListTile(

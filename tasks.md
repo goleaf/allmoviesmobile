@@ -1170,8 +1170,8 @@ This section has been removed per project rules (no exports/imports/reports).
 **Priority**: MEDIUM
 
 - [x] Widget tests present for filters, search typing, navigation, modals
-- [ ] Fix failing widgets tests (PeopleScreen tap -> route, MoviesScreen filters tab switch)
-- [ ] Add coverage for remaining screens and reusable widgets
+- [x] Fix failing widgets tests (PeopleScreen tap -> route, MoviesScreen filters tab switch)
+- [x] Add coverage for remaining screens and reusable widgets
 
 **Files to Create**:
 - Widget tests in `test/widgets/` directory

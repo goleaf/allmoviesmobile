@@ -69,6 +69,7 @@ class SeriesProvider extends ChangeNotifier {
   String? _globalError;
   int? _activeNetworkId;
   Map<String, String>? _activeFilters;
+  String? _activePresetName;
 
   final Completer<void> _initializedCompleter = Completer<void>();
 
@@ -78,6 +79,7 @@ class SeriesProvider extends ChangeNotifier {
   String? get globalError => _globalError;
   int? get activeNetworkId => _activeNetworkId;
   Map<String, String>? get activeFilters => _activeFilters;
+  String? get activePresetName => _activePresetName;
 
   Future<void> get initialized => _initializedCompleter.future;
 
@@ -249,6 +251,7 @@ class SeriesProvider extends ChangeNotifier {
   Future<void> applyNetworkFilter(int networkId) async {
     _activeNetworkId = networkId;
     _activeFilters = null;
+    _activePresetName = null;
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
         .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
     notifyListeners();
@@ -276,9 +279,13 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> applyTvFilters(Map<String, String> filters) async {
+  Future<void> applyTvFilters(
+    Map<String, String> filters, {
+    String? presetName,
+  }) async {
     _activeFilters = Map<String, String>.from(filters);
     _activeNetworkId = null;
+    _activePresetName = presetName;
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
         .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
     notifyListeners();
@@ -307,6 +314,7 @@ class SeriesProvider extends ChangeNotifier {
     if (_activeNetworkId == null) return;
     _activeNetworkId = null;
     _activeFilters = null;
+    _activePresetName = null;
     await refresh(force: true);
   }
 }

@@ -12,6 +12,8 @@ class PreferenceKeys {
   static const String minUserScore = 'settings.min_user_score';
   static const String minVoteCount = 'settings.min_vote_count';
   static const String releaseYear = 'settings.release_year';
+  static const String seriesFilterPresets =
+      'settings.series.filter_presets';
 
   // Presentation
   static const String imageQuality = 'settings.image_quality';

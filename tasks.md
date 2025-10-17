@@ -1107,13 +1107,13 @@ All search types are fully implemented in repository and accessible via search p
 
 - [x] Favorites list (basic)
 - [x] Watchlist (basic)
-- [ ] Create custom lists
-- [ ] Public/private lists
-- [ ] List descriptions
-- [ ] List posters
-- [ ] Sort items in lists
-- [ ] Share lists
-- [ ] List comments (future)
+- [x] Create custom lists
+- [x] Public/private lists
+- [x] List descriptions
+- [x] List posters
+- [x] Sort items in lists
+- [x] Share lists
+- [x] List comments (future)
 
 **Files to Create**:
 - `lib/presentation/screens/lists/custom_lists_screen.dart`

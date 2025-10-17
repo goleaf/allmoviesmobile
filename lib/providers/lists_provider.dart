@@ -88,6 +88,12 @@ class ListsProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> refreshLists() async {
+    _isLoading = true;
+    notifyListeners();
+    await _loadLists();
+  }
+
   Future<void> setCurrentUser({
     required String userId,
     required String displayName,

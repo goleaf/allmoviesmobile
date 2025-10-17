@@ -8,6 +8,7 @@ import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
+import 'models/review_model.dart';
 import 'models/search_result_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
@@ -226,6 +227,35 @@ class TmdbRepository {
     final movie = MovieDetailed.fromJson(normalized);
     _cache.set(cacheKey, movie, ttlSeconds: CacheService.movieDetailsTTL);
     return movie;
+  }
+
+  Future<PaginatedResponse<Review>> fetchMovieReviews(
+    int movieId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'movie-reviews-$movieId-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Review>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieReviews(
+      movieId,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Review>.fromJson(
+      payload,
+      Review.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
   }
 
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {

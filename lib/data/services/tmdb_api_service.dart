@@ -126,6 +126,20 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchMovieReviews(
+    int movieId, {
+    int page = 1,
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/movie/$movieId/reviews',
+      queryParameters: {
+        'page': '$page',
+        if (queryParameters != null) ...queryParameters,
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> fetchTvDetails(
     int tvId, {
     Map<String, String>? queryParameters,

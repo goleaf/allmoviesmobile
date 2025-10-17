@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "person.schema.json",
+  "title": "Person",
+  "type": "object",
+  "required": ["id", "name"],
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "biography": { "type": ["string", "null"] },
+    "birthday": { "type": ["string", "null"], "format": "date" },
+    "deathday": { "type": ["string", "null"], "format": "date" },
+    "place_of_birth": { "type": ["string", "null"] },
+    "gender": { "type": ["integer", "null"], "enum": [null, 0, 1, 2, 3] },
+    "known_for_department": { "type": ["string", "null"] },
+    "also_known_as": { "type": "array", "items": { "type": "string" }, "default": [] },
+    "profile_path": { "type": ["string", "null"] },
+    "external_ids": {
+      "type": "object",
+      "properties": {
+        "imdb_id": { "type": ["string", "null"] },
+        "instagram_id": { "type": ["string", "null"] },
+        "twitter_id": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false,
+      "default": {}
+    },
+    "images": { "type": "array", "items": { "$ref": "image.schema.json" }, "default": [] },
+    "combined_credits": {
+      "type": "object",
+      "properties": {
+        "cast": { "type": "array", "items": { "$ref": "credit.schema.json" }, "default": [] },
+        "crew": { "type": "array", "items": { "$ref": "credit.schema.json" }, "default": [] }
+      },
+      "required": ["cast", "crew"],
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

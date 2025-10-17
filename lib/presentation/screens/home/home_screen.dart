@@ -35,46 +35,73 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Row(
-          children: [
-            Icon(
-              Icons.movie_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: 28,
+        leadingWidth: 72,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16),
+          child: Icon(
+            Icons.movie_outlined,
+            color: Theme.of(context).colorScheme.primary,
+            size: 32,
+          ),
+        ),
+        titleSpacing: 0,
+        title: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: SizedBox(
+            height: 40,
+            width: double.infinity,
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: AppStrings.search,
+                prefixIcon: const Icon(Icons.search, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                isDense: true,
+              ),
+              onChanged: (value) {
+                final query = value.trim().toLowerCase();
+                if (query.isEmpty) {
+                  if (!identical(_visibleMovieIndices, _allMovieIndices)) {
+                    setState(() {
+                      _visibleMovieIndices = _allMovieIndices;
+                    });
+                  }
+                  return;
+                }
+
+                final matches = <int>[];
+                for (var i = 0; i < _normalizedMovieTitles.length; i++) {
+                  if (_normalizedMovieTitles[i].contains(query)) {
+                    matches.add(i);
+                  }
+                }
+
+                setState(() {
+                  _visibleMovieIndices = matches;
+                });
+              },
             ),
-            const SizedBox(width: 8),
-            const Text(AppStrings.appName),
-          ],
+          ),
         ),
         actions: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: AppStrings.search,
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  isDense: true,
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _searchQuery = value.trim();
-                  });
-                },
-              ),
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(context).openEndDrawer(),
+              tooltip: MaterialLocalizations.of(context).openAppDrawerTooltip,
             ),
           ),
           const SizedBox(width: 8),
         ],
       ),
-      drawer: const AppDrawer(),
+      endDrawer: const AppDrawer(),
+      endDrawerEnableOpenDragGesture: true,
+      drawerEnableOpenDragGesture: false,
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

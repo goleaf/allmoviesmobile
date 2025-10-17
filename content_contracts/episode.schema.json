@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "episode.schema.json",
+  "title": "Episode",
+  "type": "object",
+  "required": ["episode_number", "name"],
+  "properties": {
+    "episode_number": { "type": "integer", "minimum": 0 },
+    "name": { "type": "string" },
+    "overview": { "type": ["string", "null"] },
+    "air_date": { "type": ["string", "null"], "format": "date" },
+    "runtime": { "type": ["integer", "null"], "minimum": 0 },
+    "still_path": { "type": ["string", "null"] },
+    "vote_average": { "type": ["number", "null"], "minimum": 0, "maximum": 10 },
+    "vote_count": { "type": ["integer", "null"], "minimum": 0 }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "company.schema.json",
+  "title": "Company",
+  "type": "object",
+  "required": ["id", "name", "origin_country"],
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" },
+    "logo_path": { "type": ["string", "null"] },
+    "origin_country": { "type": "string", "minLength": 2, "maxLength": 2 },
+    "description": { "type": ["string", "null"] },
+    "headquarters": { "type": ["string", "null"] },
+    "homepage": { "type": ["string", "null"], "format": "uri" },
+    "produced_movies": { "type": "array", "items": { "$ref": "movie.ref.schema.json" }, "default": [] },
+    "produced_series": { "type": "array", "items": { "$ref": "tv.ref.schema.json" }, "default": [] }
+  },
+  "additionalProperties": false
+}

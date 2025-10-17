@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "shared.schema.json",
+  "$defs": {
+    "Genre": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "Country": {
+      "type": "object",
+      "required": ["iso_3166_1", "name"],
+      "properties": {
+        "iso_3166_1": { "type": "string", "minLength": 2, "maxLength": 2 },
+        "name": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "Language": {
+      "type": "object",
+      "required": ["iso_639_1", "name"],
+      "properties": {
+        "iso_639_1": { "type": "string", "minLength": 2, "maxLength": 2 },
+        "name": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "Network": {
+      "type": "object",
+      "required": ["id", "name"],
+      "properties": {
+        "id": { "type": "integer" },
+        "name": { "type": "string" },
+        "logo_path": { "type": ["string", "null"] },
+        "origin_country": { "type": ["string", "null"], "minLength": 2, "maxLength": 2 }
+      },
+      "additionalProperties": false
+    }
+  }
+}

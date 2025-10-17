@@ -9,6 +9,8 @@ import '../../../data/tmdb_repository.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
   static const routeName = '/company-detail';
@@ -50,6 +52,19 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
 
     return FullscreenModalScaffold(
       title: Text(widget.initialCompany.name),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.share),
+          tooltip: loc.movie['share'] ?? loc.t('movie.share'),
+          onPressed: () {
+            showShareLinkSheet(
+              context,
+              title: widget.initialCompany.name,
+              link: DeepLinkBuilder.company(widget.initialCompany.id),
+            );
+          },
+        ),
+      ],
       body: FutureBuilder<Company>(
         future: _companyFuture,
         builder: (context, snapshot) {

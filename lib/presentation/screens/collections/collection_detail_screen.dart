@@ -11,6 +11,8 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class CollectionDetailScreen extends StatelessWidget {
   static const routeName = '/collection-detail';
@@ -64,6 +66,26 @@ enum _PartsSortMode { order, releaseDate }
 class _CollectionDetailViewState extends State<_CollectionDetailView> {
   _PartsSortMode _sortMode = _PartsSortMode.order;
 
+  List<Widget> _buildShareActions(BuildContext context, String name) {
+    final loc = AppLocalizations.of(context);
+    final displayName = name.isEmpty
+        ? '${loc.t('collection.title')} #${widget.collectionId}'
+        : name;
+    return [
+      IconButton(
+        icon: const Icon(Icons.share),
+        tooltip: loc.movie['share'] ?? loc.t('movie.share'),
+        onPressed: () {
+          showShareLinkSheet(
+            context,
+            title: displayName,
+            link: DeepLinkBuilder.collection(widget.collectionId),
+          );
+        },
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CollectionDetailsProvider>();
@@ -71,15 +93,17 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
     final data = provider.collection;
 
     if (provider.isLoading && data == null) {
-      return const FullscreenModalScaffold(
-        title: Text(''),
-        body: LoadingIndicator(),
+      return FullscreenModalScaffold(
+        title: const Text(''),
+        actions: _buildShareActions(context, widget.initialName ?? ''),
+        body: const LoadingIndicator(),
       );
     }
 
     if (provider.errorMessage != null && data == null) {
       return FullscreenModalScaffold(
         title: Text(loc.t('collection.title')),
+        actions: _buildShareActions(context, widget.initialName ?? ''),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -120,6 +144,7 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
 
     return FullscreenModalScaffold(
       includeDefaultSliverAppBar: false,
+      actions: _buildShareActions(context, displayName),
       sliverScrollWrapper: (scroll) => RefreshIndicator(
         onRefresh: () => context
             .read<CollectionDetailsProvider>()

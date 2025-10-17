@@ -9,13 +9,20 @@ import '../../widgets/rating_display.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class EpisodeDetailScreen extends StatelessWidget {
   static const routeName = '/episode-detail';
 
   final Episode episode;
+  final int tvId;
 
-  const EpisodeDetailScreen({super.key, required this.episode});
+  const EpisodeDetailScreen({
+    super.key,
+    required this.episode,
+    required this.tvId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -23,6 +30,26 @@ class EpisodeDetailScreen extends StatelessWidget {
 
     return FullscreenModalScaffold(
       includeDefaultSliverAppBar: false,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.share),
+          tooltip: loc.movie['share'] ?? loc.t('movie.share'),
+          onPressed: () {
+            final title = episode.name.isNotEmpty
+                ? episode.name
+                : '${loc.t('tv.episode')} ${episode.episodeNumber}';
+            showShareLinkSheet(
+              context,
+              title: title,
+              link: DeepLinkBuilder.episode(
+                tvId,
+                episode.seasonNumber,
+                episode.episodeNumber,
+              ),
+            );
+          },
+        ),
+      ],
       slivers: [
         _buildStillAppBar(context),
         SliverToBoxAdapter(

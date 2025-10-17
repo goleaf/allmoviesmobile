@@ -15,6 +15,8 @@ import '../../navigation/season_detail_args.dart';
 import '../episode_detail/episode_detail_screen.dart';
 import '../../../providers/season_detail_provider.dart';
 // duplicate import removed
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class SeasonDetailScreen extends StatelessWidget {
   static const routeName = '/season';
@@ -75,6 +77,25 @@ class _SeasonDetailView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text('${loc.t('tv.season')} ${season.seasonNumber}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.share),
+            tooltip: loc.movie['share'] ?? loc.t('movie.share'),
+            onPressed: () {
+              final title = season.name.isNotEmpty
+                  ? season.name
+                  : '${loc.t('tv.season')} ${season.seasonNumber}';
+              showShareLinkSheet(
+                context,
+                title: title,
+                link: DeepLinkBuilder.season(
+                  provider.tvId,
+                  season.seasonNumber,
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -82,7 +103,7 @@ class _SeasonDetailView extends StatelessWidget {
           children: [
             _buildHeader(context, season),
             _buildOverview(context, season, loc),
-            _buildEpisodes(context, season),
+            _buildEpisodes(context, season, provider.tvId),
             _buildCast(context, season),
             _buildCrew(context, season),
             _buildVideos(context, season),
@@ -165,7 +186,7 @@ class _SeasonDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildEpisodes(BuildContext context, Season season) {
+  Widget _buildEpisodes(BuildContext context, Season season, int tvId) {
     final loc = AppLocalizations.of(context);
     if (season.episodes.isEmpty) {
       return const SizedBox.shrink();
@@ -184,7 +205,11 @@ class _SeasonDetailView extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           ...season.episodes.map(
-            (e) => _EpisodeTile(episode: e, seasonNumber: season.seasonNumber),
+            (e) => _EpisodeTile(
+              episode: e,
+              seasonNumber: season.seasonNumber,
+              tvId: tvId,
+            ),
           ),
         ],
       ),
@@ -452,8 +477,13 @@ class _SeasonDetailView extends StatelessWidget {
 class _EpisodeTile extends StatelessWidget {
   final Episode episode;
   final int seasonNumber;
+  final int tvId;
 
-  const _EpisodeTile({required this.episode, required this.seasonNumber});
+  const _EpisodeTile({
+    required this.episode,
+    required this.seasonNumber,
+    required this.tvId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -487,7 +517,10 @@ class _EpisodeTile extends StatelessWidget {
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(
-            builder: (_) => EpisodeDetailScreen(episode: episode),
+            builder: (_) => EpisodeDetailScreen(
+              episode: episode,
+              tvId: tvId,
+            ),
           ),
         );
       },

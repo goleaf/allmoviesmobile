@@ -12,6 +12,8 @@ import '../../../providers/person_detail_provider.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   static const routeName = '/person-detail';
@@ -41,6 +43,28 @@ class PersonDetailScreen extends StatelessWidget {
 class _PersonDetailView extends StatelessWidget {
   const _PersonDetailView();
 
+  List<Widget> _buildShareActions(
+    BuildContext context,
+    int personId,
+    String name,
+  ) {
+    final loc = AppLocalizations.of(context);
+    final displayName = name.isEmpty ? 'Person #$personId' : name;
+    return [
+      IconButton(
+        icon: const Icon(Icons.share),
+        tooltip: loc.t('movie.share'),
+        onPressed: () {
+          showShareLinkSheet(
+            context,
+            title: displayName,
+            link: DeepLinkBuilder.person(personId),
+          );
+        },
+      ),
+    ];
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<PersonDetailProvider>();
@@ -48,16 +72,21 @@ class _PersonDetailView extends StatelessWidget {
     final detail = provider.detail;
     final summary = provider.summary;
 
+    final personId = provider.personId;
+    final resolvedName = detail?.name ?? summary?.name ?? '';
+
     if (provider.isLoading && summary == null && detail == null) {
-      return const FullscreenModalScaffold(
-        title: Text(''),
-        body: Center(child: CircularProgressIndicator()),
+      return FullscreenModalScaffold(
+        title: const Text(''),
+        actions: _buildShareActions(context, personId, resolvedName),
+        body: const Center(child: CircularProgressIndicator()),
       );
     }
 
     if (summary == null && detail == null) {
       return FullscreenModalScaffold(
         title: const Text(''),
+        actions: _buildShareActions(context, personId, resolvedName),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -83,7 +112,7 @@ class _PersonDetailView extends StatelessWidget {
       );
     }
 
-    final name = detail?.name ?? summary?.name ?? '';
+    final name = resolvedName;
     final department =
         detail?.knownForDepartment ?? summary?.knownForDepartment;
     final popularity = detail?.popularity ?? summary?.popularity;
@@ -92,6 +121,7 @@ class _PersonDetailView extends StatelessWidget {
     if (detail == null) {
       return FullscreenModalScaffold(
         includeDefaultSliverAppBar: false,
+        actions: _buildShareActions(context, personId, name),
         sliverScrollWrapper: (scroll) => scroll,
         slivers: [
           _PersonAppBar(
@@ -110,6 +140,7 @@ class _PersonDetailView extends StatelessWidget {
 
     return FullscreenModalScaffold(
       includeDefaultSliverAppBar: false,
+      actions: _buildShareActions(context, personId, name),
       sliverScrollWrapper: (scroll) => RefreshIndicator(
         onRefresh: () =>
             context.read<PersonDetailProvider>().load(forceRefresh: true),

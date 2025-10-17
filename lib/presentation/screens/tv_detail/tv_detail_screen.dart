@@ -26,12 +26,12 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
-import '../../../core/utils/media_image_helper.dart';
-// duplicate import removed
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../season_detail/season_detail_screen.dart';
 import '../../widgets/watch_providers_section.dart';
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -129,6 +129,19 @@ class _TVDetailView extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 250,
       pinned: true,
+      actions: [
+        IconButton(
+          tooltip: loc.t('movie.share'),
+          icon: const Icon(Icons.share),
+          onPressed: () {
+            showShareLinkSheet(
+              context,
+              title: details.name,
+              link: DeepLinkBuilder.tvShow(details.id),
+            );
+          },
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           details.name,

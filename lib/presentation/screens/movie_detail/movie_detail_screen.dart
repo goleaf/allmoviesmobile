@@ -4,7 +4,8 @@ import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 // Video player screen not available in this build; open external instead
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
@@ -130,13 +131,14 @@ class _MovieDetailView extends StatelessWidget {
       pinned: true,
       actions: [
         IconButton(
-          tooltip: 'Share',
+          tooltip: loc.t('movie.share'),
           icon: const Icon(Icons.share),
           onPressed: () {
-            final url = details.homepage?.isNotEmpty == true
-                ? details.homepage!
-                : 'https://www.themoviedb.org/movie/${details.id}';
-            Share.share('${details.title} — $url');
+            showShareLinkSheet(
+              context,
+              title: details.title,
+              link: DeepLinkBuilder.movie(details.id),
+            );
           },
         ),
       ],

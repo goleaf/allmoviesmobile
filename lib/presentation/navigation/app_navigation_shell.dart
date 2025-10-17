@@ -1,6 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
+import '../../core/navigation/deep_link_handler.dart';
+import '../../core/navigation/deep_link_parser.dart';
+import '../../data/models/company_model.dart';
+import '../../data/models/episode_model.dart';
+import '../../data/models/movie.dart';
+import '../../data/tmdb_repository.dart';
+import '../navigation/season_detail_args.dart';
+import '../screens/collections/collection_detail_screen.dart';
+import '../screens/company_detail/company_detail_screen.dart';
+import '../screens/episode_detail/episode_detail_screen.dart';
+import '../navigation/episode_detail_args.dart';
+import '../screens/movie_detail/movie_detail_screen.dart';
+import '../screens/person_detail/person_detail_screen.dart';
+import '../screens/season_detail/season_detail_screen.dart';
+import '../screens/tv_detail/tv_detail_screen.dart';
 // Home/More removed in this app variant; keep movies/search/series only
 import '../screens/movies/movies_screen.dart';
 import '../screens/search/search_screen.dart';
@@ -24,6 +40,26 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   };
 
   AppDestination _currentDestination = AppDestination.movies;
+  DeepLinkHandler? _deepLinkHandler;
+  bool _isHandlingDeepLink = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final handler = Provider.of<DeepLinkHandler>(context);
+    if (handler != _deepLinkHandler) {
+      _deepLinkHandler?.removeListener(_handlePendingDeepLink);
+      _deepLinkHandler = handler;
+      _deepLinkHandler?.addListener(_handlePendingDeepLink);
+      WidgetsBinding.instance.addPostFrameCallback((_) => _handlePendingDeepLink());
+    }
+  }
+
+  @override
+  void dispose() {
+    _deepLinkHandler?.removeListener(_handlePendingDeepLink);
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -60,6 +96,117 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     }
 
     return true;
+  }
+
+  Future<void> _handlePendingDeepLink() async {
+    if (!mounted || _isHandlingDeepLink) return;
+    final handler = _deepLinkHandler;
+    if (handler == null) return;
+
+    final link = handler.consumePendingLink();
+    if (link == null) return;
+
+    _isHandlingDeepLink = true;
+    try {
+      await _openDeepLink(link);
+    } finally {
+      _isHandlingDeepLink = false;
+    }
+  }
+
+  Future<void> _openDeepLink(DeepLinkData link) async {
+    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    final repo = context.read<TmdbRepository>();
+    final loc = AppLocalizations.of(context);
+
+    Future<void> showError(String message) async {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(message)));
+    }
+
+    switch (link.type) {
+      case DeepLinkType.movie:
+        await _ensureDestination(AppDestination.movies);
+        await rootNavigator.pushNamed(
+          MovieDetailScreen.routeName,
+          arguments: Movie(id: link.id!, title: 'Movie #${link.id}'),
+        );
+        break;
+      case DeepLinkType.tvShow:
+        await _ensureDestination(AppDestination.tv);
+        await rootNavigator.pushNamed(
+          TVDetailScreen.routeName,
+          arguments: Movie(
+            id: link.id!,
+            title: 'Series #${link.id}',
+            mediaType: 'tv',
+          ),
+        );
+        break;
+      case DeepLinkType.season:
+        await _ensureDestination(AppDestination.tv);
+        await rootNavigator.pushNamed(
+          SeasonDetailScreen.routeName,
+          arguments: SeasonDetailArgs(
+            tvId: link.id!,
+            seasonNumber: link.seasonNumber!,
+          ),
+        );
+        break;
+      case DeepLinkType.episode:
+        await _ensureDestination(AppDestination.tv);
+        try {
+          final Episode episode = await repo.fetchTvEpisode(
+            link.id!,
+            link.seasonNumber!,
+            link.episodeNumber!,
+          );
+          if (!mounted) return;
+          await rootNavigator.pushNamed(
+            EpisodeDetailScreen.routeName,
+            arguments: EpisodeDetailArgs(tvId: link.id!, episode: episode),
+          );
+        } catch (error) {
+          await showError(loc.t('errors.generic'));
+        }
+        break;
+      case DeepLinkType.person:
+        await rootNavigator.pushNamed(
+          PersonDetailScreen.routeName,
+          arguments: link.id!,
+        );
+        break;
+      case DeepLinkType.company:
+        await rootNavigator.pushNamed(
+          CompanyDetailScreen.routeName,
+          arguments: Company(id: link.id!, name: 'Company #${link.id}'),
+        );
+        break;
+      case DeepLinkType.collection:
+        await rootNavigator.pushNamed(
+          CollectionDetailScreen.routeName,
+          arguments: link.id!,
+        );
+        break;
+      case DeepLinkType.search:
+        await _ensureDestination(AppDestination.search);
+        final navigator = _navigatorKeys[AppDestination.search]?.currentState;
+        navigator?.popUntil((route) => route.isFirst);
+        navigator?.pushNamed(
+          SearchScreen.routeName,
+          arguments: link.searchQuery,
+        );
+        break;
+    }
+  }
+
+  Future<void> _ensureDestination(AppDestination destination) async {
+    if (_currentDestination == destination) return;
+    setState(() {
+      _currentDestination = destination;
+    });
+    await Future<void>.delayed(Duration.zero);
   }
 
   Widget _buildBottomNavigationBar() {

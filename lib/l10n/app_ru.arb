@@ -1,0 +1,33 @@
+{
+  "@@locale": "ru",
+  "appName": "AllMovies",
+  "welcome": "Добро пожаловать",
+  "guestUser": "Гость",
+  "search": "Искать фильмы...",
+  "movies": "Фильмы",
+  "series": "Сериалы",
+  "people": "Персоны",
+  "companies": "Компании",
+  "settings": "Настройки",
+  "about": "О приложении",
+  "logout": "Выйти",
+  "login": "Войти",
+  "register": "Регистрация",
+  "email": "Эл. почта",
+  "password": "Пароль",
+  "fullName": "Полное имя",
+  "theme": "Тема",
+  "language": "Язык",
+  "appearance": "Внешний вид",
+  "localization": "Локализация",
+  "appVersion": "Версия приложения",
+  "chooseTheme": "Выбор темы",
+  "chooseLanguage": "Выбор языка",
+  "cancel": "Отмена",
+  "home": "Главная",
+  "exploreCollections": "Ознакомьтесь с последними новинками нашего каталога.",
+  "noMoviesFound": "По вашему запросу ничего не найдено.",
+  "tryAgain": "Повторить"
+}
+
+

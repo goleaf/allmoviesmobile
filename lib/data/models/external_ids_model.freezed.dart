@@ -84,15 +84,15 @@ class _$ExternalIdsCopyWithImpl<$Res, $Val extends ExternalIds>
             facebookId: freezed == facebookId
                 ? _value.facebookId
                 : facebookId // ignore: cast_nullable_to_non_nullable
-                      as String?,
+                    as String?,
             instagramId: freezed == instagramId
                 ? _value.instagramId
                 : instagramId // ignore: cast_nullable_to_non_nullable
-                      as String?,
+                    as String?,
             twitterId: freezed == twitterId
                 ? _value.twitterId
                 : twitterId // ignore: cast_nullable_to_non_nullable
-                      as String?,
+                    as String?,
           )
           as $Val,
     );
@@ -144,15 +144,15 @@ class __$$ExternalIdsImplCopyWithImpl<$Res>
         facebookId: freezed == facebookId
             ? _value.facebookId
             : facebookId // ignore: cast_nullable_to_non_nullable
-                  as String?,
+                as String?,
         instagramId: freezed == instagramId
             ? _value.instagramId
             : instagramId // ignore: cast_nullable_to_non_nullable
-                  as String?,
+                as String?,
         twitterId: freezed == twitterId
             ? _value.twitterId
             : twitterId // ignore: cast_nullable_to_non_nullable
-                  as String?,
+                as String?,
       ),
     );
   }

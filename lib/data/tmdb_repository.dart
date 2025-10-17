@@ -9,6 +9,7 @@ import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/network_detailed_model.dart';
 import 'models/paginated_response.dart';
+import 'models/person_detail_model.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
 import 'models/tmdb_list_model.dart';
@@ -365,19 +366,27 @@ class TmdbRepository {
     return response;
   }
 
-  Future<Person> fetchPersonDetails(int personId, {bool forceRefresh = false}) async {
+  Future<PersonDetail> fetchPersonDetails(int personId,
+      {bool forceRefresh = false}) async {
     _checkApiKey();
 
     final cacheKey = 'person-details-$personId';
     if (!forceRefresh) {
-      final cached = _cache.get<Person>(cacheKey);
+      final cached = _cache.get<PersonDetail>(cacheKey);
       if (cached != null) {
         return cached;
       }
     }
 
-    final payload = await _apiService.fetchPersonDetails(personId);
-    final person = Person.fromJson(payload);
+    final payload = await _apiService.fetchPersonDetails(
+      personId,
+      queryParameters: {
+        'append_to_response':
+            'combined_credits,movie_credits,tv_credits,images,external_ids,tagged_images,translations',
+        'include_image_language': 'en,null',
+      },
+    );
+    final person = PersonDetail.fromJson(payload);
     _cache.set(cacheKey, person, ttlSeconds: CacheService.movieDetailsTTL);
     return person;
   }

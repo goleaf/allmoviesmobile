@@ -63,13 +63,13 @@ class _ImageGalleryState extends State<ImageGallery> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final image = widget.images[_currentIndex];
     final backgroundUrl = MediaImageHelper.buildPreviewUrl(
       image.filePath,
       type: widget.mediaType,
       size: MediaImageSize.w780,
     );
+    final safePadding = MediaQuery.of(context).padding;
 
     return Material(
       color: Colors.black,
@@ -99,6 +99,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                         heroTag: heroTag,
                         onInteractionStart: _handleInteractionStart,
                         onInteractionEnd: _handleInteractionEnd,
+                        onTap: _handleImageTap,
                       ),
                     );
                   },
@@ -114,8 +115,16 @@ class _ImageGalleryState extends State<ImageGallery> {
               const SizedBox(height: 24),
             ],
           ),
-          _EdgeGradientOverlay(position: EdgeGradientPosition.top),
-          _EdgeGradientOverlay(position: EdgeGradientPosition.bottom),
+          _EdgeGradientOverlay(
+            position: EdgeGradientPosition.top,
+            isVisible: _showChrome,
+            safePadding: safePadding,
+          ),
+          _EdgeGradientOverlay(
+            position: EdgeGradientPosition.bottom,
+            isVisible: _showChrome,
+            safePadding: safePadding,
+          ),
         ],
       ),
     );
@@ -189,6 +198,10 @@ class _ImageGalleryState extends State<ImageGallery> {
     }
     setState(() => _showChrome = true);
   }
+
+  void _handleImageTap() {
+    setState(() => _showChrome = !_showChrome);
+  }
 }
 
 /// Identifies the vertical edge where the gradient overlay should be placed.
@@ -197,9 +210,15 @@ enum EdgeGradientPosition { top, bottom }
 /// Adds a subtle linear gradient on the top or bottom edge to guarantee that
 /// controls remain legible against bright artwork.
 class _EdgeGradientOverlay extends StatelessWidget {
-  const _EdgeGradientOverlay({required this.position});
+  const _EdgeGradientOverlay({
+    required this.position,
+    required this.isVisible,
+    required this.safePadding,
+  });
 
   final EdgeGradientPosition position;
+  final bool isVisible;
+  final EdgeInsets safePadding;
 
   @override
   Widget build(BuildContext context) {
@@ -210,22 +229,32 @@ class _EdgeGradientOverlay extends StatelessWidget {
         ? Alignment.bottomCenter
         : Alignment.topCenter;
 
+    final paddingValue = position == EdgeGradientPosition.top
+        ? safePadding.top
+        : safePadding.bottom;
+    final height = 180.0 + paddingValue;
+
     return Positioned(
       top: position == EdgeGradientPosition.top ? 0 : null,
       bottom: position == EdgeGradientPosition.bottom ? 0 : null,
       left: 0,
       right: 0,
       child: IgnorePointer(
-        child: Container(
-          height: 180,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: begin,
-              end: end,
-              colors: [
-                Colors.black.withOpacity(0.7),
-                Colors.black.withOpacity(0.0),
-              ],
+        child: AnimatedOpacity(
+          key: ValueKey('edgeGradient_${position.name}'),
+          duration: const Duration(milliseconds: 180),
+          opacity: isVisible ? 1 : 0,
+          child: Container(
+            height: height,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: begin,
+                end: end,
+                colors: [
+                  Colors.black.withOpacity(0.7),
+                  Colors.black.withOpacity(0.0),
+                ],
+              ),
             ),
           ),
         ),
@@ -255,6 +284,7 @@ class _GalleryTopBar extends StatelessWidget {
       duration: const Duration(milliseconds: 180),
       offset: isVisible ? Offset.zero : const Offset(0, -0.5),
       child: AnimatedOpacity(
+        key: const ValueKey('galleryTopBarOpacity'),
         duration: const Duration(milliseconds: 180),
         opacity: isVisible ? 1 : 0,
         child: SafeArea(

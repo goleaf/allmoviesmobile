@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -8,6 +7,7 @@ import '../../data/services/api_config.dart';
 import '../../core/utils/media_image_helper.dart';
 import 'media_image.dart';
 import '../../providers/media_gallery_provider.dart';
+import 'image_gallery.dart';
 
 class MediaGallerySection extends StatelessWidget {
   const MediaGallerySection({super.key});
@@ -138,30 +138,88 @@ class _GalleryRow extends StatelessWidget {
               final aspectRatio = image.aspectRatio > 0
                   ? image.aspectRatio
                   : _defaultAspectRatio(type);
+              final heroTag = _heroTagFor(type, index, image);
+
               return GestureDetector(
-                onTap: () => _openFullScreenImage(context, image, type),
+                onTap: () =>
+                    _openFullScreenImage(context, images, index, type),
                 child: AspectRatio(
                   aspectRatio: aspectRatio,
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: MediaImage(
-                      path: image.filePath,
-                      type: switch (type) {
-                        _GalleryImageType.poster => MediaImageType.poster,
-                        _GalleryImageType.backdrop => MediaImageType.backdrop,
-                        _GalleryImageType.still => MediaImageType.still,
-                      },
-                      size: switch (type) {
-                        _GalleryImageType.poster => MediaImageSize.w342,
-                        _GalleryImageType.backdrop => MediaImageSize.w780,
-                        _GalleryImageType.still => MediaImageSize.w300,
-                      },
-                      fit: BoxFit.cover,
-                      placeholder: Container(color: Colors.grey[300]),
-                      errorWidget: Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.broken_image),
-                      ),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        Hero(
+                          tag: heroTag,
+                          child: MediaImage(
+                            path: image.filePath,
+                            type: switch (type) {
+                              _GalleryImageType.poster =>
+                                  MediaImageType.poster,
+                              _GalleryImageType.backdrop =>
+                                  MediaImageType.backdrop,
+                              _GalleryImageType.still =>
+                                  MediaImageType.still,
+                            },
+                            size: switch (type) {
+                              _GalleryImageType.poster =>
+                                  MediaImageSize.w342,
+                              _GalleryImageType.backdrop =>
+                                  MediaImageSize.w780,
+                              _GalleryImageType.still =>
+                                  MediaImageSize.w300,
+                            },
+                            fit: BoxFit.cover,
+                            placeholder:
+                                Container(color: Colors.grey.shade300),
+                            errorWidget: Container(
+                              color: Colors.grey.shade300,
+                              alignment: Alignment.center,
+                              child: const Icon(Icons.broken_image),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            height: 72,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [
+                                  Colors.black.withOpacity(0.55),
+                                  Colors.transparent,
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 8,
+                          right: 8,
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.45),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: const Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              child: Icon(
+                                Icons.open_in_full,
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -229,57 +287,50 @@ class _GalleryRow extends StatelessWidget {
 
   static Future<void> _openFullScreenImage(
     BuildContext context,
-    ImageModel image,
+    List<ImageModel> images,
+    int initialIndex,
     _GalleryImageType type,
   ) async {
-    final imageUrl = image.filePath;
+    final mediaType = _mapToMediaType(type);
 
-    await showDialog<void>(
+    await showGeneralDialog<void>(
       context: context,
       barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.black,
-          insetPadding: EdgeInsets.zero,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: InteractiveViewer(
-                  child: Center(
-                    child: MediaImage(
-                      path: imageUrl,
-                      type: switch (type) {
-                        _GalleryImageType.poster => MediaImageType.poster,
-                        _GalleryImageType.backdrop => MediaImageType.backdrop,
-                        _GalleryImageType.still => MediaImageType.still,
-                      },
-                      size: MediaImageSize.original,
-                      fit: BoxFit.contain,
-                      placeholder: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      errorWidget: const Icon(
-                        Icons.broken_image,
-                        color: Colors.white,
-                        size: 48,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 16,
-                right: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-            ],
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.9),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ImageGallery(
+            images: images,
+            mediaType: mediaType,
+            initialIndex: initialIndex,
+            heroTagBuilder: (index, image) =>
+                _heroTagFor(type, index, image),
           ),
         );
       },
     );
+  }
+
+  static String _heroTagFor(
+    _GalleryImageType type,
+    int index,
+    ImageModel image,
+  ) {
+    return '${type.name}-${image.filePath}-$index';
+  }
+
+  static MediaImageType _mapToMediaType(_GalleryImageType type) {
+    switch (type) {
+      case _GalleryImageType.poster:
+        return MediaImageType.poster;
+      case _GalleryImageType.backdrop:
+        return MediaImageType.backdrop;
+      case _GalleryImageType.still:
+        return MediaImageType.still;
+    }
   }
 }
 

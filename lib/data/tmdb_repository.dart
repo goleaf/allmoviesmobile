@@ -4,21 +4,21 @@ import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
-import 'models/image_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
-import 'models/review_model.dart';
 import 'models/search_result_model.dart';
+import 'models/season_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
 import 'services/tmdb_api_service.dart';
-import 'utils/api_key_resolver.dart';
 
 class TmdbRepository {
+  static const String _fallbackApiKey = '755c09802f113640bd146fb59ad22411';
+
   TmdbRepository({
     http.Client? client,
     CacheService? cacheService,
@@ -37,7 +37,12 @@ class TmdbRepository {
   final TmdbApiService _apiService;
 
   static String _resolveApiKey(String? providedKey) {
-    return ApiKeyResolver.resolve(providedKey);
+    final envKey = const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
+    final candidate = (providedKey ?? envKey).trim();
+    if (candidate.isNotEmpty) {
+      return candidate;
+    }
+    return _fallbackApiKey;
   }
 
   void _checkApiKey() {
@@ -99,7 +104,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'movie'),
     );
 
     _cache.set(cacheKey, response);
@@ -128,7 +133,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
     );
 
     _cache.set(cacheKey, response);
@@ -160,7 +165,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'movie'),
     );
 
     _cache.set(cacheKey, response);
@@ -192,7 +197,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
     );
 
     _cache.set(cacheKey, response);
@@ -224,35 +229,6 @@ class TmdbRepository {
     return movie;
   }
 
-  Future<PaginatedResponse<Review>> fetchMovieReviews(
-    int movieId, {
-    int page = 1,
-    bool forceRefresh = false,
-  }) async {
-    _checkApiKey();
-
-    final cacheKey = 'movie-reviews-$movieId-$page';
-    if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<Review>>(cacheKey);
-      if (cached != null) {
-        return cached;
-      }
-    }
-
-    final payload = await _apiService.fetchMovieReviews(
-      movieId,
-      page: page,
-    );
-
-    final response = PaginatedResponse<Review>.fromJson(
-      payload,
-      Review.fromJson,
-    );
-
-    _cache.set(cacheKey, response);
-    return response;
-  }
-
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
@@ -278,45 +254,28 @@ class TmdbRepository {
     return tv;
   }
 
-  Future<List<ImageModel>> fetchEpisodeImages({
-    required int tvId,
-    required int seasonNumber,
-    required int episodeNumber,
+  Future<Season> fetchTvSeason(
+    int tvId,
+    int seasonNumber, {
     bool forceRefresh = false,
   }) async {
     _checkApiKey();
 
-    final cacheKey = 'episode-images-$tvId-$seasonNumber-$episodeNumber';
-    if (!forceRefresh) {
-      final cached = _cache.get<List<ImageModel>>(cacheKey);
+    final cacheKey = 'tv-season-$tvId-$seasonNumber';
+    if (forceRefresh) {
+      _cache.remove(cacheKey);
+    } else {
+      final cached = _cache.get<Season>(cacheKey);
       if (cached != null) {
         return cached;
       }
     }
 
-    final payload = await _apiService.fetchEpisodeImages(
-      tvId: tvId,
-      seasonNumber: seasonNumber,
-      episodeNumber: episodeNumber,
-      queryParameters: const {
-        'include_image_language': 'en,null',
-      },
-    );
-
-    final stills = payload['stills'];
-    final images = stills is List
-        ? stills
-            .whereType<Map<String, dynamic>>()
-            .map(ImageModel.fromJson)
-            .toList()
-        : <ImageModel>[];
-
-    _cache.set(
-      cacheKey,
-      images,
-      ttlSeconds: CacheService.movieDetailsTTL,
-    );
-    return images;
+    final payload = await _apiService.fetchTvSeasonDetails(tvId, seasonNumber);
+    final normalized = _normalizeSeasonPayload(payload);
+    final season = Season.fromJson(normalized);
+    _cache.set(cacheKey, season, ttlSeconds: CacheService.movieDetailsTTL);
+    return season;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -416,51 +375,7 @@ class TmdbRepository {
     }
 
     final payload = await _apiService.fetchCompanyDetails(companyId);
-
-    List<String> alternativeNames = const [];
-    try {
-      final altPayload = await _apiService.fetchCompanyAlternativeNames(companyId);
-      final results = altPayload['results'];
-      if (results is List) {
-        alternativeNames = results
-            .whereType<Map<String, dynamic>>()
-            .map((item) => item['name'])
-            .whereType<String>()
-            .map((name) => name.trim())
-            .where((name) => name.isNotEmpty)
-            .toList(growable: false);
-      }
-    } catch (_) {
-      alternativeNames = const [];
-    }
-
-    List<Map<String, dynamic>> logos = const [];
-    try {
-      final imagesPayload = await _apiService.fetchCompanyImages(companyId);
-      final logosPayload = imagesPayload['logos'];
-      if (logosPayload is List) {
-        logos = logosPayload
-            .whereType<Map<String, dynamic>>()
-            .map((logo) => {
-                  'file_path': logo['file_path'],
-                  'width': logo['width'],
-                  'height': logo['height'],
-                  'aspect_ratio': logo['aspect_ratio'],
-                  'vote_average': logo['vote_average'],
-                  'vote_count': logo['vote_count'],
-                })
-            .where((logo) => logo['file_path'] != null)
-            .toList(growable: false);
-      }
-    } catch (_) {
-      logos = const [];
-    }
-
-    final enrichedPayload = Map<String, dynamic>.from(payload)
-      ..['alternative_names'] = alternativeNames
-      ..['logo_gallery'] = logos;
-
-    final company = Company.fromJson(enrichedPayload);
+    final company = Company.fromJson(payload);
     _cache.set(cacheKey, company);
     return company;
   }
@@ -868,7 +783,6 @@ class TmdbRepository {
       final backdrops = images['backdrops'];
       final posters = images['posters'];
       final profiles = images['profiles'];
-      final stills = images['stills'];
       final combined = <Map<String, dynamic>>[];
       if (backdrops is List) {
         combined.addAll(backdrops.whereType<Map<String, dynamic>>());
@@ -878,9 +792,6 @@ class TmdbRepository {
       }
       if (profiles is List) {
         combined.addAll(profiles.whereType<Map<String, dynamic>>());
-      }
-      if (stills is List) {
-        combined.addAll(stills.whereType<Map<String, dynamic>>());
       }
       normalized['images'] = combined;
     }
@@ -893,6 +804,36 @@ class TmdbRepository {
 
     if (normalized['external_ids'] is! Map<String, dynamic>) {
       normalized['external_ids'] = const {};
+    }
+
+    return normalized;
+  }
+
+  Map<String, dynamic> _normalizeSeasonPayload(Map<String, dynamic> payload) {
+    final normalized = Map<String, dynamic>.from(payload);
+
+    final episodes = normalized['episodes'];
+    if (episodes is List) {
+      normalized['episodes'] = episodes
+          .whereType<Map<String, dynamic>>()
+          .map((episode) {
+        final episodeMap = Map<String, dynamic>.from(episode);
+
+        final guestStars = episodeMap['guest_stars'];
+        if (guestStars is List) {
+          episodeMap['cast'] =
+              guestStars.whereType<Map<String, dynamic>>().toList();
+        }
+
+        final crew = episodeMap['crew'];
+        if (crew is List) {
+          episodeMap['crew'] = crew.whereType<Map<String, dynamic>>().toList();
+        }
+
+        return episodeMap;
+      }).toList();
+    } else {
+      normalized['episodes'] = const <Map<String, dynamic>>[];
     }
 
     return normalized;

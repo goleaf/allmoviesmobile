@@ -4,17 +4,19 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../data/models/episode_model.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/models/season_model.dart';
 import '../../../data/models/tv_detailed_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../providers/tv_detail_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/rating_display.dart';
 
-class TVDetailScreen extends StatefulWidget {
+class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
 
   final Movie tvShow;
@@ -25,127 +27,100 @@ class TVDetailScreen extends StatefulWidget {
   });
 
   @override
-  State<TVDetailScreen> createState() => _TVDetailScreenState();
-}
-
-class _TVDetailScreenState extends State<TVDetailScreen> {
-  late Future<TVDetailed> _tvDetailsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _tvDetailsFuture = _loadTvDetails();
-  }
-
-  Future<TVDetailed> _loadTvDetails({bool forceRefresh = false}) {
+  Widget build(BuildContext context) {
     final repository = context.read<TmdbRepository>();
-    return repository.fetchTvDetails(
-      widget.tvShow.id,
-      forceRefresh: forceRefresh,
+
+    return ChangeNotifierProvider(
+      create: (_) => TvDetailProvider(repository, tvId: tvShow.id)..load(),
+      child: _TvDetailView(tvShow: tvShow),
     );
   }
+}
 
-  void _retryLoading() {
-    setState(() {
-      _tvDetailsFuture = _loadTvDetails(forceRefresh: true);
-    });
-  }
+class _TvDetailView extends StatelessWidget {
+  const _TvDetailView({required this.tvShow});
+
+  final Movie tvShow;
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<TvDetailProvider>();
     final loc = AppLocalizations.of(context);
+    final details = provider.details;
 
-    return FutureBuilder<TVDetailed>(
-      future: _tvDetailsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: LoadingIndicator(),
-          );
-        }
+    final backdropUrl = details != null
+        ? _backdropUrl(details.backdropPath)
+        : tvShow.backdropUrl;
+    final posterUrl = details != null
+        ? _posterUrl(details.posterPath)
+        : tvShow.posterUrl;
+    final title = details?.name ?? tvShow.title;
+    final tagline = details?.tagline;
+    final overview = details?.overview ?? tvShow.overview;
+    final voteAverage = details?.voteAverage ?? tvShow.voteAverage;
+    final voteCount = details?.voteCount ?? tvShow.voteCount;
+    final firstAirDate = _formatDate(details?.firstAirDate ?? tvShow.releaseDate);
 
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      loc.t('errors.load_failed'),
-                      style: Theme.of(context).textTheme.titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      snapshot.error.toString(),
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: Colors.grey[600]),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: _retryLoading,
-                      child: Text(loc.t('common.retry')),
-                    ),
-                  ],
-                ),
-              ),
+    final slivers = <Widget>[
+      _buildAppBar(context, backdropUrl),
+      SliverToBoxAdapter(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildHeader(
+              context,
+              loc,
+              posterUrl,
+              title,
+              tagline,
+              voteAverage,
+              voteCount,
+              firstAirDate,
             ),
-          );
-        }
-
-        final tvDetails = snapshot.data;
-
-        return Scaffold(
-          body: CustomScrollView(
-            slivers: [
-              _buildAppBar(context, loc, tvDetails),
-              SliverToBoxAdapter(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(context, loc, tvDetails),
-                    _buildActions(context, loc),
-                    _buildOverview(context, loc, tvDetails),
-                    _buildMetadata(context, loc, tvDetails),
-                    _buildGenres(context, loc, tvDetails),
-                    _buildSeasons(context, loc, tvDetails),
-                    const SizedBox(height: 24),
-                  ],
+            _buildActions(context, loc),
+            if (provider.errorMessage != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: _ErrorNotice(
+                  message: provider.errorMessage!,
+                  onRetry: provider.refresh,
                 ),
               ),
+            if (provider.isLoading && details == null)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 32),
+                child: Center(child: LoadingIndicator()),
+              )
+            else ...[
+              _buildOverview(context, loc, overview),
+              _buildMetadata(context, loc, details),
+              _buildGenres(context, loc, details),
+              _buildSeasonsSection(context, loc, provider),
             ],
-          ),
-        );
-      },
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    ];
+
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: slivers,
+      ),
     );
   }
 
-  Widget _buildAppBar(
-    BuildContext context,
-    AppLocalizations loc,
-    TVDetailed? tvDetails,
-  ) {
-    final detailedBackdrop =
-        ApiConfig.getBackdropUrl(tvDetails?.backdropPath, size: ApiConfig.backdropSizeLarge);
-    final backdropUrl = detailedBackdrop.isNotEmpty
-        ? detailedBackdrop
-        : widget.tvShow.backdropUrl;
-
+  SliverAppBar _buildAppBar(BuildContext context, String? backdropUrl) {
     return SliverAppBar(
       expandedHeight: 250,
       pinned: true,
       flexibleSpace: FlexibleSpaceBar(
-        background: backdropUrl != null && backdropUrl.isNotEmpty
+        background: (backdropUrl ?? '').isNotEmpty
             ? Stack(
                 fit: StackFit.expand,
                 children: [
                   CachedNetworkImage(
-                    imageUrl: backdropUrl,
+                    imageUrl: backdropUrl!,
                     fit: BoxFit.cover,
                     placeholder: (context, url) => Container(
                       color: Colors.grey[300],
@@ -181,25 +156,23 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
   Widget _buildHeader(
     BuildContext context,
     AppLocalizations loc,
-    TVDetailed? tvDetails,
+    String? posterUrl,
+    String title,
+    String? tagline,
+    double? voteAverage,
+    int? voteCount,
+    String? firstAirDate,
   ) {
-    final detailedPoster =
-        ApiConfig.getPosterUrl(tvDetails?.posterPath, size: ApiConfig.posterSizeLarge);
-    final posterUrl = detailedPoster.isNotEmpty
-        ? detailedPoster
-        : widget.tvShow.posterUrl;
-
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Poster
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: posterUrl != null && posterUrl.isNotEmpty
+            child: (posterUrl ?? '').isNotEmpty
                 ? CachedNetworkImage(
-                    imageUrl: posterUrl,
+                    imageUrl: posterUrl!,
                     width: 120,
                     height: 180,
                     fit: BoxFit.cover,
@@ -224,24 +197,27 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
                   ),
           ),
           const SizedBox(width: 16),
-          // Title and basic info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        tvDetails?.name ?? widget.tvShow.title,
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
                       ),
-                    ),
-                  ],
                 ),
-                const SizedBox(height: 4),
+                if ((tagline ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    tagline!,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          color: Colors.grey[600],
+                        ),
+                  ),
+                ],
+                const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
@@ -258,7 +234,7 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'TV Series',
+                        loc.t('tv.title'),
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               color: Theme.of(context).colorScheme.onPrimaryContainer,
                               fontWeight: FontWeight.w600,
@@ -267,22 +243,23 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 8),
-                if (_firstAirDate(tvDetails).isNotEmpty)
+                if ((firstAirDate ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 8),
                   Text(
-                    '${loc.t('tv.first_air_date')}: ${_firstAirDate(tvDetails)}',
+                    '${loc.t('tv.first_air_date')}: $firstAirDate',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Colors.grey[600],
                         ),
                   ),
-                const SizedBox(height: 8),
-                if ((tvDetails?.voteAverage ?? widget.tvShow.voteAverage) != null &&
-                    (tvDetails?.voteAverage ?? widget.tvShow.voteAverage)! > 0)
+                ],
+                if (voteAverage != null && voteAverage > 0) ...[
+                  const SizedBox(height: 8),
                   RatingDisplay(
-                    rating: (tvDetails?.voteAverage ?? widget.tvShow.voteAverage)!,
-                    voteCount: tvDetails?.voteCount ?? widget.tvShow.voteCount,
+                    rating: voteAverage,
+                    voteCount: voteCount,
                     size: 18,
                   ),
+                ],
               ],
             ),
           ),
@@ -295,8 +272,8 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
 
-    final isFavorite = favoritesProvider.isFavorite(widget.tvShow.id);
-    final isInWatchlist = watchlistProvider.isInWatchlist(widget.tvShow.id);
+    final isFavorite = favoritesProvider.isFavorite(tvShow.id);
+    final isInWatchlist = watchlistProvider.isInWatchlist(tvShow.id);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -305,7 +282,7 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () {
-                favoritesProvider.toggleFavorite(widget.tvShow.id);
+                favoritesProvider.toggleFavorite(tvShow.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -332,7 +309,7 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
           Expanded(
             child: OutlinedButton.icon(
               onPressed: () {
-                watchlistProvider.toggleWatchlist(widget.tvShow.id);
+                watchlistProvider.toggleWatchlist(tvShow.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
@@ -363,9 +340,8 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
   Widget _buildOverview(
     BuildContext context,
     AppLocalizations loc,
-    TVDetailed? tvDetails,
+    String? overview,
   ) {
-    final overview = (tvDetails?.overview ?? widget.tvShow.overview)?.trim();
     if (overview == null || overview.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -394,40 +370,55 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
   Widget _buildMetadata(
     BuildContext context,
     AppLocalizations loc,
-    TVDetailed? tvDetails,
+    TVDetailed? details,
   ) {
+    if (details == null) {
+      return const SizedBox.shrink();
+    }
+
     final metadata = <MapEntry<String, String>>[];
 
-    final firstAirDate = tvDetails?.firstAirDate ?? widget.tvShow.releaseDate;
-    if (firstAirDate != null && firstAirDate.isNotEmpty) {
+    if ((details.firstAirDate ?? '').isNotEmpty) {
       metadata.add(MapEntry(
         loc.t('tv.first_air_date'),
-        _formatDate(firstAirDate),
+        _formatDate(details.firstAirDate) ?? details.firstAirDate!,
       ));
     }
 
-    final lastAirDate = tvDetails?.lastAirDate;
-    if (lastAirDate != null && lastAirDate.isNotEmpty) {
+    if ((details.lastAirDate ?? '').isNotEmpty) {
       metadata.add(MapEntry(
         loc.t('tv.last_air_date'),
-        _formatDate(lastAirDate),
+        _formatDate(details.lastAirDate) ?? details.lastAirDate!,
       ));
     }
 
-    final voteCount = tvDetails?.voteCount ?? widget.tvShow.voteCount;
-    if (voteCount != null && voteCount > 0) {
+    if (details.numberOfSeasons != null) {
       metadata.add(MapEntry(
-        loc.t('tv.votes'),
-        voteCount.toString(),
+        loc.t('tv.number_of_seasons'),
+        details.numberOfSeasons.toString(),
       ));
     }
 
-    final popularity = tvDetails?.popularity ?? widget.tvShow.popularity;
-    if (popularity != null) {
+    if (details.numberOfEpisodes != null) {
       metadata.add(MapEntry(
-        loc.t('tv.popularity'),
-        popularity.toStringAsFixed(0),
+        loc.t('tv.number_of_episodes'),
+        details.numberOfEpisodes.toString(),
       ));
+    }
+
+    if (details.episodeRunTime.isNotEmpty) {
+      final runtimes = details.episodeRunTime;
+      final formatted = runtimes.length == 1
+          ? '${runtimes.first} ${loc.t('movie.minutes')}'
+          : '${runtimes.reduce((a, b) => a < b ? a : b)}-${runtimes.reduce((a, b) => a > b ? a : b)} ${loc.t('movie.minutes')}';
+      metadata.add(MapEntry(
+        loc.t('tv.episode_runtime'),
+        formatted,
+      ));
+    }
+
+    if ((details.status ?? '').isNotEmpty) {
+      metadata.add(MapEntry('Status', details.status!));
     }
 
     if (metadata.isEmpty) {
@@ -452,7 +443,7 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     SizedBox(
-                      width: 120,
+                      width: 140,
                       child: Text(
                         entry.key,
                         style: TextStyle(
@@ -475,12 +466,17 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
   Widget _buildGenres(
     BuildContext context,
     AppLocalizations loc,
-    TVDetailed? tvDetails,
+    TVDetailed? details,
   ) {
-    final detailedGenres = tvDetails?.genres.map((genre) => genre.name).toList();
+    final chips = <String>[];
 
-    if ((detailedGenres == null || detailedGenres.isEmpty) &&
-        (widget.tvShow.genreIds?.isEmpty ?? true)) {
+    if (details != null) {
+      chips.addAll(details.genres.map((genre) => genre.name).whereType<String>());
+    } else if (tvShow.genreIds != null) {
+      chips.addAll(tvShow.genres);
+    }
+
+    if (chips.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -499,16 +495,14 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: (detailedGenres ??
-                    widget.tvShow.genreIds
-                        ?.map((genreId) => Movie.genreMap[genreId] ?? 'Genre $genreId')
-                        .toList() ??
-                    [])
-                .map((genreName) => Chip(
-                      label: Text(genreName),
-                      backgroundColor:
-                          Theme.of(context).colorScheme.primaryContainer,
-                    ))
+            children: chips
+                .map(
+                  (genreName) => Chip(
+                    label: Text(genreName),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -516,18 +510,25 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
     );
   }
 
-  Widget _buildSeasons(
+  Widget _buildSeasonsSection(
     BuildContext context,
     AppLocalizations loc,
-    TVDetailed? tvDetails,
+    TvDetailProvider provider,
   ) {
-    final seasons = tvDetails?.seasons ?? [];
+    final seasons = provider.seasons;
     if (seasons.isEmpty) {
       return const SizedBox.shrink();
     }
 
+    final selectedSeasonNumber =
+        provider.selectedSeasonNumber ?? seasons.first.seasonNumber;
+    final selectedSeason = provider.seasonForNumber(selectedSeasonNumber);
+    final episodes = provider.episodesForSeason(selectedSeasonNumber);
+    final isLoading = provider.isSeasonLoading(selectedSeasonNumber);
+    final error = provider.seasonError(selectedSeasonNumber);
+
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -538,183 +539,302 @@ class _TVDetailScreenState extends State<TVDetailScreen> {
                 ),
           ),
           const SizedBox(height: 12),
-          ListView.separated(
-            itemCount: seasons.length,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) => _SeasonCard(
-              season: seasons[index],
-              loc: loc,
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: seasons.map((season) {
+                final isSelected = season.seasonNumber == selectedSeasonNumber;
+                final label = _seasonLabel(loc, season);
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(label),
+                    selected: isSelected,
+                    onSelected: (_) =>
+                        provider.selectSeason(season.seasonNumber),
+                  ),
+                );
+              }).toList(),
             ),
           ),
+          if (selectedSeason != null &&
+              (selectedSeason.overview ?? '').isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              selectedSeason.overview!,
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          ],
+          const SizedBox(height: 12),
+          if (isLoading && episodes.isEmpty)
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else if (error != null)
+            _SeasonErrorNotice(
+              message: error,
+              onRetry: () => provider.retrySeason(selectedSeasonNumber),
+              loc: loc,
+            )
+          else if (episodes.isEmpty)
+            Text(
+              loc.t('tv.no_episodes'),
+              style: Theme.of(context).textTheme.bodyMedium,
+            )
+          else
+            ListView.separated(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: episodes.length,
+              separatorBuilder: (_, __) => const SizedBox(height: 12),
+              itemBuilder: (context, index) {
+                final episode = episodes[index];
+                return _EpisodeCard(episode: episode, loc: loc);
+              },
+            ),
         ],
       ),
     );
   }
-
-  String _firstAirDate(TVDetailed? tvDetails) {
-    final detailedDate = tvDetails?.firstAirDate;
-    if (detailedDate != null && detailedDate.isNotEmpty) {
-      return _formatDate(detailedDate);
-    }
-
-    final releaseYear = widget.tvShow.releaseYear;
-    if (releaseYear != null && releaseYear.isNotEmpty) {
-      return releaseYear;
-    }
-
-    return '';
-  }
-
-  String _formatDate(String? rawDate) {
-    if (rawDate == null || rawDate.isEmpty) {
-      return '';
-    }
-
-    try {
-      final parsed = DateTime.parse(rawDate);
-      return DateFormat.yMMMd().format(parsed);
-    } catch (_) {
-      return rawDate;
-    }
-  }
 }
 
-class _SeasonCard extends StatelessWidget {
-  final Season season;
-  final AppLocalizations loc;
+class _EpisodeCard extends StatelessWidget {
+  const _EpisodeCard({required this.episode, required this.loc});
 
-  const _SeasonCard({
-    required this.season,
-    required this.loc,
-  });
+  final Episode episode;
+  final AppLocalizations loc;
 
   @override
   Widget build(BuildContext context) {
-    final posterUrl = ApiConfig.getPosterUrl(
-      season.posterPath,
-      size: ApiConfig.posterSizeSmall,
-    );
-
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-
-    final airDate = _formatAirDate(season.airDate, loc, context);
-    final episodeCount = season.episodeCount != null
-        ? season.episodeCount.toString()
-        : loc.t('common.not_available');
-
-    final hasOverview = season.overview != null && season.overview!.trim().isNotEmpty;
-    final seasonLabel = '${loc.t('tv.season')} ${season.seasonNumber}';
-    final displayTitle = season.name.trim().isEmpty
-        ? seasonLabel
-        : '$seasonLabel • ${season.name}';
+    final stillUrl = _stillUrl(episode.stillPath);
+    final airDate = _formatDate(episode.airDate);
+    final runtimeText = episode.runtime != null && episode.runtime! > 0
+        ? '${episode.runtime} ${loc.t('movie.minutes')}'
+        : null;
 
     return Card(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
         padding: const EdgeInsets.all(12),
-        child: Row(
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: posterUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: posterUrl,
-                      width: 90,
-                      height: 135,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if ((stillUrl ?? '').isNotEmpty) ...[
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: stillUrl!,
+                      width: 120,
+                      height: 80,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        width: 90,
-                        height: 135,
+                        width: 120,
+                        height: 80,
                         color: Colors.grey[300],
                         child: const Center(child: CircularProgressIndicator()),
                       ),
                       errorWidget: (context, url, error) => Container(
-                        width: 90,
-                        height: 135,
+                        width: 120,
+                        height: 80,
                         color: Colors.grey[300],
                         child: const Icon(Icons.broken_image),
                       ),
-                    )
-                  : Container(
-                      width: 90,
-                      height: 135,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image),
-                    ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    displayTitle,
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.live_tv, size: 16),
-                      const SizedBox(width: 6),
-                      Text('${loc.t('tv.episodes')}: $episodeCount'),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      const Icon(Icons.event, size: 16),
-                      const SizedBox(width: 6),
-                      Flexible(
-                        child: Text(
-                          '${loc.t('tv.first_air_date')}: $airDate',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (hasOverview) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      season.overview!,
-                      style: textTheme.bodyMedium,
-                      maxLines: 4,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  const SizedBox(width: 12),
                 ],
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${loc.t('tv.episode')} ${episode.episodeNumber}',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        episode.name,
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      if ((airDate ?? '').isNotEmpty || runtimeText != null) ...[
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 4,
+                          children: [
+                            if ((airDate ?? '').isNotEmpty)
+                              Text('${loc.t('tv.air_date')}: $airDate'),
+                            if (runtimeText != null)
+                              Text('${loc.t('movie.runtime')}: $runtimeText'),
+                          ],
+                        ),
+                      ],
+                      if (episode.voteAverage != null && episode.voteAverage! > 0) ...[
+                        const SizedBox(height: 8),
+                        RatingDisplay(
+                          rating: episode.voteAverage!,
+                          voteCount: episode.voteCount,
+                          size: 14,
+                          showLabel: false,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            if ((episode.overview ?? '').isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                episode.overview!,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SeasonErrorNotice extends StatelessWidget {
+  const _SeasonErrorNotice({
+    required this.message,
+    required this.onRetry,
+    required this.loc,
+  });
+
+  final String message;
+  final VoidCallback onRetry;
+  final AppLocalizations loc;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 12),
+      color: Theme.of(context).colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: onRetry,
+              style: OutlinedButton.styleFrom(
+                foregroundColor:
+                    Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              child: Text(loc.t('tv.retry_loading_episodes')),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  static String _formatAirDate(
-    String? rawDate,
-    AppLocalizations loc,
-    BuildContext context,
-  ) {
-    if (rawDate == null || rawDate.isEmpty) {
-      return loc.t('common.unknown');
-    }
+class _ErrorNotice extends StatelessWidget {
+  const _ErrorNotice({required this.message, required this.onRetry});
 
-    try {
-      final parsed = DateTime.parse(rawDate);
-      return DateFormat.yMMMd(Localizations.localeOf(context).toString())
-          .format(parsed);
-    } catch (_) {
-      return rawDate;
-    }
+  final String message;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return Card(
+      color: Theme.of(context).colorScheme.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              message,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Theme.of(context).colorScheme.onErrorContainer,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            OutlinedButton(
+              onPressed: onRetry,
+              style: OutlinedButton.styleFrom(
+                foregroundColor:
+                    Theme.of(context).colorScheme.onErrorContainer,
+              ),
+              child: Text(loc.t('common.retry')),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
+String? _posterUrl(String? path) {
+  if (path == null || path.isEmpty) {
+    return null;
+  }
+  final url = ApiConfig.getPosterUrl(
+    path,
+    size: ApiConfig.posterSizeLarge,
+  );
+  return url.isEmpty ? null : url;
+}
+
+String? _backdropUrl(String? path) {
+  if (path == null || path.isEmpty) {
+    return null;
+  }
+  final url = ApiConfig.getBackdropUrl(
+    path,
+    size: ApiConfig.backdropSizeLarge,
+  );
+  return url.isEmpty ? null : url;
+}
+
+String? _stillUrl(String? path) {
+  if (path == null || path.isEmpty) {
+    return null;
+  }
+  return '${ApiConfig.tmdbImageBaseUrl}/w300$path';
+}
+
+String? _formatDate(String? raw) {
+  if (raw == null || raw.isEmpty) {
+    return null;
+  }
+  final parsed = DateTime.tryParse(raw);
+  if (parsed == null) {
+    return raw;
+  }
+  return DateFormat.yMMMd().format(parsed);
+}
+
+String _seasonLabel(AppLocalizations loc, Season season) {
+  final trimmedName = season.name.trim();
+  final hasDefaultName =
+      trimmedName.isEmpty || trimmedName.toLowerCase().startsWith('season');
+  final baseLabel = hasDefaultName
+      ? '${loc.t('tv.season')} ${season.seasonNumber}'
+      : trimmedName;
+  final episodeCount = season.episodeCount ?? season.episodes.length;
+  if (episodeCount <= 0) {
+    return baseLabel;
+  }
+  return '$baseLabel ($episodeCount)';
+}

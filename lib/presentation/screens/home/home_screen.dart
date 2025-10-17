@@ -12,7 +12,7 @@ import '../movies/movies_screen.dart';
 import '../people/people_screen.dart';
 import '../search/search_screen.dart';
 import '../series/series_screen.dart';
-import '../videos/videos_screen.dart';
+import '../tv_detail/tv_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/';
@@ -97,10 +97,6 @@ class _HomeScreenState extends State<HomeScreen> {
               PopupMenuItem(
                 value: MoviesScreen.routeName,
                 child: Text(AppStrings.movies),
-              ),
-              PopupMenuItem(
-                value: VideosScreen.routeName,
-                child: Text(AppStrings.videos),
               ),
               PopupMenuItem(
                 value: SeriesScreen.routeName,
@@ -244,12 +240,22 @@ class _MovieCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MovieDetailScreen(movie: movie),
-            ),
-          );
+          final mediaType = (movie.mediaType ?? '').toLowerCase();
+          if (mediaType == 'tv') {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TVDetailScreen(tvShow: movie),
+              ),
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MovieDetailScreen(movie: movie),
+              ),
+            );
+          }
         },
         child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -421,11 +427,6 @@ String _buildSubtitle(Movie movie) {
   }
 
   segments.add(movie.mediaLabel);
-
-  final showing = movie.showingLabel;
-  if (showing != null && showing.isNotEmpty) {
-    segments.add(showing);
-  }
 
   return segments.join(' • ');
 }

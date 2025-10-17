@@ -126,20 +126,6 @@ class TmdbApiService {
     );
   }
 
-  Future<Map<String, dynamic>> fetchMovieReviews(
-    int movieId, {
-    int page = 1,
-    Map<String, String>? queryParameters,
-  }) {
-    return _getJson(
-      '/$_apiVersion/movie/$movieId/reviews',
-      queryParameters: {
-        'page': '$page',
-        if (queryParameters != null) ...queryParameters,
-      },
-    );
-  }
-
   Future<Map<String, dynamic>> fetchTvDetails(
     int tvId, {
     Map<String, String>? queryParameters,
@@ -150,14 +136,13 @@ class TmdbApiService {
     );
   }
 
-  Future<Map<String, dynamic>> fetchEpisodeImages({
-    required int tvId,
-    required int seasonNumber,
-    required int episodeNumber,
+  Future<Map<String, dynamic>> fetchTvSeasonDetails(
+    int tvId,
+    int seasonNumber, {
     Map<String, String>? queryParameters,
   }) {
     return _getJson(
-      '/$_apiVersion/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/images',
+      '/$_apiVersion/tv/$tvId/season/$seasonNumber',
       queryParameters: queryParameters,
     );
   }
@@ -192,26 +177,6 @@ class TmdbApiService {
   }) {
     return _getJson(
       '/$_apiVersion/company/$companyId',
-      queryParameters: queryParameters,
-    );
-  }
-
-  Future<Map<String, dynamic>> fetchCompanyAlternativeNames(
-    int companyId, {
-    Map<String, String>? queryParameters,
-  }) {
-    return _getJson(
-      '/$_apiVersion/company/$companyId/alternative_names',
-      queryParameters: queryParameters,
-    );
-  }
-
-  Future<Map<String, dynamic>> fetchCompanyImages(
-    int companyId, {
-    Map<String, String>? queryParameters,
-  }) {
-    return _getJson(
-      '/$_apiVersion/company/$companyId/images',
       queryParameters: queryParameters,
     );
   }

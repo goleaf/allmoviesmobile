@@ -1,5 +1,3 @@
-import 'package:allmovies_mobile/data/models/custom_list.dart';
-import 'package:allmovies_mobile/data/models/saved_media_item.dart';
 import 'package:allmovies_mobile/data/models/user_list.dart';
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
 import 'package:allmovies_mobile/providers/lists_provider.dart';

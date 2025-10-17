@@ -5,72 +5,7 @@ import '../../../data/local/isar/isar_provider.dart';
 import '../../../data/services/static_catalog_service.dart';
 import 'splash_preload_screen.dart';
 
-class BootGate extends StatefulWidget {
-  const BootGate({
-    super.key,
-    required this.service,
-    required this.onNavigateToHome,
-  });
-
-  final StaticCatalogService service;
-  final String Function() onNavigateToHome;
-
-  @override
-  State<BootGate> createState() => _BootGateState();
-}
-
-class _BootGateState extends State<BootGate> {
-  bool? _needsPreload;
-
-  @override
-  void initState() {
-    super.initState();
-    _check();
-  }
-
-  Future<void> _check() async {
-    final isar = await IsarDbProvider.instance.isar;
-    final needs = await widget.service.needsRefresh(isar, AppLocalizations.supportedLocales);
-    if (!mounted) return;
-    if (!needs) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted) return;
-        Navigator.of(context).pushReplacementNamed(widget.onNavigateToHome());
-      });
-    }
-    setState(() {
-      _needsPreload = needs;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_needsPreload == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-    if (_needsPreload == true) {
-      return SplashPreloadScreen(
-        service: widget.service,
-        locales: AppLocalizations.supportedLocales,
-        onDone: () {
-          if (!mounted) return;
-          Navigator.of(context).pushReplacementNamed(widget.onNavigateToHome());
-        },
-      );
-    }
-    return const SizedBox.shrink();
-  }
-}
-
-import 'package:flutter/material.dart';
-
-import '../../../core/localization/app_localizations.dart';
-import '../../../data/local/isar/isar_provider.dart';
-import '../../../data/services/static_catalog_service.dart';
-import 'splash_preload_screen.dart';
-
+/// Gate shown at app startup that decides whether a preload is required.
 class BootGate extends StatefulWidget {
   const BootGate({super.key, required this.service, required this.onNavigateToHome});
 

@@ -7,6 +7,8 @@ import 'package:allmovies_mobile/presentation/screens/movies/movies_filters_scre
 import 'package:allmovies_mobile/presentation/screens/series/series_filters_screen.dart';
 import 'package:allmovies_mobile/presentation/widgets/media_image.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
+import 'package:allmovies_mobile/data/services/static_catalog_service.dart';
+import 'package:isar/isar.dart';
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +16,16 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeRepo extends TmdbRepository {}
+
+class _FakeCatalogService extends StaticCatalogService {
+  _FakeCatalogService(TmdbRepository repo) : super(repo);
+  @override
+  Future<bool> isFirstRun(Isar isar) async => false;
+  @override
+  Future<bool> needsRefresh(Isar isar, List<Locale> locales) async => false;
+  @override
+  Future<void> preloadAll({required List<Locale> locales, required void Function(PreloadProgress p) onProgress}) async {}
+}
 
 void main() {
   IntegrationTestWidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +39,7 @@ void main() {
       storageService: LocalStorageService(prefs),
       prefs: prefs,
       tmdbRepository: _FakeRepo(),
+      catalogService: _FakeCatalogService(_FakeRepo()),
     ));
 
     await tester.pumpAndSettle(const Duration(seconds: 2));

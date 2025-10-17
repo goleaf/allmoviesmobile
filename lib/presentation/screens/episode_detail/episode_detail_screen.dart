@@ -6,6 +6,8 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/episode_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../widgets/rating_display.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/media_image.dart';
 
 class EpisodeDetailScreen extends StatelessWidget {
   static const routeName = '/episode-detail';
@@ -47,11 +49,7 @@ class EpisodeDetailScreen extends StatelessWidget {
   }
 
   Widget _buildStillAppBar(BuildContext context) {
-    final stillUrl = ApiConfig.getStillUrl(
-      episode.stillPath,
-      size: ApiConfig.stillSizeLarge,
-    );
-    final hasStill = stillUrl.isNotEmpty;
+    final hasStill = episode.stillPath != null && episode.stillPath!.isNotEmpty;
 
     return SliverAppBar(
       expandedHeight: 240,
@@ -66,14 +64,16 @@ class EpisodeDetailScreen extends StatelessWidget {
             ? Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: stillUrl,
+                  MediaImage(
+                    path: episode.stillPath,
+                    type: MediaImageType.still,
+                    size: MediaImageSize.w780,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
+                    placeholder: Container(
                       color: Colors.grey[300],
                       child: const Center(child: CircularProgressIndicator()),
                     ),
-                    errorWidget: (context, url, error) => Container(
+                    errorWidget: Container(
                       color: Colors.grey[300],
                       child: const Icon(Icons.broken_image, size: 64),
                     ),

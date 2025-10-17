@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../data/models/movie.dart';
 import '../../data/services/api_config.dart';
+import '../../core/utils/media_image_helper.dart';
+import '../widgets/media_image.dart';
 
 class StoredMovieTile extends StatelessWidget {
   const StoredMovieTile({
@@ -119,12 +121,7 @@ class _PosterImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final posterUrl = ApiConfig.getPosterUrl(
-      posterPath,
-      size: ApiConfig.posterSizeSmall,
-    );
-
-    if (posterUrl.isEmpty) {
+    if (posterPath == null || posterPath!.isEmpty) {
       return Container(
         width: 60,
         height: 90,
@@ -141,12 +138,14 @@ class _PosterImage extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: CachedNetworkImage(
-        imageUrl: posterUrl,
+      child: MediaImage(
+        path: posterPath,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w92,
         width: 60,
         height: 90,
         fit: BoxFit.cover,
-        placeholder: (context, url) => Container(
+        placeholder: Container(
           width: 60,
           height: 90,
           decoration: BoxDecoration(
@@ -155,7 +154,7 @@ class _PosterImage extends StatelessWidget {
           ),
           child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
         ),
-        errorWidget: (context, url, error) => Container(
+        errorWidget: Container(
           width: 60,
           height: 90,
           decoration: BoxDecoration(

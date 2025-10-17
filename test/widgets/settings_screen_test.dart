@@ -50,8 +50,12 @@ void main() {
     }
 
     // Region (scroll first)
-    final scrollable = find.byType(ListView).first;
-    await tester.scrollUntilVisible(find.textContaining('Region'), 200, scrollable: scrollable);
+    final listView = find.byType(ListView).first;
+    await tester.dragUntilVisible(
+      find.textContaining('Region'),
+      listView,
+      const Offset(0, -200),
+    );
     await tester.tap(find.textContaining('Region'));
     await tester.pumpAndSettle();
     final regionTile = find.byType(RadioListTile<String>).first;

@@ -39,10 +39,10 @@ class _SplashPreloadScreenState extends State<SplashPreloadScreen> {
       );
       widget.onDone();
     } catch (_) {
-      // show retry
       if (!mounted) return;
+      final t = AppLocalizations.of(context);
       setState(() {
-        message = 'Failed to preload. Tap to retry';
+        message = t.t('errors.load_failed');
       });
     }
   }
@@ -63,7 +63,7 @@ class _SplashPreloadScreenState extends State<SplashPreloadScreen> {
               const SizedBox(height: 8),
               Text(message.isEmpty ? t.t('common.loading') : message),
               const SizedBox(height: 16),
-              if (message.startsWith('Failed'))
+              if (message.isNotEmpty && message == AppLocalizations.of(context).t('errors.load_failed'))
                 ElevatedButton(
                   onPressed: _run,
                   child: Text(t.t('common.retry')),

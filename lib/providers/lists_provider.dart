@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/models/movie.dart';
+import '../data/models/custom_list.dart';
 import '../data/models/user_list.dart';
 import '../data/services/local_storage_service.dart';
 
@@ -70,11 +71,11 @@ class ListsProvider extends ChangeNotifier {
         _lists
           ..clear()
           ..addAll(seeded);
-        await _storage.saveCustomLists(_lists);
+        await _storage.saveCustomLists(_lists.map((l) => l.toCustomList()).toList());
       } else {
         _lists
           ..clear()
-          ..addAll(storedLists);
+          ..addAll(storedLists.map((c) => UserList.fromCustom(c)));
       }
       _errorMessage = null;
     } catch (error) {
@@ -379,8 +380,9 @@ class ListsProvider extends ChangeNotifier {
       }
 
       final collaborators = [...list.collaborators];
-      final removed =
-          collaborators.removeWhere((collab) => collab.userId == collaboratorId) > 0;
+      final before = collaborators.length;
+      collaborators.removeWhere((collab) => collab.userId == collaboratorId);
+      final removed = collaborators.length < before;
       if (!removed) {
         return list;
       }
@@ -427,7 +429,9 @@ class ListsProvider extends ChangeNotifier {
   Future<void> deleteComment(String listId, String commentId) async {
     await _mutateList(listId, (list) {
       final comments = [...list.comments];
-      final removed = comments.removeWhere((comment) => comment.id == commentId) > 0;
+      final before = comments.length;
+      comments.removeWhere((comment) => comment.id == commentId);
+      final removed = comments.length < before;
       if (!removed) {
         return list;
       }
@@ -461,7 +465,7 @@ class ListsProvider extends ChangeNotifier {
   }
 
   Future<void> _persist() {
-    return _storage.saveCustomLists(List<UserList>.unmodifiable(_lists));
+    return _storage.saveCustomLists(_lists.map((l) => l.toCustomList()).toList());
   }
 
   List<UserList> _seedLists() {

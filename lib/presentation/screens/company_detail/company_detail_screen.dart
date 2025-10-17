@@ -7,6 +7,8 @@ import '../../../data/models/company_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/media_image.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
   static const routeName = '/company-detail';
@@ -114,8 +116,7 @@ class _CompanyDetailBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final logoUrl = ApiConfig.getLogoUrl(company.logoPath,
-        size: ApiConfig.posterSizeMedium);
+    final logoPath = company.logoPath;
     final description = (company.description?.trim().isNotEmpty ?? false)
         ? company.description!.trim()
         : 'No description available.';
@@ -138,18 +139,20 @@ class _CompanyDetailBody extends StatelessWidget {
                 color: theme.colorScheme.surfaceVariant,
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: logoUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: logoUrl,
+              child: (logoPath != null && logoPath.isNotEmpty)
+                  ? MediaImage(
+                      path: logoPath,
+                      type: MediaImageType.logo,
+                      size: MediaImageSize.w185,
                       fit: BoxFit.contain,
-                      placeholder: (context, url) => const Center(
+                      placeholder: const Center(
                         child: SizedBox(
                           width: 24,
                           height: 24,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                      errorWidget: (context, url, error) => Icon(
+                      errorWidget: Icon(
                         Icons.business_outlined,
                         size: 48,
                         color: theme.colorScheme.primary,

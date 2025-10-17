@@ -103,10 +103,10 @@ class _PeopleSectionView extends StatelessWidget {
             people: state.items,
             onPersonSelected: (person) async {
               try {
-                final Person details = await provider.loadDetails(person.id);
+                final PersonDetail details = await provider.loadDetails(person.id);
                 // ignore: use_build_context_synchronously
                 if (context.mounted) {
-                  _showPersonDetails(context, details);
+                  _showPersonDetails(context, details.id);
                 }
               } catch (error) {
                 if (context.mounted) {
@@ -125,7 +125,7 @@ class _PeopleSectionView extends StatelessWidget {
   }
 
   void _showPersonDetails(BuildContext context, int personId) {
-    Navigator.pushNamed(context, '/person-detail', arguments: personId);
+    Navigator.pushNamed(context, '/person', arguments: personId);
   }
 }
 

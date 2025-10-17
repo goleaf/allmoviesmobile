@@ -26,38 +26,38 @@ class _FakeRepo extends TmdbRepository {
   Future<PaginatedResponse<Movie>> discoverMovies({int page = 1, discoverFilters, Map<String, String>? filters, bool forceRefresh = false}) async => PaginatedResponse<Movie>(page: 1, totalPages: 1, totalResults: 1, results: [Movie(id: 6, title: 'F')]);
 }
 
+Route<dynamic> _onGenerateRoute(RouteSettings settings) {
+  if (settings.name == MoviesFiltersScreen.routeName) {
+    return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen(), settings: settings);
+  }
+  return MaterialPageRoute(builder: (_) => const SizedBox.shrink(), settings: settings);
+}
+
 void main() {
   testWidgets('MoviesScreen filter button opens MoviesFiltersScreen and Apply closes it', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final prefs = await SharedPreferences.getInstance();
     final moviesProvider = MoviesProvider(_FakeRepo(), regionProvider: WatchRegionProvider(prefs));
 
-    await pumpApp(
-      tester,
-      DefaultTabController(
-        length: MovieSection.values.length,
-        child: const MoviesScreen(),
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: moviesProvider),
+        ],
+        child: const MaterialApp(
+          home: MoviesScreen(),
+          onGenerateRoute: _onGenerateRoute,
+        ),
       ),
-      providers: [
-        ChangeNotifierProvider.value(value: moviesProvider),
-      ],
-      onGenerateRoute: (settings) {
-        if (settings.name == MoviesFiltersScreen.routeName) {
-          return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen());
-        }
-        return null;
-      },
     );
 
     await tester.pumpAndSettle();
     expect(find.byType(MoviesScreen), findsOneWidget);
 
-    // Tap filter icon (tooltip: 'Filters')
     await tester.tap(find.byTooltip('Filters'));
     await tester.pumpAndSettle();
     expect(find.byType(MoviesFiltersScreen), findsOneWidget);
 
-    // Tap Apply button to close
     await tester.tap(find.byKey(const ValueKey('moviesApplyFilters')));
     await tester.pumpAndSettle();
     expect(find.byType(MoviesFiltersScreen), findsNothing);
@@ -68,18 +68,21 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final moviesProvider = MoviesProvider(_FakeRepo(), regionProvider: WatchRegionProvider(prefs));
 
-    await pumpApp(
-      tester,
-      const MoviesScreen(),
-      providers: [
-        ChangeNotifierProvider.value(value: moviesProvider),
-      ],
+    await tester.pumpWidget(
+      MultiProvider(
+        providers: [
+          ChangeNotifierProvider.value(value: moviesProvider),
+        ],
+        child: const MaterialApp(
+          home: MoviesScreen(),
+          onGenerateRoute: _onGenerateRoute,
+        ),
+      ),
     );
 
     await tester.pumpAndSettle();
     expect(moviesProvider.trendingWindow, 'day');
 
-    // Open popup menu (icon: schedule)
     await tester.tap(find.byIcon(Icons.schedule));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Trending: Week'));

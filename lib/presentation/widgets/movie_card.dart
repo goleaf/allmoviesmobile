@@ -5,9 +5,7 @@ import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../data/services/api_config.dart';
 import '../../providers/favorites_provider.dart';
-import '../widgets.dart';
-import '../widgets.dart';
-import '../widgets.dart';
+// Removed erroneous barrel imports; use direct imports instead
 import '../../core/utils/media_image_helper.dart';
 import 'media_image.dart';
 

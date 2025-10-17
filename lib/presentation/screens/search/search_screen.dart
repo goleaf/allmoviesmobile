@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../data/models/search_result_model.dart';
-import '../../../core/config/app_config.dart';
 import '../../../providers/search_provider.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../tv_detail/tv_detail_screen.dart';
 import '../person_detail/person_detail_screen.dart';
-import '../../../core/config/app_config.dart';
-import 'package:allmoviesmobile/presentation/widgets/media_image.dart';
-import 'package:allmoviesmobile/presentation/widgets/media_image_type.dart';
-import 'package:allmoviesmobile/presentation/widgets/media_image_size.dart';
+import '../../widgets/media_image.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/rating_display.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -318,14 +317,14 @@ class _SearchResultCard extends StatelessWidget {
         MediaType.tv => () {
             Navigator.pushNamed(
               context,
-              '/tv',
+              TvDetailScreen.routeName,
               arguments: result.id,
             );
           },
         MediaType.person => () {
             Navigator.pushNamed(
               context,
-              '/person',
+              PersonDetailScreen.routeName,
               arguments: result.id,
             );
           },

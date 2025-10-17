@@ -14,6 +14,8 @@ import '../../../providers/network_shows_provider.dart';
 import '../../widgets/movie_card.dart';
 import '../tv_detail/tv_detail_screen.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/media_image.dart';
 
 class NetworkDetailArguments {
   const NetworkDetailArguments({
@@ -169,7 +171,7 @@ class _HeaderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final logoUrl = ApiConfig.getLogoUrl(logoPath, size: ApiConfig.posterSizeMedium);
+    final path = logoPath;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -182,16 +184,18 @@ class _HeaderSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(16),
               color: theme.colorScheme.surfaceVariant.withOpacity(0.4),
             ),
-            child: logoUrl.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: logoUrl,
+            child: (path != null && path.isNotEmpty)
+                ? MediaImage(
+                    path: path,
+                    type: MediaImageType.logo,
+                    size: MediaImageSize.w185,
                     height: 120,
                     fit: BoxFit.contain,
-                    placeholder: (context, _) => const SizedBox(
+                    placeholder: const SizedBox(
                       height: 120,
                       child: Center(child: CircularProgressIndicator()),
                     ),
-                    errorWidget: (_, __, ___) => const Icon(
+                    errorWidget: const Icon(
                       Icons.broken_image_outlined,
                       size: 56,
                     ),
@@ -451,7 +455,7 @@ class _LogoVariationsSection extends StatelessWidget {
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (context, index) {
                   final logo = logos[index];
-                  final url = ApiConfig.getLogoUrl(logo.filePath, size: ApiConfig.posterSizeMedium);
+                  final filePath = logo.filePath;
                   return Container(
                     width: 180,
                     decoration: BoxDecoration(
@@ -459,11 +463,13 @@ class _LogoVariationsSection extends StatelessWidget {
                       color: theme.colorScheme.surfaceVariant.withOpacity(0.3),
                     ),
                     padding: const EdgeInsets.all(12),
-                    child: CachedNetworkImage(
-                      imageUrl: url,
+                    child: MediaImage(
+                      path: filePath,
+                      type: MediaImageType.logo,
+                      size: MediaImageSize.w185,
                       fit: BoxFit.contain,
-                      placeholder: (context, _) => const Center(child: CircularProgressIndicator()),
-                      errorWidget: (_, __, ___) => const Icon(Icons.broken_image_outlined),
+                      placeholder: const Center(child: CircularProgressIndicator()),
+                      errorWidget: const Icon(Icons.broken_image_outlined),
                     ),
                   );
                 },

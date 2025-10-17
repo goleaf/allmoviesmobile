@@ -8,6 +8,7 @@ import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
+import '../company_detail/company_detail_screen.dart';
 import '../../../core/utils/media_image_helper.dart';
 
 class CompaniesScreen extends StatefulWidget {
@@ -110,16 +111,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   }
 
   void _showCompanyDetails(BuildContext context, Company company) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        final padding = MediaQuery.of(context).viewInsets;
-        return Padding(
-          padding: EdgeInsets.only(bottom: padding.bottom),
-          child: _CompanyDetailSheet(company: company),
-        );
-      },
+    Navigator.pushNamed(
+      context,
+      CompanyDetailScreen.routeName,
+      arguments: company,
     );
   }
 }

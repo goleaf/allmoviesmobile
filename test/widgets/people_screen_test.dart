@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
 import 'package:allmovies_mobile/data/models/person_model.dart';
+import 'package:allmovies_mobile/data/models/paginated_response.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 import 'package:allmovies_mobile/providers/people_provider.dart';
 import 'package:allmovies_mobile/presentation/screens/people/people_screen.dart';

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../../../../data/models/company_model.dart';
 import '../../../../data/models/search_result_model.dart';
 import '../../movie_detail/movie_detail_screen.dart';
+import '../../tv_detail/tv_detail_screen.dart';
+import '../../person_detail/person_detail_screen.dart';
 import '../../../widgets/media_image.dart';
 import '../../../../core/config/app_config.dart';
 
@@ -41,15 +43,31 @@ class SearchResultListTile extends StatelessWidget {
             ),
         ],
       ),
-      onTap: result.mediaType == MediaType.movie
-          ? () {
-              Navigator.pushNamed(
-                context,
-                MovieDetailScreen.routeName,
-                arguments: result.id,
-              );
-            }
-          : null,
+      onTap: () {
+        switch (result.mediaType) {
+          case MediaType.movie:
+            Navigator.pushNamed(
+              context,
+              MovieDetailScreen.routeName,
+              arguments: result.id,
+            );
+            break;
+          case MediaType.tv:
+            Navigator.pushNamed(
+              context,
+              TVDetailScreen.routeName,
+              arguments: result.id,
+            );
+            break;
+          case MediaType.person:
+            Navigator.pushNamed(
+              context,
+              PersonDetailScreen.routeName,
+              arguments: result.id,
+            );
+            break;
+        }
+      },
     );
 
     if (!showDivider) {
@@ -113,7 +131,7 @@ class CompanyResultTile extends StatelessWidget {
 
   String? get _logoUrl {
     if (company.logoPath != null && company.logoPath!.isNotEmpty) {
-      return 'https://image.tmdb.org/t/p/w185${company.logoPath}';
+      return AppConfig.tmdbImageBaseUrl + '/w185' + (company.logoPath!.startsWith('/') ? '' : '/') + company.logoPath!;
     }
     return null;
   }

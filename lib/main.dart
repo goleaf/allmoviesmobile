@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
+import 'bootstrap/isar_warmup.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/static_catalog_service.dart';
 import 'data/tmdb_repository.dart';
@@ -19,7 +20,6 @@ import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'package:provider/provider.dart' show Provider; // add Provider for repo injection
 import 'presentation/screens/explorer/api_explorer_screen.dart';
-import 'presentation/screens/splash_preload/splash_preload_screen.dart';
 import 'presentation/screens/splash_preload/boot_gate.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
@@ -56,6 +56,10 @@ void main() async {
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
+
+  // Warm-open Isar on IO; on web this is a no-op stub
+  // ignore: unawaited_futures
+  warmupIsar();
 
   runApp(AllMoviesApp(
     storageService: storageService,

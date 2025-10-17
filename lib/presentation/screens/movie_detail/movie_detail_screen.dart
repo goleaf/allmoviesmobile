@@ -23,6 +23,7 @@ import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/fullscreen_modal_scaffold.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
@@ -54,19 +55,15 @@ class _MovieDetailView extends StatelessWidget {
     final loc = AppLocalizations.of(context);
 
     if (provider.isLoading && provider.details == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(provider.initialMovie.title),
-        ),
+      return FullscreenModalScaffold(
+        title: Text(provider.initialMovie.title),
         body: const Center(child: LoadingIndicator()),
       );
     }
 
     if (provider.hasError && provider.details == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(provider.initialMovie.title),
-        ),
+      return FullscreenModalScaffold(
+        title: Text(provider.initialMovie.title),
         body: Center(
           child: ErrorDisplay(
             message: provider.errorMessage ?? 'Failed to load movie details',
@@ -78,10 +75,8 @@ class _MovieDetailView extends StatelessWidget {
 
     final details = provider.details;
     if (details == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(provider.initialMovie.title),
-        ),
+      return FullscreenModalScaffold(
+        title: Text(provider.initialMovie.title),
         body: const Center(child: Text('No details available')),
       );
     }

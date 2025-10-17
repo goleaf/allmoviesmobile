@@ -6,6 +6,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/company_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../../data/tmdb_repository.dart';
+import '../../widgets/fullscreen_modal_scaffold.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
   static const routeName = '/company-detail';
@@ -48,10 +49,8 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.initialCompany.name),
-      ),
+    return FullscreenModalScaffold(
+      title: Text(widget.initialCompany.name),
       body: FutureBuilder<Company>(
         future: _companyFuture,
         builder: (context, snapshot) {

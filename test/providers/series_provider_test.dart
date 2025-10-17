@@ -43,7 +43,7 @@ void main() {
   group('SeriesProvider', () {
     test('initial refresh populates series sections', () async {
       final provider = SeriesProvider(_FakeRepo());
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await provider.initialized;
 
       expect(provider.isInitialized, isTrue);
       for (final section in SeriesSection.values) {
@@ -53,7 +53,7 @@ void main() {
 
     test('applyNetworkFilter loads network shows into popular section', () async {
       final provider = SeriesProvider(_FakeRepo());
-      await Future<void>.delayed(const Duration(milliseconds: 10));
+      await provider.initialized;
 
       await provider.applyNetworkFilter(213); // Netflix
       expect(provider.sectionState(SeriesSection.popular).items.first.title, 'By Network');

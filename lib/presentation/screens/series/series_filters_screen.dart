@@ -365,6 +365,7 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           child: SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
+              key: const ValueKey('seriesApplyFilters'),
               onPressed: _apply,
               icon: const Icon(Icons.check),
               label: const Text(AppStrings.apply),

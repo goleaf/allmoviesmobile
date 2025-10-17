@@ -18,7 +18,7 @@ void main() {
 
   test('PeopleProvider loads sections', () async {
     final provider = PeopleProvider(FakeRepo());
-    await Future<void>.delayed(const Duration(milliseconds: 10));
+    await provider.initialized;
     expect(provider.isInitialized, isTrue);
     expect(provider.sectionState(PeopleSection.trending).items, isNotEmpty);
     expect(provider.sectionState(PeopleSection.popular).items, isNotEmpty);

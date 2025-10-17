@@ -32,24 +32,21 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final moviesProvider = MoviesProvider(_FakeRepo(), regionProvider: WatchRegionProvider(prefs));
 
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: moviesProvider),
-        ],
-        child: MaterialApp(
-          home: DefaultTabController(
-            length: MovieSection.values.length,
-            child: const MoviesScreen(),
-          ),
-          onGenerateRoute: (settings) {
-            if (settings.name == MoviesFiltersScreen.routeName) {
-              return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen());
-            }
-            return null;
-          },
-        ),
+    await pumpApp(
+      tester,
+      DefaultTabController(
+        length: MovieSection.values.length,
+        child: const MoviesScreen(),
       ),
+      providers: [
+        ChangeNotifierProvider.value(value: moviesProvider),
+      ],
+      onGenerateRoute: (settings) {
+        if (settings.name == MoviesFiltersScreen.routeName) {
+          return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen());
+        }
+        return null;
+      },
     );
 
     await tester.pumpAndSettle();
@@ -71,13 +68,12 @@ void main() {
     final prefs = await SharedPreferences.getInstance();
     final moviesProvider = MoviesProvider(_FakeRepo(), regionProvider: WatchRegionProvider(prefs));
 
-    await tester.pumpWidget(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: moviesProvider),
-        ],
-        child: const MaterialApp(home: MoviesScreen()),
-      ),
+    await pumpApp(
+      tester,
+      const MoviesScreen(),
+      providers: [
+        ChangeNotifierProvider.value(value: moviesProvider),
+      ],
     );
 
     await tester.pumpAndSettle();

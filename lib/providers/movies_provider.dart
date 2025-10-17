@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../data/models/movie.dart';
 import '../data/tmdb_repository.dart';
@@ -43,9 +44,11 @@ class MovieSectionState {
 }
 
 class MoviesProvider extends ChangeNotifier {
-  MoviesProvider(this._repository, {WatchRegionProvider? regionProvider}) {
+  MoviesProvider(this._repository, {WatchRegionProvider? regionProvider, bool autoInitialize = true}) {
     _regionProvider = regionProvider;
-    _init();
+    if (autoInitialize) {
+      _init();
+    }
   }
 
   final TmdbRepository _repository;
@@ -74,10 +77,14 @@ class MoviesProvider extends ChangeNotifier {
   bool _isRefreshing = false;
   String? _globalError;
 
+  final Completer<void> _initializedCompleter = Completer<void>();
+
   Map<MovieSection, MovieSectionState> get sections => _sections;
   bool get isInitialized => _isInitialized;
   bool get isRefreshing => _isRefreshing;
   String? get globalError => _globalError;
+
+  Future<void> get initialized => _initializedCompleter.future;
 
   MovieSectionState sectionState(MovieSection section) => _sections[section]!;
 
@@ -138,6 +145,9 @@ class MoviesProvider extends ChangeNotifier {
     } finally {
       _isRefreshing = false;
       notifyListeners();
+      if (!_initializedCompleter.isCompleted) {
+        _initializedCompleter.complete();
+      }
     }
   }
 

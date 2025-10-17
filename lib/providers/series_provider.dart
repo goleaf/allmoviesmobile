@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../data/models/movie.dart';
 import '../data/tmdb_repository.dart';
@@ -39,8 +40,10 @@ class SeriesSectionState {
 }
 
 class SeriesProvider extends ChangeNotifier {
-  SeriesProvider(this._repository) {
-    _init();
+  SeriesProvider(this._repository, {bool autoInitialize = true}) {
+    if (autoInitialize) {
+      _init();
+    }
   }
 
   final TmdbRepository _repository;
@@ -54,11 +57,15 @@ class SeriesProvider extends ChangeNotifier {
   String? _globalError;
   int? _activeNetworkId;
 
+  final Completer<void> _initializedCompleter = Completer<void>();
+
   Map<SeriesSection, SeriesSectionState> get sections => _sections;
   bool get isInitialized => _isInitialized;
   bool get isRefreshing => _isRefreshing;
   String? get globalError => _globalError;
   int? get activeNetworkId => _activeNetworkId;
+
+  Future<void> get initialized => _initializedCompleter.future;
 
   SeriesSectionState sectionState(SeriesSection section) => _sections[section]!;
 
@@ -110,6 +117,9 @@ class SeriesProvider extends ChangeNotifier {
     } finally {
       _isRefreshing = false;
       notifyListeners();
+      if (!_initializedCompleter.isCompleted) {
+        _initializedCompleter.complete();
+      }
     }
   }
 

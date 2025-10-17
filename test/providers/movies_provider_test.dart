@@ -35,11 +35,11 @@ void main() {
   test('MoviesProvider loads sections and reacts to region + window', () async {
     final repo = FakeRepo();
     final provider = MoviesProvider(repo);
-    await Future<void>.delayed(const Duration(milliseconds: 10));
+    await provider.initialized;
     expect(provider.isInitialized, isTrue);
     expect(provider.sectionState(MovieSection.trending).items, isNotEmpty);
     provider.setTrendingWindow('week');
-    await Future<void>.delayed(const Duration(milliseconds: 10));
+    await provider.initialized; // already completed; ensures no race
     expect(provider.sectionState(MovieSection.trending).items, isNotEmpty);
     final prefsProvider = WatchRegionProvider(await SharedPreferencesWithDefault.get());
     provider.bindRegionProvider(prefsProvider);

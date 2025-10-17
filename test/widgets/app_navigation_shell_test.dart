@@ -32,7 +32,7 @@ void main() {
     // Initially on Home
     expect(find.byType(NavigationBar), findsOneWidget);
 
-    // Tap Movies destination (use first occurrence to avoid ambiguity)
+    // Tap Movies destination (use label from AppStrings)
     await tester.tap(find.text('Movies').first);
     await tester.pumpAndSettle();
 
@@ -40,8 +40,18 @@ void main() {
     await tester.tap(find.text('Series').first);
     await tester.pumpAndSettle();
 
-    // Tap Search destination
-    await tester.tap(find.text('Search').first);
+    // Tap Search destination (label is 'Search movies...' in AppStrings.search)
+    // Fallback to tapping the navigation icon by tooltip if text is not visible
+    final searchTextFinder = find.text('Search movies...');
+    if (searchTextFinder.evaluate().isEmpty) {
+      // Find the third NavigationDestination by semantics
+      final navBar = find.byType(NavigationBar);
+      expect(navBar, findsOneWidget);
+      // Tap by index using widget tree order
+      await tester.tap(find.descendant(of: navBar, matching: find.byIcon(Icons.search)).first);
+    } else {
+      await tester.tap(searchTextFinder.first);
+    }
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationBar), findsOneWidget);

@@ -1,6 +1,9 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import '../models/genre_model.dart';
+import '../models/watch_provider_model.dart';
+import '../models/configuration_model.dart';
 
 class TmdbApiService {
   TmdbApiService({
@@ -339,6 +342,118 @@ class TmdbApiService {
     }
 
     return decoded;
+  }
+
+  // ==================== TYPED FETCHERS (Configuration & Reference Data) ====================
+
+  Future<List<Genre>> fetchMovieGenresTyped({String? language}) async {
+    final json = await _getJson(
+      '/3/genre/movie/list',
+      queryParameters: {
+        if (language != null) 'language': language,
+      },
+    );
+    final list = json['genres'];
+    if (list is! List) return const [];
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(Genre.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<List<Genre>> fetchTvGenresTyped({String? language}) async {
+    final json = await _getJson(
+      '/3/genre/tv/list',
+      queryParameters: {
+        if (language != null) 'language': language,
+      },
+    );
+    final list = json['genres'];
+    if (list is! List) return const [];
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(Genre.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<List<LanguageInfo>> fetchLanguagesTyped() async {
+    final list = await _getJsonList('/3/configuration/languages');
+    return list
+        .whereType<Map<String, dynamic>>()
+        .map(LanguageInfo.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<List<CountryInfo>> fetchCountriesTyped({String? language}) async {
+    final results = await _getJsonList(
+      '/3/configuration/countries',
+      queryParameters: {
+        if (language != null) 'language': language,
+      },
+    );
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(CountryInfo.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<Map<String, WatchProviderResults>> fetchMovieWatchProvidersTyped(int movieId) async {
+    final json = await _getJson('/3/movie/$movieId/watch/providers');
+    final results = json['results'];
+    if (results is! Map<String, dynamic>) return const {};
+    return results.map((key, value) {
+      if (value is Map<String, dynamic>) {
+        return MapEntry(key, WatchProviderResults.fromJson(value));
+      }
+      return MapEntry(key, const WatchProviderResults());
+    });
+  }
+
+  Future<Map<String, WatchProviderResults>> fetchTvWatchProvidersTyped(int tvId) async {
+    final json = await _getJson('/3/tv/$tvId/watch/providers');
+    final results = json['results'];
+    if (results is! Map<String, dynamic>) return const {};
+    return results.map((key, value) {
+      if (value is Map<String, dynamic>) {
+        return MapEntry(key, WatchProviderResults.fromJson(value));
+      }
+      return MapEntry(key, const WatchProviderResults());
+    });
+  }
+
+  Future<List<WatchProviderRegion>> fetchWatchProviderRegionsTyped({String? language}) async {
+    final json = await _getJson(
+      '/3/watch/providers/regions',
+      queryParameters: {
+        if (language != null) 'language': language,
+      },
+    );
+    final results = json['results'];
+    if (results is! List) return const [];
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(WatchProviderRegion.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<List<WatchProvider>> fetchWatchProvidersCatalogTyped({
+    required String mediaType, // 'movie' | 'tv'
+    String? language,
+    String? watchRegion,
+  }) async {
+    final json = await _getJson(
+      '/3/watch/providers/$mediaType',
+      queryParameters: {
+        if (language != null) 'language': language,
+        if (watchRegion != null) 'watch_region': watchRegion,
+      },
+    );
+    final results = json['results'];
+    if (results is! List) return const [];
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(WatchProvider.fromJson)
+        .toList(growable: false);
   }
 
   Future<Map<String, dynamic>> fetchConfiguration({

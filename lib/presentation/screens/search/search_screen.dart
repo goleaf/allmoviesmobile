@@ -7,6 +7,9 @@ import '../movie_detail/movie_detail_screen.dart';
 import '../tv_detail/tv_detail_screen.dart';
 import '../person_detail/person_detail_screen.dart';
 import '../../../core/config/app_config.dart';
+import 'package:allmoviesmobile/presentation/widgets/media_image.dart';
+import 'package:allmoviesmobile/presentation/widgets/media_image_type.dart';
+import 'package:allmoviesmobile/presentation/widgets/media_image_size.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -297,6 +300,9 @@ class _SearchResultCard extends StatelessWidget {
       MediaType.tv => 'TV',
       MediaType.person => 'Person',
     };
+    final posterPath = result.posterPath?.isNotEmpty == true
+        ? result.posterPath
+        : (result.profilePath?.isNotEmpty == true ? result.profilePath : null);
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -328,32 +334,35 @@ class _SearchResultCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  image: _posterImage != null
-                      ? DecorationImage(
-                          image: NetworkImage(_posterImage!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: _posterImage == null
-                    ? Center(
-                        child: Text(
-                          (title.isNotEmpty ? title[0] : mediaLabel[0]).toUpperCase(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer,
-                              ),
-                        ),
-                      )
-                    : null,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  if (posterPath != null && posterPath.isNotEmpty)
+                    MediaImage(
+                      path: posterPath,
+                      type: result.mediaType == MediaType.person
+                          ? MediaImageType.profile
+                          : MediaImageType.poster,
+                      size: MediaImageSize.w342,
+                      fit: BoxFit.cover,
+                    )
+                  else
+                    Container(color: Theme.of(context).colorScheme.primaryContainer),
+                  if (posterPath == null || posterPath.isEmpty)
+                    Center(
+                      child: Text(
+                        (title.isNotEmpty ? title[0] : mediaLabel[0]).toUpperCase(),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onPrimaryContainer,
+                            ),
+                      ),
+                    ),
+                ],
               ),
             ),
             Padding(
@@ -391,12 +400,6 @@ class _SearchResultCard extends StatelessWidget {
   }
 
   String? get _posterImage {
-    if (result.posterPath != null && result.posterPath!.isNotEmpty) {
-      return AppConfig.tmdbImageBaseUrl + '/w342' + (result.posterPath!.startsWith('/') ? '' : '/') + result.posterPath!;
-    }
-    if (result.profilePath != null && result.profilePath!.isNotEmpty) {
-      return AppConfig.tmdbImageBaseUrl + '/w342' + (result.profilePath!.startsWith('/') ? '' : '/') + result.profilePath!;
-    }
     return null;
   }
 }

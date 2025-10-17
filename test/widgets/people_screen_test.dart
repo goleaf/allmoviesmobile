@@ -9,7 +9,10 @@ import 'package:allmovies_mobile/presentation/screens/people/people_screen.dart'
 
 class _FakeRepo extends TmdbRepository {
   @override
-  Future<List<Person>> fetchPopularPeople({int page = 1, bool forceRefresh = false}) async => [Person(id: 1, name: 'P')];
+  Future<PaginatedResponse<Person>> fetchPopularPeople({int page = 1, bool forceRefresh = false}) async {
+    return PaginatedResponse<Person>(page: 1, totalPages: 1, totalResults: 1, results: [Person(id: 1, name: 'P')]);
+  }
+
   @override
   Future<List<Person>> fetchTrendingPeople({String timeWindow = 'day', bool forceRefresh = false}) async => [Person(id: 2, name: 'T')];
 }

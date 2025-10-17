@@ -61,7 +61,7 @@ class FullscreenModalScaffold extends StatelessWidget {
                 SliverAppBar(
                   pinned: true,
                   leading: leading,
-                  title: title is Text ? (title as Text) : null,
+                  title: title,
                   actions: actions,
                 ),
                 ...slivers!,

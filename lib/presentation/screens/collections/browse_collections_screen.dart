@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/collection_model.dart';
 import '../../../data/services/api_config.dart';
+import '../../widgets/media_image.dart';
 import '../../../providers/collections_provider.dart';
 import '../../widgets/app_drawer.dart';
 
@@ -447,16 +448,12 @@ class _CollectionShowcaseCard extends StatelessWidget {
               AspectRatio(
                 aspectRatio: 2 / 3,
                 child: posterUrl.isNotEmpty
-                    ? Image.network(
-                        posterUrl,
+                    ? MediaImage(
+                        path: details.posterPath,
+                        type: MediaImageType.poster,
+                        size: MediaImageSize.w500,
                         fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => _PosterFallbackIcon(theme: theme),
-                        loadingBuilder: (context, child, loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          }
-                          return const Center(child: CircularProgressIndicator());
-                        },
+                        errorWidget: _PosterFallbackIcon(theme: theme),
                       )
                     : _PosterFallbackIcon(theme: theme),
               ),
@@ -524,21 +521,13 @@ class _CollectionSearchResultTile extends StatelessWidget {
       leading: posterUrl.isNotEmpty
           ? ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: Image.network(
-                posterUrl,
+              child: MediaImage(
+                path: collection.posterPath,
+                type: MediaImageType.poster,
+                size: MediaImageSize.w185,
                 width: 56,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _PosterFallbackIcon(theme: theme),
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) {
-                    return child;
-                  }
-                  return const SizedBox(
-                    width: 56,
-                    height: 84,
-                    child: Center(child: CircularProgressIndicator(strokeWidth: 2.5)),
-                  );
-                },
+                errorWidget: _PosterFallbackIcon(theme: theme),
               ),
             )
           : SizedBox(
@@ -645,10 +634,12 @@ class _CollectionDetailsSheet extends StatelessWidget {
             if (posterUrl.isNotEmpty)
               ClipRRect(
                 borderRadius: BorderRadius.circular(16),
-                child: Image.network(
-                  posterUrl,
+                child: MediaImage(
+                  path: details.posterPath,
+                  type: MediaImageType.poster,
+                  size: MediaImageSize.w500,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _PosterFallbackIcon(theme: theme),
+                  errorWidget: _PosterFallbackIcon(theme: theme),
                 ),
               ),
             const SizedBox(height: 16),

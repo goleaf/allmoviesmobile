@@ -6,6 +6,7 @@ import '../../../data/models/user_list.dart';
 import '../../../providers/lists_provider.dart';
 import '../../widgets/empty_state.dart';
 import 'list_detail_screen.dart';
+import '../../widgets/media_image.dart';
 
 class ListsScreen extends StatelessWidget {
   static const String routeName = '/lists';
@@ -372,19 +373,34 @@ class _ListPoster extends StatelessWidget {
   Widget build(BuildContext context) {
     final borderRadius = BorderRadius.circular(12);
 
+    final isFullUrl = posterUrl != null && posterUrl!.startsWith('http');
+
     return ClipRRect(
       borderRadius: borderRadius,
-      child: Container(
+      child: Container
+      (
         width: 80,
         height: 120,
         color: Theme.of(context).colorScheme.surfaceVariant,
-        child: posterUrl != null && posterUrl!.isNotEmpty
-            ? Image.network(
-                posterUrl!,
-                fit: BoxFit.cover,
-                errorBuilder: (context, _, __) => const _PosterFallback(),
-              )
-            : const _PosterFallback(),
+        child: () {
+          if (posterUrl == null || posterUrl!.isEmpty) {
+            return const _PosterFallback();
+          }
+          if (isFullUrl) {
+            return Image.network(
+              posterUrl!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, _, __) => const _PosterFallback(),
+            );
+          }
+          return MediaImage(
+            path: posterUrl,
+            type: MediaImageType.poster,
+            size: MediaImageSize.w342,
+            fit: BoxFit.cover,
+            errorWidget: const _PosterFallback(),
+          );
+        }(),
       ),
     );
   }

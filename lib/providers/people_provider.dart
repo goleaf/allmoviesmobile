@@ -59,6 +59,13 @@ class PeopleProvider extends ChangeNotifier {
     await refresh(force: true);
   }
 
+  Future<void> get initialized async {
+    if (_isInitialized) return;
+    while (!_isInitialized && _isRefreshing) {
+      await Future<void>.delayed(const Duration(milliseconds: 10));
+    }
+  }
+
   Future<void> refresh({bool force = false}) async {
     if (_isRefreshing) {
       return;
@@ -113,21 +120,9 @@ class PeopleProvider extends ChangeNotifier {
     }
   }
 
-  Future<Person> loadDetails(int personId) async {
+  Future<PersonDetail> loadDetails(int personId) async {
     try {
-      final d = await _repository.fetchPersonDetails(personId);
-      // Map detail to Person summary model expected by UI helpers
-      return Person(
-        id: d.id,
-        name: d.name,
-        profilePath: d.profilePath,
-        biography: d.biography,
-        knownForDepartment: d.knownForDepartment,
-        birthday: d.birthday,
-        placeOfBirth: d.placeOfBirth,
-        alsoKnownAs: d.alsoKnownAs,
-        popularity: d.popularity,
-      );
+      return await _repository.fetchPersonDetails(personId);
     } catch (error) {
       throw TmdbException('Failed to load person details: $error');
     }

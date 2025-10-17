@@ -5,6 +5,11 @@ import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../data/services/api_config.dart';
 import '../../providers/favorites_provider.dart';
+import '../widgets.dart';
+import '../widgets.dart';
+import '../widgets.dart';
+import '../../core/utils/media_image_helper.dart';
+import 'media_image.dart';
 
 class MovieCard extends StatelessWidget {
   final int id;
@@ -149,18 +154,18 @@ class MovieCard extends StatelessWidget {
       );
     }
 
-    final posterUrl = ApiConfig.getPosterUrl(posterPath, size: ApiConfig.posterSizeMedium);
-
-    return CachedNetworkImage(
-      imageUrl: posterUrl,
+    return MediaImage(
+      path: posterPath,
+      type: MediaImageType.poster,
+      size: MediaImageSize.w342,
       fit: BoxFit.cover,
-      placeholder: (context, url) => Container(
+      placeholder: Container(
         color: Colors.grey[300],
         child: const Center(
           child: CircularProgressIndicator(),
         ),
       ),
-      errorWidget: (context, url, error) => Container(
+      errorWidget: Container(
         color: Colors.grey[300],
         child: const Center(
           child: Icon(

@@ -18,9 +18,18 @@ class IsarDbProvider {
   static final IsarDbProvider instance = IsarDbProvider._();
 
   Isar? _isar;
+  Future<Isar>? _opening;
 
   Future<Isar> get isar async {
     if (_isar != null) return _isar!;
+    // Ensure only one open is in flight; await existing if present
+    _opening ??= _openInternal();
+    _isar = await _opening!;
+    _opening = null;
+    return _isar!;
+  }
+
+  Future<Isar> _openInternal() async {
     Directory dir;
     try {
       dir = await getApplicationDocumentsDirectory();
@@ -28,7 +37,7 @@ class IsarDbProvider {
       // Tests/Vm without platform channels
       dir = await Directory.systemTemp.createTemp('isar_test_');
     }
-    _isar = await Isar.open(
+    return Isar.open(
       [
         GenreTranslationEntitySchema,
         WatchProviderEntitySchema,
@@ -41,7 +50,15 @@ class IsarDbProvider {
       directory: dir.path,
       inspector: false,
     );
-    return _isar!;
+  }
+
+  Future<void> close() async {
+    final db = _isar;
+    _isar = null;
+    _opening = null;
+    if (db != null && db.isOpen) {
+      await db.close();
+    }
   }
 }
 

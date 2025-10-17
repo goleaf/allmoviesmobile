@@ -8,6 +8,7 @@ import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/services/static_catalog_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -18,6 +19,8 @@ import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'package:provider/provider.dart' show Provider; // add Provider for repo injection
 import 'presentation/screens/explorer/api_explorer_screen.dart';
+import 'presentation/screens/splash_preload/splash_preload_screen.dart';
+import 'presentation/screens/splash_preload/boot_gate.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
@@ -64,7 +67,7 @@ class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
   final TmdbRepository? tmdbRepository;
-  final Object? catalogService; // placeholder to avoid importing isar on web
+  final StaticCatalogService? catalogService;
 
   const AllMoviesApp({
     super.key,
@@ -124,7 +127,10 @@ class AllMoviesApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
-                initialRoute: MoviesScreen.routeName,
+                home: BootGate(
+                  service: catalogService ?? StaticCatalogService(repo),
+                  onNavigateToHome: () => MoviesScreen.routeName,
+                ),
                 routes: {
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
                   MoviesFiltersScreen.routeName: (context) => const MoviesFiltersScreen(),
@@ -142,8 +148,8 @@ class AllMoviesApp extends StatelessWidget {
                 onGenerateRoute: (settings) {
                   switch (settings.name) {
                     case '/tv':
-                      settings = settings.copyWith(name: TVDetailScreen.routeName);
-                      // fall through
+                      settings = RouteSettings(name: TVDetailScreen.routeName, arguments: settings.arguments);
+                    // fall through
                     case MovieDetailScreen.routeName:
                       final args = settings.arguments;
                       if (args is Movie) {
@@ -184,8 +190,8 @@ class AllMoviesApp extends StatelessWidget {
                       }
                       return null;
                     case '/person':
-                      settings = settings.copyWith(name: PersonDetailScreen.routeName);
-                      // fall through
+                      settings = RouteSettings(name: PersonDetailScreen.routeName, arguments: settings.arguments);
+                    // fall through
                     case PersonDetailScreen.routeName:
                       final args = settings.arguments;
                       if (args is int) {

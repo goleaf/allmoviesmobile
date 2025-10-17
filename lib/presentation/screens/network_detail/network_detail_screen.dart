@@ -13,6 +13,7 @@ import '../../../providers/network_details_provider.dart';
 import '../../../providers/network_shows_provider.dart';
 import '../../widgets/movie_card.dart';
 import '../tv_detail/tv_detail_screen.dart';
+import '../../widgets/fullscreen_modal_scaffold.dart';
 
 class NetworkDetailArguments {
   const NetworkDetailArguments({
@@ -80,16 +81,14 @@ class _NetworkDetailContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Consumer<NetworkDetailsProvider>(
-          builder: (context, provider, _) {
-            return Text(
-              provider.network?.name ?? initialName ?? loc.t('network.details_title'),
-              overflow: TextOverflow.ellipsis,
-            );
-          },
-        ),
+    return FullscreenModalScaffold(
+      title: Consumer<NetworkDetailsProvider>(
+        builder: (context, provider, _) {
+          return Text(
+            provider.network?.name ?? initialName ?? loc.t('network.details_title'),
+            overflow: TextOverflow.ellipsis,
+          );
+        },
       ),
       body: RefreshIndicator(
         onRefresh: () async {
@@ -743,8 +742,8 @@ class MissingNetworkArgumentsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(loc.t('network.details_title'))),
+    return FullscreenModalScaffold(
+      title: Text(loc.t('network.details_title')),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),

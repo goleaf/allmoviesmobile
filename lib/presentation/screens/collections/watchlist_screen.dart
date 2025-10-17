@@ -5,9 +5,11 @@ import 'package:provider/provider.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/models/movie_mappers.dart';
 import '../../../data/services/api_config.dart';
+import '../../widgets/media_image.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/watchlist_provider.dart';
+import '../../../core/utils/media_image_helper.dart';
 
 class WatchlistScreen extends StatelessWidget {
   const WatchlistScreen({super.key});
@@ -235,22 +237,20 @@ class _PosterImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final posterUrl = ApiConfig.getPosterUrl(
-      path,
-      size: ApiConfig.posterSizeSmall,
-    );
-
-    if (posterUrl.isEmpty) {
+    if (path == null || path!.isEmpty) {
       return const _PosterPlaceholder();
     }
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: Image.network(
-        posterUrl,
+      child: MediaImage(
+        path: path,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w92,
         width: 56,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => const _PosterPlaceholder(),
+        errorWidget: const _PosterPlaceholder(),
+        placeholder: const _PosterPlaceholder(),
       ),
     );
   }

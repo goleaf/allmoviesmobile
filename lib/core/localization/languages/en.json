@@ -176,6 +176,13 @@
       "language_es": "Spanish",
       "language_ko": "Korean"
     },
+    "error_loading": "Failed to load networks",
+    "search_placeholder": "Search TV networks...",
+    "search_hint": "Type a network name to search",
+    "popular": "Popular networks",
+    "by_country": "Networks by country",
+    "search_results": "Search results",
+    "empty": "No networks found",
     "load_more": "Load more",
     "retry": "Retry",
     "copied": "Link copied to clipboard"
@@ -192,6 +199,23 @@
     "clear_history": "Clear History",
     "no_results": "No results found",
     "try_different_keywords": "Try different keywords"
+  },
+  "keywords": {
+    "search_hint": "Type a keyword to search",
+    "trending_title": "Trending keywords",
+    "trending_subtitle": "What people search for now",
+    "empty_trending": "No trending keywords right now.",
+    "search_prompt": "Start typing to search keywords",
+    "empty_results": "No keywords match your search",
+    "search_results_title": "Search results"
+  },
+  "collection": {
+    "title": "Collection",
+    "overview": "Overview",
+    "no_overview": "No overview available yet.",
+    "parts": "Parts",
+    "release_timeline": "Release timeline",
+    "images": "Images"
   },
   "discover": {
     "title": "Discover",

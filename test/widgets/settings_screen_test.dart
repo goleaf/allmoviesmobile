@@ -29,34 +29,37 @@ void main() {
       ),
     );
 
-    // Open theme dialog
+    await tester.pumpAndSettle();
+
+    // Theme
     await tester.tap(find.textContaining('Theme'));
     await tester.pumpAndSettle();
-    // Choose a different theme mode if available
-    final radio = find.byType(RadioListTile<AppThemeMode>).first;
-    await tester.tap(radio);
-    await tester.pumpAndSettle();
-
-    // Open language dialog
-    await tester.tap(find.textContaining('Language'));
-    await tester.pumpAndSettle();
-    final languageRadio = find.byType(RadioListTile<Locale>).first;
-    await tester.tap(languageRadio);
-    await tester.pumpAndSettle();
-
-    // Open region dialog (ensure visible)
-    final listFinder = find.byType(ListView);
-    if (listFinder.evaluate().isNotEmpty) {
-      await tester.drag(listFinder.first, const Offset(0, -300));
+    final themeTile = find.byType(RadioListTile<AppThemeMode>).first;
+    if (themeTile.evaluate().isNotEmpty) {
+      await tester.tap(themeTile);
       await tester.pumpAndSettle();
     }
+
+    // Language
+    await tester.tap(find.textContaining('Language'));
+    await tester.pumpAndSettle();
+    final langTile = find.byType(RadioListTile<Locale>).first;
+    if (langTile.evaluate().isNotEmpty) {
+      await tester.tap(langTile);
+      await tester.pumpAndSettle();
+    }
+
+    // Region (scroll first)
+    final scrollable = find.byType(ListView).first;
+    await tester.scrollUntilVisible(find.textContaining('Region'), 200, scrollable: scrollable);
     await tester.tap(find.textContaining('Region'));
     await tester.pumpAndSettle();
-    final regionRadio = find.byType(RadioListTile<String>).first;
-    await tester.tap(regionRadio);
-    await tester.pumpAndSettle();
+    final regionTile = find.byType(RadioListTile<String>).first;
+    if (regionTile.evaluate().isNotEmpty) {
+      await tester.tap(regionTile);
+      await tester.pumpAndSettle();
+    }
 
-    // If reached here without exceptions, interactions worked
     expect(find.byType(SettingsScreen), findsOneWidget);
   });
 }

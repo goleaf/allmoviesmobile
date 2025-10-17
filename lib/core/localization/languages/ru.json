@@ -160,6 +160,13 @@
       "language_es": "Испанский",
       "language_ko": "Корейский"
     },
+    "error_loading": "Не удалось загрузить сети",
+    "search_placeholder": "Поиск ТВ сетей...",
+    "search_hint": "Введите название сети для поиска",
+    "popular": "Популярные сети",
+    "by_country": "Сети по странам",
+    "search_results": "Результаты поиска",
+    "empty": "Сети не найдены",
     "load_more": "Загрузить еще",
     "retry": "Повторить",
     "copied": "Ссылка скопирована"
@@ -176,6 +183,23 @@
     "clear_history": "Очистить Историю",
     "no_results": "Результаты не найдены",
     "try_different_keywords": "Попробуйте другие ключевые слова"
+  },
+  "keywords": {
+    "search_hint": "Введите ключевое слово для поиска",
+    "trending_title": "Популярные ключевые слова",
+    "trending_subtitle": "Что сейчас ищут",
+    "empty_trending": "Пока нет популярных ключевых слов.",
+    "search_prompt": "Начните вводить для поиска ключевых слов",
+    "empty_results": "Ключевые слова не найдены",
+    "search_results_title": "Результаты поиска"
+  },
+  "collection": {
+    "title": "Коллекция",
+    "overview": "Обзор",
+    "no_overview": "Описание пока отсутствует.",
+    "parts": "Части",
+    "release_timeline": "Хронология релизов",
+    "images": "Изображения"
   },
   "discover": {
     "title": "Обзор",

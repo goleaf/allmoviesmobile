@@ -36,18 +36,22 @@ class RecommendationsProvider with ChangeNotifier {
       final favoriteIds = _storage.getFavorites();
       
       if (favoriteIds.isEmpty) {
-        // No favorites yet, return popular movies
+        // No favorites yet → start from popular for determinism
         _recommendedMovies = await _repository.fetchPopularMovies();
       } else {
-        // Get trending movies as base recommendations
-        // In a real app, you would fetch similar movies based on favorites
+        // Base from trending, then deterministically filter and sort
         _recommendedMovies = await _repository.fetchTrendingMovies();
-        
-        // Filter out already favorited movies
-        _recommendedMovies = _recommendedMovies
+        final filtered = _recommendedMovies
             .where((movie) => !favoriteIds.contains(movie.id))
-            .take(20)
-            .toList();
+            .toList(growable: false);
+        // Deduplicate by id and sort to keep output deterministic across runs
+        final byId = <int, Movie>{};
+        for (final m in filtered) {
+          byId[m.id] = m;
+        }
+        final deduped = byId.values.toList(growable: false)
+          ..sort((a, b) => a.id.compareTo(b.id));
+        _recommendedMovies = deduped.take(20).toList(growable: false);
       }
     } catch (error) {
       _errorMessage = 'Failed to fetch recommendations: $error';
@@ -65,7 +69,12 @@ class RecommendationsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _popularMovies = await _repository.fetchPopularMovies();
+      final items = await _repository.fetchPopularMovies();
+      // Deterministic ordering and limit
+      _popularMovies = (items.toList(growable: false)
+            ..sort((a, b) => a.id.compareTo(b.id)))
+          .take(20)
+          .toList(growable: false);
     } catch (error) {
       _errorMessage = 'Failed to fetch popular movies: $error';
       _popularMovies = [];
@@ -82,13 +91,17 @@ class RecommendationsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _similarMovies = await _repository.fetchSimilarMovies(movieId);
-      
-      // Filter out the current movie
-      _similarMovies = _similarMovies
-          .where((movie) => movie.id != movieId)
+      final items = await _repository.fetchSimilarMovies(movieId);
+      // Filter out the current movie, dedupe and sort by id for determinism
+      final filtered = items.where((m) => m.id != movieId).toList(growable: false);
+      final byId = <int, Movie>{};
+      for (final m in filtered) {
+        byId[m.id] = m;
+      }
+      _similarMovies = (byId.values.toList(growable: false)
+            ..sort((a, b) => a.id.compareTo(b.id)))
           .take(10)
-          .toList();
+          .toList(growable: false);
     } catch (error) {
       _errorMessage = 'Failed to fetch similar movies: $error';
       _similarMovies = [];
@@ -108,7 +121,11 @@ class RecommendationsProvider with ChangeNotifier {
       final response = await _repository.discoverMovies(
         filters: {'with_genres': '$genreId'},
       );
-      _recommendedMovies = response.results;
+      final items = response.results;
+      _recommendedMovies = (items.toList(growable: false)
+            ..sort((a, b) => a.id.compareTo(b.id)))
+          .take(20)
+          .toList(growable: false);
     } catch (error) {
       _errorMessage = 'Failed to fetch movies by genre: $error';
       _recommendedMovies = [];
@@ -128,17 +145,24 @@ class RecommendationsProvider with ChangeNotifier {
       final recentlyViewed = _storage.getRecentlyViewed(limit: 5);
       
       if (recentlyViewed.isEmpty) {
-        // No history, return popular movies
-        _recommendedMovies = await _repository.fetchPopularMovies();
-      } else {
-        // Get trending movies and filter based on recent views
-        _recommendedMovies = await _repository.fetchTrendingMovies();
-        
-        // Filter out recently viewed movies
-        _recommendedMovies = _recommendedMovies
-            .where((movie) => !recentlyViewed.contains(movie.id))
+        final items = await _repository.fetchPopularMovies();
+        _recommendedMovies = (items.toList(growable: false)
+              ..sort((a, b) => a.id.compareTo(b.id)))
             .take(20)
-            .toList();
+            .toList(growable: false);
+      } else {
+        final items = await _repository.fetchTrendingMovies();
+        final filtered = items
+            .where((movie) => !recentlyViewed.contains(movie.id))
+            .toList(growable: false);
+        final byId = <int, Movie>{};
+        for (final m in filtered) {
+          byId[m.id] = m;
+        }
+        _recommendedMovies = (byId.values.toList(growable: false)
+              ..sort((a, b) => a.id.compareTo(b.id)))
+            .take(20)
+            .toList(growable: false);
       }
     } catch (error) {
       _errorMessage = 'Failed to fetch recommendations: $error';

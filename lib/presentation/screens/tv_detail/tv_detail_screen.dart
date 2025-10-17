@@ -26,8 +26,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
-import '../../../core/utils/media_image_helper.dart';
-// duplicate import removed
+import '../../widgets/image_gallery.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../season_detail/season_detail_screen.dart';
@@ -1280,6 +1279,7 @@ class _SeasonImageGallery extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     if (isLoading) {
       return const SizedBox(
         height: 150,
@@ -1299,13 +1299,14 @@ class _SeasonImageGallery extends StatelessWidget {
     }
 
     if (!images!.hasAny) {
-      return const Text('No images available for this season');
+      return Text(loc.t('tv.no_images'));
     }
 
     final theme = Theme.of(context);
     final sections = <Widget>[
       Text(
-        'Season images',
+        loc.t('tv.season_images_title')
+            .replaceFirst('{seasonNumber}', '$seasonNumber'),
         style: theme.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w600,
         ),
@@ -1338,15 +1339,27 @@ class _SeasonImageGallery extends StatelessWidget {
             scrollDirection: Axis.horizontal,
             itemBuilder: (context, index) {
               final image = items[index];
-              return ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: MediaImage(
-                  path: image.filePath,
-                  type: type,
-                  size: size,
-                  width: width,
-                  height: height,
-                  fit: BoxFit.cover,
+              final heroTag = 'tv-season-$seasonNumber-${type.name}-$index';
+              return GestureDetector(
+                onTap: () => _openGallery(
+                  context,
+                  items,
+                  index,
+                  type,
+                ),
+                child: Hero(
+                  tag: heroTag,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: MediaImage(
+                      path: image.filePath,
+                      type: type,
+                      size: size,
+                      width: width,
+                      height: height,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               );
             },
@@ -1359,7 +1372,7 @@ class _SeasonImageGallery extends StatelessWidget {
     }
 
     addSection(
-      'Posters',
+      loc.t('movie.posters'),
       images!.posters,
       MediaImageType.poster,
       MediaImageSize.w342,
@@ -1367,7 +1380,7 @@ class _SeasonImageGallery extends StatelessWidget {
       width: 140,
     );
     addSection(
-      'Backdrops',
+      loc.t('movie.backdrops'),
       images!.backdrops,
       MediaImageType.backdrop,
       MediaImageSize.w780,
@@ -1375,7 +1388,7 @@ class _SeasonImageGallery extends StatelessWidget {
       width: 240,
     );
     addSection(
-      'Stills',
+      loc.t('movie.stills'),
       images!.stills,
       MediaImageType.still,
       MediaImageSize.w300,
@@ -1390,6 +1403,33 @@ class _SeasonImageGallery extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: sections,
+    );
+  }
+
+  void _openGallery(
+    BuildContext context,
+    List<ImageModel> images,
+    int initialIndex,
+    MediaImageType type,
+  ) {
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.9),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ImageGallery(
+            images: images,
+            mediaType: type,
+            initialIndex: initialIndex,
+            heroTagBuilder: (index, image) =>
+                'tv-season-${seasonNumber}-${type.name}-$index',
+          ),
+        );
+      },
     );
   }
 }

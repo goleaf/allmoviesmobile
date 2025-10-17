@@ -18,8 +18,10 @@ class ZoomableImage extends StatefulWidget {
     this.minScale = 1.0,
     this.maxScale = 4.0,
     this.padding = const EdgeInsets.all(12),
-  }) : assert(minScale > 0),
-       assert(maxScale >= minScale);
+    this.onInteractionStart,
+    this.onInteractionEnd,
+  })  : assert(minScale > 0),
+        assert(maxScale >= minScale);
 
   /// Raw TMDB image path (e.g. `/kqjL17yufvn9OVLyXYpvtyrFfak.jpg`).
   final String? imagePath;
@@ -38,6 +40,12 @@ class ZoomableImage extends StatefulWidget {
 
   /// Padding applied around the zoomable content.
   final EdgeInsets padding;
+
+  /// Callback triggered when a user begins a gesture interaction.
+  final VoidCallback? onInteractionStart;
+
+  /// Callback triggered when the gesture interaction ends.
+  final VoidCallback? onInteractionEnd;
 
   @override
   State<ZoomableImage> createState() => _ZoomableImageState();
@@ -91,6 +99,8 @@ class _ZoomableImageState extends State<ZoomableImage>
           clipBehavior: Clip.none,
           minScale: widget.minScale,
           maxScale: widget.maxScale,
+          onInteractionStart: (_) => widget.onInteractionStart?.call(),
+          onInteractionEnd: (_) => widget.onInteractionEnd?.call(),
           child: image,
         ),
       ),
@@ -98,6 +108,7 @@ class _ZoomableImageState extends State<ZoomableImage>
   }
 
   void _handleDoubleTap() {
+    widget.onInteractionStart?.call();
     final position = _doubleTapDetails?.localPosition;
     final currentMatrix = _controller.value;
     final isZoomed = !_isIdentityMatrix(currentMatrix);
@@ -121,7 +132,14 @@ class _ZoomableImageState extends State<ZoomableImage>
         _controller.value = _zoomAnimation!.value;
       });
 
-    _animationController!.forward();
+    _animationController!
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed ||
+            status == AnimationStatus.dismissed) {
+          widget.onInteractionEnd?.call();
+        }
+      })
+      ..forward();
   }
 
   Matrix4 _zoomMatrix(Offset focalPoint, double scale) {

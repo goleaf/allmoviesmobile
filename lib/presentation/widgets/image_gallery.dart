@@ -46,6 +46,7 @@ class ImageGallery extends StatefulWidget {
 class _ImageGalleryState extends State<ImageGallery> {
   late final PageController _pageController;
   late int _currentIndex;
+  bool _showChrome = true;
 
   @override
   void initState() {
@@ -77,27 +78,11 @@ class _ImageGalleryState extends State<ImageGallery> {
           Positioned.fill(child: _buildBlurredBackdrop(backgroundUrl)),
           Column(
             children: [
-              SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: _handleClose,
-                        tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${_currentIndex + 1} / ${widget.images.length}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              _GalleryTopBar(
+                isVisible: _showChrome,
+                currentIndex: _currentIndex,
+                total: widget.images.length,
+                onClose: _handleClose,
               ),
               Expanded(
                 child: PageView.builder(
@@ -112,12 +97,21 @@ class _ImageGalleryState extends State<ImageGallery> {
                         imagePath: img.filePath,
                         type: widget.mediaType,
                         heroTag: heroTag,
+                        onInteractionStart: _handleInteractionStart,
+                        onInteractionEnd: _handleInteractionEnd,
                       ),
                     );
                   },
                 ),
               ),
-              const SizedBox(height: 48),
+              if (widget.images.length > 1)
+                _ThumbnailStrip(
+                  images: widget.images,
+                  mediaType: widget.mediaType,
+                  currentIndex: _currentIndex,
+                  onTap: _jumpToIndex,
+                ),
+              const SizedBox(height: 24),
             ],
           ),
           _EdgeGradientOverlay(position: EdgeGradientPosition.top),
@@ -159,6 +153,28 @@ class _ImageGalleryState extends State<ImageGallery> {
     widget.onClose?.call();
     Navigator.of(context).maybePop();
   }
+
+  void _jumpToIndex(int index) {
+    _pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 220),
+      curve: Curves.easeOut,
+    );
+  }
+
+  void _handleInteractionStart() {
+    if (!_showChrome) {
+      return;
+    }
+    setState(() => _showChrome = false);
+  }
+
+  void _handleInteractionEnd() {
+    if (_showChrome) {
+      return;
+    }
+    setState(() => _showChrome = true);
+  }
 }
 
 enum EdgeGradientPosition { top, bottom }
@@ -196,6 +212,124 @@ class _EdgeGradientOverlay extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _GalleryTopBar extends StatelessWidget {
+  const _GalleryTopBar({
+    required this.isVisible,
+    required this.currentIndex,
+    required this.total,
+    required this.onClose,
+  });
+
+  final bool isVisible;
+  final int currentIndex;
+  final int total;
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSlide(
+      duration: const Duration(milliseconds: 180),
+      offset: isVisible ? Offset.zero : const Offset(0, -0.5),
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 180),
+        opacity: isVisible ? 1 : 0,
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: Row(
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: onClose,
+                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                ),
+                const Spacer(),
+                Text(
+                  '${currentIndex + 1} / $total',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ThumbnailStrip extends StatelessWidget {
+  const _ThumbnailStrip({
+    required this.images,
+    required this.mediaType,
+    required this.currentIndex,
+    required this.onTap,
+  });
+
+  final List<ImageModel> images;
+  final MediaImageType mediaType;
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 96,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemBuilder: (context, index) {
+          final image = images[index];
+          final url = MediaImageHelper.buildPreviewUrl(
+            image.filePath,
+            type: mediaType,
+            size: MediaImageSize.w154,
+          );
+
+          return GestureDetector(
+            onTap: () => onTap(index),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 180),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: index == currentIndex
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.white24,
+                  width: index == currentIndex ? 2 : 1,
+                ),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: AspectRatio(
+                  aspectRatio: image.aspectRatio > 0 ? image.aspectRatio : 1.5,
+                  child: CachedNetworkImage(
+                    imageUrl: url ?? '',
+                    fit: BoxFit.cover,
+                    memCacheHeight: 200,
+                    placeholder: (context, _) => Container(
+                      color: Colors.white12,
+                    ),
+                    errorWidget: (context, _, __) => Container(
+                      color: Colors.white12,
+                      alignment: Alignment.center,
+                      child: const Icon(Icons.broken_image, color: Colors.white54),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemCount: images.length,
       ),
     );
   }

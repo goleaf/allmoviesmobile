@@ -15,15 +15,110 @@ class AppTheme {
     seedColor: AppColors.primary,
   );
 
-  static ThemeData light({ColorScheme? dynamicScheme}) {
-    return _buildTheme(dynamicScheme ?? _fallbackLightScheme);
+  static ThemeData light({
+    ColorScheme? dynamicScheme,
+    bool highContrast = false,
+    bool colorBlindFriendly = false,
+  }) {
+    final baseScheme = dynamicScheme ?? _fallbackLightScheme;
+    final colorScheme = _applyAccessibility(
+      baseScheme,
+      highContrast: highContrast,
+      colorBlindFriendly: colorBlindFriendly,
+    );
+    return _buildTheme(colorScheme, highContrast: highContrast);
   }
 
-  static ThemeData dark({ColorScheme? dynamicScheme}) {
-    return _buildTheme(dynamicScheme ?? _fallbackDarkScheme);
+  static ThemeData dark({
+    ColorScheme? dynamicScheme,
+    bool highContrast = false,
+    bool colorBlindFriendly = false,
+  }) {
+    final baseScheme = dynamicScheme ?? _fallbackDarkScheme;
+    final colorScheme = _applyAccessibility(
+      baseScheme,
+      highContrast: highContrast,
+      colorBlindFriendly: colorBlindFriendly,
+    );
+    return _buildTheme(colorScheme, highContrast: highContrast);
   }
 
-  static ThemeData _buildTheme(ColorScheme colorScheme) {
+  static ColorScheme _applyAccessibility(
+    ColorScheme base, {
+    required bool highContrast,
+    required bool colorBlindFriendly,
+  }) {
+    var scheme = base;
+
+    if (colorBlindFriendly) {
+      const primary = Color(0xFF005A9C);
+      const onPrimary = Color(0xFFFFFFFF);
+      const secondary = Color(0xFFF18F01);
+      const onSecondary = Color(0xFF1A1A1A);
+      const tertiary = Color(0xFF2E933C);
+      const onTertiary = Color(0xFFFFFFFF);
+      const surface = Color(0xFFF9FAFB);
+      const onSurface = Color(0xFF1A1A1A);
+      const surfaceDark = Color(0xFF101820);
+      const onSurfaceDark = Color(0xFFEFF3F8);
+
+      final isDark = base.brightness == Brightness.dark;
+      scheme = scheme.copyWith(
+        primary: primary,
+        onPrimary: onPrimary,
+        secondary: secondary,
+        onSecondary: onSecondary,
+        tertiary: tertiary,
+        onTertiary: onTertiary,
+        surface: isDark ? surfaceDark : surface,
+        onSurface: isDark ? onSurfaceDark : onSurface,
+        background: isDark ? surfaceDark : surface,
+        onBackground: isDark ? onSurfaceDark : onSurface,
+      );
+    }
+
+    if (highContrast) {
+      scheme = base.brightness == Brightness.dark
+          ? ColorScheme.highContrastDark(
+              primary: scheme.primary,
+              onPrimary: Colors.black,
+              primaryContainer: Colors.white,
+              onPrimaryContainer: Colors.black,
+              secondary: scheme.secondary,
+              onSecondary: Colors.black,
+              secondaryContainer: Colors.white,
+              onSecondaryContainer: Colors.black,
+              surface: Colors.black,
+              onSurface: Colors.white,
+              background: Colors.black,
+              onBackground: Colors.white,
+              error: Colors.red.shade300,
+              onError: Colors.black,
+              surfaceTint: scheme.primary,
+            )
+          : ColorScheme.highContrastLight(
+              primary: scheme.primary,
+              onPrimary: Colors.white,
+              primaryContainer: Colors.black,
+              onPrimaryContainer: Colors.white,
+              secondary: scheme.secondary,
+              onSecondary: Colors.black,
+              secondaryContainer: Colors.black,
+              onSecondaryContainer: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black,
+              background: Colors.white,
+              onBackground: Colors.black,
+              error: Colors.red.shade700,
+              onError: Colors.white,
+              surfaceTint: scheme.primary,
+            );
+    }
+
+    return scheme;
+  }
+
+  static ThemeData _buildTheme(ColorScheme colorScheme, {bool highContrast = false}) {
     final isDark = colorScheme.brightness == Brightness.dark;
     // Avoid runtime font fetching during tests or when fonts are unavailable
     final baseTextTheme = ThemeData(
@@ -56,6 +151,12 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.surface,
       textTheme: textTheme,
       iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
+      focusColor: highContrast
+          ? colorScheme.secondary.withOpacity(0.45)
+          : colorScheme.primary.withOpacity(0.24),
+      hoverColor: colorScheme.primary.withOpacity(0.08),
+      highlightColor: colorScheme.primary.withOpacity(0.12),
+      splashColor: colorScheme.primary.withOpacity(0.16),
       // cardTheme removed to avoid SDK type conflicts; rely on defaults
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

@@ -64,6 +64,7 @@ import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/accessibility_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,6 +119,7 @@ class AllMoviesApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => AccessibilityProvider(prefs)),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(storageService),
         ),
@@ -161,12 +163,20 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
       ],
-      child: Consumer2<LocaleProvider, ThemeProvider>(
-        builder: (context, localeProvider, themeProvider, _) {
+      child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
+        builder: (context, localeProvider, themeProvider, accessibility, _) {
           return DynamicColorBuilder(
             builder: (lightDynamic, darkDynamic) {
-              final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-              final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+              final lightTheme = AppTheme.light(
+                dynamicScheme: lightDynamic,
+                highContrast: accessibility.highContrastEnabled,
+                colorBlindFriendly: accessibility.colorBlindFriendlyPalette,
+              );
+              final darkTheme = AppTheme.dark(
+                dynamicScheme: darkDynamic,
+                highContrast: accessibility.highContrastEnabled,
+                colorBlindFriendly: accessibility.colorBlindFriendlyPalette,
+              );
 
               return MaterialApp(
                 title: AppLocalizations.of(context).t('app.name'),
@@ -174,6 +184,20 @@ class AllMoviesApp extends StatelessWidget {
                 darkTheme: darkTheme,
                 themeMode: themeProvider.materialThemeMode,
                 locale: localeProvider.locale,
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  return MediaQuery(
+                    data: mediaQuery.copyWith(
+                      textScaler: TextScaler.linear(
+                        accessibility.textScaleFactor,
+                      ),
+                    ),
+                    child: FocusTraversalGroup(
+                      policy: OrderedTraversalPolicy(),
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  );
+                },
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,

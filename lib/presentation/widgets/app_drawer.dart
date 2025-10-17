@@ -28,10 +28,17 @@ class AppDrawer extends StatelessWidget {
     final currentRoute = ModalRoute.of(context)?.settings.name;
     final screenWidth = MediaQuery.of(context).size.width;
 
+    final accessibility = AppLocalizations.of(context).accessibility;
+    final navigationLabel =
+        accessibility['navigation_drawer'] ?? 'Main navigation menu';
+
     return Drawer(
       width: screenWidth,
-      child: Column(
-        children: [
+      child: Semantics(
+        container: true,
+        label: navigationLabel,
+        child: Column(
+          children: [
           DrawerHeader(
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
@@ -132,6 +139,7 @@ class AppDrawer extends StatelessWidget {
           const Spacer(),
           const SizedBox(height: 16),
         ],
+        ),
       ),
     );
   }

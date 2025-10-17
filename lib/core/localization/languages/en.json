@@ -279,9 +279,23 @@
     "added": "Added to watchlist",
     "removed": "Removed from watchlist"
   },
+  "accessibility": {
+    "search_hint": "Search for movies, shows, or people",
+    "search_label": "Search the catalog",
+    "quick_access_navigation": "Quick actions",
+    "section_list_hint": "Horizontal list. Use left and right arrows to browse items.",
+    "open_details": "Open details",
+    "favorite_add": "Add to favorites",
+    "favorite_remove": "Remove from favorites",
+    "navigation_drawer": "Main navigation menu",
+    "poster_label": "Poster for {title}",
+    "profile_label": "Profile image for {name}",
+    "collection_label": "Collection poster for {title}"
+  },
   "settings": {
     "title": "Settings",
     "appearance": "Appearance",
+    "accessibility": "Accessibility",
     "theme": "Theme",
     "theme_light": "Light",
     "theme_dark": "Dark",
@@ -296,7 +310,13 @@
     "about": "About",
     "version": "Version",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "high_contrast": "High contrast mode",
+    "high_contrast_description": "Increase color contrast for better readability.",
+    "color_blind_friendly": "Color-blind friendly palette",
+    "color_blind_friendly_description": "Use palettes that remain legible for common color blindness.",
+    "text_size": "Text size",
+    "text_size_description": "Adjust interface text scale."
   },
   "common": {
     "loading": "Loading...",

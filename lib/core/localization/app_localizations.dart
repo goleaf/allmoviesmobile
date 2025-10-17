@@ -48,6 +48,15 @@ class AppLocalizations {
         'chooseLanguage': 'Choose Language',
         'region': 'Region',
         'chooseRegion': 'Choose Region',
+        'accessibility': 'Accessibility',
+        'high_contrast': 'High contrast mode',
+        'high_contrast_description':
+            'Increase color contrast for better readability.',
+        'color_blind_friendly': 'Color-blind friendly palette',
+        'color_blind_friendly_description':
+            'Use palettes that remain legible for common color blindness.',
+        'text_size': 'Text size',
+        'text_size_description': 'Adjust interface text scale.',
       },
       'home': {
         'trending': 'Trending',
@@ -120,6 +129,20 @@ class AppLocalizations {
         'hintWithKeywords': 'With Keywords (comma-separated keyword IDs)',
       },
       'search': {'no_results': 'No results'},
+      'accessibility': {
+        'search_hint': 'Search for movies, shows, or people',
+        'search_label': 'Search the catalog',
+        'quick_access_navigation': 'Quick actions',
+        'section_list_hint':
+            'Horizontal list. Use left and right arrows to browse items.',
+        'open_details': 'Open details',
+        'favorite_add': 'Add to favorites',
+        'favorite_remove': 'Remove from favorites',
+        'navigation_drawer': 'Main navigation menu',
+        'poster_label': 'Poster for {title}',
+        'profile_label': 'Profile image for {name}',
+        'collection_label': 'Collection poster for {title}',
+      },
     };
     return fallback;
   }
@@ -184,6 +207,8 @@ class AppLocalizations {
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};
   Map<String, dynamic> get errors => _localizedStrings['errors'] ?? {};
   Map<String, dynamic> get genres => _localizedStrings['genres'] ?? {};
+  Map<String, dynamic> get accessibility =>
+      _localizedStrings['accessibility'] ?? {};
 
   // Convenience method for direct access
   String t(String key) => translate(key);

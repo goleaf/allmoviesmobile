@@ -263,9 +263,23 @@
     "added": "Добавлено в список",
     "removed": "Удалено из списка"
   },
+  "accessibility": {
+    "search_hint": "Поиск фильмов, сериалов или людей",
+    "search_label": "Поиск по каталогу",
+    "quick_access_navigation": "Быстрые действия",
+    "section_list_hint": "Горизонтальный список. Используйте стрелки влево и вправо для навигации.",
+    "open_details": "Открыть детали",
+    "favorite_add": "Добавить в избранное",
+    "favorite_remove": "Убрать из избранного",
+    "navigation_drawer": "Основное меню навигации",
+    "poster_label": "Постер {title}",
+    "profile_label": "Фото профиля {name}",
+    "collection_label": "Постер коллекции {title}"
+  },
   "settings": {
     "title": "Настройки",
     "appearance": "Внешний Вид",
+    "accessibility": "Доступность",
     "theme": "Тема",
     "theme_light": "Светлая",
     "theme_dark": "Темная",
@@ -280,7 +294,13 @@
     "about": "О Приложении",
     "version": "Версия",
     "terms": "Условия Использования",
-    "privacy": "Политика Конфиденциальности"
+    "privacy": "Политика Конфиденциальности",
+    "high_contrast": "Высокая контрастность",
+    "high_contrast_description": "Увеличьте контраст для лучшей читаемости.",
+    "color_blind_friendly": "Палитра для дальтоников",
+    "color_blind_friendly_description": "Использовать цвета, различимые при распространённых формах дальтонизма.",
+    "text_size": "Размер текста",
+    "text_size_description": "Настройка масштаба текста интерфейса."
   },
   "common": {
     "loading": "Загрузка...",

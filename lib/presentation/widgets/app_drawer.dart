@@ -8,6 +8,7 @@ import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
+import '../screens/keywords/keyword_browser_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -92,6 +93,12 @@ class AppDrawer extends StatelessWidget {
             title: const Text(AppStrings.companies),
             selected: currentRoute == CompaniesScreen.routeName,
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.sell_outlined),
+            title: const Text(AppStrings.keywords),
+            selected: currentRoute == KeywordBrowserScreen.routeName,
+            onTap: () => _navigateTo(context, KeywordBrowserScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.explore_outlined),

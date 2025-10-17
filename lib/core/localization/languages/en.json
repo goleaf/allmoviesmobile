@@ -115,6 +115,16 @@
     "no_results": "No results found",
     "try_different_keywords": "Try different keywords"
   },
+  "keywords": {
+    "title": "Keywords",
+    "search_hint": "Search keywords",
+    "trending_title": "Trending keywords",
+    "trending_subtitle": "Popular topics from trending movies and TV shows.",
+    "empty_trending": "Trending keywords are unavailable right now.",
+    "search_results_title": "Search results",
+    "search_prompt": "Search to discover movie and TV keywords.",
+    "empty_results": "No keywords found"
+  },
   "discover": {
     "title": "Discover",
     "filters": "Filters",

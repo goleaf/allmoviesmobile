@@ -136,6 +136,32 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchMovieKeywords(int movieId) {
+    return _getJson('/$_apiVersion/movie/$movieId/keywords');
+  }
+
+  Future<Map<String, dynamic>> fetchTvKeywords(int tvId) {
+    return _getJson('/$_apiVersion/tv/$tvId/keywords');
+  }
+
+  Future<Map<String, dynamic>> fetchKeywordDetails(int keywordId) {
+    return _getJson('/$_apiVersion/keyword/$keywordId');
+  }
+
+  Future<Map<String, dynamic>> fetchKeywordMovies(
+    int keywordId, {
+    int page = 1,
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/keyword/$keywordId/movies',
+      queryParameters: {
+        'page': '$page',
+        if (queryParameters != null) ...queryParameters,
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> fetchPersonDetails(
     int personId, {
     Map<String, String>? queryParameters,

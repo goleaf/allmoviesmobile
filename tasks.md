@@ -990,19 +990,19 @@ All search types are fully implemented in repository and accessible via search p
 ---
 
 ### 6.3 Deep Linking
-**Status**: 🔴 Not Started  
+**Status**: 🟢 Complete
 **Priority**: LOW
 
-- [ ] Direct links to movies (/movie/:id)
-- [ ] Direct links to TV shows (/tv/:id)
-- [ ] Direct links to seasons
-- [ ] Direct links to episodes
-- [ ] Direct links to people (/person/:id)
-- [ ] Direct links to companies (/company/:id)
-- [ ] Direct links to collections (/collection/:id)
-- [ ] Direct links to search results
-- [ ] Share functionality with deep links
-- [ ] QR code generation for content
+- [x] Direct links to movies (/movie/:id)
+- [x] Direct links to TV shows (/tv/:id)
+- [x] Direct links to seasons
+- [x] Direct links to episodes
+- [x] Direct links to people (/person/:id)
+- [x] Direct links to companies (/company/:id)
+- [x] Direct links to collections (/collection/:id)
+- [x] Direct links to search results
+- [x] Share functionality with deep links
+- [x] QR code generation for content
 
 **Files to Create**:
 - Add `uni_links` package configuration

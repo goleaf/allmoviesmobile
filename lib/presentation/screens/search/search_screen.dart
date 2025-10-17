@@ -11,6 +11,8 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/rating_display.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../widgets/app_scaffold.dart';
+import '../../../core/navigation/deep_link_parser.dart';
+import '../../widgets/share/deep_link_share_sheet.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -108,6 +110,22 @@ class _SearchScreenState extends State<SearchScreen> {
         },
       ),
       actions: [
+        IconButton(
+          icon: const Icon(Icons.share),
+          tooltip: 'Share',
+          onPressed: _searchController.text.trim().isEmpty
+              ? null
+              : () {
+                  final query = _searchController.text.trim();
+                  final link = DeepLinkBuilder.search(query);
+                  showDeepLinkShareSheet(
+                    context,
+                    title: query,
+                    httpLink: link,
+                    customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+                  );
+                },
+        ),
         IconButton(
           icon: const Icon(Icons.search),
           onPressed: () => _performSearch(searchProvider),

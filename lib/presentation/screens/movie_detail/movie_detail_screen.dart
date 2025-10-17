@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 // Video player screen not available in this build; open external instead
 import 'package:url_launcher/url_launcher.dart';
-import 'package:share_plus/share_plus.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
@@ -25,9 +24,10 @@ import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
-import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../widgets/watch_providers_section.dart';
+import '../../../core/navigation/deep_link_parser.dart';
+import '../../widgets/share/deep_link_share_sheet.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
@@ -133,10 +133,13 @@ class _MovieDetailView extends StatelessWidget {
           tooltip: 'Share',
           icon: const Icon(Icons.share),
           onPressed: () {
-            final url = details.homepage?.isNotEmpty == true
-                ? details.homepage!
-                : 'https://www.themoviedb.org/movie/${details.id}';
-            Share.share('${details.title} — $url');
+            final link = DeepLinkBuilder.movie(details.id);
+            showDeepLinkShareSheet(
+              context,
+              title: details.title,
+              httpLink: link,
+              customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+            );
           },
         ),
       ],

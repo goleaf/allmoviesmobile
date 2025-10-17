@@ -9,13 +9,20 @@ import '../../widgets/rating_display.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../../core/navigation/deep_link_parser.dart';
+import '../../widgets/share/deep_link_share_sheet.dart';
 
 class EpisodeDetailScreen extends StatelessWidget {
   static const routeName = '/episode-detail';
 
   final Episode episode;
+  final int tvId;
 
-  const EpisodeDetailScreen({super.key, required this.episode});
+  const EpisodeDetailScreen({
+    super.key,
+    required this.episode,
+    required this.tvId,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -59,6 +66,28 @@ class EpisodeDetailScreen extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 240,
       pinned: true,
+      actions: [
+        IconButton(
+          tooltip: 'Share',
+          icon: const Icon(Icons.share),
+          onPressed: () {
+            final link = DeepLinkBuilder.episode(
+              tvId,
+              episode.seasonNumber,
+              episode.episodeNumber,
+            );
+            final title = episode.name.isNotEmpty
+                ? episode.name
+                : 'S${episode.seasonNumber}E${episode.episodeNumber}';
+            showDeepLinkShareSheet(
+              context,
+              title: title,
+              httpLink: link,
+              customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+            );
+          },
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         title: Text(episode.name, maxLines: 1, overflow: TextOverflow.ellipsis),
         background: hasStill

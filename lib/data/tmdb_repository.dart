@@ -12,6 +12,7 @@ import 'models/company_model.dart';
 import 'models/configuration_model.dart';
 import 'models/discover_filters_model.dart';
 import 'models/genre_model.dart';
+import 'models/episode_model.dart';
 import 'models/image_model.dart';
 import 'models/keyword_model.dart';
 import 'models/media_images.dart';
@@ -713,6 +714,38 @@ class TmdbRepository {
     normalized['videos'] = videos?['results'] ?? const [];
 
     return Season.fromJson(normalized);
+  }
+
+  /// TMDB Endpoint: `GET /3/tv/{tv_id}/season/{season_number}/episode/{episode_number}`
+  /// Fetches the JSON payload for a specific episode including appended
+  /// `credits` and `videos` sections, and maps it to an [Episode].
+  Future<Episode> fetchTvEpisode(
+    int tvId,
+    int seasonNumber,
+    int episodeNumber, {
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tvEpisode::$tvId::$seasonNumber::$episodeNumber';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber',
+          query: {'append_to_response': 'credits,videos'},
+        );
+
+        final normalized = Map<String, dynamic>.from(payload);
+        final credits = payload['credits'] as Map<String, dynamic>?;
+        normalized['cast'] = credits?['cast'] ?? const [];
+        normalized['guest_stars'] = credits?['guest_stars'] ?? const [];
+        normalized['crew'] = credits?['crew'] ?? const [];
+        final videos = payload['videos'] as Map<String, dynamic>?;
+        normalized['videos'] = videos?['results'] ?? const [];
+
+        return Episode.fromJson(normalized);
+      },
+      forceRefresh: forceRefresh,
+    );
   }
 
   Future<PaginatedResponse<Movie>> searchTvSeries(

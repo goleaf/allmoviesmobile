@@ -1,11 +1,13 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
+import '../../../data/services/api_config.dart';
 import '../../../data/models/company_model.dart';
 import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
-import 'company_detail_screen.dart';
+import '../company_detail/company_detail_screen.dart';
 
 class CompaniesScreen extends StatefulWidget {
   static const routeName = '/companies';
@@ -18,15 +20,9 @@ class CompaniesScreen extends StatefulWidget {
 
 class _CompaniesScreenState extends State<CompaniesScreen> {
   final TextEditingController _searchController = TextEditingController();
-  final FocusNode _searchFocusNode = FocusNode();
-  final GlobalKey _searchSectionKey = GlobalKey();
-  final GlobalKey _countrySectionKey = GlobalKey();
-  final GlobalKey _popularSectionKey = GlobalKey();
-  String? _selectedCountry;
 
   @override
   void dispose() {
-    _searchFocusNode.dispose();
     _searchController.dispose();
     super.dispose();
   }
@@ -34,21 +30,64 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CompaniesProvider>();
-    final countries = _extractCountries(provider.companies);
-    final filteredCompanies = _filterByCountry(provider.companies);
-    final hasActiveCountryFilter =
-        _selectedCountry != null && _selectedCountry!.isNotEmpty;
-    final showInitialLoader = provider.isLoading && provider.companies.isEmpty;
-    final showInitialError =
-        provider.errorMessage != null && provider.companies.isEmpty;
-    final popularCompanies = provider.companies.take(6).toList();
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.companies),
       ),
       drawer: const AppDrawer(),
-      body: NotificationListener<ScrollNotification>(
+      body: _CompaniesBody(
+        provider: provider,
+        controller: _searchController,
+      ),
+    );
+  }
+}
+
+class _CompaniesBody extends StatelessWidget {
+  const _CompaniesBody({required this.provider, required this.controller});
+
+  final CompaniesProvider provider;
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    if (provider.isLoading && provider.companies.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (provider.errorMessage != null && provider.companies.isEmpty) {
+      return _ErrorView(
+        message: provider.errorMessage!,
+        onRetry: provider.refreshCompanies,
+      );
+    }
+
+    if (provider.companies.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: provider.refreshCompanies,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            _SearchField(
+              controller: controller,
+              onSearch: provider.searchCompanies,
+              isLoading: provider.isLoading,
+            ),
+            const SizedBox(height: 16),
+            const _EmptyView(
+              message: 'No companies found. Try searching for another studio.',
+            ),
+          ],
+        ),
+      );
+    }
+
+    final itemCount = 1 + provider.companies.length + (provider.isLoadingMore ? 1 : 0);
+
+    return RefreshIndicator(
+      onRefresh: provider.refreshCompanies,
+      child: NotificationListener<ScrollNotification>(
         onNotification: (notification) {
           final metrics = notification.metrics;
           final shouldLoadMore =
@@ -63,185 +102,52 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
 
           return false;
         },
-        child: RefreshIndicator(
-          onRefresh: provider.refreshCompanies,
-          child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(16),
-            children: [
-              _HeaderSection(
-                title: 'Browse Companies',
-                subtitle:
-                    'Find production houses from around the world, discover new studios, and track your favourites.',
-              ),
-              const SizedBox(height: 16),
-              _FeatureGrid(
-                features: [
-                  _FeatureItem(
-                    icon: Icons.search,
-                    title: 'Search companies',
-                    description:
-                        'Look up a studio by name and jump straight to its profile.',
-                    onTap: () {
-                      if (_searchSectionKey.currentContext != null) {
-                        Scrollable.ensureVisible(
-                          _searchSectionKey.currentContext!,
-                          duration: const Duration(milliseconds: 300),
-                        );
-                      }
-                      FocusScope.of(context).requestFocus(_searchFocusNode);
-                    },
-                  ),
-                  _FeatureItem(
-                    icon: Icons.public,
-                    title: 'Companies by country',
-                    description:
-                        'Filter the catalog to highlight studios from a specific origin.',
-                    onTap: () {
-                      if (_countrySectionKey.currentContext != null) {
-                        Scrollable.ensureVisible(
-                          _countrySectionKey.currentContext!,
-                          duration: const Duration(milliseconds: 300),
-                        );
-                      }
-                    },
-                  ),
-                  _FeatureItem(
-                    icon: Icons.star_rate_rounded,
-                    title: 'Popular production companies',
-                    description:
-                        'Quickly browse the standout studios surfaced from your results.',
-                    onTap: () {
-                      if (_popularSectionKey.currentContext != null) {
-                        Scrollable.ensureVisible(
-                          _popularSectionKey.currentContext!,
-                          duration: const Duration(milliseconds: 300),
-                        );
-                      }
-                    },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _SearchField(
-                key: _searchSectionKey,
-                controller: _searchController,
-                focusNode: _searchFocusNode,
-                onSearch: (query) async {
-                  await provider.searchCompanies(query);
-                  if (!mounted) {
-                    return;
-                  }
-                  if (query.trim().isEmpty) {
-                    setState(() => _selectedCountry = null);
-                  }
-                },
+        child: ListView.separated(
+          padding: const EdgeInsets.all(16),
+          itemCount: itemCount,
+          separatorBuilder: (_, __) => const SizedBox(height: 16),
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return _SearchField(
+                controller: controller,
+                onSearch: provider.searchCompanies,
                 isLoading: provider.isLoading,
-              ),
-              const SizedBox(height: 16),
-              if (countries.isNotEmpty)
-                _CountryFilterSection(
-                  key: _countrySectionKey,
-                  countries: countries,
-                  selectedCountry: _selectedCountry,
-                  onCountrySelected: (country) {
-                    setState(() => _selectedCountry = country);
-                  },
-                  onClearFilter: hasActiveCountryFilter
-                      ? () => setState(() => _selectedCountry = null)
-                      : null,
-                ),
-              if (countries.isNotEmpty) const SizedBox(height: 24),
-              if (popularCompanies.isNotEmpty)
-                _PopularCompaniesSection(
-                  key: _popularSectionKey,
-                  companies: popularCompanies,
-                ),
-              if (popularCompanies.isNotEmpty) const SizedBox(height: 24),
-              if (showInitialLoader)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 48),
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (showInitialError)
-                _ErrorView(
-                  message: provider.errorMessage!,
-                  onRetry: provider.refreshCompanies,
-                )
-              else if (filteredCompanies.isEmpty)
-                _EmptyView(
-                  message: hasActiveCountryFilter
-                      ? 'No companies match the selected country just yet.'
-                      : 'No companies found. Try searching for another studio.',
-                )
-              else
-                ...[
-                  for (final company in filteredCompanies)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: _CompanyCard(company: company),
-                    ),
-                  if (provider.isLoadingMore)
-                    const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 16),
-                      child: Center(child: CircularProgressIndicator()),
-                    ),
-                ],
-            ],
-          ),
+              );
+            }
+
+            final dataIndex = index - 1;
+
+            if (dataIndex >= provider.companies.length) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: Center(child: CircularProgressIndicator()),
+              );
+            }
+
+            final company = provider.companies[dataIndex];
+            return _CompanyCard(company: company);
+          },
         ),
       ),
     );
   }
-
-  List<String> _extractCountries(List<Company> companies) {
-    final countries = <String>{};
-    for (final company in companies) {
-      final origin = company.originCountry?.trim();
-      if (origin != null && origin.isNotEmpty) {
-        countries.add(origin);
-      }
-    }
-    final sorted = countries.toList()..sort();
-    if (companies.any((company) =>
-        company.originCountry == null || company.originCountry!.isEmpty)) {
-      sorted.add('Unknown');
-    }
-    return sorted;
-  }
-
-  List<Company> _filterByCountry(List<Company> companies) {
-    if (_selectedCountry == null || _selectedCountry!.isEmpty) {
-      return companies;
-    }
-
-    return companies.where((company) {
-      final origin = company.originCountry?.trim();
-      if ((origin == null || origin.isEmpty) && _selectedCountry == 'Unknown') {
-        return true;
-      }
-      return origin == _selectedCountry;
-    }).toList();
-  }
 }
+
 class _SearchField extends StatelessWidget {
   const _SearchField({
     required this.controller,
     required this.onSearch,
     required this.isLoading,
-    this.focusNode,
   });
 
   final TextEditingController controller;
   final Future<void> Function(String) onSearch;
   final bool isLoading;
-  final FocusNode? focusNode;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: controller,
-      focusNode: focusNode,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
         labelText: 'Search companies',
@@ -268,264 +174,6 @@ class _SearchField extends StatelessWidget {
   }
 }
 
-class _HeaderSection extends StatelessWidget {
-  const _HeaderSection({required this.title, required this.subtitle});
-
-  final String title;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: Theme.of(context).textTheme.headlineSmall,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          subtitle,
-          style: Theme.of(context).textTheme.bodyMedium,
-        ),
-      ],
-    );
-  }
-}
-
-class _FeatureGrid extends StatelessWidget {
-  const _FeatureGrid({required this.features});
-
-  final List<_FeatureItem> features;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isWide = constraints.maxWidth > 600;
-        final cardWidth = isWide
-            ? (constraints.maxWidth - 16) / 2
-            : constraints.maxWidth;
-
-        return Wrap(
-          spacing: 16,
-          runSpacing: 16,
-          children: [
-            for (final feature in features)
-              SizedBox(
-                width: cardWidth,
-                child: _FeatureCard(item: feature),
-              ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-class _FeatureItem {
-  const _FeatureItem({
-    required this.icon,
-    required this.title,
-    required this.description,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String title;
-  final String description;
-  final VoidCallback onTap;
-}
-
-class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.item});
-
-  final _FeatureItem item;
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Theme.of(context).colorScheme.surfaceVariant,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: item.onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                item.icon,
-                size: 28,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                item.title,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                item.description,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CountryFilterSection extends StatelessWidget {
-  const _CountryFilterSection({
-    super.key,
-    required this.countries,
-    required this.selectedCountry,
-    required this.onCountrySelected,
-    this.onClearFilter,
-  });
-
-  final List<String> countries;
-  final String? selectedCountry;
-  final ValueChanged<String?> onCountrySelected;
-  final VoidCallback? onClearFilter;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                'Companies by country',
-                style: theme.textTheme.titleMedium,
-              ),
-            ),
-            if (onClearFilter != null)
-              TextButton(
-                onPressed: onClearFilter,
-                child: const Text('Clear'),
-              ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Tap a country to narrow the list to studios from that region.',
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 12),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            ChoiceChip(
-              label: const Text('All'),
-              selected: selectedCountry == null || selectedCountry!.isEmpty,
-              onSelected: (_) => onCountrySelected(null),
-            ),
-            for (final country in countries)
-              ChoiceChip(
-                label: Text(country),
-                selected: selectedCountry == country,
-                onSelected: (_) => onCountrySelected(country),
-              ),
-          ],
-        ),
-      ],
-    );
-  }
-}
-
-class _PopularCompaniesSection extends StatelessWidget {
-  const _PopularCompaniesSection({super.key, required this.companies});
-
-  final List<Company> companies;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Popular production companies',
-          style: theme.textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Here are a few highlights from the current results.',
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 12),
-        SizedBox(
-          height: 120,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: companies.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemBuilder: (context, index) {
-              final company = companies[index];
-              return _PopularCompanyCard(company: company);
-            },
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _PopularCompanyCard extends StatelessWidget {
-  const _PopularCompanyCard({required this.company});
-
-  final Company company;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final origin = company.originCountry?.isNotEmpty == true
-        ? company.originCountry!
-        : 'Unknown origin';
-
-    return SizedBox(
-      width: 220,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                Icons.apartment_outlined,
-                color: theme.colorScheme.primary,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                company.name,
-                style: theme.textTheme.titleMedium,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                origin,
-                style: theme.textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _CompanyCard extends StatelessWidget {
   const _CompanyCard({required this.company});
 
@@ -533,6 +181,7 @@ class _CompanyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final logoUrl = ApiConfig.getLogoUrl(company.logoPath);
     final subtitleParts = <String>[];
     if (company.originCountry != null && company.originCountry!.isNotEmpty) {
       subtitleParts.add(company.originCountry!);
@@ -545,11 +194,10 @@ class _CompanyCard extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
+          Navigator.pushNamed(
             context,
-            MaterialPageRoute(
-              builder: (context) => CompanyDetailScreen(company: company),
-            ),
+            CompanyDetailScreen.routeName,
+            arguments: company,
           );
         },
         child: Padding(
@@ -566,10 +214,26 @@ class _CompanyCard extends StatelessWidget {
                       color: Theme.of(context).colorScheme.primaryContainer,
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      Icons.business_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
+                    child: logoUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: logoUrl,
+                            fit: BoxFit.contain,
+                            placeholder: (context, url) => const Center(
+                              child: SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              ),
+                            ),
+                            errorWidget: (context, url, error) => Icon(
+                              Icons.business_outlined,
+                              color: Theme.of(context).colorScheme.primary,
+                            ),
+                          )
+                        : Icon(
+                            Icons.business_outlined,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -588,7 +252,6 @@ class _CompanyCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right),
                 ],
               ),
               const SizedBox(height: 12),

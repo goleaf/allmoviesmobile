@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
+import 'data/models/company_model.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
@@ -16,13 +17,12 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/api_explorer_provider.dart';
-import 'providers/keyword_browser_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
+import 'presentation/screens/company_detail/company_detail_screen.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
-import 'presentation/screens/network_detail/network_detail_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/person_detail/person_detail_screen.dart';
@@ -31,7 +31,6 @@ import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
-import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
@@ -78,19 +77,12 @@ class AllMoviesApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
         ChangeNotifierProvider(create: (_) => RecommendationsProvider(tmdbRepository, storageService)),
-        ChangeNotifierProvider(create: (_) => MoviesProvider()),
-        ChangeNotifierProvider(create: (_) => SeriesProvider()),
-        ChangeNotifierProvider(
-          create: (context) => PeopleProvider(context.read<TmdbRepository>()),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => CompaniesProvider(context.read<TmdbRepository>()),
-        ),
+        ChangeNotifierProvider(create: (_) => MoviesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => SeriesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => PeopleProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider(tmdbRepository)),
         ChangeNotifierProvider(
           create: (_) => ApiExplorerProvider(tmdbRepository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => KeywordBrowserProvider(tmdbRepository),
         ),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
@@ -118,21 +110,13 @@ class AllMoviesApp extends StatelessWidget {
               PeopleScreen.routeName: (context) => const PeopleScreen(),
               CompaniesScreen.routeName: (context) => const CompaniesScreen(),
               ApiExplorerScreen.routeName: (context) => const ApiExplorerScreen(),
-              KeywordBrowserScreen.routeName: (context) => const KeywordBrowserScreen(),
               FavoritesScreen.routeName: (context) => const FavoritesScreen(),
               WatchlistScreen.routeName: (context) => const WatchlistScreen(),
               SettingsScreen.routeName: (context) => const SettingsScreen(),
-              NetworkDetailScreen.routeName: (context) {
-                final args =
-                    ModalRoute.of(context)?.settings.arguments as NetworkDetailArguments?;
-                if (args == null) {
-                  return const MissingNetworkArgumentsScreen();
-                }
-                return NetworkDetailScreen(
-                  networkId: args.networkId,
-                  initialName: args.name,
-                  initialLogoPath: args.logoPath,
-                );
+              CompanyDetailScreen.routeName: (context) {
+                final company =
+                    ModalRoute.of(context)!.settings.arguments as Company;
+                return CompanyDetailScreen(initialCompany: company);
               },
             },
           );

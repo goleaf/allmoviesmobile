@@ -1,4 +1,5 @@
 import 'dart:collection';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 
@@ -214,6 +215,111 @@ class TvDiscoverFilters {
     return params;
   }
 
+  Map<String, dynamic> toJson() {
+    return <String, dynamic>{
+      'page': page,
+      'sortBy': sortBy.value,
+      'airDateGte': _encodeDate(airDateGte),
+      'airDateLte': _encodeDate(airDateLte),
+      'firstAirDateGte': _encodeDate(firstAirDateGte),
+      'firstAirDateLte': _encodeDate(firstAirDateLte),
+      'firstAirDateYear': firstAirDateYear,
+      'withGenres': withGenres,
+      'withNetworks': withNetworks,
+      'withCompanies': withCompanies,
+      'withKeywords': withKeywords,
+      'withOriginalLanguage': withOriginalLanguage,
+      'withRuntimeGte': withRuntimeGte,
+      'withRuntimeLte': withRuntimeLte,
+      'voteAverageGte': voteAverageGte,
+      'voteAverageLte': voteAverageLte,
+      'voteCountGte': voteCountGte,
+      'withWatchProviders': withWatchProviders,
+      'watchRegion': watchRegion,
+      'monetizationTypes':
+          monetizationTypes.map((type) => type.value).toList(growable: false),
+      'includeNullFirstAirDates': includeNullFirstAirDates,
+      'screenedTheatrically': screenedTheatrically,
+      'timezone': timezone,
+      'statuses': statuses.map((status) => status.code).toList(growable: false),
+      'types': types.map((type) => type.code).toList(growable: false),
+    };
+  }
+
+  String toJsonString() => jsonEncode(toJson());
+
+  static TvDiscoverFilters fromJson(Map<String, dynamic> json) {
+    return TvDiscoverFilters(
+      page: json['page'] as int? ?? 1,
+      sortBy: _parseSort(json['sortBy']) ?? TvSortOption.popularityDesc,
+      airDateGte: _decodeDate(json['airDateGte']),
+      airDateLte: _decodeDate(json['airDateLte']),
+      firstAirDateGte: _decodeDate(json['firstAirDateGte']),
+      firstAirDateLte: _decodeDate(json['firstAirDateLte']),
+      firstAirDateYear: json['firstAirDateYear'] as int?,
+      withGenres: _parseIntList(json['withGenres']),
+      withNetworks: _parseIntList(json['withNetworks']),
+      withCompanies: _parseIntList(json['withCompanies']),
+      withKeywords: _parseIntList(json['withKeywords']),
+      withOriginalLanguage: _parseString(json['withOriginalLanguage']),
+      withRuntimeGte: json['withRuntimeGte'] as int?,
+      withRuntimeLte: json['withRuntimeLte'] as int?,
+      voteAverageGte: _parseDouble(json['voteAverageGte']),
+      voteAverageLte: _parseDouble(json['voteAverageLte']),
+      voteCountGte: json['voteCountGte'] as int?,
+      withWatchProviders: _parseIntList(json['withWatchProviders']),
+      watchRegion: _parseString(json['watchRegion']),
+      monetizationTypes:
+          _parseMonetizationList(json['monetizationTypes']).toSet(),
+      includeNullFirstAirDates:
+          json['includeNullFirstAirDates'] as bool? ?? false,
+      screenedTheatrically: json['screenedTheatrically'] as bool?,
+      timezone: _parseString(json['timezone']),
+      statuses: _parseStatusList(json['statuses']).toSet(),
+      types: _parseTypeList(json['types']).toSet(),
+    );
+  }
+
+  static TvDiscoverFilters fromJsonString(String raw) {
+    final decoded = jsonDecode(raw);
+    if (decoded is Map<String, dynamic>) {
+      return fromJson(decoded);
+    }
+    throw const FormatException('Invalid TV discover filters payload');
+  }
+
+  static TvDiscoverFilters fromQueryParameters(Map<String, String> params) {
+    return TvDiscoverFilters(
+      sortBy: _parseSort(params['sort_by']) ?? TvSortOption.popularityDesc,
+      airDateGte: _parseDate(params['air_date.gte']),
+      airDateLte: _parseDate(params['air_date.lte']),
+      firstAirDateGte: _parseDate(params['first_air_date.gte']),
+      firstAirDateLte: _parseDate(params['first_air_date.lte']),
+      firstAirDateYear: _tryParseInt(params['first_air_date_year']),
+      withGenres: _parseDelimitedInts(params['with_genres'], ','),
+      withNetworks: _parseDelimitedInts(params['with_networks'], '|'),
+      withCompanies: _parseDelimitedInts(params['with_companies'], '|'),
+      withKeywords: _parseDelimitedInts(params['with_keywords'], '|'),
+      withOriginalLanguage: _normalizeString(params['with_original_language']),
+      withRuntimeGte: _tryParseInt(params['with_runtime.gte']),
+      withRuntimeLte: _tryParseInt(params['with_runtime.lte']),
+      voteAverageGte: _tryParseDouble(params['vote_average.gte']),
+      voteAverageLte: _tryParseDouble(params['vote_average.lte']),
+      voteCountGte: _tryParseInt(params['vote_count.gte']),
+      withWatchProviders:
+          _parseDelimitedInts(params['with_watch_providers'], '|'),
+      watchRegion: _normalizeString(params['watch_region']),
+      monetizationTypes:
+          _parseMonetizationFromString(params['with_watch_monetization_types']),
+      includeNullFirstAirDates:
+          params['include_null_first_air_dates'] == 'true',
+      screenedTheatrically: _parseNullableBool(params['screened_theatrically']),
+      timezone: _normalizeString(params['timezone']),
+      statuses: _parseStatusCodes(params['with_status']),
+      types: _parseTypeCodes(params['with_type']),
+    );
+  }
+
   static String _formatDate(DateTime value) {
     final year = value.year.toString().padLeft(4, '0');
     final month = value.month.toString().padLeft(2, '0');
@@ -230,6 +336,268 @@ class TvDiscoverFilters {
           .replaceAll(RegExp(r'\.$'), '');
     }
     return asString;
+  }
+
+  static String? _encodeDate(DateTime? value) => value?.toIso8601String();
+
+  static DateTime? _decodeDate(Object? value) {
+    if (value is String && value.isNotEmpty) {
+      return DateTime.tryParse(value);
+    }
+    return null;
+  }
+
+  static DateTime? _parseDate(String? raw) {
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  static String? _parseString(Object? raw) {
+    if (raw is String) {
+      final trimmed = raw.trim();
+      return trimmed.isEmpty ? null : trimmed;
+    }
+    return null;
+  }
+
+  static String? _normalizeString(String? raw) {
+    if (raw == null) return null;
+    final trimmed = raw.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  static List<int> _parseIntList(Object? raw) {
+    if (raw is List) {
+      return raw.whereType<num>().map((value) => value.toInt()).toList();
+    }
+    return const <int>[];
+  }
+
+  static List<int> _parseDelimitedInts(String? raw, String separator) {
+    if (raw == null || raw.isEmpty) {
+      return const <int>[];
+    }
+    final pattern = separator == '|'
+        ? RegExp('[,|]')
+        : RegExp(RegExp.escape(separator));
+    return raw
+        .split(pattern)
+        .map((value) => int.tryParse(value.trim()))
+        .whereType<int>()
+        .toList(growable: false);
+  }
+
+  static double? _parseDouble(Object? raw) {
+    if (raw is num) return raw.toDouble();
+    if (raw is String) return double.tryParse(raw);
+    return null;
+  }
+
+  static double? _tryParseDouble(String? raw) {
+    if (raw == null) return null;
+    return double.tryParse(raw);
+  }
+
+  static int? _tryParseInt(String? raw) {
+    if (raw == null) return null;
+    return int.tryParse(raw);
+  }
+
+  static bool? _parseNullableBool(String? raw) {
+    if (raw == null) return null;
+    if (raw == 'true') return true;
+    if (raw == 'false') return false;
+    return null;
+  }
+
+  static TvSortOption? _parseSort(Object? raw) {
+    if (raw is String) {
+      return TvSortOption.values.firstWhere(
+        (option) => option.value == raw,
+        orElse: () => TvSortOption.popularityDesc,
+      );
+    }
+    return null;
+  }
+
+  static Set<MonetizationType> _parseMonetizationFromString(String? raw) {
+    if (raw == null || raw.isEmpty) {
+      return const <MonetizationType>{};
+    }
+    final tokens = raw.split('|').map((value) => value.trim()).where(
+          (value) => value.isNotEmpty,
+        );
+    return tokens
+        .map((token) => MonetizationType.values.firstWhere(
+              (type) => type.value == token,
+              orElse: () => MonetizationType.flatrate,
+            ))
+        .toSet();
+  }
+
+  static List<MonetizationType> _parseMonetizationList(Object? raw) {
+    if (raw is List) {
+      return raw
+          .whereType<String>()
+          .map((value) => MonetizationType.values.firstWhere(
+                (type) => type.value == value,
+                orElse: () => MonetizationType.flatrate,
+              ))
+          .toList(growable: false);
+    }
+    return const <MonetizationType>[];
+  }
+
+  static Set<TvStatus> _parseStatusCodes(String? raw) {
+    if (raw == null || raw.isEmpty) return const <TvStatus>{};
+    final tokens = raw.split(RegExp('[,|]')).map((value) => value.trim());
+    final results = <TvStatus>{};
+    for (final token in tokens) {
+      if (token.isEmpty) continue;
+      final asInt = int.tryParse(token);
+      if (asInt != null) {
+        final match = TvStatus.values.firstWhere(
+          (status) => status.code == asInt,
+          orElse: () => TvStatus.returningSeries,
+        );
+        results.add(match);
+        continue;
+      }
+      final fallback = _statusByName[token.toLowerCase()];
+      if (fallback != null) {
+        results.add(fallback);
+      }
+    }
+    return results;
+  }
+
+  static List<TvStatus> _parseStatusList(Object? raw) {
+    if (raw is List) {
+      return raw
+          .whereType<num>()
+          .map((value) => value.toInt())
+          .map((code) => TvStatus.values.firstWhere(
+                (status) => status.code == code,
+                orElse: () => TvStatus.returningSeries,
+              ))
+          .toList(growable: false);
+    }
+    return const <TvStatus>[];
+  }
+
+  static Set<TvShowType> _parseTypeCodes(String? raw) {
+    if (raw == null || raw.isEmpty) return const <TvShowType>{};
+    final tokens = raw.split(RegExp('[,|]')).map((value) => value.trim());
+    final results = <TvShowType>{};
+    for (final token in tokens) {
+      if (token.isEmpty) continue;
+      final asInt = int.tryParse(token);
+      if (asInt != null) {
+        final match = TvShowType.values.firstWhere(
+          (type) => type.code == asInt,
+          orElse: () => TvShowType.scripted,
+        );
+        results.add(match);
+        continue;
+      }
+      final fallback = _typeByName[token.toLowerCase()];
+      if (fallback != null) {
+        results.add(fallback);
+      }
+    }
+    return results;
+  }
+
+  static List<TvShowType> _parseTypeList(Object? raw) {
+    if (raw is List) {
+      return raw
+          .whereType<num>()
+          .map((value) => value.toInt())
+          .map((code) => TvShowType.values.firstWhere(
+                (type) => type.code == code,
+                orElse: () => TvShowType.scripted,
+              ))
+          .toList(growable: false);
+    }
+    return const <TvShowType>[];
+  }
+
+  static const Map<String, TvStatus> _statusByName = {
+    'returning series': TvStatus.returningSeries,
+    'planned': TvStatus.planned,
+    'in production': TvStatus.inProduction,
+    'ended': TvStatus.ended,
+    'canceled': TvStatus.canceled,
+    'cancelled': TvStatus.canceled,
+    'pilot': TvStatus.pilot,
+  };
+
+  static const Map<String, TvShowType> _typeByName = {
+    'scripted': TvShowType.scripted,
+    'reality': TvShowType.reality,
+    'documentary': TvShowType.documentary,
+    'news': TvShowType.news,
+    'talk show': TvShowType.talkShow,
+    'talk-show': TvShowType.talkShow,
+    'animation': TvShowType.animation,
+    'miniseries': TvShowType.miniseries,
+  };
+}
+
+@immutable
+class TvDiscoverFilterPreset {
+  const TvDiscoverFilterPreset({
+    required this.name,
+    required this.filters,
+  });
+
+  final String name;
+  final TvDiscoverFilters filters;
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'name': name,
+        'filters': filters.toJson(),
+      };
+
+  String toJsonString() => jsonEncode(toJson());
+
+  factory TvDiscoverFilterPreset.fromJson(Map<String, dynamic> json) {
+    final rawFilters = json['filters'];
+    final filters = rawFilters is Map<String, dynamic>
+        ? TvDiscoverFilters.fromJson(rawFilters)
+        : TvDiscoverFilters.fromQueryParameters(
+            (rawFilters is Map)
+                ? rawFilters.map((key, value) => MapEntry('$key', '$value'))
+                : const <String, String>{},
+          );
+    final rawName = json['name'];
+    final trimmedName = rawName is String ? rawName.trim() : null;
+    return TvDiscoverFilterPreset(
+      name: trimmedName ?? 'Preset',
+      filters: filters,
+    );
+  }
+
+  static TvDiscoverFilterPreset? fromJsonString(String raw) {
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return TvDiscoverFilterPreset.fromJson(decoded);
+      }
+    } catch (_) {
+      // ignore malformed entries
+    }
+    return null;
+  }
+
+  TvDiscoverFilterPreset copyWith({
+    String? name,
+    TvDiscoverFilters? filters,
+  }) {
+    return TvDiscoverFilterPreset(
+      name: name ?? this.name,
+      filters: filters ?? this.filters,
+    );
   }
 }
 

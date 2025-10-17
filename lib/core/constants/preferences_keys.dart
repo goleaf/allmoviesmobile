@@ -14,6 +14,8 @@ class PreferenceKeys {
   static const String releaseYear = 'settings.release_year';
   static const String seriesFilterPresets =
       'settings.series.filter_presets';
+  static const String tvActiveFilterPreset =
+      'settings.series.active_filter_preset';
 
   // Presentation
   static const String imageQuality = 'settings.image_quality';

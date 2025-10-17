@@ -4,8 +4,10 @@ import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
+import 'models/image_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
+import 'models/media_images.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
@@ -23,21 +25,20 @@ class TmdbRepository {
     CacheService? cacheService,
     TmdbApiService? apiService,
     String? apiKey,
-  }) : _apiKey = _resolveApiKey(apiKey),
-       _cache = cacheService ?? CacheService(),
-       _apiService =
-           apiService ??
-           TmdbApiService(client: client, apiKey: _resolveApiKey(apiKey));
+  })  : _apiKey = _resolveApiKey(apiKey),
+        _cache = cacheService ?? CacheService(),
+        _apiService = apiService ??
+            TmdbApiService(
+              client: client,
+              apiKey: _resolveApiKey(apiKey),
+            );
 
   final String _apiKey;
   final CacheService _cache;
   final TmdbApiService _apiService;
 
   static String _resolveApiKey(String? providedKey) {
-    final envKey = const String.fromEnvironment(
-      'TMDB_API_KEY',
-      defaultValue: '',
-    );
+    final envKey = const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
     final candidate = (providedKey ?? envKey).trim();
     if (candidate.isNotEmpty) {
       return candidate;
@@ -73,7 +74,10 @@ class TmdbRepository {
       page: page,
     );
 
-    final response = PaginatedResponse<Movie>.fromJson(payload, Movie.fromJson);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
 
     _cache.set(cacheKey, response, ttlSeconds: CacheService.trendingTTL);
     return response;
@@ -94,9 +98,15 @@ class TmdbRepository {
       }
     }
 
-    final payload = await _apiService.fetchMovieCategory(category, page: page);
+    final payload = await _apiService.fetchMovieCategory(
+      category,
+      page: page,
+    );
 
-    final response = PaginatedResponse<Movie>.fromJson(payload, Movie.fromJson);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
 
     _cache.set(cacheKey, response);
     return response;
@@ -117,9 +127,15 @@ class TmdbRepository {
       }
     }
 
-    final payload = await _apiService.fetchTvCategory(category, page: page);
+    final payload = await _apiService.fetchTvCategory(
+      category,
+      page: page,
+    );
 
-    final response = PaginatedResponse<Movie>.fromJson(payload, Movie.fromJson);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
 
     _cache.set(cacheKey, response);
     return response;
@@ -136,7 +152,8 @@ class TmdbRepository {
     final normalizedFilters = _normalizeFilters(sanitizedFilters);
     final cacheKey = 'discover-movies-$normalizedFilters-$page';
     if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      final cached =
+          _cache.get<PaginatedResponse<Movie>>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -147,7 +164,10 @@ class TmdbRepository {
       queryParameters: sanitizedFilters,
     );
 
-    final response = PaginatedResponse<Movie>.fromJson(payload, Movie.fromJson);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
 
     _cache.set(cacheKey, response);
     return response;
@@ -164,7 +184,8 @@ class TmdbRepository {
     final normalizedFilters = _normalizeFilters(sanitizedFilters);
     final cacheKey = 'discover-tv-$normalizedFilters-$page';
     if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      final cached =
+          _cache.get<PaginatedResponse<Movie>>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -175,16 +196,16 @@ class TmdbRepository {
       queryParameters: sanitizedFilters,
     );
 
-    final response = PaginatedResponse<Movie>.fromJson(payload, Movie.fromJson);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
 
     _cache.set(cacheKey, response);
     return response;
   }
 
-  Future<MovieDetailed> fetchMovieDetails(
-    int movieId, {
-    bool forceRefresh = false,
-  }) async {
+  Future<MovieDetailed> fetchMovieDetails(int movieId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
     final cacheKey = 'movie-details-$movieId';
@@ -199,7 +220,7 @@ class TmdbRepository {
       movieId,
       queryParameters: const {
         'append_to_response':
-            'videos,images,credits,recommendations,similar,external_ids,keywords,reviews,watch/providers,release_dates,alternative_titles,translations',
+            'videos,images,credits,recommendations,similar,external_ids',
       },
     );
 
@@ -209,10 +230,32 @@ class TmdbRepository {
     return movie;
   }
 
-  Future<TVDetailed> fetchTvDetails(
-    int tvId, {
-    bool forceRefresh = false,
-  }) async {
+  Future<MediaImages> fetchMovieImages(int movieId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKeyPrefix = 'movie-images-';
+    final cacheKey = '$cacheKeyPrefix$movieId';
+    if (!forceRefresh) {
+      final cached = _cache.get<MediaImages>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieDetails(
+      movieId,
+      queryParameters: const {
+        'append_to_response': 'images',
+        'include_image_language': 'en,null',
+      },
+    );
+
+    final images = _parseImagesPayload(payload['images']);
+    _cache.set(cacheKey, images, ttlSeconds: CacheService.movieDetailsTTL);
+    return images;
+  }
+
+  Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
     final cacheKey = 'tv-details-$tvId';
@@ -235,6 +278,31 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
+  }
+
+  Future<MediaImages> fetchTvImages(int tvId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKeyPrefix = 'tv-images-';
+    final cacheKey = '$cacheKeyPrefix$tvId';
+    if (!forceRefresh) {
+      final cached = _cache.get<MediaImages>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTvDetails(
+      tvId,
+      queryParameters: const {
+        'append_to_response': 'images',
+        'include_image_language': 'en,null',
+      },
+    );
+
+    final images = _parseImagesPayload(payload['images']);
+    _cache.set(cacheKey, images, ttlSeconds: CacheService.movieDetailsTTL);
+    return images;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -265,10 +333,7 @@ class TmdbRepository {
     return response;
   }
 
-  Future<Person> fetchPersonDetails(
-    int personId, {
-    bool forceRefresh = false,
-  }) async {
+  Future<Person> fetchPersonDetails(int personId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
     final cacheKey = 'person-details-$personId';
@@ -325,10 +390,7 @@ class TmdbRepository {
     return response;
   }
 
-  Future<Company> fetchCompanyDetails(
-    int companyId, {
-    bool forceRefresh = false,
-  }) async {
+  Future<Company> fetchCompanyDetails(int companyId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
     final cacheKey = 'company-details-$companyId';
@@ -345,11 +407,7 @@ class TmdbRepository {
     return company;
   }
 
-  Future<SearchResponse> searchMulti(
-    String query, {
-    int page = 1,
-    bool forceRefresh = false,
-  }) async {
+  Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {
     _checkApiKey();
 
     final trimmed = query.trim();
@@ -371,11 +429,7 @@ class TmdbRepository {
     return response;
   }
 
-  Future<TmdbListDetails> fetchList(
-    String listId, {
-    int page = 1,
-    bool forceRefresh = false,
-  }) async {
+  Future<TmdbListDetails> fetchList(String listId, {int page = 1, bool forceRefresh = false}) async {
     _checkApiKey();
 
     final cacheKey = 'list-$listId-$page';
@@ -392,10 +446,7 @@ class TmdbRepository {
     return list;
   }
 
-  Future<AccountProfile> fetchAccount(
-    String accountId, {
-    bool forceRefresh = false,
-  }) async {
+  Future<AccountProfile> fetchAccount(String accountId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
     final cacheKey = 'account-$accountId';
@@ -421,9 +472,7 @@ class TmdbRepository {
 
     final cacheKey = 'account-lists-$accountId-$page';
     if (!forceRefresh) {
-      final cached = _cache.get<PaginatedResponse<AccountListSummary>>(
-        cacheKey,
-      );
+      final cached = _cache.get<PaginatedResponse<AccountListSummary>>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -461,7 +510,10 @@ class TmdbRepository {
       page: page,
     );
 
-    final response = PaginatedResponse<Movie>.fromJson(payload, Movie.fromJson);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
 
     _cache.set(cacheKey, response);
     return response;
@@ -489,15 +541,16 @@ class TmdbRepository {
       page: page,
     );
 
-    final response = PaginatedResponse<Movie>.fromJson(payload, Movie.fromJson);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
 
     _cache.set(cacheKey, response);
     return response;
   }
 
-  Future<ApiConfiguration> fetchConfiguration({
-    bool forceRefresh = false,
-  }) async {
+  Future<ApiConfiguration> fetchConfiguration({bool forceRefresh = false}) async {
     _checkApiKey();
 
     const cacheKey = 'configuration-core';
@@ -510,11 +563,7 @@ class TmdbRepository {
 
     final payload = await _apiService.fetchConfiguration();
     final configuration = ApiConfiguration.fromJson(payload);
-    _cache.set(
-      cacheKey,
-      configuration,
-      ttlSeconds: CacheService.movieDetailsTTL,
-    );
+    _cache.set(cacheKey, configuration, ttlSeconds: CacheService.movieDetailsTTL);
     return configuration;
   }
 
@@ -530,12 +579,11 @@ class TmdbRepository {
     }
 
     final payload = await _apiService.fetchConfigurationLanguages();
-    final languages =
-        payload
-            .whereType<Map<String, dynamic>>()
-            .map(LanguageInfo.fromJson)
-            .toList()
-          ..sort((a, b) => a.englishName.compareTo(b.englishName));
+    final languages = payload
+        .whereType<Map<String, dynamic>>()
+        .map(LanguageInfo.fromJson)
+        .toList()
+      ..sort((a, b) => a.englishName.compareTo(b.englishName));
 
     _cache.set(cacheKey, languages, ttlSeconds: CacheService.movieDetailsTTL);
     return languages;
@@ -553,12 +601,11 @@ class TmdbRepository {
     }
 
     final payload = await _apiService.fetchConfigurationCountries();
-    final countries =
-        payload
-            .whereType<Map<String, dynamic>>()
-            .map(CountryInfo.fromJson)
-            .toList()
-          ..sort((a, b) => a.englishName.compareTo(b.englishName));
+    final countries = payload
+        .whereType<Map<String, dynamic>>()
+        .map(CountryInfo.fromJson)
+        .toList()
+      ..sort((a, b) => a.englishName.compareTo(b.englishName));
 
     _cache.set(cacheKey, countries, ttlSeconds: CacheService.movieDetailsTTL);
     return countries;
@@ -576,12 +623,11 @@ class TmdbRepository {
     }
 
     final payload = await _apiService.fetchConfigurationTimezones();
-    final timezones =
-        payload
-            .whereType<Map<String, dynamic>>()
-            .map(Timezone.fromJson)
-            .toList()
-          ..sort((a, b) => a.countryCode.compareTo(b.countryCode));
+    final timezones = payload
+        .whereType<Map<String, dynamic>>()
+        .map(Timezone.fromJson)
+        .toList()
+      ..sort((a, b) => a.countryCode.compareTo(b.countryCode));
 
     _cache.set(cacheKey, timezones, ttlSeconds: CacheService.movieDetailsTTL);
     return timezones;
@@ -629,12 +675,11 @@ class TmdbRepository {
       for (final entry in results.entries) {
         final value = entry.value;
         if (value is List) {
-          final certifications =
-              value
-                  .whereType<Map<String, dynamic>>()
-                  .map(Certification.fromJson)
-                  .toList()
-                ..sort((a, b) => a.order.compareTo(b.order));
+          final certifications = value
+              .whereType<Map<String, dynamic>>()
+              .map(Certification.fromJson)
+              .toList()
+            ..sort((a, b) => a.order.compareTo(b.order));
           parsed[entry.key] = certifications;
         }
       }
@@ -684,7 +729,8 @@ class TmdbRepository {
 
     final cacheKey = 'watch-providers-$mediaType';
     if (!forceRefresh) {
-      final cached = _cache.get<Map<String, WatchProviderResults>>(cacheKey);
+      final cached =
+          _cache.get<Map<String, WatchProviderResults>>(cacheKey);
       if (cached != null) {
         return cached;
       }
@@ -721,15 +767,43 @@ class TmdbRepository {
     }
 
     final payload = await _apiService.fetchWatchProviderRegions();
-    final regions =
-        payload
-            .whereType<Map<String, dynamic>>()
-            .map(WatchProviderRegion.fromJson)
-            .toList()
-          ..sort((a, b) => a.englishName.compareTo(b.englishName));
+    final regions = payload
+        .whereType<Map<String, dynamic>>()
+        .map(WatchProviderRegion.fromJson)
+        .toList()
+      ..sort((a, b) => a.englishName.compareTo(b.englishName));
 
     _cache.set(cacheKey, regions, ttlSeconds: CacheService.movieDetailsTTL);
     return regions;
+  }
+
+  MediaImages _parseImagesPayload(dynamic raw) {
+    if (raw is! Map<String, dynamic>) {
+      return MediaImages.empty();
+    }
+
+    final posters = _parseImageList(raw['posters']);
+    final backdrops = _parseImageList(raw['backdrops']);
+    final stillsRaw = _parseImageList(raw['stills']);
+    final logos = _parseImageList(raw['logos']);
+    final stills = stillsRaw.isNotEmpty ? stillsRaw : logos;
+
+    return MediaImages(
+      posters: posters,
+      backdrops: backdrops,
+      stills: stills,
+    );
+  }
+
+  List<ImageModel> _parseImageList(dynamic rawList) {
+    if (rawList is! List) {
+      return const <ImageModel>[];
+    }
+
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map(ImageModel.fromJson)
+        .toList(growable: false);
   }
 
   Map<String, dynamic> _normalizeDetailPayload(Map<String, dynamic> payload) {
@@ -739,9 +813,7 @@ class TmdbRepository {
     if (videos is Map<String, dynamic>) {
       final results = videos['results'];
       if (results is List) {
-        normalized['videos'] = results
-            .whereType<Map<String, dynamic>>()
-            .toList();
+        normalized['videos'] = results.whereType<Map<String, dynamic>>().toList();
       }
     }
 
@@ -749,9 +821,8 @@ class TmdbRepository {
     if (recommendations is Map<String, dynamic>) {
       final results = recommendations['results'];
       if (results is List) {
-        normalized['recommendations'] = results
-            .whereType<Map<String, dynamic>>()
-            .toList();
+        normalized['recommendations'] =
+            results.whereType<Map<String, dynamic>>().toList();
       }
     }
 
@@ -759,9 +830,7 @@ class TmdbRepository {
     if (similar is Map<String, dynamic>) {
       final results = similar['results'];
       if (results is List) {
-        normalized['similar'] = results
-            .whereType<Map<String, dynamic>>()
-            .toList();
+        normalized['similar'] = results.whereType<Map<String, dynamic>>().toList();
       }
     }
 
@@ -773,21 +842,12 @@ class TmdbRepository {
       final combined = <Map<String, dynamic>>[];
       if (backdrops is List) {
         combined.addAll(backdrops.whereType<Map<String, dynamic>>());
-        normalized['imageBackdrops'] = backdrops
-            .whereType<Map<String, dynamic>>()
-            .toList();
       }
       if (posters is List) {
         combined.addAll(posters.whereType<Map<String, dynamic>>());
-        normalized['imagePosters'] = posters
-            .whereType<Map<String, dynamic>>()
-            .toList();
       }
       if (profiles is List) {
         combined.addAll(profiles.whereType<Map<String, dynamic>>());
-        normalized['imageProfiles'] = profiles
-            .whereType<Map<String, dynamic>>()
-            .toList();
       }
       normalized['images'] = combined;
     }
@@ -801,72 +861,6 @@ class TmdbRepository {
     if (normalized['external_ids'] is! Map<String, dynamic>) {
       normalized['external_ids'] = const {};
     }
-
-    final keywords = normalized['keywords'];
-    if (keywords is Map<String, dynamic>) {
-      final keywordList = keywords['keywords'];
-      if (keywordList is List) {
-        normalized['keywords'] = keywordList
-            .whereType<Map<String, dynamic>>()
-            .toList();
-      }
-    }
-
-    final reviews = normalized['reviews'];
-    if (reviews is Map<String, dynamic>) {
-      final reviewList = reviews['results'];
-      if (reviewList is List) {
-        normalized['reviews'] = reviewList
-            .whereType<Map<String, dynamic>>()
-            .toList();
-      }
-    }
-
-    final releaseDates = normalized['release_dates'];
-    if (releaseDates is Map<String, dynamic>) {
-      final releaseList = releaseDates['results'];
-      if (releaseList is List) {
-        normalized['release_dates'] = releaseList
-            .whereType<Map<String, dynamic>>()
-            .toList();
-      }
-    }
-
-    final watchProviders = normalized['watch/providers'];
-    if (watchProviders is Map<String, dynamic>) {
-      final providerResults = watchProviders['results'];
-      if (providerResults is Map<String, dynamic>) {
-        final parsed = <String, Map<String, dynamic>>{};
-        providerResults.forEach((key, value) {
-          if (value is Map<String, dynamic>) {
-            parsed[key] = value;
-          }
-        });
-        normalized['watchProviders'] = parsed;
-      }
-    }
-
-    final alternativeTitles = normalized['alternative_titles'];
-    if (alternativeTitles is Map<String, dynamic>) {
-      final titles = alternativeTitles['titles'];
-      if (titles is List) {
-        normalized['alternative_titles'] = titles
-            .whereType<Map<String, dynamic>>()
-            .toList();
-      }
-    }
-
-    final translations = normalized['translations'];
-    if (translations is Map<String, dynamic>) {
-      final translationsList = translations['translations'];
-      if (translationsList is List) {
-        normalized['translations'] = translationsList
-            .whereType<Map<String, dynamic>>()
-            .toList();
-      }
-    }
-
-    normalized['watchProviders'] ??= const <String, Map<String, dynamic>>{};
 
     return normalized;
   }

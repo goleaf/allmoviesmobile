@@ -1,39 +1,30 @@
-import 'package:flutter/material.dart';
-import '../data/models/media_item.dart';
+import '../data/models/movie.dart';
+import '../data/models/paginated_response.dart';
+import '../data/tmdb_repository.dart';
+import 'paginated_resource_provider.dart';
 
-class SeriesProvider extends ChangeNotifier {
-  final List<MediaItem> _series = const [
-    MediaItem(
-      title: 'The Last of Us',
-      subtitle: '2023 • Drama',
-      overview: 'Joel and Ellie traverse a post-pandemic United States.',
-      rating: 8.9,
-    ),
-    MediaItem(
-      title: 'Succession',
-      subtitle: '2018 • Drama',
-      overview: 'The Roy family fights for control of their media empire.',
-      rating: 8.8,
-    ),
-    MediaItem(
-      title: 'The Bear',
-      subtitle: '2022 • Comedy-Drama',
-      overview: 'A chef returns home to run his family sandwich shop.',
-      rating: 8.5,
-    ),
-    MediaItem(
-      title: 'Arcane',
-      subtitle: '2021 • Animation',
-      overview: 'Sisters Vi and Jinx clash amid unrest in Piltover and Zaun.',
-      rating: 9.0,
-    ),
-    MediaItem(
-      title: 'Severance',
-      subtitle: '2022 • Sci-Fi',
-      overview: 'Office workers separate their memories between work and personal life.',
-      rating: 8.4,
-    ),
-  ];
+class SeriesProvider extends PaginatedResourceProvider<Movie> {
+  SeriesProvider(this._repository, {this.category = 'popular'}) {
+    loadInitial();
+  }
 
-  List<MediaItem> get series => List.unmodifiable(_series);
+  final TmdbRepository _repository;
+  final String category;
+
+  List<Movie> get series => items;
+  bool get isLoading => isInitialLoading;
+  bool get isLoadingMore => super.isLoadingMore;
+  bool get canLoadMore => hasMore;
+
+  Future<void> refreshSeries() => refresh();
+  Future<void> loadMoreSeries() => loadMore();
+
+  @override
+  Future<PaginatedResponse<Movie>> loadPage(int page, {bool forceRefresh = false}) {
+    return _repository.fetchTvCategory(
+      category: category,
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+  }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../../data/models/search_result_model.dart';
 import '../../../providers/search_provider.dart';
 import '../movie_detail/movie_detail_screen.dart';
 
@@ -160,19 +161,41 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildResults(SearchProvider provider) {
-    return GridView.builder(
-      padding: const EdgeInsets.all(16),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.7,
-        crossAxisSpacing: 16,
-        mainAxisSpacing: 16,
-      ),
-      itemCount: provider.results.length,
-      itemBuilder: (context, index) {
-        final movie = provider.results[index];
-        return _MovieCard(movie: movie);
+    final itemCount = provider.results.length + (provider.isLoadingMore ? 1 : 0);
+
+    return NotificationListener<ScrollNotification>(
+      onNotification: (notification) {
+        final metrics = notification.metrics;
+        final shouldLoadMore =
+            metrics.pixels >= metrics.maxScrollExtent - 200 &&
+                provider.canLoadMore &&
+                !provider.isLoadingMore &&
+                !provider.isLoading;
+
+        if (shouldLoadMore) {
+          provider.loadMore();
+        }
+
+        return false;
       },
+      child: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.7,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+        ),
+        itemCount: itemCount,
+        itemBuilder: (context, index) {
+          if (index >= provider.results.length) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final result = provider.results[index];
+          return _SearchResultCard(result: result);
+        },
+      ),
     );
   }
 
@@ -235,107 +258,90 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class _MovieCard extends StatelessWidget {
-  const _MovieCard({required this.movie});
+class _SearchResultCard extends StatelessWidget {
+  const _SearchResultCard({required this.result});
 
-  final movie;
+  final SearchResult result;
 
   @override
   Widget build(BuildContext context) {
+    final title = (result.title ?? result.name ?? '').trim();
+    final overview = (result.overview ?? '').trim();
+    final mediaLabel = switch (result.mediaType) {
+      MediaType.movie => 'Movie',
+      MediaType.tv => 'TV',
+      MediaType.person => 'Person',
+    };
+
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => MovieDetailScreen(movie: movie),
-            ),
-          );
-        },
+        onTap: result.mediaType == MediaType.movie
+            ? () {
+                Navigator.pushNamed(
+                  context,
+                  MovieDetailScreen.routeName,
+                  arguments: result.id,
+                );
+              }
+            : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: Stack(
-                children: [
-                  Container(
-                    width: double.infinity,
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    child: movie.posterUrl != null
-                        ? Image.network(
-                            movie.posterUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const Icon(
-                              Icons.broken_image_outlined,
-                              size: 48,
-                            ),
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            },
-                          )
-                        : const Icon(Icons.movie_outlined, size: 48),
-                  ),
-                  if (movie.voteAverage != null && movie.voteAverage! > 0)
-                    Positioned(
-                      top: 8,
-                      right: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.7),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 14,
-                              color: Colors.amber,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              movie.voteAverage!.toStringAsFixed(1),
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  image: _posterImage != null
+                      ? DecorationImage(
+                          image: NetworkImage(_posterImage!),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
+                ),
+                child: _posterImage == null
+                    ? Center(
+                        child: Text(
+                          (title.isNotEmpty ? title[0] : mediaLabel[0]).toUpperCase(),
+                          style: Theme.of(context)
+                              .textTheme
+                              .headlineMedium
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onPrimaryContainer,
                               ),
-                            ),
-                          ],
                         ),
-                      ),
-                    ),
-                ],
+                      )
+                    : null,
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(12),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    movie.title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                    title.isEmpty ? 'Untitled $mediaLabel' : title,
+                    style: Theme.of(context).textTheme.titleMedium,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 6),
                   Text(
-                    _buildSubtitle(movie),
+                    mediaLabel,
                     style: Theme.of(context).textTheme.bodySmall,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
+                  if (overview.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      overview,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -345,17 +351,14 @@ class _MovieCard extends StatelessWidget {
     );
   }
 
-  String _buildSubtitle(movie) {
-    final segments = <String>[];
-
-    final releaseYear = movie.releaseYear;
-    if (releaseYear != null && releaseYear.isNotEmpty) {
-      segments.add(releaseYear);
+  String? get _posterImage {
+    if (result.posterPath != null && result.posterPath!.isNotEmpty) {
+      return 'https://image.tmdb.org/t/p/w342${result.posterPath}';
     }
-
-    segments.add(movie.mediaLabel);
-
-    return segments.join(' • ');
+    if (result.profilePath != null && result.profilePath!.isNotEmpty) {
+      return 'https://image.tmdb.org/t/p/w342${result.profilePath}';
+    }
+    return null;
   }
 }
 

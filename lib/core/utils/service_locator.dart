@@ -42,6 +42,7 @@ Future<void> setupServiceLocator() async {
   getIt.registerLazySingleton<TmdbRepository>(
     () => TmdbRepository(
       client: getIt<http.Client>(),
+      cacheService: getIt<CacheService>(),
     ),
   );
 

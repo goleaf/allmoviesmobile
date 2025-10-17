@@ -158,21 +158,48 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
 
+                  final showLoader = !hasSearchQuery && trendingProvider.isLoadingMore;
+                  final itemCount = filteredTitles.length + (showLoader ? 1 : 0);
+
                   return RefreshIndicator(
-                    onRefresh: trendingProvider.loadTrendingTitles,
-                    child: GridView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.7,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: filteredTitles.length,
-                      itemBuilder: (context, index) {
-                        final movie = filteredTitles[index];
-                        return _MovieCard(movie: movie);
+                    onRefresh: () => trendingProvider.loadTrendingTitles(forceRefresh: true),
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (notification) {
+                        if (hasSearchQuery) {
+                          return false;
+                        }
+
+                        final metrics = notification.metrics;
+                        final shouldLoadMore =
+                            metrics.pixels >= metrics.maxScrollExtent - 200 &&
+                                trendingProvider.canLoadMore &&
+                                !trendingProvider.isLoadingMore &&
+                                !trendingProvider.isLoading;
+
+                        if (shouldLoadMore) {
+                          trendingProvider.loadMoreTrendingTitles();
+                        }
+
+                        return false;
                       },
+                      child: GridView.builder(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.7,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: itemCount,
+                        itemBuilder: (context, index) {
+                          if (index >= filteredTitles.length) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+
+                          final movie = filteredTitles[index];
+                          return _MovieCard(movie: movie);
+                        },
+                      ),
                     ),
                   );
                 },

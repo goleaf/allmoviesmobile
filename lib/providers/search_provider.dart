@@ -1,29 +1,36 @@
 import 'package:flutter/material.dart';
-import '../data/models/movie.dart';
+
+import '../data/models/search_result_model.dart';
 import '../data/services/local_storage_service.dart';
 import '../data/tmdb_repository.dart';
 
 class SearchProvider with ChangeNotifier {
-  final TmdbRepository _repository;
-  final LocalStorageService _storage;
-
   SearchProvider(this._repository, this._storage) {
     _loadSearchHistory();
   }
 
+  final TmdbRepository _repository;
+  final LocalStorageService _storage;
+
   String _query = '';
-  List<Movie> _results = [];
+  SearchResponse _response = const SearchResponse();
   List<String> _searchHistory = [];
   bool _isLoading = false;
+  bool _isLoadingMore = false;
   String? _errorMessage;
 
+  int _currentPage = 0;
+  int _totalPages = 1;
+
   String get query => _query;
-  List<Movie> get results => _results;
+  List<SearchResult> get results => _response.results;
   List<String> get searchHistory => _searchHistory;
   bool get isLoading => _isLoading;
+  bool get isLoadingMore => _isLoadingMore;
   String? get errorMessage => _errorMessage;
   bool get hasQuery => _query.trim().isNotEmpty;
-  bool get hasResults => _results.isNotEmpty;
+  bool get hasResults => results.isNotEmpty;
+  bool get canLoadMore => _currentPage < _totalPages;
 
   void _loadSearchHistory() {
     _searchHistory = _storage.getSearchHistory();
@@ -36,27 +43,59 @@ class SearchProvider with ChangeNotifier {
   }
 
   Future<void> search(String searchQuery) async {
-    if (searchQuery.trim().isEmpty) {
+    final trimmed = searchQuery.trim();
+    if (trimmed.isEmpty) {
       clearResults();
       return;
     }
 
-    _query = searchQuery;
+    _query = trimmed;
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
 
     try {
-      _results = await _repository.searchMulti(searchQuery);
-      
-      // Save to search history
-      await _storage.addToSearchHistory(searchQuery);
+      final response = await _repository.searchMulti(trimmed, page: 1, forceRefresh: true);
+      _response = response;
+      _currentPage = response.page;
+      _totalPages = response.totalPages;
+
+      await _storage.addToSearchHistory(trimmed);
       _searchHistory = _storage.getSearchHistory();
     } catch (error) {
       _errorMessage = 'Failed to search: $error';
-      _results = [];
+      _response = const SearchResponse();
+      _currentPage = 0;
+      _totalPages = 1;
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> loadMore() async {
+    if (_isLoadingMore || !canLoadMore || _query.trim().isEmpty) {
+      return;
+    }
+
+    _isLoadingMore = true;
+    notifyListeners();
+
+    try {
+      final nextPage = _currentPage + 1;
+      final response = await _repository.searchMulti(_query, page: nextPage);
+      _response = _response.copyWith(
+        page: response.page,
+        results: [..._response.results, ...response.results],
+        totalPages: response.totalPages,
+        totalResults: response.totalResults,
+      );
+      _currentPage = response.page;
+      _totalPages = response.totalPages;
+    } catch (error) {
+      _errorMessage = 'Failed to load more: $error';
+    } finally {
+      _isLoadingMore = false;
       notifyListeners();
     }
   }
@@ -78,9 +117,11 @@ class SearchProvider with ChangeNotifier {
   }
 
   void clearResults() {
-    _results = [];
+    _response = const SearchResponse();
     _query = '';
     _errorMessage = null;
+    _currentPage = 0;
+    _totalPages = 1;
     notifyListeners();
   }
 
@@ -89,4 +130,3 @@ class SearchProvider with ChangeNotifier {
     notifyListeners();
   }
 }
-

@@ -11,6 +11,7 @@ import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
@@ -18,6 +19,7 @@ import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
+import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'providers/companies_provider.dart';
@@ -58,6 +60,7 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),
         ChangeNotifierProvider(create: (_) => WatchlistProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => SearchProvider(tmdbRepository, storageService)),
         ChangeNotifierProvider(
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
@@ -86,6 +89,7 @@ class AllMoviesApp extends StatelessWidget {
             initialRoute: HomeScreen.routeName,
             routes: {
               HomeScreen.routeName: (context) => const HomeScreen(),
+              SearchScreen.routeName: (context) => const SearchScreen(),
               MoviesScreen.routeName: (context) => const MoviesScreen(),
               SeriesScreen.routeName: (context) => const SeriesScreen(),
               PeopleScreen.routeName: (context) => const PeopleScreen(),

@@ -9,6 +9,7 @@ import '../companies/companies_screen.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../movies/movies_screen.dart';
 import '../people/people_screen.dart';
+import '../search/search_screen.dart';
 import '../series/series_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -52,27 +53,28 @@ class _HomeScreenState extends State<HomeScreen> {
         titleSpacing: 0,
         title: Padding(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: SizedBox(
-            height: 40,
-            width: double.infinity,
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: AppStrings.search,
-                prefixIcon: const Icon(Icons.search, size: 20),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none,
+          child: GestureDetector(
+            onTap: () {
+              Navigator.pushNamed(context, SearchScreen.routeName);
+            },
+            child: AbsorbPointer(
+              child: SizedBox(
+                height: 40,
+                width: double.infinity,
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: AppStrings.search,
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(24),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    isDense: true,
+                  ),
                 ),
-                filled: true,
-                isDense: true,
               ),
-              onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
-              },
             ),
           ),
         ),

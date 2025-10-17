@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "tv.ref.schema.json",
+  "title": "TVRef",
+  "type": "object",
+  "required": ["id", "name"],
+  "properties": {
+    "id": { "type": "integer" },
+    "name": { "type": "string" }
+  },
+  "additionalProperties": false
+}

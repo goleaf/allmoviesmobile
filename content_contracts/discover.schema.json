@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "discover.schema.json",
+  "title": "DiscoverFeed",
+  "type": "object",
+  "required": ["page", "results", "total_pages", "total_results"],
+  "properties": {
+    "page": { "type": "integer", "minimum": 1 },
+    "results": {
+      "type": "array",
+      "items": {
+        "oneOf": [
+          { "$ref": "movie.schema.json" },
+          { "$ref": "tv.schema.json" }
+        ]
+      }
+    },
+    "total_pages": { "type": "integer", "minimum": 0 },
+    "total_results": { "type": "integer", "minimum": 0 }
+  },
+  "additionalProperties": false
+}

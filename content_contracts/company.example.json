@@ -1,0 +1,13 @@
+{
+  "id": 79,
+  "name": "Village Roadshow Pictures",
+  "logo_path": "/vrp.png",
+  "origin_country": "US",
+  "description": "A production company involved in feature films.",
+  "headquarters": "Burbank, California",
+  "homepage": "https://www.vreg.com",
+  "produced_movies": [
+    { "id": 603, "title": "The Matrix" }
+  ],
+  "produced_series": []
+}

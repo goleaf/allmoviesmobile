@@ -27,7 +27,10 @@ class AppDrawer extends StatelessWidget {
     final user = authProvider.currentUser;
     final currentRoute = ModalRoute.of(context)?.settings.name;
 
+    final screenWidth = MediaQuery.of(context).size.width;
+
     return Drawer(
+      width: screenWidth,
       child: Column(
         children: [
           UserAccountsDrawerHeader(
@@ -90,22 +93,17 @@ class AppDrawer extends StatelessWidget {
           ),
           const Spacer(),
           const Divider(),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text(AppStrings.logout),
-            onTap: () async {
-              await authProvider.logout();
-              if (!context.mounted) {
-                return;
-              }
-              Navigator.pop(context);
-              Navigator.pushNamedAndRemoveUntil(
-                context,
-                HomeScreen.routeName,
-                (route) => false,
-              );
-            },
-          ),
+          if (user != null)
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text(AppStrings.logout),
+              onTap: () async {
+                await authProvider.logout();
+                if (context.mounted) {
+                  Navigator.pop(context);
+                }
+              },
+            ),
           const SizedBox(height: 16),
         ],
       ),

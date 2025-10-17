@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "video.schema.json",
+  "title": "Video",
+  "type": "object",
+  "required": ["key", "site", "type", "name", "published_at"],
+  "properties": {
+    "key": { "type": "string" },
+    "site": { "type": "string", "enum": ["YouTube", "Vimeo", "Other"] },
+    "type": { "type": "string", "enum": ["Trailer", "Teaser", "Clip", "Featurette", "Behind the Scenes"] },
+    "name": { "type": "string" },
+    "official": { "type": ["boolean", "null"] },
+    "published_at": { "type": "string", "format": "date-time" }
+  },
+  "additionalProperties": false
+}

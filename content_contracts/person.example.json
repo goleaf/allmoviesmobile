@@ -1,0 +1,43 @@
+{
+  "id": 6384,
+  "name": "Keanu Reeves",
+  "biography": "Keanu Charles Reeves is a Canadian actor.",
+  "birthday": "1964-09-02",
+  "deathday": null,
+  "place_of_birth": "Beirut, Lebanon",
+  "gender": 2,
+  "known_for_department": "Acting",
+  "also_known_as": ["Киану Ривз"],
+  "profile_path": "/keanu.jpg",
+  "external_ids": {
+    "imdb_id": "nm0000206",
+    "instagram_id": null,
+    "twitter_id": null
+  },
+  "images": [
+    {
+      "file_path": "/keanu-1.jpg",
+      "width": 1200,
+      "height": 1800,
+      "aspect_ratio": 0.67,
+      "vote_average": null,
+      "vote_count": null
+    }
+  ],
+  "combined_credits": {
+    "cast": [
+      {
+        "id": "movie:603",
+        "media_type": "movie",
+        "role": "Actor",
+        "character": "Neo",
+        "job": null,
+        "title_or_name": "The Matrix",
+        "release_date": "1999-03-31",
+        "first_air_date": null,
+        "poster_path": "/matrix-poster.jpg"
+      }
+    ],
+    "crew": []
+  }
+}

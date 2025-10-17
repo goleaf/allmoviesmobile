@@ -1,3 +1,5 @@
+import 'dart:collection';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -9,6 +11,7 @@ import '../../../data/models/person_detail_model.dart';
 import '../../../data/models/person_model.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/person_detail_provider.dart';
+import '../../../providers/people_provider.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
@@ -247,25 +250,12 @@ class _PersonDetailBody extends StatelessWidget {
       _SectionPadding(child: _PersonalInfoSection(detail: detail)),
       _SectionPadding(child: _KnownForSection(detail: detail)),
       _SectionPadding(child: _CombinedCreditsSection(detail: detail)),
-      _SectionPadding(
-        child: _TimelineSection(
-          titleKey: 'person.movie_actor_timeline',
-          credits: detail.movieCredits.cast,
-          emptyKey: 'person.no_movie_actor_credits',
-        ),
-      ),
+      _SectionPadding(child: _CareerTimelineSection(detail: detail)),
       _SectionPadding(
         child: _CrewByDepartmentSection(
           titleKey: 'person.movie_crew_departments',
           credits: detail.movieCredits.crew,
           emptyKey: 'person.no_movie_crew_credits',
-        ),
-      ),
-      _SectionPadding(
-        child: _TimelineSection(
-          titleKey: 'person.tv_actor_timeline',
-          credits: detail.tvCredits.cast,
-          emptyKey: 'person.no_tv_actor_credits',
         ),
       ),
       _SectionPadding(
@@ -624,55 +614,144 @@ class _CombinedCreditsSection extends StatelessWidget {
   }
 }
 
-class _TimelineSection extends StatelessWidget {
-  const _TimelineSection({
-    required this.titleKey,
-    required this.credits,
-    required this.emptyKey,
-  });
+class _CareerTimelineSection extends StatelessWidget {
+  const _CareerTimelineSection({required this.detail});
 
-  final String titleKey;
-  final List<PersonCredit> credits;
-  final String emptyKey;
+  final PersonDetail detail;
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final sorted = credits.where((credit) => credit.parsedDate != null).toList()
-      ..sort((a, b) => b.parsedDate!.compareTo(a.parsedDate!));
+    final provider = context.watch<PeopleProvider>();
+    final timelineEntries = _buildTimelineEntries(provider);
 
-    if (sorted.isEmpty) {
+    if (timelineEntries.isEmpty) {
+      final message = provider.departmentFilter == null
+          ? loc.person['no_career_credits'] ?? 'No career credits available yet.'
+          : loc.person['no_career_credits_filtered'] ??
+              'No credits match the current filter.';
+
       return _SectionCard(
-        title: loc.t(titleKey),
+        title: loc.person['career_timeline'] ?? 'Career timeline',
         child: Text(
-          loc.t(emptyKey),
-          style: Theme.of(
-            context,
-          ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade600),
+          message,
+          style: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(color: Colors.grey.shade600),
         ),
       );
     }
 
     return _SectionCard(
-      title: loc.t(titleKey),
-      child: Column(
-        children: sorted.take(15).map((credit) {
-          return _TimelineTile(credit: credit);
-        }).toList(),
-      ),
+      title: loc.person['career_timeline'] ?? 'Career timeline',
+      child: _CareerTimelineList(entries: timelineEntries),
+    );
+  }
+
+  List<_CareerTimelineEntry> _buildTimelineEntries(PeopleProvider provider) {
+    final credits = <PersonCredit>[
+      ...detail.combinedCredits.cast,
+      ...detail.combinedCredits.crew,
+    ];
+    final deduplicated = _deduplicateCredits(credits);
+    final sorted = provider.transformCredits(deduplicated);
+    final limited = sorted.length > 40
+        ? sorted.take(40).toList()
+        : List<PersonCredit>.from(sorted);
+
+    final grouped = LinkedHashMap<String, List<PersonCredit>>();
+    for (final credit in limited) {
+      final label = credit.releaseYear ?? '—';
+      grouped.putIfAbsent(label, () => <PersonCredit>[]).add(credit);
+    }
+
+    final entries = <_CareerTimelineEntry>[];
+    final groupEntries = grouped.entries.toList();
+    for (var groupIndex = 0; groupIndex < groupEntries.length; groupIndex++) {
+      final group = groupEntries[groupIndex];
+      for (var index = 0; index < group.value.length; index++) {
+        entries.add(
+          _CareerTimelineEntry(
+            credit: group.value[index],
+            yearLabel: group.key,
+            showYearLabel: index == 0,
+          ),
+        );
+      }
+    }
+
+    return entries;
+  }
+
+  List<PersonCredit> _deduplicateCredits(List<PersonCredit> credits) {
+    final seen = <String>{};
+    final result = <PersonCredit>[];
+    for (final credit in credits) {
+      final key = [
+        credit.mediaType ?? '',
+        credit.id.toString(),
+        credit.creditId ?? '',
+        credit.department ?? '',
+        credit.job ?? '',
+        credit.character ?? '',
+        credit.releaseDate ?? credit.firstAirDate ?? '',
+      ].join('|');
+      if (seen.add(key)) {
+        result.add(credit);
+      }
+    }
+    return result;
+  }
+}
+
+class _CareerTimelineList extends StatelessWidget {
+  const _CareerTimelineList({required this.entries});
+
+  final List<_CareerTimelineEntry> entries;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        for (var index = 0; index < entries.length; index++)
+          _CareerTimelineTile(
+            entry: entries[index],
+            showConnector: index != entries.length - 1,
+          ),
+      ],
     );
   }
 }
 
-class _TimelineTile extends StatelessWidget {
-  const _TimelineTile({required this.credit});
+class _CareerTimelineEntry {
+  const _CareerTimelineEntry({
+    required this.credit,
+    required this.yearLabel,
+    required this.showYearLabel,
+  });
 
   final PersonCredit credit;
+  final String yearLabel;
+  final bool showYearLabel;
+}
+
+class _CareerTimelineTile extends StatelessWidget {
+  const _CareerTimelineTile({
+    required this.entry,
+    required this.showConnector,
+  });
+
+  final _CareerTimelineEntry entry;
+  final bool showConnector;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final lineColor = theme.colorScheme.outlineVariant;
+
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -682,11 +761,16 @@ class _TimelineTile extends StatelessWidget {
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
+                  color: theme.colorScheme.primary,
                   shape: BoxShape.circle,
                 ),
               ),
-              Container(width: 2, height: 36, color: Colors.grey.shade400),
+              if (showConnector)
+                Container(
+                  width: 2,
+                  height: 40,
+                  color: lineColor,
+                ),
             ],
           ),
           const SizedBox(width: 12),
@@ -694,28 +778,38 @@ class _TimelineTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (entry.showYearLabel)
+                  Text(
+                    entry.yearLabel,
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: theme.colorScheme.primary,
+                    ),
+                  ),
+                if (entry.showYearLabel) const SizedBox(height: 4),
                 Text(
-                  credit.releaseYear ?? '—',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Colors.grey.shade600,
+                  entry.credit.displayTitle,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  credit.displayTitle,
-                  style: Theme.of(
-                    context,
-                  ).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                if ((credit.character ?? '').isNotEmpty)
-                  Text(
-                    credit.character!,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  )
-                else if ((credit.job ?? '').isNotEmpty)
-                  Text(
-                    credit.job!,
-                    style: Theme.of(context).textTheme.bodyMedium,
+                if ((entry.credit.character ?? '').isNotEmpty ||
+                    (entry.credit.job ?? '').isNotEmpty ||
+                    (entry.credit.mediaType ?? '').isNotEmpty)
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children: [
+                      if ((entry.credit.mediaType ?? '').isNotEmpty)
+                        _InfoChip(
+                          label: entry.credit.mediaType!.toUpperCase(),
+                        ),
+                      if ((entry.credit.character ?? '').isNotEmpty)
+                        _InfoChip(label: entry.credit.character!),
+                      if ((entry.credit.job ?? '').isNotEmpty)
+                        _InfoChip(label: entry.credit.job!),
+                    ],
                   ),
               ],
             ),

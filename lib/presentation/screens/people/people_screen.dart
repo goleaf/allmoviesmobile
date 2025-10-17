@@ -52,10 +52,20 @@ class _PeopleScreenState extends State<PeopleScreen> {
           ),
         ),
         drawer: const AppDrawer(),
-        body: TabBarView(
+        body: Column(
           children: [
-            for (final section in sections)
-              _PeopleSectionView(section: section, onRefreshAll: _refreshAll),
+            const _PeopleFilterBar(),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  for (final section in sections)
+                    _PeopleSectionView(
+                      section: section,
+                      onRefreshAll: _refreshAll,
+                    ),
+                ],
+              ),
+            ),
           ],
         ),
       ),
@@ -123,6 +133,108 @@ class _PeopleSectionView extends StatelessWidget {
 
   void _showPersonDetails(BuildContext context, int personId) {
     Navigator.pushNamed(context, '/person', arguments: personId);
+  }
+}
+
+class _PeopleFilterBar extends StatelessWidget {
+  const _PeopleFilterBar();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
+
+    return Material(
+      color: theme.colorScheme.surface,
+      elevation: 1,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Consumer<PeopleProvider>(
+          builder: (context, provider, _) {
+            final departments = provider.availableDepartments;
+
+            return Wrap(
+              spacing: 16,
+              runSpacing: 12,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _FilterLabel(
+                  icon: Icons.filter_list,
+                  label: loc.person['filter_department'] ?? 'Filter by department',
+                ),
+                DropdownButton<String?>(
+                  key: const ValueKey('people_department_filter'),
+                  value: provider.departmentFilter,
+                  onChanged: (value) => provider.setDepartmentFilter(value),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(
+                        loc.person['all_departments'] ?? 'All departments',
+                      ),
+                    ),
+                    for (final department in departments)
+                      DropdownMenuItem<String?>(
+                        value: department,
+                        child: Text(department),
+                      ),
+                  ],
+                ),
+                const SizedBox(width: 12),
+                _FilterLabel(
+                  icon: Icons.sort,
+                  label: loc.person['sort_credits'] ?? 'Sort credits',
+                ),
+                DropdownButton<CreditSortOrder>(
+                  key: const ValueKey('people_credit_sort'),
+                  value: provider.creditSortOrder,
+                  onChanged: provider.setCreditSortOrder,
+                  items: [
+                    DropdownMenuItem<CreditSortOrder>(
+                      value: CreditSortOrder.newestFirst,
+                      child: Text(
+                        loc.person['sort_newest_first'] ?? 'Newest first',
+                      ),
+                    ),
+                    DropdownMenuItem<CreditSortOrder>(
+                      value: CreditSortOrder.oldestFirst,
+                      child: Text(
+                        loc.person['sort_oldest_first'] ?? 'Oldest first',
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+class _FilterLabel extends StatelessWidget {
+  const _FilterLabel({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18, color: theme.colorScheme.primary),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
   }
 }
 

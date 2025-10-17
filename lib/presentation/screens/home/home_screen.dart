@@ -30,29 +30,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  void _filterMovies(String query) {
-    final normalized = query.trim().toLowerCase();
-    if (normalized.isEmpty) {
-      if (!identical(_visibleMovieIndices, _allMovieIndices)) {
-        setState(() {
-          _visibleMovieIndices = _allMovieIndices;
-        });
-      }
-      return;
-    }
-
-    final matches = <int>[];
-    for (var i = 0; i < _normalizedMovieTitles.length; i++) {
-      if (_normalizedMovieTitles[i].contains(normalized)) {
-        matches.add(i);
-      }
-    }
-
-    setState(() {
-      _visibleMovieIndices = matches;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
@@ -93,25 +70,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 isDense: true,
               ),
               onChanged: (value) {
-                final query = value.trim().toLowerCase();
-                if (query.isEmpty) {
-                  if (!identical(_visibleMovieIndices, _allMovieIndices)) {
-                    setState(() {
-                      _visibleMovieIndices = _allMovieIndices;
-                    });
-                  }
-                  return;
-                }
-
-                final matches = <int>[];
-                for (var i = 0; i < _normalizedMovieTitles.length; i++) {
-                  if (_normalizedMovieTitles[i].contains(query)) {
-                    matches.add(i);
-                  }
-                }
-
                 setState(() {
-                  _visibleMovieIndices = matches;
+                  _searchQuery = value;
                 });
               },
             ),

@@ -1,4 +1,4 @@
-# AllMovies Mobile
+# AllMovies Mobile (Flutter)
 
 AllMovies Mobile is a Flutter application that showcases a local-first movie browsing experience with Material Design 3 styling. The app bootstraps in [`lib/main.dart`](lib/main.dart), where SharedPreferences-backed storage is initialised and the authentication provider decides whether to display the login flow or the home screen. For a breakdown of every implemented screen and widget, see [`FEATURES.md`](FEATURES.md).
 

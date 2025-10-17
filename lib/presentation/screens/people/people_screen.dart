@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/person_model.dart';
 import '../../../providers/people_provider.dart';
+import '../../../data/models/person_detail_model.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
@@ -123,8 +124,8 @@ class _PeopleSectionView extends StatelessWidget {
     );
   }
 
-  void _showPersonDetails(BuildContext context, Person person) {
-    Navigator.pushNamed(context, '/person-detail', arguments: person.id);
+  void _showPersonDetails(BuildContext context, PersonDetail detail) {
+    Navigator.pushNamed(context, '/person-detail', arguments: detail.id);
   }
 }
 

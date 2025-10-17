@@ -17,6 +17,7 @@ import 'review_model.dart';
 import 'translation_model.dart';
 import 'video_model.dart';
 import 'watch_provider_model.dart';
+import '../../core/utils/media_image_helper.dart';
 
 part 'movie_detailed_model.freezed.dart';
 part 'movie_detailed_model.g.dart';
@@ -116,12 +117,17 @@ class MovieDetailed with _$MovieDetailed {
 }
 
 extension MovieDetailedX on MovieDetailed {
-  String? get posterUrl =>
-      posterPath != null ? 'https://image.tmdb.org/t/p/w500$posterPath' : null;
+  String? get posterUrl => MediaImageHelper.buildUrl(
+        posterPath,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w500,
+      );
 
-  String? get backdropUrl => backdropPath != null
-      ? 'https://image.tmdb.org/t/p/w780$backdropPath'
-      : null;
+  String? get backdropUrl => MediaImageHelper.buildUrl(
+        backdropPath,
+        type: MediaImageType.backdrop,
+        size: MediaImageSize.w780,
+      );
 
   String? get releaseYear => releaseDate != null && releaseDate!.isNotEmpty
       ? releaseDate!.split('-').first

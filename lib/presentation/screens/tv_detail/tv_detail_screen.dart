@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/utils/media_image_helper.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/credit_model.dart';

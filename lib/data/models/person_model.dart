@@ -21,8 +21,13 @@ class Person with _$Person {
       _$PersonFromJson(json);
 }
 
+import '../../core/utils/media_image_helper.dart';
+
 extension PersonExtensions on Person {
-  String? get profileUrl =>
-      profilePath != null ? 'https://image.tmdb.org/t/p/w500$profilePath' : null;
+  String? get profileUrl => MediaImageHelper.buildUrl(
+        profilePath,
+        type: MediaImageType.profile,
+        size: MediaImageSize.w500,
+      );
 }
 

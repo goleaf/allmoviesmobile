@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/models/person_model.dart';
+import '../data/models/person_detail_model.dart';
 import '../data/tmdb_repository.dart';
 
 enum PeopleSection { trending, popular }
@@ -114,7 +115,19 @@ class PeopleProvider extends ChangeNotifier {
 
   Future<Person> loadDetails(int personId) async {
     try {
-      return await _repository.fetchPersonDetails(personId);
+      final d = await _repository.fetchPersonDetails(personId);
+      // Map detail to Person summary model expected by UI helpers
+      return Person(
+        id: d.id,
+        name: d.name,
+        profilePath: d.profilePath,
+        biography: d.biography,
+        knownForDepartment: d.knownForDepartment,
+        birthday: d.birthday,
+        placeOfBirth: d.placeOfBirth,
+        alsoKnownAs: d.alsoKnownAs,
+        popularity: d.popularity,
+      );
     } catch (error) {
       throw TmdbException('Failed to load person details: $error');
     }

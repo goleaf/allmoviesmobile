@@ -1069,10 +1069,10 @@ class _TranslationsSection extends StatelessWidget {
       title: loc.t('person.translations'),
       child: Column(
         children: translations.map((translation) {
-          final localeLabel = [
-            translation.englishName,
-            translation.iso31661,
-          ].where((element) => element != null && element!.isNotEmpty).join(' • ');
+          final parts = <String>[];
+          if ((translation.englishName ?? '').isNotEmpty) parts.add(translation.englishName!);
+          if ((translation.iso31661 ?? '').isNotEmpty) parts.add(translation.iso31661!);
+          final localeLabel = parts.join(' • ');
 
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 6),

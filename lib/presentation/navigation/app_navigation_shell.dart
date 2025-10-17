@@ -10,22 +10,21 @@ import '../../data/models/movie.dart';
 import '../../data/tmdb_repository.dart';
 import '../../providers/app_state_provider.dart';
 import '../navigation/app_destination.dart';
+import '../navigation/episode_detail_args.dart';
 import '../navigation/season_detail_args.dart';
 import '../screens/collections/collection_detail_screen.dart';
 import '../screens/company_detail/company_detail_screen.dart';
 import '../screens/episode_detail/episode_detail_screen.dart';
-import '../navigation/episode_detail_args.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movie_detail/movie_detail_screen.dart';
-import '../screens/person_detail/person_detail_screen.dart';
-import '../screens/season_detail/season_detail_screen.dart';
-import '../screens/tv_detail/tv_detail_screen.dart';
-// Home/More removed in this app variant; keep movies/search/series only
-import '../screens/movies/movies_screen.dart';
 import '../screens/movies/movies_filters_screen.dart';
+import '../screens/movies/movies_screen.dart';
+import '../screens/person_detail/person_detail_screen.dart';
 import '../screens/search/search_screen.dart';
-import '../screens/series/series_screen.dart';
+import '../screens/season_detail/season_detail_screen.dart';
 import '../screens/series/series_filters_screen.dart';
+import '../screens/series/series_screen.dart';
+import '../screens/tv_detail/tv_detail_screen.dart';
 import '../widgets/offline_banner.dart';
 
 class AppNavigationShell extends StatefulWidget {
@@ -36,8 +35,15 @@ class AppNavigationShell extends StatefulWidget {
 }
 
 class _AppNavigationShellState extends State<AppNavigationShell> {
+  static const List<AppDestination> _destinations = <AppDestination>[
+    AppDestination.home,
+    AppDestination.movies,
+    AppDestination.tv,
+    AppDestination.search,
+  ];
+
   final Map<AppDestination, GlobalKey<NavigatorState>> _navigatorKeys = {
-    for (final destination in AppDestination.values)
+    for (final destination in _destinations)
       destination: GlobalKey<NavigatorState>(),
   };
 
@@ -80,9 +86,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
             const OfflineBanner(),
             Expanded(
               child: IndexedStack(
-                index: _currentDestination.index,
+                index: _destinations.indexOf(_currentDestination),
                 children: [
-                  for (final destination in AppDestination.values)
+                  for (final destination in _destinations)
                     _DestinationNavigator(
                       navigatorKey: _navigatorKeys[destination]!,
                       destination: destination,
@@ -230,9 +236,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   Widget _buildBottomNavigationBar() {
     final l = AppLocalizations.of(context);
     return NavigationBar(
-      selectedIndex: _currentDestination.index,
+      selectedIndex: _destinations.indexOf(_currentDestination),
       onDestinationSelected: (index) {
-        final selected = AppDestination.values[index];
+        final selected = _destinations[index];
 
         if (_currentDestination == selected) {
           _navigatorKeys[selected]!.currentState?.popUntil(

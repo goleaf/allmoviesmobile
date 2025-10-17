@@ -156,6 +156,9 @@ class _MovieDetailView extends StatelessWidget {
                     type: MediaImageType.backdrop,
                     size: MediaImageSize.w780,
                     fit: BoxFit.cover,
+                    enableBlur: true,
+                    blurSigmaX: 24,
+                    blurSigmaY: 24,
                   ),
                   Container(
                     decoration: BoxDecoration(

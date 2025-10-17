@@ -97,11 +97,17 @@ class _GalleryRow extends StatelessWidget {
     required this.title,
     required this.images,
     required this.type,
+    this.enableBlur = false,
+    this.blurSigmaX = 18,
+    this.blurSigmaY = 18,
   });
 
   final String title;
   final List<ImageModel> images;
   final _GalleryImageType type;
+  final bool enableBlur;
+  final double blurSigmaX;
+  final double blurSigmaY;
 
   @override
   Widget build(BuildContext context) {
@@ -178,6 +184,9 @@ class _GalleryRow extends StatelessWidget {
                               alignment: Alignment.center,
                               child: const Icon(Icons.broken_image),
                             ),
+                            enableBlur: enableBlur,
+                            blurSigmaX: blurSigmaX,
+                            blurSigmaY: blurSigmaY,
                             overlay: MediaImageOverlay(
                               gradientResolvers: [
                                 (theme, _) {

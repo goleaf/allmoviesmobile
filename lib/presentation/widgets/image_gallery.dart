@@ -1,11 +1,10 @@
-import 'dart:ui';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../core/utils/media_image_helper.dart';
 import '../../data/models/image_model.dart';
 import 'zoomable_image.dart';
+import 'media_image.dart';
 
 /// Fullscreen gallery that presents TMDB media images with zoom support.
 ///
@@ -65,17 +64,12 @@ class _ImageGalleryState extends State<ImageGallery> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final image = widget.images[_currentIndex];
-    final backgroundUrl = MediaImageHelper.buildPreviewUrl(
-      image.filePath,
-      type: widget.mediaType,
-      size: MediaImageSize.w780,
-    );
 
     return Material(
       color: Colors.black,
       child: Stack(
         children: [
-          Positioned.fill(child: _buildBlurredBackdrop(backgroundUrl)),
+          Positioned.fill(child: _buildBlurredBackdrop(image)),
           Column(
             children: [
               _GalleryTopBar(
@@ -121,31 +115,37 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
-  Widget _buildBlurredBackdrop(String? url) {
-    if (url == null) {
-      return Container(color: Colors.black);
-    }
-
-    final imageProvider = CachedNetworkImageProvider(url, cacheKey: 'gallery::$url');
+  Widget _buildBlurredBackdrop(ImageModel image) {
+    final path = image.filePath;
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
-      child: ImageFiltered(
-        key: ValueKey(url),
-        imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: imageProvider,
+      child: (path == null || path.isEmpty)
+          ? const DecoratedBox(
+              key: ValueKey('gallery::empty'),
+              decoration: BoxDecoration(color: Colors.black),
+            )
+          : MediaImage(
+              key: ValueKey(path),
+              path: path,
+              type: widget.mediaType,
+              size: MediaImageSize.w780,
+              previewSize: MediaImageSize.w300,
               fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.35),
-                BlendMode.darken,
+              enableBlur: true,
+              blurSigmaX: 24,
+              blurSigmaY: 24,
+              enableProgress: false,
+              placeholder: const DecoratedBox(
+                decoration: BoxDecoration(color: Colors.black),
+              ),
+              errorWidget: const DecoratedBox(
+                decoration: BoxDecoration(color: Colors.black),
+              ),
+              overlay: MediaImageOverlay(
+                colorResolver: (_, __) => Colors.black.withOpacity(0.35),
               ),
             ),
-          ),
-        ),
-      ),
     );
   }
 

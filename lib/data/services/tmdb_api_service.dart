@@ -136,6 +136,36 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchNetworkDetails(
+    int networkId, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/network/$networkId',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Map<String, dynamic>> fetchNetworkAlternativeNames(
+    int networkId, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/network/$networkId/alternative_names',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Map<String, dynamic>> fetchNetworkImages(
+    int networkId, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/network/$networkId/images',
+      queryParameters: queryParameters,
+    );
+  }
+
   Future<Map<String, dynamic>> fetchPersonDetails(
     int personId, {
     Map<String, String>? queryParameters,

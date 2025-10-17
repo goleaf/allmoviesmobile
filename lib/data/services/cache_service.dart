@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 import 'dart:convert';
 
 import 'package:logger/logger.dart';
@@ -33,12 +34,18 @@ class CachePolicy {
 
 /// Simple in-memory cache with TTL support and stale-entry detection.
 class CacheService {
-  CacheService({SharedPreferences? prefs}) : _prefs = prefs;
+  CacheService({
+    SharedPreferences? prefs,
+    int maxEntries = defaultMaxEntries,
+  })  : _prefs = prefs,
+        _maxEntries = maxEntries.clamp(32, 2048);
 
   final Logger _logger = Logger();
-  final Map<String, _CacheEntry> _cache = {};
+  final LinkedHashMap<String, _CacheEntry> _cache = LinkedHashMap();
+  final int _maxEntries;
 
   // Default TTL values (in seconds)
+  static const int defaultMaxEntries = 256;
   static const int defaultTTL = 300; // 5 minutes
   static const int movieDetailsTTL = 3600; // 1 hour
   static const int trendingTTL = 1800; // 30 minutes
@@ -47,8 +54,17 @@ class CacheService {
 
   SharedPreferences? _prefs;
 
-  /// Get a value from cache
+  /// Get a value from cache without metadata.
   T? get<T>(String key) {
+    final result = getWithMeta<T>(key, allowStale: false);
+    return result?.value;
+  }
+
+  /// Retrieve a cache entry while exposing metadata about its freshness.
+  CacheLookupResult<T>? getWithMeta<T>(
+    String key, {
+    bool allowStale = true,
+  }) {
     final entry = _cache[key];
 
     if (entry == null) {
@@ -56,14 +72,25 @@ class CacheService {
       return null;
     }
 
-    if (entry.isExpired || entry.isStale) {
-      _logger.d('Cache ${entry.isExpired ? 'expired' : 'stale'}: $key');
+    if (entry.isExpired) {
+      _logger.d('Cache expired: $key');
       _cache.remove(key);
-      return null;
+      return CacheLookupResult<T>.expired();
     }
 
-    _logger.d('Cache hit: $key');
-    return entry.value as T?;
+    if (!allowStale && entry.isStale) {
+      _logger.d('Cache stale (discarded): $key');
+      _cache.remove(key);
+      return CacheLookupResult<T>.stale();
+    }
+
+    entry.touch();
+    _logger.d('Cache hit: $key (stale: ${entry.isStale})');
+    return CacheLookupResult<T>(
+      value: entry.value as T?,
+      isStale: entry.isStale,
+      isExpired: false,
+    );
   }
 
   /// Set a value in cache with optional TTL
@@ -83,6 +110,8 @@ class CacheService {
       createdAt: DateTime.now(),
       policy: effectivePolicy,
     );
+
+    _evictIfNeeded();
 
     _logger.d('Cache set: $key (TTL: ${effectivePolicy.ttl.inSeconds}s)');
   }
@@ -328,18 +357,35 @@ class CacheService {
     _cache.clear();
     await clearPersistent();
   }
+
+  void _evictIfNeeded() {
+    if (_cache.length <= _maxEntries) {
+      return;
+    }
+    final overflow = _cache.length - _maxEntries;
+    final entries = _cache.entries.toList()
+      ..sort(
+        (a, b) => a.value.lastAccessed.compareTo(b.value.lastAccessed),
+      );
+    for (var i = 0; i < overflow; i++) {
+      final key = entries[i].key;
+      _cache.remove(key);
+      _logger.d('Cache evicted (LRU): $key');
+    }
+  }
 }
 
 class _CacheEntry {
   final dynamic value;
   final DateTime createdAt;
   final CachePolicy policy;
+  DateTime lastAccessed;
 
   _CacheEntry({
     required this.value,
     required this.createdAt,
     required this.policy,
-  });
+  }) : lastAccessed = DateTime.now();
 
   DateTime get expiresAt => createdAt.add(policy.ttl);
 
@@ -351,6 +397,10 @@ class _CacheEntry {
       return false;
     }
     return DateTime.now().isAfter(createdAt.add(refreshAfter));
+  }
+
+  void touch() {
+    lastAccessed = DateTime.now();
   }
 }
 
@@ -371,4 +421,30 @@ class CacheStats {
   String toString() {
     return 'CacheStats(total: $totalEntries, valid: $validEntries, expired: $expiredEntries, stale: $staleEntries)';
   }
+}
+
+class CacheLookupResult<T> {
+  const CacheLookupResult({
+    required this.value,
+    required this.isStale,
+    required this.isExpired,
+  });
+
+  factory CacheLookupResult.expired() => const CacheLookupResult(
+        value: null,
+        isStale: false,
+        isExpired: true,
+      );
+
+  factory CacheLookupResult.stale() => const CacheLookupResult(
+        value: null,
+        isStale: true,
+        isExpired: false,
+      );
+
+  final T? value;
+  final bool isStale;
+  final bool isExpired;
+
+  bool get hasValue => value != null && !isExpired;
 }

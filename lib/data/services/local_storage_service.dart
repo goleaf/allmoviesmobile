@@ -25,9 +25,9 @@ class LocalStorageService {
   static const String _moviesTabIndexKey = 'allmovies_movies_tab_index';
   static const String _moviesScrollPositionsKey =
       'allmovies_movies_scroll_positions';
-  static const String _peopleTabIndexKey = 'allmovies_people_tab_index';
-  static const String _peopleScrollOffsetsKey =
-      'allmovies_people_scroll_offsets';
+  static const String _seriesTabIndexKey = 'allmovies_series_tab_index';
+  static const String _seriesScrollPositionsKey =
+      'allmovies_series_scroll_positions';
 
   static const String _favoritesSyncEnabledKey =
       'allmovies_favorites_sync_enabled';
@@ -260,18 +260,14 @@ class LocalStorageService {
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // People screen UI state
-  // ---------------------------------------------------------------------------
+  int getSeriesTabIndex() => _prefs.getInt(_seriesTabIndexKey) ?? 0;
 
-  int getPeopleTabIndex() => _prefs.getInt(_peopleTabIndexKey) ?? 0;
-
-  Future<bool> setPeopleTabIndex(int index) {
-    return _prefs.setInt(_peopleTabIndexKey, index);
+  Future<bool> setSeriesTabIndex(int index) {
+    return _prefs.setInt(_seriesTabIndexKey, index);
   }
 
-  double? getPeopleScrollOffset(String sectionKey) {
-    final raw = _prefs.getString(_peopleScrollOffsetsKey);
+  int? getSeriesScrollIndex(String sectionKey) {
+    final raw = _prefs.getString(_seriesScrollPositionsKey);
     if (raw == null || raw.isEmpty) {
       return null;
     }
@@ -279,11 +275,11 @@ class LocalStorageService {
     try {
       final decoded = jsonDecode(raw) as Map<String, dynamic>;
       final value = decoded[sectionKey];
-      if (value is double) {
+      if (value is int) {
         return value;
       }
       if (value is num) {
-        return value.toDouble();
+        return value.toInt();
       }
     } catch (_) {
       return null;
@@ -292,22 +288,22 @@ class LocalStorageService {
     return null;
   }
 
-  Future<bool> setPeopleScrollOffset(String sectionKey, double offset) async {
-    final raw = _prefs.getString(_peopleScrollOffsetsKey);
+  Future<bool> setSeriesScrollIndex(String sectionKey, int index) async {
+    final raw = _prefs.getString(_seriesScrollPositionsKey);
     final map = <String, dynamic>{};
 
     if (raw != null && raw.isNotEmpty) {
       try {
         map.addAll(jsonDecode(raw) as Map<String, dynamic>);
       } catch (_) {
-        // Corrupted payload; overwrite below
+        // Ignore corrupted payloads and overwrite with the latest snapshot.
       }
     }
 
-    map[sectionKey] = offset;
+    map[sectionKey] = index;
 
     return _prefs.setString(
-      _peopleScrollOffsetsKey,
+      _seriesScrollPositionsKey,
       jsonEncode(map),
     );
   }

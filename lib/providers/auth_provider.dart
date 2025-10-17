@@ -15,10 +15,20 @@ class AuthProvider with ChangeNotifier {
   UserModel? get currentUser => _currentUser;
   bool get isLoggedIn => _currentUser != null;
   bool get isLoading => _isLoading;
+  List<String> get favorites => _currentUser?.favorites ?? const [];
+  List<String> get watchlist => _currentUser?.watchlist ?? const [];
 
   void _loadCurrentUser() {
     _currentUser = _storageService.getCurrentUser();
     notifyListeners();
+  }
+
+  bool isFavorite(String movieId) {
+    return favorites.contains(movieId);
+  }
+
+  bool isInWatchlist(String movieId) {
+    return watchlist.contains(movieId);
   }
 
   Future<AuthResult> login(String email, String password) async {
@@ -54,6 +64,8 @@ class AuthProvider with ChangeNotifier {
       email: email,
       password: password,
       fullName: fullName,
+      favorites: const [],
+      watchlist: const [],
     );
     
     final success = await _storageService.registerUser(user);
@@ -99,9 +111,45 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> toggleFavorite(String movieId) async {
+    if (_currentUser == null) return;
+
+    final updatedFavorites = List<String>.from(_currentUser!.favorites);
+    if (updatedFavorites.contains(movieId)) {
+      updatedFavorites.remove(movieId);
+    } else {
+      updatedFavorites.add(movieId);
+    }
+
+    final updatedUser = _currentUser!.copyWith(favorites: updatedFavorites);
+    await _persistUserUpdate(updatedUser);
+  }
+
+  Future<void> toggleWatchlist(String movieId) async {
+    if (_currentUser == null) return;
+
+    final updatedWatchlist = List<String>.from(_currentUser!.watchlist);
+    if (updatedWatchlist.contains(movieId)) {
+      updatedWatchlist.remove(movieId);
+    } else {
+      updatedWatchlist.add(movieId);
+    }
+
+    final updatedUser = _currentUser!.copyWith(watchlist: updatedWatchlist);
+    await _persistUserUpdate(updatedUser);
+  }
+
   void _setLoading(bool value) {
     _isLoading = value;
     notifyListeners();
+  }
+
+  Future<void> _persistUserUpdate(UserModel updatedUser) async {
+    final success = await _storageService.updateUser(updatedUser);
+    if (success) {
+      _currentUser = updatedUser;
+      notifyListeners();
+    }
   }
 
   String _generatePassword() {

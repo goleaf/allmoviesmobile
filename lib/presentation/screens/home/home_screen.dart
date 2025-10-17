@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../data/models/movie_model.dart';
+import '../../../data/repositories/mock_movie_repository.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/app_drawer.dart';
 
@@ -13,22 +15,14 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
-  static const int _movieCount = 10;
-  late final List<String> _movieTitles;
-  late final List<String> _normalizedMovieTitles;
-  late final List<int> _allMovieIndices;
-  late List<int> _visibleMovieIndices;
+  late final List<MovieModel> _movies;
+  late List<MovieModel> _visibleMovies;
 
   @override
   void initState() {
     super.initState();
-    _movieTitles = List<String>.generate(_movieCount, (index) => 'Movie ${index + 1}');
-    _normalizedMovieTitles = List<String>.generate(
-      _movieCount,
-      (index) => _movieTitles[index].toLowerCase(),
-    );
-    _allMovieIndices = List<int>.generate(_movieCount, (index) => index);
-    _visibleMovieIndices = _allMovieIndices;
+    _movies = MockMovieRepository.getMovies();
+    _visibleMovies = _movies;
   }
 
   @override
@@ -73,24 +67,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
                 onChanged: (value) {
                   final query = value.trim().toLowerCase();
-                  if (query.isEmpty) {
-                    if (!identical(_visibleMovieIndices, _allMovieIndices)) {
-                      setState(() {
-                        _visibleMovieIndices = _allMovieIndices;
-                      });
-                    }
-                    return;
-                  }
-
-                  final matches = <int>[];
-                  for (var i = 0; i < _normalizedMovieTitles.length; i++) {
-                    if (_normalizedMovieTitles[i].contains(query)) {
-                      matches.add(i);
-                    }
-                  }
-
                   setState(() {
-                    _visibleMovieIndices = matches;
+                    if (query.isEmpty) {
+                      _visibleMovies = _movies;
+                    } else {
+                      _visibleMovies = _movies
+                          .where((movie) => movie.title.toLowerCase().contains(query))
+                          .toList();
+                    }
                   });
                 },
               ),
@@ -118,10 +102,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
-                itemCount: _visibleMovieIndices.length,
+                itemCount: _visibleMovies.length,
                 itemBuilder: (context, index) {
-                  final movieIndex = _visibleMovieIndices[index];
-                  return _MovieCard(index: movieIndex);
+                  final movie = _visibleMovies[index];
+                  return _MovieCard(movie: movie);
                 },
               ),
             ),
@@ -133,12 +117,13 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class _MovieCard extends StatelessWidget {
-  final int index;
+  final MovieModel movie;
 
-  const _MovieCard({required this.index});
+  const _MovieCard({required this.movie});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Card(
       clipBehavior: Clip.antiAlias,
       child: Column(
@@ -147,11 +132,11 @@ class _MovieCard extends StatelessWidget {
           Expanded(
             child: Container(
               width: double.infinity,
-              color: Theme.of(context).colorScheme.primaryContainer,
+              color: theme.colorScheme.primaryContainer,
               child: Icon(
                 Icons.movie_outlined,
                 size: 64,
-                color: Theme.of(context).colorScheme.primary,
+                color: theme.colorScheme.primary,
               ),
             ),
           ),
@@ -161,15 +146,61 @@ class _MovieCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Movie ${index + 1}',
+                  movie.title,
                   style: Theme.of(context).textTheme.titleMedium,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '2024 • Action',
+                  '${movie.year} • ${movie.genre}',
                   style: Theme.of(context).textTheme.bodySmall,
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, _) {
+                        final isFavorite = authProvider.isFavorite(movie.id);
+                        return IconButton(
+                          icon: Icon(
+                            isFavorite ? Icons.favorite : Icons.favorite_border,
+                            color: isFavorite
+                                ? theme.colorScheme.primary
+                                : theme.iconTheme.color,
+                          ),
+                          tooltip: isFavorite
+                              ? 'Remove from favorites'
+                              : 'Add to favorites',
+                          onPressed: () {
+                            authProvider.toggleFavorite(movie.id);
+                          },
+                        );
+                      },
+                    ),
+                    Consumer<AuthProvider>(
+                      builder: (context, authProvider, _) {
+                        final isInWatchlist = authProvider.isInWatchlist(movie.id);
+                        return IconButton(
+                          icon: Icon(
+                            isInWatchlist
+                                ? Icons.bookmark
+                                : Icons.bookmark_add_outlined,
+                            color: isInWatchlist
+                                ? theme.colorScheme.secondary
+                                : theme.iconTheme.color,
+                          ),
+                          tooltip: isInWatchlist
+                              ? 'Remove from watchlist'
+                              : 'Add to watchlist',
+                          onPressed: () {
+                            authProvider.toggleWatchlist(movie.id);
+                          },
+                        );
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),

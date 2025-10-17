@@ -37,6 +37,26 @@ class LocalStorageService {
     return await _prefs.setString(_currentUserKey, user.toJson());
   }
 
+  // Update a user and persist changes to the cached current user
+  Future<bool> updateUser(UserModel user) async {
+    final users = getUsers();
+    final index = users.indexWhere((u) => u.id == user.id);
+
+    if (index == -1) return false;
+
+    users[index] = user;
+    final success = await saveUsers(users);
+
+    if (success) {
+      final current = getCurrentUser();
+      if (current?.id == user.id) {
+        await saveCurrentUser(user);
+      }
+    }
+
+    return success;
+  }
+
   // Clear current user (logout)
   Future<bool> clearCurrentUser() async {
     return await _prefs.remove(_currentUserKey);
@@ -94,6 +114,16 @@ class LocalStorageService {
       return users.firstWhere(
         (u) => u.email.toLowerCase() == email.toLowerCase(),
       );
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Get user by id
+  UserModel? getUserById(String id) {
+    final users = getUsers();
+    try {
+      return users.firstWhere((u) => u.id == id);
     } catch (e) {
       return null;
     }

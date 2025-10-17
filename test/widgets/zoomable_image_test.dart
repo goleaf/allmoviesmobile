@@ -2,39 +2,69 @@ import 'package:allmovies_mobile/core/utils/media_image_helper.dart';
 import 'package:allmovies_mobile/presentation/widgets/zoomable_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:vector_math/vector_math_64.dart' as vector_math;
+
+bool _matrixIsIdentity(Matrix4 matrix) {
+  final identity = Matrix4.identity();
+  for (var i = 0; i < 16; i++) {
+    final difference = (matrix.storage[i] - identity.storage[i]).abs();
+    if (difference > 0.001) {
+      return false;
+    }
+  }
+  return true;
+}
+
+Future<void> _doubleTapWidget(WidgetTester tester, Finder finder) async {
+  await tester.tap(finder);
+  await tester.pump(const Duration(milliseconds: 40));
+  await tester.tap(finder);
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 125));
+  await tester.pump(const Duration(milliseconds: 125));
+}
 
 void main() {
-  testWidgets('ZoomableImage toggles zoom on double tap', (tester) async {
+  testWidgets('ZoomableImage double tap toggles zoom with callbacks', (tester) async {
+    var startCount = 0;
+    var endCount = 0;
+
     await tester.pumpWidget(
-      const MaterialApp(
+      MaterialApp(
         home: Scaffold(
           body: ZoomableImage(
             imagePath: null,
-            type: MediaImageType.poster,
+            type: MediaImageType.backdrop,
+            onInteractionStart: () => startCount++,
+            onInteractionEnd: () => endCount++,
           ),
         ),
       ),
     );
 
-    final viewerFinder = find.byType(InteractiveViewer);
-    final viewer = tester.widget<InteractiveViewer>(viewerFinder);
-    final controller = viewer.transformationController!;
+    Matrix4 currentMatrix() {
+      final interactiveViewer = tester.widget<InteractiveViewer>(find.byType(InteractiveViewer));
+      final controller = interactiveViewer.transformationController;
+      expect(controller, isNotNull, reason: 'ZoomableImage supplies a TransformationController');
+      return Matrix4.copy(controller!.value);
+    }
 
-    expect(controller.value, equals(vector_math.Matrix4.identity()));
+    expect(_matrixIsIdentity(currentMatrix()), isTrue);
 
-    await tester.tap(find.byType(ZoomableImage));
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.tap(find.byType(ZoomableImage));
-    await tester.pumpAndSettle();
+    final gestureTarget = find.byType(GestureDetector);
+    expect(gestureTarget, findsOneWidget);
 
-    expect(controller.value.getMaxScaleOnAxis(), greaterThan(1.0));
+    await _doubleTapWidget(tester, gestureTarget);
+    await tester.pump(const Duration(milliseconds: 300));
 
-    await tester.tap(find.byType(ZoomableImage));
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.tap(find.byType(ZoomableImage));
-    await tester.pumpAndSettle();
+    expect(startCount, 1);
+    expect(endCount, 1);
+    expect(_matrixIsIdentity(currentMatrix()), isFalse);
 
-    expect(controller.value.getMaxScaleOnAxis(), closeTo(1.0, 0.05));
+    await _doubleTapWidget(tester, gestureTarget);
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(startCount, 2);
+    expect(endCount, 2);
+    expect(_matrixIsIdentity(currentMatrix()), isTrue);
   });
 }

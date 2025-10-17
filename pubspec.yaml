@@ -121,6 +121,9 @@ dependencies:
 
   # Video playback
   video_player: ^2.8.6
+  chewie: ^1.13.0
+  vimeo_video_player: ^1.0.1
+  flutter_inappwebview: ^6.1.5
   
   # Pagination
   infinite_scroll_pagination: ^5.1.1

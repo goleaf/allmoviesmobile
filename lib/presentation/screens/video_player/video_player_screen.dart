@@ -1,10 +1,10 @@
-import 'dart:convert';
+import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+
+import 'video_player_factory.dart';
 
 import '../../../data/models/video_model.dart';
 
@@ -44,17 +44,18 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   bool _autoPlay = false;
   bool _initialized = false;
   bool _isFullScreen = false;
-  bool _requestedQualityLevels = false;
-  bool _qualityOptionsLoading = false;
-  bool _qualityOptionsUnavailable = false;
-
-  YoutubePlayerController? _ytController;
   List<String> _availableQualities = const [];
   String? _selectedQuality;
+  VideoPlayerAdapter? _adapter;
+  VideoPlayerMetadata? _metadata;
+  VoidCallback? _fullScreenListener;
+  VoidCallback? _qualityListener;
+  VoidCallback? _selectedQualityListener;
 
   @override
   void dispose() {
-    _disposeYoutubeController();
+    _removeAdapterListeners();
+    _adapter?.dispose();
     super.dispose();
   }
 
@@ -74,7 +75,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _videos = List<Video>.from(args.videos);
     _autoPlay = args.autoPlay;
     final initialVideo = _resolveInitialVideo(args);
-    _selectVideo(initialVideo, notify: false);
+    unawaited(_selectVideo(initialVideo, notify: false));
   }
 
   Video _resolveInitialVideo(VideoPlayerScreenArgs args) {
@@ -90,36 +91,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
   bool get _hasVideos => _videos.isNotEmpty;
 
-  bool _isYoutube(Video video) => video.site.toLowerCase() == 'youtube';
-
-  void _resetQualityState() {
-    _requestedQualityLevels = false;
-    _availableQualities = const [];
-    _selectedQuality = null;
-    _qualityOptionsLoading = false;
-    _qualityOptionsUnavailable = false;
-  }
-
-  void _selectVideo(Video video, {bool notify = true}) {
+  Future<void> _selectVideo(Video video, {bool notify = true}) async {
+    await _activateAdapter(video);
     void updateSelection() {
-      final isYoutubeVideo = _isYoutube(video);
-      if (!isYoutubeVideo) {
-        _disposeYoutubeController();
-      }
       _selectedVideo = video;
       _selectedType = video.type;
-      if (isYoutubeVideo) {
-        if (_ytController == null) {
-          _initializeYoutubeController(video);
-        } else {
-          _resetQualityState();
-          if (_autoPlay) {
-            _ytController!.load(video.key);
-          } else {
-            _ytController!.cue(video.key);
-          }
-        }
-      }
+    }
+
+    if (!mounted) {
+      return;
     }
 
     if (notify) {
@@ -129,244 +109,103 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
-  void _initializeYoutubeController(Video video) {
-    _disposeYoutubeController();
-    _resetQualityState();
-    _isFullScreen = false;
+  Future<void> _activateAdapter(Video video) async {
+    _removeAdapterListeners();
+    final previousAdapter = _adapter;
+    _adapter = null;
+    previousAdapter?.dispose();
 
-    final controller = YoutubePlayerController(
-      initialVideoId: video.key,
-      flags: YoutubePlayerFlags(
-        autoPlay: _autoPlay,
-        controlsVisibleAtStart: true,
-        enableCaption: true,
-      ),
+    final adapter = VideoPlayerAdapterFactory.create(
+      video,
+      autoPlay: _autoPlay,
+      fallbackBuilder: ({required Video video, Uri? uri}) =>
+          _buildExternalVideoPlaceholder(video, uri: uri),
     );
+    await adapter.initialize();
+    if (!mounted) {
+      adapter.dispose();
+      return;
+    }
 
-    controller.addListener(_handleYoutubeUpdates);
-    _ytController = controller;
+    setState(() {
+      _adapter = adapter;
+      _metadata = adapter.metadata;
+      _isFullScreen = adapter.isFullScreen.value;
+      _availableQualities = adapter.availableQualities.value;
+      _selectedQuality = adapter.selectedQuality.value;
+    });
+
+    _fullScreenListener = () {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _isFullScreen = adapter.isFullScreen.value;
+      });
+    };
+    adapter.isFullScreen.addListener(_fullScreenListener!);
+
+    _qualityListener = () {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _availableQualities = adapter.availableQualities.value;
+        if (_selectedQuality != null &&
+            !_availableQualities.contains(_selectedQuality)) {
+          _selectedQuality =
+              _availableQualities.isEmpty ? null : _availableQualities.first;
+        }
+      });
+    };
+    adapter.availableQualities.addListener(_qualityListener!);
+
+    _selectedQualityListener = () {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _selectedQuality = adapter.selectedQuality.value;
+      });
+    };
+    adapter.selectedQuality.addListener(_selectedQualityListener!);
   }
 
-  void _disposeYoutubeController() {
-    final controller = _ytController;
-    if (controller != null) {
-      controller.removeListener(_handleYoutubeUpdates);
-      controller.dispose();
+  void _removeAdapterListeners() {
+    final adapter = _adapter;
+    if (adapter != null) {
+      if (_fullScreenListener != null) {
+        adapter.isFullScreen.removeListener(_fullScreenListener!);
+      }
+      if (_qualityListener != null) {
+        adapter.availableQualities.removeListener(_qualityListener!);
+      }
+      if (_selectedQualityListener != null) {
+        adapter.selectedQuality.removeListener(_selectedQualityListener!);
+      }
     }
-    _ytController = null;
-    _resetQualityState();
-    _isFullScreen = false;
+    _fullScreenListener = null;
+    _qualityListener = null;
+    _selectedQualityListener = null;
   }
 
   Future<void> _handleQualityChange(String quality) async {
-    final controller = _ytController;
-    final webController = controller?.value.webViewController;
-    if (controller == null || webController == null) {
+    final adapter = _adapter;
+    if (adapter == null) {
       return;
     }
-
-    final normalized = quality == 'auto' ? 'default' : quality;
-    try {
-      await webController.evaluateJavascript(
-        source: 'setPlaybackQuality("$normalized")',
-      );
-      if (!mounted) {
-        return;
-      }
-      setState(() {
-        _selectedQuality = quality;
-      });
-    } catch (error) {
-      debugPrint('Failed to set playback quality: $error');
-    }
-  }
-
-  Future<void> _loadYoutubeQualities() async {
-    final controller = _ytController;
-    final webController = controller?.value.webViewController;
-    if (controller == null || webController == null) {
-      return;
-    }
-
-    if (mounted) {
-      setState(() {
-        _qualityOptionsLoading = true;
-        _qualityOptionsUnavailable = false;
-      });
-    }
-
-    try {
-      final result = await webController.evaluateJavascript(
-        source: 'JSON.stringify(getAvailableQualityLevels())',
-      );
-      if (!mounted) {
-        return;
-      }
-      if (_ytController != controller) {
-        return;
-      }
-      final qualities = _parseQualityLevels(result);
-      final normalizedQualities = _normalizeQualityList(qualities);
-      setState(() {
-        _qualityOptionsLoading = false;
-        if (normalizedQualities.isEmpty) {
-          _availableQualities = const [];
-          _qualityOptionsUnavailable = true;
-          final normalizedCurrent =
-              _normalizeQualityValue(controller.value.playbackQuality);
-          if (normalizedCurrent != null) {
-            _selectedQuality = normalizedCurrent;
-          }
-        } else if (!listEquals(normalizedQualities, _availableQualities)) {
-          _availableQualities = normalizedQualities;
-          _qualityOptionsUnavailable = false;
-          if (_selectedQuality == null ||
-              !_availableQualities.contains(_selectedQuality)) {
-            _selectedQuality = _availableQualities.first;
-          }
-        } else {
-          _qualityOptionsUnavailable = false;
-        }
-      });
-    } catch (error) {
-      debugPrint('Failed to load quality levels: $error');
-      if (!mounted) {
-        return;
-      }
-      if (_ytController != controller) {
-        return;
-      }
-      setState(() {
-        _qualityOptionsLoading = false;
-        _qualityOptionsUnavailable = true;
-      });
-    }
-  }
-
-  List<String> _parseQualityLevels(dynamic result) {
-    if (result == null) {
-      return const [];
-    }
-    if (result is List) {
-      return result.whereType<String>().toList();
-    }
-    if (result is String) {
-      try {
-        final decoded = jsonDecode(result);
-        if (decoded is List) {
-          return decoded.whereType<String>().toList();
-        }
-      } catch (_) {
-        // Ignore malformed results.
-      }
-    }
-    return const [];
-  }
-
-  String? _normalizeQualityValue(String? quality) {
-    if (quality == null || quality.isEmpty) {
-      return null;
-    }
-    return quality == 'default' ? 'auto' : quality;
-  }
-
-  List<String> _normalizeQualityList(Iterable<String> qualities) {
-    final seen = <String>{};
-    final normalized = <String>[];
-    for (final quality in qualities) {
-      final normalizedQuality = _normalizeQualityValue(quality);
-      if (normalizedQuality != null && seen.add(normalizedQuality)) {
-        normalized.add(normalizedQuality);
-      }
-    }
-    return normalized;
-  }
-
-  List<String> _extractQualitiesFromValue(YoutubePlayerValue value) {
-    final dynamic dynamicValue = value;
-    final potentialLists = <dynamic>[];
-
-    void safeAdd(dynamic Function() accessor) {
-      try {
-        final result = accessor();
-        if (result != null) {
-          potentialLists.add(result);
-        }
-      } catch (_) {
-        // Ignore missing properties or API incompatibilities.
-      }
-    }
-
-    safeAdd(() => dynamicValue.availableQualities);
-    safeAdd(() => dynamicValue.availableQualityLevels);
-    safeAdd(() => dynamicValue.metaData?.availableQualities);
-    safeAdd(() => dynamicValue.metaData?.availableQualityLevels);
-    safeAdd(() => dynamicValue.metadata?.availableQualities);
-    safeAdd(() => dynamicValue.metadata?.availableQualityLevels);
-    for (final potential in potentialLists) {
-      if (potential is List) {
-        final normalized = _normalizeQualityList(potential.whereType<String>());
-        if (normalized.isNotEmpty) {
-          return normalized;
-        }
-      }
-    }
-    return const [];
-  }
-
-  void _handleYoutubeUpdates() {
-    final controller = _ytController;
-    if (controller == null || !mounted) {
-      return;
-    }
-    final value = controller.value;
-    if (value.isFullScreen != _isFullScreen) {
-      setState(() {
-        _isFullScreen = value.isFullScreen;
-      });
-    }
-    final trackedQualities = _extractQualitiesFromValue(value);
-    if (trackedQualities.isNotEmpty &&
-        !listEquals(trackedQualities, _availableQualities)) {
-      setState(() {
-        _availableQualities = trackedQualities;
-        _qualityOptionsLoading = false;
-        _qualityOptionsUnavailable = false;
-        if (_selectedQuality == null ||
-            !_availableQualities.contains(_selectedQuality)) {
-          _selectedQuality = _availableQualities.first;
-        }
-      });
-    }
-    final currentQuality = _normalizeQualityValue(value.playbackQuality);
-    if (currentQuality != null && currentQuality != _selectedQuality) {
-      final knownQualities =
-          _availableQualities.isEmpty ? trackedQualities : _availableQualities;
-      if (knownQualities.contains(currentQuality) || knownQualities.isEmpty) {
-        setState(() {
-          _selectedQuality = currentQuality;
-        });
-      }
-    }
-    if (value.isReady && !_requestedQualityLevels) {
-      _requestedQualityLevels = true;
-      _loadYoutubeQualities();
-    }
+    await adapter.handleQualityChange(quality);
   }
 
   Future<void> _toggleAutoPlay(bool value) async {
     setState(() {
       _autoPlay = value;
     });
-    final controller = _ytController;
-    if (controller == null) {
+    final adapter = _adapter;
+    if (adapter == null) {
       return;
     }
-    if (value) {
-      controller.play();
-    } else {
-      controller.pause();
-    }
+    await adapter.handleAutoPlayChange(value);
   }
 
   Iterable<String> get _availableTypes sync* {
@@ -384,7 +223,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
     for (final video in _videos) {
       if (video.type == type) {
-        _selectVideo(video);
+        unawaited(_selectVideo(video));
         return;
       }
     }
@@ -432,10 +271,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return labels[quality] ?? quality.toUpperCase();
   }
 
-  /// Builds the toolbar that hosts playback customization controls such as the
-  /// YouTube quality picker and the autoplay toggle shown beneath the player
-  /// when the video is not in fullscreen mode.
-  Widget _buildPlaybackOptions({required bool showQualitySelector}) {
+  Widget _buildPlaybackOptions({
+    required bool showQualitySelector,
+    required bool allowAutoPlayToggle,
+  }) {
     final qualityOptions = <String>[..._availableQualities];
     if (showQualitySelector && qualityOptions.isNotEmpty) {
       if (!qualityOptions.contains('auto')) {
@@ -500,7 +339,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               const SizedBox(width: 8),
               Switch.adaptive(
                 value: _autoPlay,
-                onChanged: (value) => _toggleAutoPlay(value),
+                onChanged:
+                    allowAutoPlayToggle ? (value) => _toggleAutoPlay(value) : null,
               ),
             ],
           ),
@@ -556,7 +396,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             borderRadius: BorderRadius.circular(12),
             child: InkWell(
               borderRadius: BorderRadius.circular(12),
-              onTap: () => _selectVideo(video),
+              onTap: () => unawaited(_selectVideo(video)),
               child: Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -673,8 +513,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
-  Widget _buildExternalVideoPlaceholder(Video video) {
-    final uri = _videoUri(video);
+  Widget _buildExternalVideoPlaceholder(Video video, {Uri? uri}) {
+    final effectiveUri = uri ?? _videoUri(video);
     return Container(
       color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
       child: Center(
@@ -697,9 +537,11 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: uri == null ? null : () => _launchExternal(uri),
+              onPressed: effectiveUri == null
+                  ? null
+                  : () => _launchExternal(effectiveUri),
               icon: const Icon(Icons.open_in_new),
-              label: Text(uri == null
+              label: Text(effectiveUri == null
                   ? 'No compatible link available'
                   : 'Open ${video.site}'),
             ),
@@ -713,6 +555,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     required Video video,
     required Widget playerSection,
     required bool showQualitySelector,
+    required bool allowAutoPlayToggle,
   }) {
     final title = _resolvedArgs?.title ?? video.name;
     return Scaffold(
@@ -722,16 +565,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             ? const Center(child: Text('No videos available.'))
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  playerSection,
-                  _buildVideoSummary(video),
-                  _buildPlaybackOptions(
-                    showQualitySelector: showQualitySelector,
-                  ),
-                  _buildTypeSelector(),
-                  _buildVideoList(),
-                ],
-              ),
+              children: [
+                playerSection,
+                _buildVideoSummary(video),
+                _buildPlaybackOptions(
+                  showQualitySelector: showQualitySelector,
+                  allowAutoPlayToggle: allowAutoPlayToggle,
+                ),
+                _buildTypeSelector(),
+                _buildVideoList(),
+              ],
+            ),
       ),
     );
   }
@@ -739,7 +583,9 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   @override
   Widget build(BuildContext context) {
     final video = _selectedVideo;
-    if (!_hasVideos || video == null) {
+    final adapter = _adapter;
+    final metadata = _metadata;
+    if (!_hasVideos || video == null || adapter == null || metadata == null) {
       final title = _resolvedArgs?.title ?? 'Video Player';
       return Scaffold(
         appBar: AppBar(title: Text(title)),
@@ -747,34 +593,13 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       );
     }
 
-    if (_isYoutube(video) && _ytController != null) {
-      return YoutubePlayerBuilder(
-        onEnterFullScreen: () => setState(() => _isFullScreen = true),
-        onExitFullScreen: () => setState(() => _isFullScreen = false),
-        player: YoutubePlayer(
-          controller: _ytController!,
-          progressIndicatorColor: Theme.of(context).colorScheme.primary,
-          showVideoProgressIndicator: true,
-        ),
-        builder: (context, player) {
-          return _buildScaffold(
-            video: video,
-            showQualitySelector: true,
-            playerSection: AspectRatio(
-              aspectRatio: 16 / 9,
-              child: player,
-            ),
-          );
-        },
-      );
-    }
-
     return _buildScaffold(
       video: video,
-      showQualitySelector: false,
+      showQualitySelector: metadata.supportsQualitySelection,
+      allowAutoPlayToggle: metadata.supportsAutoplay,
       playerSection: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: _buildExternalVideoPlaceholder(video),
+        aspectRatio: adapter.aspectRatio,
+        child: adapter.buildPlayer(context),
       ),
     );
   }

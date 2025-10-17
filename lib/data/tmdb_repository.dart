@@ -1,18 +1,34 @@
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+import 'models/account_model.dart';
+import 'models/company_model.dart';
 import 'models/movie.dart';
+import 'models/movie_detailed_model.dart';
+import 'models/paginated_response.dart';
+import 'models/person_model.dart';
+import 'models/search_result_model.dart';
+import 'models/tmdb_list_model.dart';
+import 'models/tv_detailed_model.dart';
+import 'services/cache_service.dart';
+import 'services/tmdb_api_service.dart';
 
 class TmdbRepository {
-  TmdbRepository({http.Client? client, String? apiKey})
-      : _client = client ?? http.Client(),
-        _apiKey = apiKey ?? const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
+  TmdbRepository({
+    http.Client? client,
+    CacheService? cacheService,
+    TmdbApiService? apiService,
+    String? apiKey,
+  })  : _apiKey = apiKey ?? const String.fromEnvironment('TMDB_API_KEY', defaultValue: ''),
+        _cache = cacheService ?? CacheService(),
+        _apiService = apiService ??
+            TmdbApiService(
+              client: client,
+              apiKey: apiKey ?? const String.fromEnvironment('TMDB_API_KEY', defaultValue: ''),
+            );
 
-  static const _host = 'api.themoviedb.org';
-  static const _basePath = '/3';
-
-  final http.Client _client;
   final String _apiKey;
+  final CacheService _cache;
+  final TmdbApiService _apiService;
 
   void _checkApiKey() {
     if (_apiKey.isEmpty) {
@@ -20,217 +36,447 @@ class TmdbRepository {
     }
   }
 
-  Future<Map<String, dynamic>> _get(String endpoint, [Map<String, String>? queryParams]) async {
+  Future<PaginatedResponse<Movie>> fetchTrendingTitles({
+    int page = 1,
+    bool forceRefresh = false,
+    String mediaType = 'all',
+    String timeWindow = 'week',
+  }) async {
     _checkApiKey();
 
-    final uri = Uri.https(_host, '$_basePath$endpoint', {
-      'api_key': _apiKey,
-      'language': 'en-US',
-      if (queryParams != null) ...queryParams,
-    });
+    final cacheKey = 'trending-$mediaType-$timeWindow-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
 
-    final response = await _client.get(uri, headers: {
-      'Accept': 'application/json',
-    });
+    final payload = await _apiService.fetchTrending(
+      mediaType: mediaType,
+      timeWindow: timeWindow,
+      page: page,
+    );
 
-    if (response.statusCode != 200) {
-      throw TmdbException(
-        'Request failed with status ${response.statusCode}',
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.trendingTTL);
+    return response;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchMovieCategory({
+    String category = 'popular',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'movies-$category-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieCategory(
+      category,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchTvCategory({
+    String category = 'popular',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'tv-$category-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTvCategory(
+      category,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
+  }
+
+  Future<MovieDetailed> fetchMovieDetails(int movieId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    final cacheKey = 'movie-details-$movieId';
+    if (!forceRefresh) {
+      final cached = _cache.get<MovieDetailed>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieDetails(
+      movieId,
+      queryParameters: const {
+        'append_to_response':
+            'videos,images,credits,recommendations,similar,external_ids',
+      },
+    );
+
+    final normalized = _normalizeDetailPayload(payload);
+    final movie = MovieDetailed.fromJson(normalized);
+    _cache.set(cacheKey, movie, ttlSeconds: CacheService.movieDetailsTTL);
+    return movie;
+  }
+
+  Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    final cacheKey = 'tv-details-$tvId';
+    if (!forceRefresh) {
+      final cached = _cache.get<TVDetailed>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTvDetails(
+      tvId,
+      queryParameters: const {
+        'append_to_response':
+            'videos,images,credits,recommendations,similar,external_ids',
+      },
+    );
+
+    final normalized = _normalizeDetailPayload(payload);
+    final tv = TVDetailed.fromJson(normalized);
+    _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
+    return tv;
+  }
+
+  Future<PaginatedResponse<Person>> fetchPopularPeople({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'people-popular-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Person>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchPersonCategory(
+      'popular',
+      page: page,
+    );
+
+    final response = PaginatedResponse<Person>.fromJson(
+      payload,
+      Person.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
+  }
+
+  Future<Person> fetchPersonDetails(int personId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    final cacheKey = 'person-details-$personId';
+    if (!forceRefresh) {
+      final cached = _cache.get<Person>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchPersonDetails(personId);
+    final person = Person.fromJson(payload);
+    _cache.set(cacheKey, person, ttlSeconds: CacheService.movieDetailsTTL);
+    return person;
+  }
+
+  Future<PaginatedResponse<Company>> fetchCompanies({
+    String query = '',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmedQuery = query.trim();
+    if (trimmedQuery.isEmpty) {
+      return const PaginatedResponse<Company>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Company>[],
       );
     }
 
-    return jsonDecode(response.body) as Map<String, dynamic>;
-  }
-
-  // Trending
-  Future<List<Movie>> fetchTrendingMovies({String timeWindow = 'day'}) async {
-    final payload = await _get('/trending/all/$timeWindow');
-    final results = payload['results'];
-
-    if (results is! List) {
-      throw const TmdbException('Malformed TMDB response: missing results list.');
+    final cacheKey = 'companies-$trimmedQuery-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Company>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
     }
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
+    final payload = await _apiService.search(
+      'company',
+      trimmedQuery,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Company>.fromJson(
+      payload,
+      Company.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
   }
 
-  // Movie Details
-  Future<Map<String, dynamic>> fetchMovieDetails(int movieId) async {
-    return await _get('/movie/$movieId', {'append_to_response': 'videos,images,credits,recommendations,similar'});
+  Future<Company> fetchCompanyDetails(int companyId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    final cacheKey = 'company-details-$companyId';
+    if (!forceRefresh) {
+      final cached = _cache.get<Company>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchCompanyDetails(companyId);
+    final company = Company.fromJson(payload);
+    _cache.set(cacheKey, company);
+    return company;
   }
 
-  // Popular Movies
-  Future<List<Movie>> fetchPopularMovies({int page = 1}) async {
-    final payload = await _get('/movie/popular', {'page': '$page'});
-    final results = payload['results'] as List?;
+  Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {
+    _checkApiKey();
 
-    if (results == null) return [];
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const SearchResponse();
+    }
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
+    final cacheKey = 'search-$trimmed-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<SearchResponse>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search('multi', trimmed, page: page);
+    final response = SearchResponse.fromJson(payload);
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
   }
 
-  // Top Rated Movies
-  Future<List<Movie>> fetchTopRatedMovies({int page = 1}) async {
-    final payload = await _get('/movie/top_rated', {'page': '$page'});
-    final results = payload['results'] as List?;
+  Future<TmdbListDetails> fetchList(String listId, {int page = 1, bool forceRefresh = false}) async {
+    _checkApiKey();
 
-    if (results == null) return [];
+    final cacheKey = 'list-$listId-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<TmdbListDetails>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
+    final payload = await _apiService.fetchList(listId, page: page);
+    final list = TmdbListDetails.fromJson(payload);
+    _cache.set(cacheKey, list);
+    return list;
   }
 
-  // Now Playing Movies
-  Future<List<Movie>> fetchNowPlayingMovies({int page = 1}) async {
-    final payload = await _get('/movie/now_playing', {'page': '$page'});
-    final results = payload['results'] as List?;
+  Future<AccountProfile> fetchAccount(String accountId, {bool forceRefresh = false}) async {
+    _checkApiKey();
 
-    if (results == null) return [];
+    final cacheKey = 'account-$accountId';
+    if (!forceRefresh) {
+      final cached = _cache.get<AccountProfile>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
+    final payload = await _apiService.fetchAccount(accountId);
+    final account = AccountProfile.fromJson(payload);
+    _cache.set(cacheKey, account, ttlSeconds: CacheService.movieDetailsTTL);
+    return account;
   }
 
-  // Upcoming Movies
-  Future<List<Movie>> fetchUpcomingMovies({int page = 1}) async {
-    final payload = await _get('/movie/upcoming', {'page': '$page'});
-    final results = payload['results'] as List?;
-
-    if (results == null) return [];
-
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
-  }
-
-  // Search Movies
-  Future<List<Movie>> searchMovies(String query, {int page = 1}) async {
-    if (query.trim().isEmpty) return [];
-
-    final payload = await _get('/search/movie', {
-      'query': query,
-      'page': '$page',
-    });
-    final results = payload['results'] as List?;
-
-    if (results == null) return [];
-
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
-  }
-
-  // Search Multi (movies, TV, people)
-  Future<List<Movie>> searchMulti(String query, {int page = 1}) async {
-    if (query.trim().isEmpty) return [];
-
-    final payload = await _get('/search/multi', {
-      'query': query,
-      'page': '$page',
-    });
-    final results = payload['results'] as List?;
-
-    if (results == null) return [];
-
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
-  }
-
-  // Discover Movies with Filters
-  Future<List<Movie>> discoverMovies({
+  Future<PaginatedResponse<AccountListSummary>> fetchAccountLists(
+    String accountId, {
     int page = 1,
-    String? sortBy,
-    List<int>? withGenres,
-    int? year,
-    double? voteAverageGte,
+    bool forceRefresh = false,
   }) async {
-    final queryParams = <String, String>{
-      'page': '$page',
-      if (sortBy != null) 'sort_by': sortBy,
-      if (withGenres != null && withGenres.isNotEmpty) 
-        'with_genres': withGenres.join(','),
-      if (year != null) 'year': '$year',
-      if (voteAverageGte != null) 'vote_average.gte': '$voteAverageGte',
-    };
+    _checkApiKey();
 
-    final payload = await _get('/discover/movie', queryParams);
-    final results = payload['results'] as List?;
+    final cacheKey = 'account-lists-$accountId-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<AccountListSummary>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
 
-    if (results == null) return [];
+    final payload = await _apiService.fetchAccountLists(accountId, page: page);
+    final response = PaginatedResponse<AccountListSummary>.fromJson(
+      payload,
+      AccountListSummary.fromJson,
+    );
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
+    _cache.set(cacheKey, response);
+    return response;
   }
 
-  // Genres
-  Future<List<Map<String, dynamic>>> fetchMovieGenres() async {
-    final payload = await _get('/genre/movie/list');
-    final genres = payload['genres'] as List?;
+  Future<PaginatedResponse<Movie>> fetchAccountFavorites(
+    String accountId, {
+    String mediaType = 'movie',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
 
-    if (genres == null) return [];
+    final cacheKey = 'account-favorites-$accountId-$mediaType-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
 
-    return genres.whereType<Map<String, dynamic>>().toList(growable: false);
+    final payload = await _apiService.fetchAccountFavorites(
+      accountId,
+      mediaType: mediaType,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
   }
 
-  Future<List<Map<String, dynamic>>> fetchTVGenres() async {
-    final payload = await _get('/genre/tv/list');
-    final genres = payload['genres'] as List?;
+  Future<PaginatedResponse<Movie>> fetchAccountWatchlist(
+    String accountId, {
+    String mediaType = 'movie',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
 
-    if (genres == null) return [];
+    final cacheKey = 'account-watchlist-$accountId-$mediaType-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
 
-    return genres.whereType<Map<String, dynamic>>().toList(growable: false);
+    final payload = await _apiService.fetchAccountWatchlist(
+      accountId,
+      mediaType: mediaType,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
   }
 
-  // Similar Movies
-  Future<List<Movie>> fetchSimilarMovies(int movieId, {int page = 1}) async {
-    final payload = await _get('/movie/$movieId/similar', {'page': '$page'});
-    final results = payload['results'] as List?;
+  Map<String, dynamic> _normalizeDetailPayload(Map<String, dynamic> payload) {
+    final normalized = Map<String, dynamic>.from(payload);
 
-    if (results == null) return [];
+    final videos = normalized['videos'];
+    if (videos is Map<String, dynamic>) {
+      final results = videos['results'];
+      if (results is List) {
+        normalized['videos'] = results.whereType<Map<String, dynamic>>().toList();
+      }
+    }
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
-  }
+    final recommendations = normalized['recommendations'];
+    if (recommendations is Map<String, dynamic>) {
+      final results = recommendations['results'];
+      if (results is List) {
+        normalized['recommendations'] =
+            results.whereType<Map<String, dynamic>>().toList();
+      }
+    }
 
-  // Recommended Movies
-  Future<List<Movie>> fetchRecommendedMovies(int movieId, {int page = 1}) async {
-    final payload = await _get('/movie/$movieId/recommendations', {'page': '$page'});
-    final results = payload['results'] as List?;
+    final similar = normalized['similar'];
+    if (similar is Map<String, dynamic>) {
+      final results = similar['results'];
+      if (results is List) {
+        normalized['similar'] = results.whereType<Map<String, dynamic>>().toList();
+      }
+    }
 
-    if (results == null) return [];
+    final images = normalized['images'];
+    if (images is Map<String, dynamic>) {
+      final backdrops = images['backdrops'];
+      final posters = images['posters'];
+      final profiles = images['profiles'];
+      final combined = <Map<String, dynamic>>[];
+      if (backdrops is List) {
+        combined.addAll(backdrops.whereType<Map<String, dynamic>>());
+      }
+      if (posters is List) {
+        combined.addAll(posters.whereType<Map<String, dynamic>>());
+      }
+      if (profiles is List) {
+        combined.addAll(profiles.whereType<Map<String, dynamic>>());
+      }
+      normalized['images'] = combined;
+    }
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
+    if (normalized['credits'] is Map<String, dynamic>) {
+      final credits = normalized['credits'] as Map<String, dynamic>;
+      normalized['cast'] = credits['cast'];
+      normalized['crew'] = credits['crew'];
+    }
+
+    if (normalized['external_ids'] is! Map<String, dynamic>) {
+      normalized['external_ids'] = const {};
+    }
+
+    return normalized;
   }
 }
 

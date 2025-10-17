@@ -1,44 +1,30 @@
-import 'package:flutter/foundation.dart';
-
 import '../data/models/movie.dart';
+import '../data/models/paginated_response.dart';
 import '../data/tmdb_repository.dart';
+import 'paginated_resource_provider.dart';
 
-class TrendingTitlesProvider extends ChangeNotifier {
+class TrendingTitlesProvider extends PaginatedResourceProvider<Movie> {
   TrendingTitlesProvider(this._repository) {
-    loadTrendingTitles();
+    loadInitial();
   }
 
   final TmdbRepository _repository;
 
-  List<Movie> _titles = const [];
-  bool _isLoading = false;
-  String? _errorMessage;
+  List<Movie> get titles => items;
+  bool get isLoading => isInitialLoading;
+  bool get isLoadingMore => super.isLoadingMore;
+  bool get canLoadMore => hasMore;
 
-  List<Movie> get titles => _titles;
-  bool get isLoading => _isLoading;
-  String? get errorMessage => _errorMessage;
+  Future<void> loadTrendingTitles({bool forceRefresh = false}) =>
+      loadInitial(forceRefresh: forceRefresh);
 
-  Future<void> loadTrendingTitles() async {
-    if (_isLoading) {
-      return;
-    }
+  Future<void> loadMoreTrendingTitles() => loadMore();
 
-    _isLoading = true;
-    _errorMessage = null;
-    notifyListeners();
-
-    try {
-      final fetched = await _repository.fetchTrendingMovies();
-      _titles = fetched;
-    } on TmdbException catch (error) {
-      _errorMessage = error.message;
-      _titles = const [];
-    } catch (error) {
-      _errorMessage = 'Failed to load titles: $error';
-      _titles = const [];
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+  @override
+  Future<PaginatedResponse<Movie>> loadPage(int page, {bool forceRefresh = false}) {
+    return _repository.fetchTrendingTitles(
+      page: page,
+      forceRefresh: forceRefresh,
+    );
   }
 }

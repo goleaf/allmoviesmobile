@@ -24,6 +24,7 @@ import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';

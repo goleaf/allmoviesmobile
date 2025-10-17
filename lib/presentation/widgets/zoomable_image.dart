@@ -20,6 +20,7 @@ class ZoomableImage extends StatefulWidget {
     this.padding = const EdgeInsets.all(12),
     this.onInteractionStart,
     this.onInteractionEnd,
+    this.onTap,
   })  : assert(minScale > 0),
         assert(maxScale >= minScale);
 
@@ -46,6 +47,9 @@ class ZoomableImage extends StatefulWidget {
 
   /// Callback triggered when the gesture interaction ends.
   final VoidCallback? onInteractionEnd;
+
+  /// Callback triggered when the user performs a single tap.
+  final VoidCallback? onTap;
 
   @override
   State<ZoomableImage> createState() => _ZoomableImageState();
@@ -94,6 +98,7 @@ class _ZoomableImageState extends State<ZoomableImage>
       child: GestureDetector(
         onDoubleTapDown: (details) => _doubleTapDetails = details,
         onDoubleTap: _handleDoubleTap,
+        onTap: widget.onTap,
         child: InteractiveViewer(
           transformationController: _controller,
           clipBehavior: Clip.none,

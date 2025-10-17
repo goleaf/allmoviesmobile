@@ -37,4 +37,25 @@ void main() {
 
     expect(controller.value.getMaxScaleOnAxis(), closeTo(1.0, 0.05));
   });
+
+  testWidgets('ZoomableImage forwards single taps', (tester) async {
+    var tapped = false;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ZoomableImage(
+            imagePath: null,
+            type: MediaImageType.poster,
+            onTap: () => tapped = true,
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(ZoomableImage));
+    await tester.pump();
+
+    expect(tapped, isTrue);
+  });
 }

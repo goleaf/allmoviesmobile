@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/models/movie.dart';
@@ -108,6 +109,7 @@ class _KeywordDetailView extends StatelessWidget {
                   .read<KeywordDetailsProvider>()
                   .fetchDetails(forceRefresh: true),
             ),
+          const _KeywordOverviewSection(),
           Expanded(
             child: TabBarView(
               children: [
@@ -133,6 +135,310 @@ class _KeywordDetailView extends StatelessWidget {
                 ),
               ],
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _KeywordOverviewSection extends StatelessWidget {
+  const _KeywordOverviewSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<KeywordDetailsProvider>();
+    final hasStats = provider.isLoadingStatistics ||
+        provider.statistics != null ||
+        provider.statisticsError != null;
+    final hasRelated = provider.isLoadingRelatedKeywords ||
+        provider.relatedKeywords.isNotEmpty ||
+        provider.relatedKeywordsError != null;
+
+    if (!hasStats && !hasRelated) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          if (hasStats)
+            _KeywordStatsSection(provider: provider),
+          if (hasStats && hasRelated) const SizedBox(height: 12),
+          if (hasRelated)
+            _KeywordRelatedKeywordsSection(provider: provider),
+        ],
+      ),
+    );
+  }
+}
+
+class _KeywordStatsSection extends StatelessWidget {
+  const _KeywordStatsSection({required this.provider});
+
+  final KeywordDetailsProvider provider;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final localeTag = l.locale.toLanguageTag();
+    final compactFormatter = NumberFormat.compact(locale: localeTag);
+    final popularityFormatter = NumberFormat('#,##0.0', localeTag);
+
+    Widget content;
+
+    if (provider.isLoadingStatistics) {
+      content = const Padding(
+        padding: EdgeInsets.symmetric(vertical: 8),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    } else if (provider.statisticsError != null) {
+      content = _KeywordSectionError(
+        title: l.t('keywords.stats_error'),
+        details: provider.statisticsError,
+        onRetry: () => context
+            .read<KeywordDetailsProvider>()
+            .loadStatistics(forceRefresh: true),
+      );
+    } else if (provider.statistics != null) {
+      final stats = provider.statistics!;
+      final totalUsage = compactFormatter.format(stats.totalUsageCount);
+      final movieCount = compactFormatter.format(stats.movieCount);
+      final tvCount = compactFormatter.format(stats.tvShowCount);
+      final avgMoviePopularity = stats.averageMoviePopularity <= 0
+          ? l.t('common.not_available')
+          : popularityFormatter.format(stats.averageMoviePopularity);
+      final avgTvPopularity = stats.averageTvPopularity <= 0
+          ? l.t('common.not_available')
+          : popularityFormatter.format(stats.averageTvPopularity);
+
+      content = Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.t('keywords.stats_title'),
+              style: theme.textTheme.titleMedium),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _KeywordStatTile(
+                icon: Icons.auto_graph_outlined,
+                label: l.t('keywords.stats_total_usage'),
+                value: totalUsage,
+              ),
+              _KeywordStatTile(
+                icon: Icons.movie_outlined,
+                label: l.t('keywords.stats_movies'),
+                value: movieCount,
+              ),
+              _KeywordStatTile(
+                icon: Icons.live_tv_outlined,
+                label: l.t('keywords.stats_tv'),
+                value: tvCount,
+              ),
+              _KeywordStatTile(
+                icon: Icons.local_fire_department_outlined,
+                label: l.t('keywords.stats_avg_movie_popularity'),
+                value: avgMoviePopularity,
+              ),
+              _KeywordStatTile(
+                icon: Icons.trending_up_outlined,
+                label: l.t('keywords.stats_avg_tv_popularity'),
+                value: avgTvPopularity,
+              ),
+            ],
+          ),
+        ],
+      );
+    } else {
+      content = const SizedBox.shrink();
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: content,
+      ),
+    );
+  }
+}
+
+class _KeywordRelatedKeywordsSection extends StatelessWidget {
+  const _KeywordRelatedKeywordsSection({required this.provider});
+
+  final KeywordDetailsProvider provider;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    Widget content;
+
+    if (provider.isLoadingRelatedKeywords) {
+      content = const Center(
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    } else if (provider.relatedKeywordsError != null) {
+      content = _KeywordSectionError(
+        title: l.t('keywords.related_error'),
+        details: provider.relatedKeywordsError,
+        onRetry: () => context
+            .read<KeywordDetailsProvider>()
+            .loadRelatedKeywords(forceRefresh: true),
+      );
+    } else if (provider.relatedKeywords.isEmpty) {
+      content = Text(
+        l.t('keywords.related_empty'),
+        style: theme.textTheme.bodyMedium,
+      );
+    } else {
+      content = Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: provider.relatedKeywords
+            .map(
+              (keyword) => ActionChip(
+                label: Text(keyword.name),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    KeywordDetailScreen.route(
+                      keywordId: keyword.id,
+                      keywordName: keyword.name,
+                    ),
+                  );
+                },
+              ),
+            )
+            .toList(growable: false),
+      );
+    }
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.t('keywords.related_title'),
+                style: theme.textTheme.titleMedium),
+            const SizedBox(height: 12),
+            content,
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _KeywordStatTile extends StatelessWidget {
+  const _KeywordStatTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return ConstrainedBox(
+      constraints: const BoxConstraints(minWidth: 140),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: colorScheme.surfaceVariant,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: colorScheme.primary),
+            const SizedBox(height: 8),
+            Text(
+              value,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                    color: colorScheme.onSurface,
+                    fontWeight: FontWeight.bold,
+                  ) ??
+                  TextStyle(
+                    color: colorScheme.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _KeywordSectionError extends StatelessWidget {
+  const _KeywordSectionError({
+    required this.title,
+    this.details,
+    required this.onRetry,
+  });
+
+  final String title;
+  final String? details;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final l = AppLocalizations.of(context);
+
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: colorScheme.onErrorContainer,
+            ),
+          ),
+          if (details != null && details!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Text(
+              details!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onErrorContainer,
+              ),
+            ),
+          ],
+          const SizedBox(height: 12),
+          TextButton(
+            onPressed: onRetry,
+            child: Text(l.t('common.retry')),
           ),
         ],
       ),

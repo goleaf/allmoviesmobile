@@ -9,7 +9,6 @@ import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/credit_model.dart';
 import '../../../data/models/episode_group_model.dart';
 import '../../../data/models/episode_model.dart';
-import '../../../data/models/episode_group_model.dart';
 import '../../../data/models/image_model.dart';
 import '../../../data/models/keyword_model.dart';
 import '../../../data/models/movie.dart';
@@ -743,95 +742,146 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
+  /// Builds the Episode Groups section using data loaded from TMDB.
   Widget _buildEpisodeGroups(
     BuildContext context,
     TvDetailProvider provider,
     AppLocalizations loc,
   ) {
+    final theme = Theme.of(context);
     final groups = provider.episodeGroups;
     final isLoading = provider.isEpisodeGroupsLoading;
     final error = provider.episodeGroupsError;
     final selectedGroup = provider.selectedEpisodeGroup;
 
-    if (groups.isEmpty) {
-      if (error != null) {
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: ErrorDisplay(
-            message: error,
-            onRetry: () => provider.retryEpisodeGroups(),
+    if (isLoading && groups.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  loc.t('tv.episode_groups'),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const CircularProgressIndicator(),
+              ],
+            ),
           ),
-        );
-      }
+        ),
+      );
+    }
 
+    if (error != null && groups.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: ErrorDisplay(
+          message: error,
+          onRetry: () => provider.retryEpisodeGroups(),
+        ),
+      );
+    }
+
+    if (groups.isEmpty) {
       return const SizedBox.shrink();
     }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                loc.t('tv.episode_groups'),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      loc.t('tv.episode_groups'),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (isLoading)
+                    const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  IconButton(
+                    tooltip: loc.t('common.refresh'),
+                    icon: const Icon(Icons.refresh),
+                    onPressed:
+                        isLoading ? null : () => provider.refreshEpisodeGroups(),
+                  ),
+                ],
               ),
-              if (isLoading) ...[
-                const SizedBox(width: 12),
-                SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: groups
+                    .map(
+                      (group) => _EpisodeGroupChip(
+                        group: group,
+                        loc: loc,
+                        selected: selectedGroup?.id == group.id,
+                        onTap: () => provider.selectEpisodeGroup(group.id),
+                      ),
+                    )
+                    .toList(),
+              ),
+              if (selectedGroup != null) ...[
+                const SizedBox(height: 16),
+                _EpisodeGroupSummary(group: selectedGroup, loc: loc),
+                if (selectedGroup.description != null &&
+                    selectedGroup.description!.trim().isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    selectedGroup.description!,
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 250),
+                  child: selectedGroup.groups.isEmpty
+                      ? Padding(
+                          key: ValueKey('${selectedGroup.id}-empty'),
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          child: Text(
+                            loc.t('tv.episode_group_no_episodes'),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        )
+                      : Column(
+                          key: ValueKey('${selectedGroup.id}-content'),
+                          children: [
+                            for (final node in selectedGroup.groups)
+                              _EpisodeGroupNodeCard(
+                                key: ValueKey(
+                                  '${selectedGroup.id}-${node.id}',
+                                ),
+                                node: node,
+                                loc: loc,
+                              ),
+                          ],
+                        ),
                 ),
               ],
             ],
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final group in groups)
-                ChoiceChip(
-                  label: Text(group.name),
-                  selected: provider.selectedEpisodeGroupId == group.id ||
-                      (provider.selectedEpisodeGroupId == null &&
-                          group == groups.first),
-                  onSelected: (_) => provider.selectEpisodeGroup(group.id),
-                ),
-            ],
-          ),
-          if (selectedGroup != null &&
-              selectedGroup.description != null &&
-              selectedGroup.description!.trim().isNotEmpty) ...[
-            const SizedBox(height: 12),
-            Text(
-              selectedGroup.description!,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
-          ],
-          const SizedBox(height: 16),
-          if (selectedGroup == null || selectedGroup.groups.isEmpty)
-            Text(
-              loc.t('tv.episode_group_no_episodes'),
-              style: Theme.of(context)
-                  .textTheme
-                  .bodyMedium
-                  ?.copyWith(color: Colors.grey[600]),
-            )
-          else
-            Column(
-              children: [
-                for (final node in selectedGroup.groups)
-                  _EpisodeGroupNodeCard(node: node, loc: loc),
-              ],
-            ),
-        ],
+        ),
       ),
     );
   }
@@ -1424,51 +1474,206 @@ class _NetworkLogo extends StatelessWidget {
   }
   }
 
+/// Visual chip summarizing a single episode group option from TMDB.
+class _EpisodeGroupChip extends StatelessWidget {
+  const _EpisodeGroupChip({
+    required this.group,
+    required this.loc,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final EpisodeGroup group;
+  final AppLocalizations loc;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final typeLabel = _episodeGroupTypeLabel(loc, group);
+    final collectionsLabel = loc
+        .t('tv.episode_group_group_count')
+        .replaceFirst('{count}', '${group.groupCount ?? group.groups.length}');
+    final episodesLabel = loc
+        .t('tv.episode_group_episode_count')
+        .replaceFirst('{count}', '${_episodeGroupEpisodeCount(group)}');
+    final networkName = group.network?.name;
+    final networkLabel = networkName != null && networkName.isNotEmpty
+        ? loc
+            .t('tv.episode_group_network')
+            .replaceFirst('{network}', networkName)
+        : null;
+
+    final Color background = selected
+        ? theme.colorScheme.primary.withOpacity(0.12)
+        : theme.colorScheme.surfaceVariant.withOpacity(0.35);
+    final Color borderColor = selected
+        ? theme.colorScheme.primary
+        : theme.dividerColor.withOpacity(0.4);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: 220,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: background,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: borderColor),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                group.name.isNotEmpty ? group.name : typeLabel,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                typeLabel,
+                style: theme.textTheme.bodySmall,
+              ),
+              Text(
+                collectionsLabel,
+                style: theme.textTheme.bodySmall,
+              ),
+              Text(
+                episodesLabel,
+                style: theme.textTheme.bodySmall,
+              ),
+              if (networkLabel != null)
+                Text(
+                  networkLabel,
+                  style: theme.textTheme.bodySmall,
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Displays metadata chips describing the selected episode group.
+class _EpisodeGroupSummary extends StatelessWidget {
+  const _EpisodeGroupSummary({required this.group, required this.loc});
+
+  final EpisodeGroup group;
+  final AppLocalizations loc;
+
+  @override
+  Widget build(BuildContext context) {
+    final chips = <Widget>[
+      Chip(
+        avatar: const Icon(Icons.category, size: 18),
+        label: Text(_episodeGroupTypeLabel(loc, group)),
+      ),
+      Chip(
+        avatar: const Icon(Icons.collections_bookmark, size: 18),
+        label: Text(
+          loc
+              .t('tv.episode_group_group_count')
+              .replaceFirst('{count}', '${group.groupCount ?? group.groups.length}'),
+        ),
+      ),
+      Chip(
+        avatar: const Icon(Icons.playlist_play, size: 18),
+        label: Text(
+          loc
+              .t('tv.episode_group_episode_count')
+              .replaceFirst('{count}', '${_episodeGroupEpisodeCount(group)}'),
+        ),
+      ),
+    ];
+
+    final networkName = group.network?.name;
+    if (networkName != null && networkName.isNotEmpty) {
+      chips.add(
+        Chip(
+          avatar: const Icon(Icons.tv, size: 18),
+          label: Text(
+            loc
+                .t('tv.episode_group_network')
+                .replaceFirst('{network}', networkName),
+          ),
+        ),
+      );
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: chips,
+    );
+  }
+}
+
+/// Expansion card that renders a single grouping node within an episode group.
 class _EpisodeGroupNodeCard extends StatelessWidget {
-  const _EpisodeGroupNodeCard({required this.node, required this.loc});
+  const _EpisodeGroupNodeCard({super.key, required this.node, required this.loc});
 
   final EpisodeGroupNode node;
   final AppLocalizations loc;
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final episodes = node.episodes;
-
     final title = node.name.isNotEmpty
         ? node.name
         : loc
             .t('tv.episode_group_node_fallback')
             .replaceFirst('{order}', '${node.order ?? '?'}');
+    final subtitle = node.overview;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: ExpansionTile(
-        title: Text(title),
-        subtitle: node.overview != null && node.overview!.isNotEmpty
-            ? Text(node.overview!)
-            : null,
-        children: [
-          if (episodes.isEmpty)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(
-                loc.t('tv.episode_group_no_episodes'),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            )
-          else
-            ...episodes.map(
-              (episode) => _EpisodeGroupEpisodeTile(
-                episode: episode,
-                loc: loc,
-              ),
-            ),
-        ],
+        title: Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: subtitle != null && subtitle.isNotEmpty
+            ? Text(subtitle)
+            : (node.order != null
+                ? Text(
+                    loc
+                        .t('tv.episode_group_order')
+                        .replaceFirst('{order}', '${node.order}'),
+                  )
+                : null),
+        children: episodes.isEmpty
+            ? [
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Text(
+                    loc.t('tv.episode_group_no_episodes'),
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+              ]
+            : [
+                for (final episode in episodes)
+                  _EpisodeGroupEpisodeTile(
+                    episode: episode,
+                    loc: loc,
+                  ),
+              ],
       ),
     );
   }
 }
 
+/// List tile describing a single episode entry inside an episode group node.
 class _EpisodeGroupEpisodeTile extends StatelessWidget {
   const _EpisodeGroupEpisodeTile({required this.episode, required this.loc});
 
@@ -1508,7 +1713,10 @@ class _EpisodeGroupEpisodeTile extends StatelessWidget {
               radius: 24,
               child: Text(
                 code,
-                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -1542,6 +1750,26 @@ class _EpisodeGroupEpisodeTile extends StatelessWidget {
       ),
     );
   }
+}
+
+String _episodeGroupTypeLabel(AppLocalizations loc, EpisodeGroup group) {
+  final typeKey = 'tv.episode_group_type_${group.type}';
+  final translated = loc.t(typeKey);
+  if (translated == typeKey) {
+    return loc.t('tv.episode_group_type_unknown');
+  }
+  return translated;
+}
+
+int _episodeGroupEpisodeCount(EpisodeGroup group) {
+  if (group.episodeCount != null) {
+    return group.episodeCount!;
+  }
+  var total = 0;
+  for (final node in group.groups) {
+    total += node.episodes.length;
+  }
+  return total;
 }
 
 class _SeasonCard extends StatelessWidget {
@@ -1765,158 +1993,6 @@ class _SeasonImageGallery extends StatelessWidget {
   }
 }
 
-class _EpisodeGroupNodeCard extends StatelessWidget {
-  const _EpisodeGroupNodeCard({required this.node, required this.loc});
-
-  final EpisodeGroupNode node;
-  final AppLocalizations loc;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final overview = node.overview?.trim();
-    final episodes = node.episodes;
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              node.name,
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            if (overview != null && overview.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                overview,
-                style: theme.textTheme.bodyMedium,
-              ),
-            ],
-            const SizedBox(height: 12),
-            if (episodes.isEmpty)
-              Text(
-                loc.t('tv.episode_group_no_episodes'),
-                style: theme.textTheme.bodySmall?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              )
-            else
-              Column(
-                children: [
-                  for (final episode in episodes)
-                    _EpisodeGroupEpisodeTile(
-                      episode: episode,
-                      loc: loc,
-                    ),
-                ],
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _EpisodeGroupEpisodeTile extends StatelessWidget {
-  const _EpisodeGroupEpisodeTile({required this.episode, required this.loc});
-
-  final EpisodeGroupEpisode episode;
-  final AppLocalizations loc;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final seasonNumber = episode.seasonNumber.toString().padLeft(2, '0');
-    final episodeNumber = episode.episodeNumber.toString().padLeft(2, '0');
-    final meta = <String>[];
-    if (episode.airDate != null && episode.airDate!.isNotEmpty) {
-      meta.add(episode.airDate!);
-    }
-    if (episode.voteAverage != null && episode.voteAverage! > 0) {
-      meta.add('${episode.voteAverage!.toStringAsFixed(1)}/10');
-    }
-    if (episode.order != null) {
-      meta.add(
-        loc
-            .t('tv.episode_group_order')
-            .replaceFirst('{order}', '${episode.order}'),
-      );
-    }
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (episode.stillPath != null && episode.stillPath!.isNotEmpty)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(6),
-              child: MediaImage(
-                path: episode.stillPath,
-                type: MediaImageType.still,
-                size: MediaImageSize.w300,
-                width: 120,
-                height: 68,
-                fit: BoxFit.cover,
-              ),
-            )
-          else
-            Container(
-              width: 120,
-              height: 68,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Icon(
-                Icons.live_tv,
-                color: Colors.grey[600],
-              ),
-            ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'S$seasonNumber · E$episodeNumber — ${episode.name}',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                if (meta.isNotEmpty) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    meta.join(' • '),
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ],
-                if (episode.overview != null && episode.overview!.trim().isNotEmpty) ...[
-                  const SizedBox(height: 6),
-                  Text(
-                    episode.overview!,
-                    style: theme.textTheme.bodySmall,
-                    maxLines: 3,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _EpisodeCard extends StatelessWidget {
   final Episode episode;

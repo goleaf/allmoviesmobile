@@ -99,7 +99,19 @@
     "no_episodes": "Немає доступних епізодів",
     "episode_groups": "Групи епізодів",
     "episode_group_no_episodes": "У цій групі немає епізодів",
-    "episode_group_order": "Порядок {order}"
+    "episode_group_order": "Порядок {order}",
+    "episode_group_node_fallback": "Група {order}",
+    "episode_group_group_count": "{count} колекцій",
+    "episode_group_episode_count": "{count} епізодів",
+    "episode_group_network": "Канал: {network}",
+    "episode_group_type_unknown": "Користувацький порядок",
+    "episode_group_type_1": "Порядок за датою виходу",
+    "episode_group_type_2": "Абсолютний порядок",
+    "episode_group_type_3": "Порядок DVD",
+    "episode_group_type_4": "Цифровий порядок",
+    "episode_group_type_5": "Порядок сюжетної арки",
+    "episode_group_type_6": "Виробничий порядок",
+    "episode_group_type_7": "Телевізійний порядок"
   },
   "person": {
     "title": "Персона",

@@ -70,6 +70,8 @@ class EpisodeDetailScreen extends StatelessWidget {
                     type: MediaImageType.still,
                     size: MediaImageSize.w780,
                     fit: BoxFit.cover,
+                    enableBackdropBlur: true,
+                    blurOverlayColor: Colors.black.withOpacity(0.2),
                     placeholder: Container(
                       color: Colors.grey[300],
                       child: const Center(child: CircularProgressIndicator()),

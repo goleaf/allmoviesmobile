@@ -21,6 +21,9 @@ class MediaImage extends StatefulWidget {
     this.enableProgress = true,
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
+    this.enableBackdropBlur = false,
+    this.blurSigma = 18,
+    this.blurOverlayColor,
   });
 
   final String? path;
@@ -36,6 +39,9 @@ class MediaImage extends StatefulWidget {
   final bool enableProgress;
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
+  final bool enableBackdropBlur;
+  final double blurSigma;
+  final Color? blurOverlayColor;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -112,12 +118,39 @@ class _MediaImageState extends State<MediaImage> {
     final image = _buildHighResLayer(highResUrl, errorWidget);
     final progressIndicator =
         (_progress != null && widget.enableProgress && !_isHighResReady)
-        ? _buildProgressOverlay()
-        : const SizedBox.shrink();
+            ? _buildProgressOverlay()
+            : null;
+
+    final baseLayers = <Widget>[if (preview != null) preview, image];
+
+    final layeredImage = Stack(
+      fit: StackFit.expand,
+      children: baseLayers,
+    );
+
+    final composedLayers = <Widget>[layeredImage];
+
+    if (widget.enableBackdropBlur) {
+      composedLayers.add(
+        BackdropFilter(
+          filter: ImageFilter.blur(
+            sigmaX: widget.blurSigma,
+            sigmaY: widget.blurSigma,
+          ),
+          child: Container(
+            color: widget.blurOverlayColor ?? Colors.transparent,
+          ),
+        ),
+      );
+    }
+
+    if (progressIndicator != null) {
+      composedLayers.add(progressIndicator);
+    }
 
     final stack = Stack(
       fit: StackFit.expand,
-      children: [if (preview != null) preview, image, progressIndicator],
+      children: composedLayers,
     );
 
     return _wrapWithSize(

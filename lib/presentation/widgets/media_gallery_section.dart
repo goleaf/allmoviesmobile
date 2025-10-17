@@ -75,6 +75,9 @@ class MediaGallerySection extends StatelessWidget {
                   title: loc.t('movie.backdrops'),
                   images: images.backdrops,
                   type: _GalleryImageType.backdrop,
+                  enableBackdropBlur: true,
+                  blurOverlayColor: Colors.black.withOpacity(0.18),
+                  blurSigma: 20,
                 ),
               if (images.backdrops.isNotEmpty && images.stills.isNotEmpty)
                 const SizedBox(height: 16),
@@ -97,11 +100,17 @@ class _GalleryRow extends StatelessWidget {
     required this.title,
     required this.images,
     required this.type,
+    this.enableBackdropBlur = false,
+    this.blurOverlayColor,
+    this.blurSigma,
   });
 
   final String title;
   final List<ImageModel> images;
   final _GalleryImageType type;
+  final bool enableBackdropBlur;
+  final Color? blurOverlayColor;
+  final double? blurSigma;
 
   @override
   Widget build(BuildContext context) {
@@ -171,6 +180,9 @@ class _GalleryRow extends StatelessWidget {
                                   MediaImageSize.w300,
                             },
                             fit: BoxFit.cover,
+                            enableBackdropBlur: enableBackdropBlur,
+                            blurOverlayColor: blurOverlayColor,
+                            blurSigma: blurSigma ?? 18,
                             placeholder:
                                 Container(color: Colors.grey.shade300),
                             errorWidget: Container(

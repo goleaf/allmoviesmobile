@@ -145,6 +145,8 @@ class _TVDetailView extends StatelessWidget {
                     type: MediaImageType.backdrop,
                     size: MediaImageSize.w780,
                     fit: BoxFit.cover,
+                    enableBackdropBlur: true,
+                    blurOverlayColor: Colors.black.withOpacity(0.25),
                   ),
                   Container(
                     decoration: BoxDecoration(

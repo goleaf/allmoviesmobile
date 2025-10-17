@@ -60,7 +60,11 @@
     "remove_from_favorites": "Убрать из Избранного",
     "add_to_watchlist": "Добавить в Список Просмотра",
     "remove_from_watchlist": "Убрать из Списка Просмотра",
-    "share": "Поделиться"
+    "share": "Поделиться",
+    "user_reviews": "Отзывы пользователей",
+    "user_reviews_empty": "Отзывов пока нет. Будьте первым!",
+    "user_reviews_error": "Не удалось загрузить отзывы. Попробуйте позже.",
+    "user_reviews_more_available": "Больше отзывов доступно на TMDB."
   },
   "tv": {
     "title": "ТВ Шоу",

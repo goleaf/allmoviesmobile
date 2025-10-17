@@ -28,6 +28,7 @@ import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/person_detail/person_detail_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
+import 'presentation/screens/series/series_category_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
@@ -35,7 +36,6 @@ import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/recommendations_provider.dart';
-import 'providers/series_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,10 +79,9 @@ class AllMoviesApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
         ChangeNotifierProvider(create: (_) => RecommendationsProvider(tmdbRepository, storageService)),
-        ChangeNotifierProvider(create: (_) => MoviesProvider()),
-        ChangeNotifierProvider(create: (_) => SeriesProvider()),
-        ChangeNotifierProvider(create: (_) => PeopleProvider()),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider()),
+        ChangeNotifierProvider(create: (_) => MoviesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => PeopleProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider(tmdbRepository)),
         ChangeNotifierProvider(
           create: (_) => ApiExplorerProvider(tmdbRepository),
         ),
@@ -109,6 +108,17 @@ class AllMoviesApp extends StatelessWidget {
               SearchScreen.routeName: (context) => const SearchScreen(),
               MoviesScreen.routeName: (context) => const MoviesScreen(),
               SeriesScreen.routeName: (context) => const SeriesScreen(),
+              SeriesCategoryScreen.routeName: (context) {
+                final args = ModalRoute.of(context)?.settings.arguments;
+                if (args is! SeriesCategoryArguments) {
+                  return const Scaffold(
+                    body: Center(
+                      child: Text('Missing series category configuration.'),
+                    ),
+                  );
+                }
+                return SeriesCategoryScreen(arguments: args);
+              },
               PeopleScreen.routeName: (context) => const PeopleScreen(),
               CompaniesScreen.routeName: (context) => const CompaniesScreen(),
               ApiExplorerScreen.routeName: (context) => const ApiExplorerScreen(),

@@ -27,22 +27,84 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    // Multi-device friendly layout: we adapt the navigation chrome to the
+    // available width so phones keep the bottom navigation bar while larger
+    // displays (tablets / desktop / web) switch to a rail to maximise vertical
+    // space usage. The body is shared via an IndexedStack to preserve the
+    // state of each destination.
     return WillPopScope(
       onWillPop: _handleWillPop,
-      child: Scaffold(
-        body: IndexedStack(
-          index: _currentDestination.index,
-          children: [
-            for (final destination in AppDestination.values)
-              _DestinationNavigator(
-                navigatorKey: _navigatorKeys[destination]!,
-                destination: destination,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final useRail = width >= 600;
+          final extendedRail = width >= 1024;
+          final navigationBody = _buildDestinationStack();
+
+          if (useRail) {
+            return Scaffold(
+              body: Row(
+                children: [
+                  _buildNavigationRail(extended: extendedRail),
+                  Expanded(child: navigationBody),
+                ],
               ),
-          ],
-        ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
+            );
+          }
+
+          return Scaffold(
+            body: navigationBody,
+            bottomNavigationBar: _buildBottomNavigationBar(),
+          );
+        },
       ),
     );
+  }
+
+  Widget _buildDestinationStack() {
+    return IndexedStack(
+      index: _currentDestination.index,
+      children: [
+        for (final destination in AppDestination.values)
+          _DestinationNavigator(
+            navigatorKey: _navigatorKeys[destination]!,
+            destination: destination,
+          ),
+      ],
+    );
+  }
+
+  List<_NavigationItem> _destinationItems(AppLocalizations l) {
+    // Centralised definition of navigation entries so the bar and the rail stay
+    // in sync across all device classes.
+    final items = <_NavigationItem>[
+      const _NavigationItem(
+        icon: Icons.home_outlined,
+        selectedIcon: Icons.home,
+        localizationKey: 'navigation.home',
+      ),
+      const _NavigationItem(
+        icon: Icons.movie_outlined,
+        selectedIcon: Icons.movie,
+        localizationKey: 'navigation.movies',
+      ),
+      const _NavigationItem(
+        icon: Icons.tv_outlined,
+        selectedIcon: Icons.tv,
+        localizationKey: 'navigation.series',
+      ),
+      const _NavigationItem(
+        icon: Icons.search,
+        selectedIcon: Icons.search,
+        localizationKey: 'navigation.search',
+      ),
+    ];
+
+    // Resolve the localization keys once per build; this keeps the rest of the
+    // navigation code focused on rendering widgets.
+    return items
+        .map((item) => item.withLabel(l.t(item.localizationKey)))
+        .toList();
   }
 
   Future<bool> _handleWillPop() async {
@@ -64,6 +126,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
   Widget _buildBottomNavigationBar() {
     final l = AppLocalizations.of(context);
+    final items = _destinationItems(l);
     return NavigationBar(
       selectedIndex: _currentDestination.index,
       onDestinationSelected: (index) {
@@ -81,29 +144,73 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
         });
       },
       destinations: [
-        NavigationDestination(
-          icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home),
-          label: l.t('navigation.home'),
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.movie_outlined),
-          selectedIcon: const Icon(Icons.movie),
-          label: l.t('navigation.movies'),
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.tv_outlined),
-          selectedIcon: const Icon(Icons.tv),
-          label: l.t('navigation.series'),
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.search),
-          selectedIcon: const Icon(Icons.search),
-          label: l.t('navigation.search'),
-        ),
+        for (final item in items)
+          NavigationDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.selectedIcon),
+            label: item.resolvedLabel,
+          ),
       ],
     );
   }
+
+  Widget _buildNavigationRail({required bool extended}) {
+    final l = AppLocalizations.of(context);
+    final items = _destinationItems(l);
+    return NavigationRail(
+      extended: extended,
+      selectedIndex: _currentDestination.index,
+      labelType:
+          extended ? NavigationRailLabelType.none : NavigationRailLabelType.selected,
+      onDestinationSelected: (index) {
+        final selected = AppDestination.values[index];
+
+        if (_currentDestination == selected) {
+          _navigatorKeys[selected]!.currentState?.popUntil(
+            (route) => route.isFirst,
+          );
+          return;
+        }
+
+        setState(() {
+          _currentDestination = selected;
+        });
+      },
+      destinations: [
+        for (final item in items)
+          NavigationRailDestination(
+            icon: Icon(item.icon),
+            selectedIcon: Icon(item.selectedIcon),
+            label: Text(item.resolvedLabel),
+          ),
+      ],
+    );
+  }
+}
+
+class _NavigationItem {
+  const _NavigationItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.localizationKey,
+    this.label,
+  });
+
+  final IconData icon;
+  final IconData selectedIcon;
+  final String localizationKey;
+  final String? label;
+
+  _NavigationItem withLabel(String label) {
+    return _NavigationItem(
+      icon: icon,
+      selectedIcon: selectedIcon,
+      localizationKey: localizationKey,
+      label: label,
+    );
+  }
+
+  String get resolvedLabel => label ?? localizationKey;
 }
 
 class _DestinationNavigator extends StatelessWidget {

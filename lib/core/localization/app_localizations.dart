@@ -19,8 +19,10 @@ class AppLocalizations {
     fallback._localizedStrings = const <String, dynamic>{
       'app': {'name': 'AllMovies'},
       'navigation': {
+        'home': 'Home',
         'movies': 'Movies',
         'series': 'Series',
+        'search': 'Search',
         'people': 'People',
         'companies': 'Companies',
       },

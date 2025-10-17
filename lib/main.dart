@@ -24,7 +24,7 @@ import 'presentation/screens/splash_preload/boot_gate.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
-// HomeScreen removed - default to MoviesScreen as initial route
+import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/person_detail/person_detail_screen.dart';
@@ -62,6 +62,7 @@ import 'providers/networks_provider.dart';
 import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
+import 'providers/recommendations_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -103,6 +104,9 @@ class AllMoviesApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(
           create: (_) => SearchProvider(repo, storageService),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => RecommendationsProvider(repo, storageService),
         ),
         ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(repo)),
         ChangeNotifierProvider(create: (_) => GenresProvider(repo)),
@@ -158,6 +162,7 @@ class AllMoviesApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 home: const AppNavigationShell(),
                 routes: {
+                  HomeScreen.routeName: (context) => const HomeScreen(),
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
                   MoviesFiltersScreen.routeName: (context) =>
                       const MoviesFiltersScreen(),

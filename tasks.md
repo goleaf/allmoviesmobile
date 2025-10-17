@@ -4,6 +4,8 @@
 **Last Updated**: October 17, 2025  
 **Current Status**: 90% Core Complete, Moving to Feature Enhancement Phase
 
+
+write all code with comments, maximum comments, update files if not comments for functions, annd write endpoints from what place is taken information with json output before function, and write another needed info
 ---
 
 ## 📊 Implementation Status Overview
@@ -341,13 +343,14 @@
 ---
 
 ### 2.5 Trending Section Enhancement
-**Status**: 🟢 60% Complete  
+**Status**: 🟢 80% Complete  
 **Priority**: MEDIUM
 
 - [x] Trending movies (today/this week)
 - [x] Trending TV shows
 - [x] Trending people
 - [ ] Trending all media types
+- [x] Trending all media types
 - [ ] Time window selector UI (day/week)
 - [ ] Dedicated trending screen with tabs
 - [ ] Trending section on home screen enhancement

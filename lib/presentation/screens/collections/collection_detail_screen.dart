@@ -319,6 +319,9 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
                     type: MediaImageType.backdrop,
                     size: MediaImageSize.w1280,
                     fit: BoxFit.cover,
+                    enableBlur: true,
+                    blurSigmaX: 24,
+                    blurSigmaY: 24,
                     placeholder: Container(color: Colors.grey[300]),
                     errorWidget: Container(
                       color: Colors.grey[300],

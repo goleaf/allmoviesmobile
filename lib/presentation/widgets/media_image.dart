@@ -25,8 +25,9 @@ class MediaImage extends StatefulWidget {
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
     this.overlay = const MediaImageOverlay.none(),
-    this.semanticLabel,
-    this.excludeFromSemantics = false,
+    this.enableBlur = false,
+    this.blurSigmaX = 18,
+    this.blurSigmaY = 18,
   });
 
   final String? path;
@@ -43,8 +44,9 @@ class MediaImage extends StatefulWidget {
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
   final MediaImageOverlay overlay;
-  final String? semanticLabel;
-  final bool excludeFromSemantics;
+  final bool enableBlur;
+  final double blurSigmaX;
+  final double blurSigmaY;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -128,9 +130,30 @@ class _MediaImageState extends State<MediaImage> {
 
     final overlayLayer = _buildOverlay(context);
 
-    final stackChildren = <Widget>[
+    final imageLayers = <Widget>[
       if (preview != null) preview,
       image,
+    ];
+
+    Widget content = Stack(
+      fit: StackFit.expand,
+      children: imageLayers,
+    );
+
+    if (widget.enableBlur) {
+      content = ClipRect(
+        child: ImageFiltered(
+          imageFilter: ImageFilter.blur(
+            sigmaX: widget.blurSigmaX,
+            sigmaY: widget.blurSigmaY,
+          ),
+          child: content,
+        ),
+      );
+    }
+
+    final stackChildren = <Widget>[
+      content,
       if (overlayLayer != null) overlayLayer,
       progressIndicator,
     ];

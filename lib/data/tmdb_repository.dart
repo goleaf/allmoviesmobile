@@ -11,6 +11,7 @@ import 'models/collection_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
 import 'models/discover_filters_model.dart';
+import 'models/episode_group_model.dart';
 import 'models/genre_model.dart';
 import 'models/image_model.dart';
 import 'models/keyword_model.dart';
@@ -674,6 +675,27 @@ class TmdbRepository {
       backdrops: _mapImages('backdrops'),
       stills: _mapImages('stills'),
     );
+  }
+
+  /// Returns alternative episode orderings (episode groups) for a TV show.
+  ///
+  /// Source endpoint: `GET /3/tv/{tv_id}/episode_groups`.
+  /// The TMDB response places the data under the `results` array, which is
+  /// mapped here into strongly typed [EpisodeGroup] instances.
+  Future<List<EpisodeGroup>> fetchTvEpisodeGroups(
+    int tvId, {
+    bool forceRefresh = false,
+  }) async {
+    final payload = await _getJson('/tv/$tvId/episode_groups');
+    final results = payload['results'];
+    if (results is! List) {
+      return const [];
+    }
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(EpisodeGroup.fromJson)
+        .toList(growable: false);
   }
 
   Future<Map<String, String>> fetchTvContentRatings(

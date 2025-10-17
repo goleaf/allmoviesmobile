@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../data/models/episode_group_model.dart';
 import '../data/models/episode_model.dart';
 import '../data/models/media_images.dart';
 import '../data/models/season_model.dart';
@@ -24,6 +25,10 @@ class TvDetailProvider extends ChangeNotifier {
   final Map<int, MediaImages> _seasonImages = <int, MediaImages>{};
   final Set<int> _loadingSeasonImages = <int>{};
   final Map<int, String> _seasonImageErrors = <int, String>{};
+  final List<EpisodeGroup> _episodeGroups = <EpisodeGroup>[];
+  bool _episodeGroupsLoading = false;
+  String? _episodeGroupsError;
+  String? _selectedEpisodeGroupId;
 
   TVDetailed? get details => _details;
   bool get isLoading => _isLoading;
@@ -31,6 +36,28 @@ class TvDetailProvider extends ChangeNotifier {
   int? get selectedSeasonNumber => _selectedSeasonNumber;
 
   List<Season> get seasons => _details?.seasons ?? const [];
+
+  List<EpisodeGroup> get episodeGroups =>
+      List<EpisodeGroup>.unmodifiable(_episodeGroups);
+
+  bool get isEpisodeGroupsLoading => _episodeGroupsLoading;
+
+  String? get episodeGroupsError => _episodeGroupsError;
+
+  EpisodeGroup? get selectedEpisodeGroup {
+    final targetId = _selectedEpisodeGroupId;
+    if (targetId == null) {
+      return null;
+    }
+    for (final group in _episodeGroups) {
+      if (group.id == targetId) {
+        return group;
+      }
+    }
+    return null;
+  }
+
+  String? get selectedEpisodeGroupId => _selectedEpisodeGroupId;
 
   Season? seasonForNumber(int? seasonNumber) {
     if (seasonNumber == null) {
@@ -90,6 +117,11 @@ class TvDetailProvider extends ChangeNotifier {
       _seasonImages.clear();
       _seasonImageErrors.clear();
       _loadingSeasonImages.clear();
+      if (forceRefresh) {
+        _episodeGroups.clear();
+        _episodeGroupsError = null;
+        _selectedEpisodeGroupId = null;
+      }
 
       _selectedSeasonNumber = _resolveInitialSeasonNumber(details);
       notifyListeners();
@@ -99,6 +131,7 @@ class TvDetailProvider extends ChangeNotifier {
         unawaited(_ensureSeasonLoaded(selected));
         unawaited(_ensureSeasonImagesLoaded(selected));
       }
+      unawaited(_loadEpisodeGroups(forceRefresh: forceRefresh));
     } catch (error) {
       _errorMessage = _mapError(error);
     } finally {
@@ -126,6 +159,17 @@ class TvDetailProvider extends ChangeNotifier {
 
   Future<void> retrySeasonImages(int seasonNumber) =>
       _ensureSeasonImagesLoaded(seasonNumber, forceRefresh: true);
+
+  Future<void> retryEpisodeGroups() =>
+      _loadEpisodeGroups(forceRefresh: true);
+
+  void selectEpisodeGroup(String groupId) {
+    if (_selectedEpisodeGroupId == groupId) {
+      return;
+    }
+    _selectedEpisodeGroupId = groupId;
+    notifyListeners();
+  }
 
   Future<void> _ensureSeasonLoaded(
     int seasonNumber, {
@@ -156,6 +200,49 @@ class TvDetailProvider extends ChangeNotifier {
       _seasonErrors[seasonNumber] = _mapError(error);
     } finally {
       _loadingSeasons.remove(seasonNumber);
+      notifyListeners();
+    }
+  }
+
+  Future<void> _loadEpisodeGroups({bool forceRefresh = false}) async {
+    if (_episodeGroupsLoading) {
+      return;
+    }
+
+    if (!forceRefresh && _episodeGroups.isNotEmpty) {
+      return;
+    }
+
+    _episodeGroupsLoading = true;
+    if (forceRefresh) {
+      _episodeGroups.clear();
+    }
+    _episodeGroupsError = null;
+    notifyListeners();
+
+    try {
+      final groups = await _repository.fetchTvEpisodeGroups(
+        tvId,
+        forceRefresh: forceRefresh,
+      );
+      _episodeGroups
+        ..clear()
+        ..addAll(groups);
+      if (_episodeGroups.isNotEmpty) {
+        final firstGroupId = _episodeGroups.first.id;
+        if (_selectedEpisodeGroupId == null ||
+            !_episodeGroups.any((group) => group.id == _selectedEpisodeGroupId)) {
+          _selectedEpisodeGroupId = firstGroupId;
+        }
+      } else {
+        _selectedEpisodeGroupId = null;
+      }
+    } catch (error) {
+      _episodeGroupsError = _mapError(error);
+      _episodeGroups.clear();
+      _selectedEpisodeGroupId = null;
+    } finally {
+      _episodeGroupsLoading = false;
       notifyListeners();
     }
   }

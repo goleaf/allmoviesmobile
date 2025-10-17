@@ -1,5 +1,6 @@
 import 'dart:collection';
 
+import 'package:allmovies_mobile/data/models/episode_group_model.dart';
 import 'package:allmovies_mobile/data/models/image_model.dart';
 import 'package:allmovies_mobile/data/models/media_images.dart';
 import 'package:allmovies_mobile/data/models/season_model.dart';
@@ -20,15 +21,19 @@ class _FakeTvRepository extends TmdbRepository {
   _FakeTvRepository({
     required this.details,
     required this.seasonResponses,
+    this.episodeGroups = const [],
   }) : super(apiKey: 'test');
 
   final TVDetailed details;
   final Map<int, Season> seasonResponses;
+  List<EpisodeGroup> episodeGroups;
+  Object? episodeGroupsError;
   final Map<int, Queue<_ImageResponse>> _imageQueues = {};
 
   int detailsCalls = 0;
   final Map<int, int> seasonCalls = {};
   final Map<int, int> seasonImageCalls = {};
+  int episodeGroupCalls = 0;
 
   void setImageResponses(int seasonNumber, List<_ImageResponse> responses) {
     _imageQueues[seasonNumber] = Queue<_ImageResponse>.from(responses);
@@ -73,6 +78,19 @@ class _FakeTvRepository extends TmdbRepository {
       throw response.error!;
     }
     return response.images ?? MediaImages.empty();
+  }
+
+  @override
+  Future<List<EpisodeGroup>> fetchTvEpisodeGroups(
+    int tvId, {
+    bool forceRefresh = false,
+  }) async {
+    episodeGroupCalls += 1;
+    final error = episodeGroupsError;
+    if (error != null) {
+      throw error;
+    }
+    return episodeGroups;
   }
 }
 
@@ -165,6 +183,57 @@ void main() {
       expect(provider.seasonImagesForNumber(1)?.posters, isNotEmpty);
       expect(repo.seasonImageCalls[1], 2,
           reason: 'retry should force refetch of season images');
+    });
+  });
+
+  group('TvDetailProvider episode groups', () {
+    final dvdGroup = EpisodeGroup(
+      id: 'dvd',
+      name: 'DVD Order',
+      type: 1,
+      groups: const [EpisodeGroupNode(id: 'node', name: 'Set 1')],
+    );
+
+    test('loads episode groups and selects the first group by default', () async {
+      final repo = _FakeTvRepository(
+        details: details,
+        seasonResponses: {1: season1},
+        episodeGroups: [dvdGroup],
+      );
+
+      final provider = TvDetailProvider(repo, tvId: 42);
+      await provider.load();
+
+      expect(repo.episodeGroupCalls, 1);
+      expect(provider.episodeGroups, isNotEmpty);
+      expect(provider.selectedEpisodeGroup?.id, 'dvd');
+
+      provider.selectEpisodeGroup('dvd');
+      expect(provider.selectedEpisodeGroup?.id, 'dvd');
+    });
+
+    test('exposes errors and can retry loading episode groups', () async {
+      final repo = _FakeTvRepository(
+        details: details,
+        seasonResponses: {1: season1},
+      )
+        ..episodeGroupsError = const TmdbException('groups failed');
+
+      final provider = TvDetailProvider(repo, tvId: 42);
+      await provider.load();
+
+      expect(provider.episodeGroupsError, 'groups failed');
+      expect(provider.episodeGroups, isEmpty);
+
+      repo
+        ..episodeGroupsError = null
+        ..episodeGroups = [dvdGroup];
+
+      await provider.retryEpisodeGroups();
+
+      expect(provider.episodeGroupsError, isNull);
+      expect(provider.episodeGroups, isNotEmpty);
+      expect(provider.selectedEpisodeGroup?.id, 'dvd');
     });
   });
 }

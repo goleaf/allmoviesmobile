@@ -16,12 +16,14 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
+import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
@@ -94,6 +96,8 @@ class AllMoviesApp extends StatelessWidget {
               SeriesScreen.routeName: (context) => const SeriesScreen(),
               PeopleScreen.routeName: (context) => const PeopleScreen(),
               CompaniesScreen.routeName: (context) => const CompaniesScreen(),
+              FavoritesScreen.routeName: (context) => const FavoritesScreen(),
+              WatchlistScreen.routeName: (context) => const WatchlistScreen(),
               SettingsScreen.routeName: (context) => const SettingsScreen(),
             },
           );

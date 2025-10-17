@@ -1,5 +1,6 @@
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,6 +18,7 @@ import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/accessibility_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
@@ -118,6 +120,7 @@ class AllMoviesApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => AccessibilityProvider(prefs)),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(storageService),
         ),
@@ -161,12 +164,25 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
       ],
-      child: Consumer2<LocaleProvider, ThemeProvider>(
-        builder: (context, localeProvider, themeProvider, _) {
+      child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
+        builder: (context, localeProvider, themeProvider, accessibility, _) {
           return DynamicColorBuilder(
             builder: (lightDynamic, darkDynamic) {
-              final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-              final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+              final accessibilityOptions = AccessibilityThemeOptions(
+                highContrast: accessibility.highContrast,
+                emphasizeFocus: accessibility.showFocusIndicators,
+                colorBlindFriendlyPalette:
+                    accessibility.colorBlindFriendlyPalette,
+              );
+
+              final lightTheme = AppTheme.light(
+                dynamicScheme: lightDynamic,
+                options: accessibilityOptions,
+              );
+              final darkTheme = AppTheme.dark(
+                dynamicScheme: darkDynamic,
+                options: accessibilityOptions,
+              );
 
               return MaterialApp(
                 title: AppLocalizations.of(context).t('app.name'),
@@ -183,6 +199,32 @@ class AllMoviesApp extends StatelessWidget {
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
                 home: const AppNavigationShell(),
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  final scaled = mediaQuery.copyWith(
+                    textScaleFactor: accessibility.textScaleFactor,
+                  );
+
+                  Widget content = MediaQuery(data: scaled, child: child ?? const SizedBox.shrink());
+
+                  if (accessibility.enableKeyboardNavigation) {
+                    content = _DirectionalFocusWrapper(child: content);
+                  } else {
+                    content = FocusTraversalGroup(
+                      policy: const WidgetOrderTraversalPolicy(),
+                      child: content,
+                    );
+                  }
+
+                  if (!accessibility.showFocusIndicators) {
+                    content = FocusTheme(
+                      data: const FocusThemeData(glowColor: Colors.transparent),
+                      child: content,
+                    );
+                  }
+
+                  return content;
+                },
                 routes: {
                   HomeScreen.routeName: (context) => const HomeScreen(),
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
@@ -374,6 +416,42 @@ class AllMoviesApp extends StatelessWidget {
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class _DirectionalFocusWrapper extends StatelessWidget {
+  const _DirectionalFocusWrapper({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.arrowDown):
+            const DirectionalFocusIntent(TraversalDirection.down),
+        LogicalKeySet(LogicalKeyboardKey.arrowUp):
+            const DirectionalFocusIntent(TraversalDirection.up),
+        LogicalKeySet(LogicalKeyboardKey.arrowLeft):
+            const DirectionalFocusIntent(TraversalDirection.left),
+        LogicalKeySet(LogicalKeyboardKey.arrowRight):
+            const DirectionalFocusIntent(TraversalDirection.right),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          DirectionalFocusIntent: CallbackAction<DirectionalFocusIntent>(
+            onInvoke: (intent) {
+              FocusScope.of(context).focusInDirection(intent.direction);
+              return null;
+            },
+          ),
+        },
+        child: FocusTraversalGroup(
+          policy: const WidgetOrderTraversalPolicy(),
+          child: child,
+        ),
       ),
     );
   }

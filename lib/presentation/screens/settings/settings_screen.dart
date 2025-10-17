@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../providers/theme_provider.dart';
+import '../../../providers/accessibility_provider.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../providers/watch_region_provider.dart';
 // duplicate import removed
@@ -25,6 +26,12 @@ class SettingsScreen extends StatelessWidget {
         children: [
           _SettingsHeader(title: l.t('settings.appearance')),
           _ThemeTile(),
+          _SettingsHeader(title: l.t('settings.accessibility')),
+          const _HighContrastTile(),
+          const _ColorBlindPaletteTile(),
+          const _TextScaleTile(),
+          const _FocusIndicatorsTile(),
+          const _KeyboardNavigationTile(),
           _SettingsHeader(title: l.t('settings.localization')),
           _LanguageTile(),
           _RegionTile(),
@@ -146,6 +153,160 @@ class _ThemeDialog extends StatelessWidget {
           child: Text(l.t('common.cancel')),
         ),
       ],
+    );
+  }
+}
+
+class _HighContrastTile extends StatelessWidget {
+  const _HighContrastTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.contrast),
+      title: Text(l.t('settings.highContrast')),
+      subtitle: Text(
+        provider.highContrast
+            ? l.t('settings.highContrastEnabled')
+            : l.t('settings.highContrastDisabled'),
+      ),
+      value: provider.highContrast,
+      onChanged: (value) => provider.toggleHighContrast(value),
+    );
+  }
+}
+
+class _ColorBlindPaletteTile extends StatelessWidget {
+  const _ColorBlindPaletteTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.palette),
+      title: Text(l.t('settings.colorBlindFriendly')),
+      subtitle: Text(l.t('settings.colorBlindFriendlyDescription')),
+      value: provider.colorBlindFriendlyPalette,
+      onChanged: (value) => provider.toggleColorBlindFriendlyPalette(value),
+    );
+  }
+}
+
+class _TextScaleTile extends StatelessWidget {
+  const _TextScaleTile();
+
+  static const Map<double, String> _labels = {
+    0.9: 'settings.textScaleSmall',
+    1.0: 'settings.textScaleNormal',
+    1.2: 'settings.textScaleLarge',
+    1.35: 'settings.textScaleExtraLarge',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+    final currentLabelKey = _labels.entries
+        .firstWhere(
+          (entry) => (provider.textScaleFactor - entry.key).abs() < 0.01,
+          orElse: () => const MapEntry(1.0, 'settings.textScaleNormal'),
+        )
+        .value;
+
+    return ListTile(
+      leading: const Icon(Icons.text_increase),
+      title: Text(l.t('settings.textScale')),
+      subtitle: Text(l.t(currentLabelKey)),
+      onTap: () => showDialog(
+        context: context,
+        builder: (context) => _TextScaleDialog(
+          values: _labels,
+          currentFactor: provider.textScaleFactor,
+        ),
+      ),
+    );
+  }
+}
+
+class _TextScaleDialog extends StatelessWidget {
+  const _TextScaleDialog({
+    required this.values,
+    required this.currentFactor,
+  });
+
+  final Map<double, String> values;
+  final double currentFactor;
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return AlertDialog(
+      title: Text(l.t('settings.chooseTextScale')),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: values.entries.map((entry) {
+          return RadioListTile<double>(
+            title: Text(l.t(entry.value)),
+            value: entry.key,
+            groupValue: currentFactor,
+            onChanged: (value) {
+              if (value != null) {
+                provider.setTextScaleFactor(value);
+                Navigator.of(context).pop();
+              }
+            },
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l.t('common.cancel')),
+        ),
+      ],
+    );
+  }
+}
+
+class _FocusIndicatorsTile extends StatelessWidget {
+  const _FocusIndicatorsTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.center_focus_strong),
+      title: Text(l.t('settings.focusIndicators')),
+      subtitle: Text(l.t('settings.focusIndicatorsDescription')),
+      value: provider.showFocusIndicators,
+      onChanged: (value) => provider.toggleFocusIndicators(value),
+    );
+  }
+}
+
+class _KeyboardNavigationTile extends StatelessWidget {
+  const _KeyboardNavigationTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.keyboard),
+      title: Text(l.t('settings.keyboardNavigation')),
+      subtitle: Text(l.t('settings.keyboardNavigationDescription')),
+      value: provider.enableKeyboardNavigation,
+      onChanged: (value) => provider.toggleKeyboardNavigation(value),
     );
   }
 }

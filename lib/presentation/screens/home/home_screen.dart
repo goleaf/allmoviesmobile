@@ -251,21 +251,27 @@ class _QuickAccessSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium,
+          Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
           const SizedBox(height: 12),
-          Row(
-            children: [
-              for (final item in items)
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: _QuickAccessCard(item: item),
+          FocusTraversalGroup(
+            policy: const WidgetOrderTraversalPolicy(),
+            child: Row(
+              children: [
+                for (final item in items)
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: _QuickAccessCard(item: item),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -293,28 +299,35 @@ class _QuickAccessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Material(
-      color: colorScheme.secondaryContainer,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: item.onTap,
+    final l = AppLocalizations.of(context);
+    return Semantics(
+      button: true,
+      label: item.label,
+      hint: l.t('common.viewDetailsHint'),
+      child: Material(
+        color: colorScheme.secondaryContainer,
         borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(item.icon, size: 28, color: colorScheme.onSecondaryContainer),
-              const SizedBox(height: 12),
-              Text(
-                item.label,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colorScheme.onSecondaryContainer,
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-            ],
+        child: InkWell(
+          onTap: item.onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(item.icon,
+                    size: 28, color: colorScheme.onSecondaryContainer),
+                const SizedBox(height: 12),
+                Text(
+                  item.label,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colorScheme.onSecondaryContainer,
+                        fontWeight: FontWeight.w600,
+                      ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -570,9 +583,12 @@ class _HorizontalMediaSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium,
+          child: Semantics(
+            header: true,
+            child: Text(
+              title,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -601,15 +617,18 @@ class _HorizontalMediaSection extends StatelessWidget {
         else
           SizedBox(
             height: 260,
-            child: ListView.separated(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-              scrollDirection: Axis.horizontal,
-              itemBuilder: (context, index) => SizedBox(
-                width: 160,
-                child: items[index],
+            child: FocusTraversalGroup(
+              policy: const WidgetOrderTraversalPolicy(),
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                scrollDirection: Axis.horizontal,
+                itemBuilder: (context, index) => SizedBox(
+                  width: 160,
+                  child: items[index],
+                ),
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemCount: items.length,
               ),
-              separatorBuilder: (_, __) => const SizedBox(width: 12),
-              itemCount: items.length,
             ),
           ),
       ],
@@ -633,56 +652,67 @@ class _PersonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ClipOval(
-                child: SizedBox(
-                  width: 80,
-                  height: 80,
-                  child: (profilePath != null && profilePath!.isNotEmpty)
-                      ? MediaImage(
-                          path: profilePath,
-                          type: MediaImageType.profile,
-                          size: MediaImageSize.w185,
-                          fit: BoxFit.cover,
-                        )
-                      : Container(
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(
-                            Icons.person,
-                            color: colorScheme.onSurfaceVariant,
+    final l = AppLocalizations.of(context);
+    final semanticsLabel = subtitle.isEmpty ? name : '$name, $subtitle';
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      hint: l.t('common.viewDetailsHint'),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ClipOval(
+                  child: SizedBox(
+                    width: 80,
+                    height: 80,
+                    child: (profilePath != null && profilePath!.isNotEmpty)
+                        ? MediaImage(
+                            path: profilePath,
+                            type: MediaImageType.profile,
+                            size: MediaImageSize.w185,
+                            fit: BoxFit.cover,
+                            semanticsLabel:
+                                '${l.t('common.profileLabelPrefix')} $name',
+                          )
+                        : ExcludeSemantics(
+                            child: Container(
+                              color: colorScheme.surfaceVariant,
+                              child: Icon(
+                                Icons.person,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
                           ),
-                        ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                name,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              if (subtitle.isNotEmpty) ...[
-                const SizedBox(height: 4),
+                const SizedBox(height: 12),
                 Text(
-                  subtitle,
-                  maxLines: 1,
+                  name,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
+                if (subtitle.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ),
       ),
@@ -706,57 +736,74 @@ class _CollectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: (posterPath != null && posterPath!.isNotEmpty)
-                  ? MediaImage(
-                      path: posterPath,
-                      type: MediaImageType.poster,
-                      size: MediaImageSize.w342,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(
-                        Icons.collections_bookmark,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant,
+    final l = AppLocalizations.of(context);
+    final description = (overview ?? '').trim();
+    final truncatedDescription = description.length > 120
+        ? '${description.substring(0, 117)}...'
+        : description;
+    final semanticsLabel =
+        truncatedDescription.isEmpty ? name : '$name. $truncatedDescription';
+
+    return Semantics(
+      button: true,
+      label: semanticsLabel,
+      hint: l.t('common.viewDetailsHint'),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: (posterPath != null && posterPath!.isNotEmpty)
+                    ? MediaImage(
+                        path: posterPath,
+                        type: MediaImageType.poster,
+                        size: MediaImageSize.w342,
+                        fit: BoxFit.cover,
+                        semanticsLabel:
+                            '${l.t('common.posterLabelPrefix')} $name',
+                      )
+                    : ExcludeSemantics(
+                        child: Container(
+                          color: colorScheme.surfaceVariant,
+                          child: Icon(
+                            Icons.collections_bookmark,
+                            size: 48,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ),
-                    ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    name,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  if (overview != null && overview!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                     Text(
-                      overview!,
+                      name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
+                    if (overview != null && overview!.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        overview!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -772,62 +819,81 @@ class _WatchlistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final releaseYear = item.releaseYear;
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () {
-          final route = item.type == SavedMediaType.tv
-              ? TVDetailScreen.routeName
-              : MovieDetailScreen.routeName;
-          Navigator.of(context).pushNamed(route, arguments: item.id);
-        },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: (item.posterPath != null && item.posterPath!.isNotEmpty)
-                  ? MediaImage(
-                      path: item.posterPath,
-                      type: MediaImageType.poster,
-                      size: MediaImageSize.w342,
-                      fit: BoxFit.cover,
-                    )
-                  : Container(
-                      color: colorScheme.surfaceVariant,
-                      child: Icon(
-                        item.type == SavedMediaType.tv
-                            ? Icons.tv
-                            : Icons.movie,
-                        size: 48,
-                        color: colorScheme.onSurfaceVariant,
+    final l = AppLocalizations.of(context);
+    final typeLabel = item.type == SavedMediaType.tv
+        ? (l.navigation['series'] ?? 'Series')
+        : (l.navigation['movies'] ?? 'Movies');
+    final semanticsParts = <String>[
+      item.title,
+      typeLabel,
+      if (releaseYear != null) releaseYear,
+    ];
+
+    return Semantics(
+      button: true,
+      label: semanticsParts.join(', '),
+      hint: l.t('common.viewDetailsHint'),
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: () {
+            final route = item.type == SavedMediaType.tv
+                ? TVDetailScreen.routeName
+                : MovieDetailScreen.routeName;
+            Navigator.of(context).pushNamed(route, arguments: item.id);
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: (item.posterPath != null && item.posterPath!.isNotEmpty)
+                    ? MediaImage(
+                        path: item.posterPath,
+                        type: MediaImageType.poster,
+                        size: MediaImageSize.w342,
+                        fit: BoxFit.cover,
+                        semanticsLabel:
+                            '${l.t('common.posterLabelPrefix')} ${item.title}',
+                      )
+                    : ExcludeSemantics(
+                        child: Container(
+                          color: colorScheme.surfaceVariant,
+                          child: Icon(
+                            item.type == SavedMediaType.tv
+                                ? Icons.tv
+                                : Icons.movie,
+                            size: 48,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
                       ),
-                    ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    item.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  if (releaseYear != null) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      releaseYear,
-                      style: Theme.of(context)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(color: colorScheme.onSurfaceVariant),
-                    ),
-                  ],
-                ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    if (releaseYear != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        releaseYear,
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

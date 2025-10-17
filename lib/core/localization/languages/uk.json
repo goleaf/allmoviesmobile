@@ -266,6 +266,7 @@
   "settings": {
     "title": "Налаштування",
     "appearance": "Зовнішній Вигляд",
+    "accessibility": "Доступність",
     "theme": "Тема",
     "theme_light": "Світла",
     "theme_dark": "Темна",
@@ -280,7 +281,22 @@
     "about": "Про Додаток",
     "version": "Версія",
     "terms": "Умови Використання",
-    "privacy": "Політика Конфіденційності"
+    "privacy": "Політика Конфіденційності",
+    "highContrast": "Режим високого контрасту",
+    "highContrastEnabled": "Висококонтрастні кольори увімкнено",
+    "highContrastDisabled": "Висококонтрастні кольори вимкнено",
+    "colorBlindFriendly": "Палітра, дружня до дальтонізму",
+    "colorBlindFriendlyDescription": "Використовує кольори, що залишаються різними при поширених порушеннях кольоросприйняття.",
+    "textScale": "Розмір тексту",
+    "chooseTextScale": "Оберіть розмір тексту",
+    "textScaleSmall": "Малий (90%)",
+    "textScaleNormal": "Звичайний (100%)",
+    "textScaleLarge": "Великий (120%)",
+    "textScaleExtraLarge": "Дуже великий (135%)",
+    "focusIndicators": "Індикатори фокусу",
+    "focusIndicatorsDescription": "Показувати чітке виділення елементів при фокусі з клавіатури.",
+    "keyboardNavigation": "Клавіатурна навігація",
+    "keyboardNavigationDescription": "Використовуйте стрілки разом із Tab для переходу між елементами."
   },
   "common": {
     "loading": "Завантаження...",
@@ -308,7 +324,12 @@
     "show_less": "Показати Менше",
     "copy": "Скопіювати посилання",
     "unknown": "Невідомо",
-    "not_available": "Н/Д"
+    "not_available": "Н/Д",
+    "viewDetailsHint": "Двічі натисніть, щоб відкрити деталі",
+    "posterLabelPrefix": "Постер для",
+    "profileLabelPrefix": "Фото профілю",
+    "addToFavorites": "Додати в обране",
+    "removeFromFavorites": "Видалити з обраного"
   },
   "errors": {
     "generic": "Щось пішло не так",

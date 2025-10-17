@@ -12,6 +12,7 @@ import '../movies/movies_screen.dart';
 import '../people/people_screen.dart';
 import '../search/search_screen.dart';
 import '../series/series_screen.dart';
+import '../videos/videos_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   static const routeName = '/';
@@ -96,6 +97,10 @@ class _HomeScreenState extends State<HomeScreen> {
               PopupMenuItem(
                 value: MoviesScreen.routeName,
                 child: Text(AppStrings.movies),
+              ),
+              PopupMenuItem(
+                value: VideosScreen.routeName,
+                child: Text(AppStrings.videos),
               ),
               PopupMenuItem(
                 value: SeriesScreen.routeName,

@@ -54,6 +54,7 @@ class AppStrings {
   static const copyPassword = 'Copy Password';
   static const passwordCopied = 'Password copied to clipboard!';
   static const movies = 'Movies';
+  static const videos = 'Videos';
   static const series = 'Series';
   static const people = 'People';
   static const companies = 'Companies';

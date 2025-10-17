@@ -598,7 +598,7 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Produced movies list
 - [x] Produced TV shows list
 
-#### ✅ Enhancement Opportunities
+#### 🔄 Enhancement Opportunities
 - [x] Companies by country filter (browse screen)
 - [x] Popular production companies list (trending companies)
 - [x] Company logo gallery (multiple logos/versions)

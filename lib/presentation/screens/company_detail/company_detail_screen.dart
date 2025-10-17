@@ -221,6 +221,10 @@ class _CompanyDetailBody extends StatelessWidget {
                 : '—',
           ),
           const SizedBox(height: 24),
+          if (company.logoGallery.isNotEmpty) ...[
+            _LogoGalleryView(logoGallery: company.logoGallery),
+            const SizedBox(height: 24),
+          ],
           Text(
             loc.company['description'] ?? 'Description',
             style: theme.textTheme.titleMedium?.copyWith(
@@ -336,6 +340,84 @@ class _ProducedList extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LogoGalleryView extends StatelessWidget {
+  const _LogoGalleryView({required this.logoGallery});
+
+  final List<CompanyLogo> logoGallery;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          loc.t('company.logo_gallery'),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          height: 140,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: logoGallery.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final logo = logoGallery[index];
+              return _LogoPreview(logo: logo);
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LogoPreview extends StatelessWidget {
+  const _LogoPreview({required this.logo});
+
+  final CompanyLogo logo;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final aspectRatio =
+        ((logo.aspectRatio ?? 2.4).clamp(1.2, 4.0) as num).toDouble();
+
+    return AspectRatio(
+      aspectRatio: aspectRatio,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: MediaImage(
+            path: logo.filePath,
+            type: MediaImageType.logo,
+            size: MediaImageSize.original,
+            fit: BoxFit.contain,
+            placeholder: const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            errorWidget: Icon(
+              Icons.image_not_supported_outlined,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

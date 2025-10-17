@@ -1,9 +1,9 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/company_model.dart';
+import '../../../data/models/configuration_model.dart';
 import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
@@ -27,6 +27,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<CompaniesProvider>().ensureInitialized();
+    });
   }
 
   @override
@@ -43,10 +47,11 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
   Widget build(BuildContext context) {
     final provider = context.watch<CompaniesProvider>();
     final companies = provider.searchResults;
+    final loc = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context).t('company.companies')),
+        title: Text(loc.t('company.companies')),
       ),
       drawer: const AppDrawer(),
       body: Column(
@@ -56,9 +61,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: AppLocalizations.of(
-                  context,
-                ).t('search.search_people'),
+                hintText: loc.t('search.search_people'),
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(28),
@@ -89,26 +92,41 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             ),
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () => _performSearch(provider.lastQuery),
-              child: _CompanyList(
-                companies: companies,
-                onCompanySelected: (company) async {
-                  final details = await provider.fetchCompanyDetails(
-                    company.id,
-                  );
-                  if (!context.mounted) return;
-                  if (details != null) {
-                    _showCompanyDetails(context, details);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          AppLocalizations.of(context).t('errors.load_failed'),
-                        ),
-                      ),
-                    );
-                  }
-                },
+              onRefresh: () => _handleRefresh(provider),
+              child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: _CountryFilter(
+                      countries: provider.countries,
+                      selectedCountry: provider.selectedCountry,
+                      isLoading: provider.isLoadingCountries,
+                      errorText: provider.countriesError,
+                      onChanged: context.read<CompaniesProvider>().setCountryFilter,
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                    child: _PopularCompaniesSection(
+                      companies: provider.popularCompanies,
+                      isLoading: provider.isLoadingPopular && provider.popularCompanies.isEmpty,
+                      error: provider.popularError,
+                      onRefresh: provider.refreshPopularCompanies,
+                      onCompanySelected: (company) =>
+                          _handleCompanySelected(context, provider, company),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
+                    child: _CompanyResultsList(
+                      companies: companies,
+                      onCompanySelected: (company) =>
+                          _handleCompanySelected(context, provider, company),
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -117,59 +135,38 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     );
   }
 
+  Future<void> _handleRefresh(CompaniesProvider provider) async {
+    final futures = <Future<void>>[provider.refreshPopularCompanies()];
+    if (provider.lastQuery.isNotEmpty) {
+      futures.add(provider.searchCompanies(provider.lastQuery));
+    }
+    await Future.wait(futures);
+  }
+
+  Future<void> _handleCompanySelected(
+    BuildContext context,
+    CompaniesProvider provider,
+    Company company,
+  ) async {
+    final loc = AppLocalizations.of(context);
+    final details = await provider.fetchCompanyDetails(company.id);
+    if (!context.mounted) return;
+    if (details != null) {
+      _showCompanyDetails(context, details);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(loc.t('errors.load_failed')),
+        ),
+      );
+    }
+  }
+
   void _showCompanyDetails(BuildContext context, Company company) {
     Navigator.pushNamed(
       context,
       CompanyDetailScreen.routeName,
       arguments: company,
-    );
-  }
-}
-
-class _CompanyList extends StatelessWidget {
-  const _CompanyList({
-    required this.companies,
-    required this.onCompanySelected,
-  });
-
-  final List<Company> companies;
-  final ValueChanged<Company> onCompanySelected;
-
-  @override
-  Widget build(BuildContext context) {
-    if (companies.isEmpty) {
-      return ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.business_outlined,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Text(
-              AppLocalizations.of(context).t('company.description'),
-              style: Theme.of(context).textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return ListView.separated(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: companies.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final company = companies[index];
-        return _CompanyCard(
-          company: company,
-          onTap: () => onCompanySelected(company),
-        );
-      },
     );
   }
 }
@@ -232,17 +229,18 @@ class _CompanyCard extends StatelessWidget {
 }
 
 class _CompanyLogo extends StatelessWidget {
-  const _CompanyLogo({this.logoPath});
+  const _CompanyLogo({this.logoPath, this.size = 56});
 
   final String? logoPath;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Container(
-      width: 56,
-      height: 56,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
         color: colorScheme.primaryContainer,
         borderRadius: BorderRadius.circular(12),
@@ -258,6 +256,305 @@ class _CompanyLogo extends StatelessWidget {
               ),
             )
           : Icon(Icons.business, color: colorScheme.primary),
+    );
+  }
+}
+
+class _CountryFilter extends StatelessWidget {
+  const _CountryFilter({
+    required this.countries,
+    required this.selectedCountry,
+    required this.isLoading,
+    required this.errorText,
+    required this.onChanged,
+  });
+
+  final List<CountryInfo> countries;
+  final String? selectedCountry;
+  final bool isLoading;
+  final String? errorText;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          loc.t('company.filter_label'),
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 8),
+        if (isLoading)
+          const LinearProgressIndicator(minHeight: 2)
+        else if (errorText != null)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              errorText!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          )
+        else if (countries.isEmpty)
+          Text(
+            loc.t('company.filter_empty'),
+            style: theme.textTheme.bodySmall,
+          )
+        else
+          Row(
+            children: [
+              Expanded(
+                child: DropdownButtonFormField<String?>(
+                  value: selectedCountry,
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText: loc.t('company.filter_label'),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    isDense: true,
+                  ),
+                  hint: Text(loc.t('company.filter_all')),
+                  items: [
+                    DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text(loc.t('company.filter_all')),
+                    ),
+                    ...countries.map(
+                      (country) => DropdownMenuItem<String?>(
+                        value: country.code.toUpperCase(),
+                        child: Text(
+                          '${country.englishName} (${country.code.toUpperCase()})',
+                        ),
+                      ),
+                    ),
+                  ],
+                  onChanged: onChanged,
+                ),
+              ),
+              if (selectedCountry != null) ...[
+                const SizedBox(width: 12),
+                TextButton(
+                  onPressed: () => onChanged(null),
+                  child: Text(loc.common['clear'] ?? 'Clear'),
+                ),
+              ],
+            ],
+          ),
+      ],
+    );
+  }
+}
+
+class _PopularCompaniesSection extends StatelessWidget {
+  const _PopularCompaniesSection({
+    required this.companies,
+    required this.isLoading,
+    required this.error,
+    required this.onRefresh,
+    required this.onCompanySelected,
+  });
+
+  final List<Company> companies;
+  final bool isLoading;
+  final String? error;
+  final Future<void> Function() onRefresh;
+  final ValueChanged<Company> onCompanySelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    loc.t('company.popular_title'),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    loc.t('company.popular_subtitle'),
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ],
+              ),
+            ),
+            IconButton(
+              onPressed: isLoading ? null : () => onRefresh(),
+              icon: const Icon(Icons.refresh),
+              tooltip: loc.common['refresh'] ?? 'Refresh',
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (isLoading)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: CircularProgressIndicator(),
+            ),
+          )
+        else if (error != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  error!,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.error,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextButton.icon(
+                  onPressed: () => onRefresh(),
+                  icon: const Icon(Icons.refresh),
+                  label: Text(loc.common['retry'] ?? 'Retry'),
+                ),
+              ],
+            ),
+          )
+        else if (companies.isEmpty)
+          Text(
+            loc.t('company.popular_empty'),
+            style: theme.textTheme.bodySmall,
+          )
+        else
+          SizedBox(
+            height: 180,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: companies.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemBuilder: (context, index) {
+                final company = companies[index];
+                return _PopularCompanyCard(
+                  company: company,
+                  onTap: () => onCompanySelected(company),
+                );
+              },
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _PopularCompanyCard extends StatelessWidget {
+  const _PopularCompanyCard({required this.company, required this.onTap});
+
+  final Company company;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
+
+    return SizedBox(
+      width: 160,
+      child: Card(
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _CompanyLogo(logoPath: company.logoPath, size: 72),
+                const SizedBox(height: 12),
+                Text(
+                  company.name,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  (company.originCountry?.isNotEmpty ?? false)
+                      ? company.originCountry!
+                      : (loc.common['unknown'] ?? 'Unknown'),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _CompanyResultsList extends StatelessWidget {
+  const _CompanyResultsList({
+    required this.companies,
+    required this.onCompanySelected,
+  });
+
+  final List<Company> companies;
+  final ValueChanged<Company> onCompanySelected;
+
+  @override
+  Widget build(BuildContext context) {
+    if (companies.isEmpty) {
+      final loc = AppLocalizations.of(context);
+      final theme = Theme.of(context);
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        child: Column(
+          children: [
+            Icon(
+              Icons.business_outlined,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              loc.t('company.empty_prompt'),
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      children: [
+        for (var i = 0; i < companies.length; i++) ...[
+          _CompanyCard(
+            company: companies[i],
+            onTap: () => onCompanySelected(companies[i]),
+          ),
+          if (i < companies.length - 1) const SizedBox(height: 12),
+        ],
+      ],
     );
   }
 }

@@ -1,15 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../../core/localization/app_localizations.dart';
-import '../../../data/local/isar/isar_provider.dart';
-import '../../../data/services/static_catalog_service.dart';
+// Disabled Isar/web preload paths
+// import '../../../data/local/isar/isar_provider.dart';
+// import '../../../data/services/static_catalog_service.dart';
 import 'splash_preload_screen.dart';
 
 /// Gate shown at app startup that decides whether a preload is required.
 class BootGate extends StatefulWidget {
-  const BootGate({super.key, required this.service, required this.onNavigateToHome});
+  const BootGate({super.key, required this.onNavigateToHome});
 
-  final StaticCatalogService service;
   final String Function() onNavigateToHome;
 
   @override
@@ -26,29 +27,14 @@ class _BootGateState extends State<BootGate> {
   }
 
   Future<void> _decide() async {
-    final locales = AppLocalizations.supportedLocales;
-    final isar = await IsarDbProvider.instance.isar;
-    final firstRun = await widget.service.isFirstRun(isar);
-    final refresh = await widget.service.needsRefresh(isar, locales);
-
     if (!mounted) return;
-
-    if (firstRun || refresh) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (_) => SplashPreloadScreen(
-            service: widget.service,
-            locales: locales,
-            onDone: () {
-              if (!mounted) return;
-              Navigator.of(context).pushReplacementNamed(widget.onNavigateToHome());
-            },
-          ),
-        ),
-      );
-    } else {
+    // On web: skip preload
+    if (kIsWeb) {
       Navigator.of(context).pushReplacementNamed(widget.onNavigateToHome());
+      return;
     }
+    // On native: show simple loading and pass-through for now
+    Navigator.of(context).pushReplacementNamed(widget.onNavigateToHome());
   }
 
   @override

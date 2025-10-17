@@ -8,7 +8,6 @@ import '../../widgets/empty_state.dart';
 // import 'list_detail_screen.dart'; // Removed missing file import
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
-import '../../widgets/media_image.dart';
 
 class ListsScreen extends StatelessWidget {
   static const String routeName = '/lists';

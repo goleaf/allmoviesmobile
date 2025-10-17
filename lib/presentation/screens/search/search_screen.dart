@@ -317,7 +317,7 @@ class _SearchResultCard extends StatelessWidget {
         MediaType.tv => () {
             Navigator.pushNamed(
               context,
-              TvDetailScreen.routeName,
+              TVDetailScreen.routeName,
               arguments: result.id,
             );
           },

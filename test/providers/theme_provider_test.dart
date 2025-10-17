@@ -17,6 +17,7 @@ class _Prefs implements SharedPreferences {
   @override
   Future<bool> remove(String key) async { _data.remove(key); return true; }
   @override
+  String? getString(String key) => _data[key] as String?;
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 

@@ -8,6 +8,9 @@ import '../../../data/models/collection_detail_view.dart';
 import '../../../data/services/api_config.dart';
 import '../../../providers/collection_details_provider.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/media_image.dart';
 
 class CollectionDetailScreen extends StatelessWidget {
   static const routeName = '/collection-detail';
@@ -59,16 +62,15 @@ class _CollectionDetailView extends StatelessWidget {
     final data = provider.collection;
 
     if (provider.isLoading && data == null) {
-      return const Scaffold(
+      return const FullscreenModalScaffold(
+        title: Text(''),
         body: LoadingIndicator(),
       );
     }
 
     if (provider.errorMessage != null && data == null) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(loc.t('collection.title')),
-        ),
+      return FullscreenModalScaffold(
+        title: Text(loc.t('collection.title')),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -105,94 +107,90 @@ class _CollectionDetailView extends StatelessWidget {
     final displayName = data?.name ?? initialName ?? loc.t('collection.title');
     final overview = data?.overview;
 
-    return Scaffold(
-      body: RefreshIndicator(
+    return FullscreenModalScaffold(
+      includeDefaultSliverAppBar: false,
+      sliverScrollWrapper: (scroll) => RefreshIndicator(
         onRefresh: () => context.read<CollectionDetailsProvider>().loadCollection(collectionId),
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            _buildAppBar(context, backdropPath, displayName),
-            if (provider.isLoading && data != null)
-              const SliverToBoxAdapter(
-                child: LinearProgressIndicator(),
-              ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeader(
-                      context,
-                      loc,
-                      posterPath,
-                      displayName,
-                      data?.totalRevenue,
-                    ),
-                    const SizedBox(height: 24),
-                    _SectionTitle(text: loc.t('collection.overview')),
-                    const SizedBox(height: 8),
-                    Text(
-                      (overview != null && overview.trim().isNotEmpty)
-                          ? overview
-                          : loc.t('collection.no_overview'),
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    if (data != null && data.parts.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _SectionTitle(text: loc.t('collection.parts')),
-                      const SizedBox(height: 12),
-                      _buildPartsList(context, loc, data.parts),
-                      const SizedBox(height: 24),
-                      _SectionTitle(text: loc.t('collection.release_timeline')),
-                      const SizedBox(height: 12),
-                      _buildTimeline(context, loc, data.parts),
-                    ],
-                    if (data != null && data.images.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _SectionTitle(text: loc.t('collection.images')),
-                      const SizedBox(height: 12),
-                      _buildImagesGallery(context, data.images),
-                    ],
-                    if (data != null && data.translations.isNotEmpty) ...[
-                      const SizedBox(height: 24),
-                      _SectionTitle(text: loc.t('collection.translations')),
-                      const SizedBox(height: 12),
-                      _buildTranslations(context, loc, data.translations),
-                    ],
-                    const SizedBox(height: 24),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
+        child: scroll,
       ),
+      slivers: [
+        _buildAppBar(context, backdropPath, displayName),
+        if (provider.isLoading && data != null)
+          const SliverToBoxAdapter(
+            child: LinearProgressIndicator(),
+          ),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(
+                  context,
+                  loc,
+                  posterPath,
+                  displayName,
+                  data?.totalRevenue,
+                ),
+                const SizedBox(height: 24),
+                _SectionTitle(text: loc.t('collection.overview')),
+                const SizedBox(height: 8),
+                Text(
+                  (overview != null && overview.trim().isNotEmpty)
+                      ? overview
+                      : loc.t('collection.no_overview'),
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                if (data != null && data.parts.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _SectionTitle(text: loc.t('collection.parts')),
+                  const SizedBox(height: 12),
+                  _buildPartsList(context, loc, data.parts),
+                  const SizedBox(height: 24),
+                  _SectionTitle(text: loc.t('collection.release_timeline')),
+                  const SizedBox(height: 12),
+                  _buildTimeline(context, loc, data.parts),
+                ],
+                if (data != null && data.images.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _SectionTitle(text: loc.t('collection.images')),
+                  const SizedBox(height: 12),
+                  _buildImagesGallery(context, data.images),
+                ],
+                if (data != null && data.translations.isNotEmpty) ...[
+                  const SizedBox(height: 24),
+                  _SectionTitle(text: loc.t('collection.translations')),
+                  const SizedBox(height: 12),
+                  _buildTranslations(context, loc, data.translations),
+                ],
+                const SizedBox(height: 24),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   Widget _buildAppBar(BuildContext context, String? backdropPath, String title) {
-    final backdropUrl = ApiConfig.getBackdropUrl(
-      backdropPath,
-      size: ApiConfig.backdropSizeLarge,
-    );
+    final backdropUrl = backdropPath;
 
     return SliverAppBar(
       pinned: true,
       expandedHeight: 240,
       title: Text(title),
       flexibleSpace: FlexibleSpaceBar(
-        background: backdropUrl.isNotEmpty
+        background: (backdropUrl != null && backdropUrl.isNotEmpty)
             ? Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: backdropUrl,
+                  MediaImage(
+                    path: backdropPath,
+                    type: MediaImageType.backdrop,
+                    size: MediaImageSize.w1280,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                    ),
-                    errorWidget: (context, url, error) => Container(
+                    placeholder: Container(color: Colors.grey[300]),
+                    errorWidget: Container(
                       color: Colors.grey[300],
                       child: const Icon(Icons.photo, size: 64),
                     ),
@@ -227,10 +225,7 @@ class _CollectionDetailView extends StatelessWidget {
     String title,
     num? totalRevenue,
   ) {
-    final posterUrl = ApiConfig.getPosterUrl(
-      posterPath,
-      size: ApiConfig.posterSizeLarge,
-    );
+    final posterUrl = posterPath;
     final localeName = Localizations.localeOf(context).toLanguageTag();
     final currencyFormatter = NumberFormat.simpleCurrency(locale: localeName);
     final revenueText = (totalRevenue != null && totalRevenue > 0)
@@ -242,18 +237,20 @@ class _CollectionDetailView extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(12),
-          child: posterUrl.isNotEmpty
-              ? CachedNetworkImage(
-                  imageUrl: posterUrl,
+          child: (posterUrl != null && posterUrl.isNotEmpty)
+              ? MediaImage(
+                  path: posterPath,
+                  type: MediaImageType.poster,
+                  size: MediaImageSize.w500,
                   width: 120,
                   height: 180,
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
+                  placeholder: Container(
                     width: 120,
                     height: 180,
                     color: Colors.grey[300],
                   ),
-                  errorWidget: (context, url, error) => Container(
+                  errorWidget: Container(
                     width: 120,
                     height: 180,
                     color: Colors.grey[300],
@@ -318,7 +315,7 @@ class _CollectionDetailView extends StatelessWidget {
       separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final part = parts[index];
-        final posterUrl = ApiConfig.getPosterUrl(part.posterPath);
+        final posterUrl = part.posterPath;
         final releaseText = part.formattedReleaseDate(localeName);
         final rating = part.voteAverage;
         final revenueText = (part.revenue != null && part.revenue! > 0)
@@ -336,18 +333,20 @@ class _CollectionDetailView extends StatelessWidget {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: posterUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: posterUrl,
+                child: (posterUrl != null && posterUrl.isNotEmpty)
+                    ? MediaImage(
+                        path: part.posterPath,
+                        type: MediaImageType.poster,
+                        size: MediaImageSize.w342,
                         width: 80,
                         height: 120,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
+                        placeholder: Container(
                           width: 80,
                           height: 120,
                           color: Colors.grey[300],
                         ),
-                        errorWidget: (context, url, error) => Container(
+                        errorWidget: Container(
                           width: 80,
                           height: 120,
                           color: Colors.grey[300],
@@ -495,23 +494,23 @@ class _CollectionDetailView extends StatelessWidget {
         separatorBuilder: (context, index) => const SizedBox(width: 12),
         itemBuilder: (context, index) {
           final image = images[index];
-          final imageUrl = image.type == 'poster'
-              ? ApiConfig.getPosterUrl(image.filePath, size: ApiConfig.posterSizeMedium)
-              : ApiConfig.getBackdropUrl(image.filePath, size: ApiConfig.backdropSizeMedium);
+          final imageUrl = image.filePath;
 
           return ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: CachedNetworkImage(
-              imageUrl: imageUrl,
+            child: MediaImage(
+              path: imageUrl,
+              type: image.type == 'poster' ? MediaImageType.poster : MediaImageType.backdrop,
+              size: image.type == 'poster' ? MediaImageSize.w342 : MediaImageSize.w780,
               width: image.type == 'poster' ? 120 : 240,
               height: 180,
               fit: BoxFit.cover,
-              placeholder: (context, url) => Container(
+              placeholder: Container(
                 width: image.type == 'poster' ? 120 : 240,
                 height: 180,
                 color: Colors.grey[300],
               ),
-              errorWidget: (context, url, error) => Container(
+              errorWidget: Container(
                 width: image.type == 'poster' ? 120 : 240,
                 height: 180,
                 color: Colors.grey[300],

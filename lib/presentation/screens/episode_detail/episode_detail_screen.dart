@@ -8,6 +8,7 @@ import '../../../data/services/api_config.dart';
 import '../../widgets/rating_display.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
+import '../../widgets/fullscreen_modal_scaffold.dart';
 
 class EpisodeDetailScreen extends StatelessWidget {
   static const routeName = '/episode-detail';
@@ -23,28 +24,27 @@ class EpisodeDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
 
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildStillAppBar(context),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildHeader(context),
-                  const SizedBox(height: 16),
-                  _buildOverview(context, loc),
-                  const SizedBox(height: 16),
-                  _buildMetadata(context, loc),
-                  const SizedBox(height: 24),
-                ],
-              ),
+    return FullscreenModalScaffold(
+      includeDefaultSliverAppBar: false,
+      slivers: [
+        _buildStillAppBar(context),
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context),
+                const SizedBox(height: 16),
+                _buildOverview(context, loc),
+                const SizedBox(height: 16),
+                _buildMetadata(context, loc),
+                const SizedBox(height: 24),
+              ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 

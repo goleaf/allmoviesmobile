@@ -1,0 +1,27 @@
+{
+  "page": 1,
+  "total_pages": 1,
+  "total_results": 2,
+  "results": [
+    {
+      "id": 550,
+      "media_type": "movie",
+      "title": "Fight Club",
+      "overview": "An insomniac office worker...",
+      "poster_path": "/a26cQPRhJPX6GbWfQbvZdrrp9j9.jpg",
+      "backdrop_path": "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+      "vote_average": 8.4,
+      "vote_count": 24000,
+      "release_date": "1999-10-15"
+    },
+    {
+      "id": 1,
+      "media_type": "person",
+      "name": "Brad Pitt",
+      "profile_path": "/brad.jpg",
+      "popularity": 100.0
+    }
+  ]
+}
+
+

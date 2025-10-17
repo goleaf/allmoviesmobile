@@ -73,5 +73,15 @@ class AppStrings {
   static const keywords = 'Keywords';
   static const apiExplorer = 'TMDB Explorer';
   static const exploreCollections = 'Explore the latest highlights from our catalog.';
+  static const browseCollections = 'Browse Collections';
+  static const collectionsUnavailable = 'Collections are not available right now.';
+  static const noCollectionsFound = 'No collections matched your search.';
+  static const popularCollections = 'Popular Collections';
+  static const collectionsByGenre = 'Collections by Genre';
+  static const searchCollections = 'Search collections';
+  static const clearSearch = 'Clear search';
+  static const noOverviewAvailable = 'No overview available.';
+  static const includedTitles = 'Included titles';
+  static const tmdbV4Reference = 'TMDB v4 Reference';
 }
 

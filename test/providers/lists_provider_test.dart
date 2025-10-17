@@ -12,6 +12,8 @@ class _InMemoryPrefs implements SharedPreferences {
   @override
   Object? get(String key) => _data[key];
   @override
+  String? getString(String key) => _data[key] as String?;
+  @override
   bool containsKey(String key) => _data.containsKey(key);
   @override
   Future<bool> clear() async { _data.clear(); return true; }

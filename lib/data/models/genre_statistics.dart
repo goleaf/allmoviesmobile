@@ -4,7 +4,7 @@ import 'movie.dart';
 
 @immutable
 class GenreStatistics {
-  const GenreStatistics({
+  GenreStatistics({
     required Set<int> genreIds,
     required this.sampleSize,
     required this.averageRating,

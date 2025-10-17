@@ -19,6 +19,9 @@ class FullscreenModalScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.floatingActionButtonLocation,
     this.resizeToAvoidBottomInset,
+    this.includeAppBarInBodyMode = true,
+    this.includeDefaultSliverAppBar = true,
+    this.sliverScrollWrapper,
   }) : assert((body != null) ^ (slivers != null),
             'Provide either body or slivers');
 
@@ -31,6 +34,9 @@ class FullscreenModalScaffold extends StatelessWidget {
   final Widget? floatingActionButton;
   final FloatingActionButtonLocation? floatingActionButtonLocation;
   final bool? resizeToAvoidBottomInset;
+  final bool includeAppBarInBodyMode;
+  final bool includeDefaultSliverAppBar;
+  final Widget Function(Widget scrollView)? sliverScrollWrapper;
 
   @override
   Widget build(BuildContext context) {
@@ -51,22 +57,29 @@ class FullscreenModalScaffold extends StatelessWidget {
       bottom: bottom,
     );
 
-    return Scaffold(
-      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
-      appBar: slivers == null ? appBar : null,
-      body: slivers == null
-          ? body
-          : CustomScrollView(
-              slivers: <Widget>[
+    final scaffoldBody = slivers == null
+        ? body
+        : CustomScrollView(
+            slivers: <Widget>[
+              if (includeDefaultSliverAppBar)
                 SliverAppBar(
                   pinned: true,
                   leading: leading,
                   title: title,
                   actions: actions,
                 ),
-                ...slivers!,
-              ],
-            ),
+              ...slivers!,
+            ],
+          );
+
+    final wrappedBody = slivers != null && sliverScrollWrapper != null
+        ? sliverScrollWrapper!(scaffoldBody!)
+        : scaffoldBody;
+
+    return Scaffold(
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
+      appBar: slivers == null && includeAppBarInBodyMode ? appBar : null,
+      body: wrappedBody,
       floatingActionButton: floatingActionButton,
       floatingActionButtonLocation: floatingActionButtonLocation,
     );

@@ -1,6 +1,6 @@
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
-import 'package:allmovies_mobile/test_support/fakes.dart';
+// Use a minimal fake defined locally to avoid external test support imports
 import 'package:allmovies_mobile/data/services/static_catalog_service.dart';
 import 'package:allmovies_mobile/main.dart';
 import 'package:allmovies_mobile/presentation/screens/movies/movies_screen.dart';
@@ -10,7 +10,7 @@ import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:isar/isar.dart';
 
-class FakeRepo extends FakeTmdbRepository {}
+class FakeRepo extends TmdbRepository {}
 
 class FakeCatalogService extends StaticCatalogService {
   FakeCatalogService(TmdbRepository repo) : super(repo);

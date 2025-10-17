@@ -46,13 +46,7 @@ class SectionNavigationActions extends StatelessWidget {
               ? null
               : () => _navigateTo(context, AppRoutes.movies, normalizedRoute),
         ),
-        IconButton(
-          tooltip: 'Videos',
-          icon: const Icon(Icons.play_circle_outline),
-          onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.videos)
-              ? null
-              : () => _navigateTo(context, AppRoutes.videos, normalizedRoute),
-        ),
+        // Videos route is not defined; hide or disable this action
         IconButton(
           tooltip: 'Series',
           icon: const Icon(Icons.tv_outlined),

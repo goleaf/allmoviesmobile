@@ -20,7 +20,7 @@ Future<void> pumpApp(
     onGenerateRoute: onGenerateRoute,
     theme: theme,
     localizationsDelegates: localizationsDelegates,
-    supportedLocales: supportedLocales ?? const [Locale('en')],
+    supportedLocales: (supportedLocales ?? const [Locale('en')]).whereType<Locale>(),
     navigatorObservers: navigatorObserver != null ? [navigatorObserver] : const <NavigatorObserver>[],
   );
 

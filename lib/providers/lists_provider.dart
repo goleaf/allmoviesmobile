@@ -4,9 +4,10 @@ import 'package:flutter/foundation.dart';
 import 'package:uuid/uuid.dart';
 
 import '../data/models/movie.dart';
-import '../data/models/custom_list.dart';
 import '../data/models/user_list.dart';
 import '../data/services/local_storage_service.dart';
+import '../data/models/custom_list.dart';
+import '../data/models/saved_media_item.dart';
 
 class ListsProvider extends ChangeNotifier {
   ListsProvider(
@@ -71,11 +72,13 @@ class ListsProvider extends ChangeNotifier {
         _lists
           ..clear()
           ..addAll(seeded);
-        await _storage.saveCustomLists(_lists.map((l) => l.toCustomList()).toList());
+        await _storage.saveCustomLists(
+          _lists.map(_mapUserListToCustom).toList(growable: false),
+        );
       } else {
         _lists
           ..clear()
-          ..addAll(storedLists.map((c) => UserList.fromCustom(c)));
+          ..addAll(storedLists.map(_mapCustomToUserList));
       }
       _errorMessage = null;
     } catch (error) {
@@ -122,8 +125,8 @@ class ListsProvider extends ChangeNotifier {
       name: trimmedName,
       ownerId: _currentUserId,
       ownerName: _currentUserName,
-      description: description?.trim().isEmpty ?? true ? null : description!.trim(),
-      posterPath: posterPath?.trim().isEmpty ?? true ? null : posterPath!.trim(),
+      description: description?.trim().isNotEmpty == true ? description!.trim() : null,
+      posterPath: posterPath?.trim().isNotEmpty == true ? posterPath!.trim() : null,
       isPublic: isPublic,
       isCollaborative: isCollaborative,
       createdAt: now,
@@ -169,11 +172,11 @@ class ListsProvider extends ChangeNotifier {
       }
 
       final updated = list.copyWith(
-        name: name?.trim().isEmpty ?? true ? null : name!.trim(),
-        description: description?.trim().isEmpty ?? true ? null : description!.trim(),
+        name: name?.trim().isNotEmpty == true ? name!.trim() : null,
+        description: description?.trim().isNotEmpty == true ? description!.trim() : null,
         isPublic: isPublic,
         isCollaborative: isCollaborative,
-        posterPath: posterPath?.trim().isEmpty ?? true ? null : posterPath!.trim(),
+        posterPath: posterPath?.trim().isNotEmpty == true ? posterPath!.trim() : null,
         updatedAt: DateTime.now(),
       );
       return updated;
@@ -465,7 +468,9 @@ class ListsProvider extends ChangeNotifier {
   }
 
   Future<void> _persist() {
-    return _storage.saveCustomLists(_lists.map((l) => l.toCustomList()).toList());
+    return _storage.saveCustomLists(
+      _lists.map(_mapUserListToCustom).toList(growable: false),
+    );
   }
 
   List<UserList> _seedLists() {
@@ -613,4 +618,76 @@ class ListsProvider extends ChangeNotifier {
 
     return _reindex(sorted);
   }
+}
+
+// Top-level defaults for helper functions below
+const String _defaultUserId = 'local-user';
+const String _defaultUserName = 'You';
+
+CustomList _mapUserListToCustom(UserList list) {
+  return CustomList(
+    id: list.id,
+    name: list.name,
+    description: list.description,
+    accentColor: null,
+    createdAt: list.createdAt,
+    updatedAt: list.updatedAt,
+    items: list.items
+        .map((it) => SavedMediaItem(
+              id: it.mediaId,
+              type: it.mediaType == ListEntryType.tv
+                  ? SavedMediaType.tv
+                  : SavedMediaType.movie,
+              title: it.title,
+              overview: it.overview,
+              posterPath: it.posterPath,
+              backdropPath: it.backdropPath,
+              releaseDate: it.releaseDate?.toIso8601String().split('T').first,
+              voteAverage: it.voteAverage,
+            ))
+        .toList(growable: false),
+    isPublic: list.isPublic,
+  );
+}
+
+const String kDefaultUserId = 'local-user';
+const String kDefaultUserName = 'You';
+
+UserList _mapCustomToUserList(CustomList list) {
+  return UserList(
+    id: list.id,
+    name: list.name,
+    ownerId: kDefaultUserId,
+    ownerName: kDefaultUserName,
+    description: list.description,
+    posterPath: null,
+    isPublic: list.isPublic,
+    isCollaborative: false,
+    createdAt: list.createdAt,
+    updatedAt: list.updatedAt,
+    items: [
+      for (var index = 0; index < list.items.length; index++)
+        ListEntry(
+          mediaId: list.items[index].id,
+          mediaType: list.items[index].type == SavedMediaType.tv
+              ? ListEntryType.tv
+              : ListEntryType.movie,
+          title: list.items[index].title,
+          overview: list.items[index].overview,
+          posterPath: list.items[index].posterPath,
+          backdropPath: list.items[index].backdropPath,
+          releaseDate: list.items[index].releaseDate != null
+              ? DateTime.tryParse(list.items[index].releaseDate!)
+              : null,
+          addedBy: kDefaultUserId,
+          addedAt: list.items[index].addedAt,
+          position: index,
+          voteAverage: list.items[index].voteAverage,
+        )
+    ],
+    collaborators: const <ListCollaborator>[],
+    followerIds: const <String>{},
+    comments: const <ListComment>[],
+    sortMode: ListSortMode.manual,
+  );
 }

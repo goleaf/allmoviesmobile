@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
@@ -12,6 +11,7 @@ import '../../../data/tmdb_repository.dart';
 import '../../../providers/person_detail_provider.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/fullscreen_modal_scaffold.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   static const routeName = '/person-detail';
@@ -51,14 +51,15 @@ class _PersonDetailView extends StatelessWidget {
     final summary = provider.summary;
 
     if (provider.isLoading && summary == null && detail == null) {
-      return const Scaffold(
+      return const FullscreenModalScaffold(
+        title: Text(''),
         body: Center(child: CircularProgressIndicator()),
       );
     }
 
     if (summary == null && detail == null) {
-      return Scaffold(
-        appBar: AppBar(),
+      return FullscreenModalScaffold(
+        title: const Text(''),
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
@@ -89,43 +90,42 @@ class _PersonDetailView extends StatelessWidget {
     final profileUrl = detail?.profileUrl ?? summary?.profileUrl;
 
     if (detail == null) {
-      return Scaffold(
-        body: CustomScrollView(
-          slivers: [
-            _PersonAppBar(
-              name: name,
-              department: department,
-              popularity: popularity,
-              profileUrl: profileUrl,
-            ),
-            const SliverFillRemaining(
-              hasScrollBody: false,
-              child: Center(child: CircularProgressIndicator()),
-            ),
-          ],
-        ),
+      return FullscreenModalScaffold(
+        includeDefaultSliverAppBar: false,
+        sliverScrollWrapper: (scroll) => scroll,
+        slivers: [
+          _PersonAppBar(
+            name: name,
+            department: department,
+            popularity: popularity,
+            profileUrl: profileUrl,
+          ),
+          const SliverFillRemaining(
+            hasScrollBody: false,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+        ],
       );
     }
 
-    return Scaffold(
-      body: RefreshIndicator(
+    return FullscreenModalScaffold(
+      includeDefaultSliverAppBar: false,
+      sliverScrollWrapper: (scroll) => RefreshIndicator(
         onRefresh: () =>
             context.read<PersonDetailProvider>().load(forceRefresh: true),
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            _PersonAppBar(
-              name: name,
-              department: department,
-              popularity: popularity,
-              profileUrl: profileUrl,
-            ),
-            SliverToBoxAdapter(
-              child: _PersonDetailBody(detail: detail),
-            ),
-          ],
-        ),
+        child: scroll,
       ),
+      slivers: [
+        _PersonAppBar(
+          name: name,
+          department: department,
+          popularity: popularity,
+          profileUrl: profileUrl,
+        ),
+        SliverToBoxAdapter(
+          child: _PersonDetailBody(detail: detail),
+        ),
+      ],
     );
   }
 }
@@ -535,16 +535,11 @@ class _KnownForCard extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: 2 / 3,
               child: imageUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: imageUrl,
+                  ? MediaImage(
+                      path: credit.posterPath,
+                      type: MediaImageType.poster,
+                      size: MediaImageSize.w342,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey.shade300,
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        color: Colors.grey.shade300,
-                        child: const Icon(Icons.broken_image),
-                      ),
                     )
                   : Container(
                       color: Colors.grey.shade300,

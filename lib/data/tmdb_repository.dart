@@ -623,6 +623,38 @@ class TmdbRepository {
     return PersonDetail.fromJson(payload);
   }
 
+  Future<PaginatedResponse<Person>> searchPeople(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final normalized = query.trim();
+    if (normalized.isEmpty) {
+      return Future.value(
+        const PaginatedResponse<Person>(
+          page: 1,
+          totalPages: 1,
+          totalResults: 0,
+          results: <Person>[],
+        ),
+      );
+    }
+
+    final cacheKey = 'search_people::$normalized::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson('/search/person', query: {
+          'query': normalized,
+          'page': '$page',
+        });
+        return _mapPaginated<Person>(payload, Person.fromJson);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.searchTTL,
+    );
+  }
+
   // ---------------------------------------------------------------------------
   // Companies
   // ---------------------------------------------------------------------------

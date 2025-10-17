@@ -1019,6 +1019,7 @@ class _MovieDetailView extends StatelessWidget {
                             genreIds: [],
                           ),
                         ),
+                        fullscreenDialog: true,
                       ),
                     );
                   },
@@ -1079,6 +1080,7 @@ class _MovieDetailView extends StatelessWidget {
                             genreIds: [],
                           ),
                         ),
+                        fullscreenDialog: true,
                       ),
                     );
                   },

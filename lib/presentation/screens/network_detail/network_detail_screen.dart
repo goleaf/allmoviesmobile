@@ -700,6 +700,7 @@ class _ShowsGrid extends StatelessWidget {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (_) => TVDetailScreen(tvShow: show),
+                    fullscreenDialog: true,
                   ),
                 );
               },

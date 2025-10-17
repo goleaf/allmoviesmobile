@@ -40,11 +40,16 @@ class SearchResultsListScreen extends StatelessWidget {
       return 'Companies';
     }
 
-    return switch (args.mediaType) {
-      MediaType.movie => 'Movies',
-      MediaType.tv => 'TV Shows',
-      MediaType.person => 'People',
-    };
+    final type = args.mediaType;
+    if (type == null) return 'Results';
+    switch (type) {
+      case MediaType.movie:
+        return 'Movies';
+      case MediaType.tv:
+        return 'TV Shows';
+      case MediaType.person:
+        return 'People';
+    }
   }
 }
 

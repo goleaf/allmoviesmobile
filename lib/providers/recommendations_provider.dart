@@ -36,8 +36,16 @@ class RecommendationsProvider with ChangeNotifier {
       final favoriteIds = _storage.getFavorites();
       
       if (favoriteIds.isEmpty) {
-        // No favorites yet → start from popular for determinism
-        _recommendedMovies = await _repository.fetchPopularMovies();
+        // No favorites yet → start from popular, dedupe/sort/limit for determinism
+        final items = await _repository.fetchPopularMovies();
+        final byId = <int, Movie>{};
+        for (final m in items) {
+          byId[m.id] = m;
+        }
+        _recommendedMovies = (byId.values.toList(growable: false)
+              ..sort((a, b) => a.id.compareTo(b.id)))
+            .take(20)
+            .toList(growable: false);
       } else {
         // Base from trending, then deterministically filter and sort
         _recommendedMovies = await _repository.fetchTrendingMovies();

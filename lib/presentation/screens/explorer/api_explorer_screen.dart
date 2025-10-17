@@ -12,6 +12,8 @@ import '../../../providers/api_explorer_provider.dart';
 import 'content_ratings_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/error_widget.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/media_image.dart';
 
 class ApiExplorerScreen extends StatefulWidget {
   const ApiExplorerScreen({super.key});
@@ -344,7 +346,7 @@ class _MoviePosterCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final posterUrl = ApiConfig.getPosterUrl(movie.posterPath);
+    final posterPath = movie.posterPath;
 
     return SizedBox(
       width: 160,
@@ -357,7 +359,7 @@ class _MoviePosterCard extends StatelessWidget {
           children: [
             AspectRatio(
               aspectRatio: 2 / 3,
-              child: posterUrl.isEmpty
+              child: posterPath == null || posterPath.isEmpty
                   ? Container(
                       color: theme.colorScheme.surfaceVariant,
                       child: Icon(
@@ -366,16 +368,18 @@ class _MoviePosterCard extends StatelessWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     )
-                  : CachedNetworkImage(
-                      imageUrl: posterUrl,
+                  : MediaImage(
+                      path: posterPath,
+                      type: MediaImageType.poster,
+                      size: MediaImageSize.w342,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
+                      placeholder: Container(
                         color: theme.colorScheme.surfaceVariant,
                         child: const Center(
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                      errorWidget: (context, url, error) => Container(
+                      errorWidget: Container(
                         color: theme.colorScheme.surfaceVariant,
                         child: Icon(
                           Icons.broken_image_outlined,
@@ -491,7 +495,7 @@ class _PersonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profileUrl = ApiConfig.getProfileUrl(person.profilePath);
+    final profilePath = person.profilePath;
     final theme = Theme.of(context);
 
     return SizedBox(
@@ -504,7 +508,7 @@ class _PersonCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              child: profileUrl.isEmpty
+              child: profilePath == null || profilePath.isEmpty
                   ? Container(
                       color: theme.colorScheme.surfaceVariant,
                       child: Icon(
@@ -513,16 +517,18 @@ class _PersonCard extends StatelessWidget {
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     )
-                  : CachedNetworkImage(
-                      imageUrl: profileUrl,
+                  : MediaImage(
+                      path: profilePath,
+                      type: MediaImageType.profile,
+                      size: MediaImageSize.w185,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
+                      placeholder: Container(
                         color: theme.colorScheme.surfaceVariant,
                         child: const Center(
                           child: CircularProgressIndicator(strokeWidth: 2),
                         ),
                       ),
-                      errorWidget: (context, url, error) => Container(
+                      errorWidget: Container(
                         color: theme.colorScheme.surfaceVariant,
                         child: Icon(
                           Icons.person_off_outlined,

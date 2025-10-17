@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../data/models/movie_detailed_model.dart';
 import '../../data/services/api_config.dart';
+import '../../core/utils/media_image_helper.dart';
+import 'media_image.dart';
 import '../../data/tmdb_repository.dart';
 
 class SavedMovieCard extends StatefulWidget {
@@ -183,10 +185,7 @@ class _MovieContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final posterUrl = ApiConfig.getPosterUrl(
-      movie.posterPath,
-      size: ApiConfig.posterSizeMedium,
-    );
+    final posterPath = movie.posterPath;
     final releaseYear = (movie.releaseDate ?? '').isNotEmpty
         ? movie.releaseDate!.split('-').first
         : null;
@@ -200,17 +199,19 @@ class _MovieContent extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: posterUrl.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: posterUrl,
+                child: (posterPath != null && posterPath.isNotEmpty)
+                    ? MediaImage(
+                        path: posterPath,
+                        type: MediaImageType.poster,
+                        size: MediaImageSize.w342,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
+                        placeholder: Container(
                           color: Colors.grey[300],
                           child: const Center(
                             child: CircularProgressIndicator(),
                           ),
                         ),
-                        errorWidget: (context, url, error) => Container(
+                        errorWidget: Container(
                           color: Colors.grey[300],
                           child: const Center(
                             child: Icon(

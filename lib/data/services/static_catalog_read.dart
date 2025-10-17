@@ -5,6 +5,7 @@ import '../local/isar/genre_translation.dart';
 import '../local/isar/isar_provider.dart';
 import '../local/isar/language_translation.dart';
 import '../local/isar/watch_provider.dart';
+import '../local/isar/watch_provider_region.dart';
 
 class StaticCatalogReadService {
   Future<List<GenreTranslationEntity>> genres(String mediaType, String locale) async {

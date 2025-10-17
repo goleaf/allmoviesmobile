@@ -25,7 +25,9 @@ class AppTheme {
 
   static ThemeData _buildTheme(ColorScheme colorScheme) {
     final isDark = colorScheme.brightness == Brightness.dark;
-    final textTheme = GoogleFonts.poppinsTextTheme().apply(
+    // Avoid runtime font fetching during tests or when fonts are unavailable
+    final baseTextTheme = ThemeData(brightness: colorScheme.brightness).textTheme;
+    final textTheme = baseTextTheme.apply(
       bodyColor: colorScheme.onBackground,
       displayColor: colorScheme.onBackground,
     );

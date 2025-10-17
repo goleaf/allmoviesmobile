@@ -7,7 +7,7 @@ import '../../../data/models/company_model.dart';
 import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
-import '../../../core/utils/media_image_helper.dart';
+import '../../../core/utils/media_image_helper.dart' as mih;
 import '../company_detail/company_detail_screen.dart';
 import '../../../core/utils/media_image_helper.dart';
 
@@ -245,8 +245,8 @@ class _CompanyLogo extends StatelessWidget {
               padding: const EdgeInsets.all(8),
               child: MediaImage(
                 path: logoPath,
-                type: MediaImageType.logo,
-                size: MediaImageSize.w185,
+                type: mih.MediaImageType.logo,
+                size: mih.MediaImageSize.w185,
                 fit: BoxFit.contain,
               ),
             )

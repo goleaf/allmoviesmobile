@@ -9,6 +9,7 @@ import '../../../data/services/api_config.dart';
 import '../../widgets/media_image.dart';
 import '../../../providers/collections_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../collections/collection_detail_screen.dart';
 
 class CollectionsBrowserScreen extends StatefulWidget {
   static const routeName = '/collections';
@@ -60,21 +61,18 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
   }
 
   void _openCollectionDetails(CollectionDetails details) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => _CollectionDetailsSheet(details: details),
+    Navigator.pushNamed(
+      context,
+      CollectionDetailScreen.routeName,
+      arguments: details.id,
     );
   }
 
   void _openCollectionPreview(Collection collection) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => _CollectionPreviewSheet(
-        future: context.read<CollectionsProvider>().fetchCollectionPreview(collection.id),
-        fallbackName: collection.name,
-      ),
+    Navigator.pushNamed(
+      context,
+      CollectionDetailScreen.routeName,
+      arguments: collection.id,
     );
   }
 

@@ -3,6 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:allmovies_mobile/core/utils/silent_updater.dart';
 import 'package:allmovies_mobile/data/services/static_catalog_service.dart';
+import 'package:allmovies_mobile/data/tmdb_repository.dart';
+
+class FakeRepository extends TmdbRepository {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -31,5 +34,3 @@ void main() {
     expect(called, isTrue);
   });
 }
-
-

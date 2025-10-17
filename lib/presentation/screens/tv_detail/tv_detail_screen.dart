@@ -26,6 +26,7 @@ import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 // duplicate import removed
+import '../../widgets/fullscreen_modal_scaffold.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -57,15 +58,15 @@ class _TVDetailView extends StatelessWidget {
     final loc = AppLocalizations.of(context);
 
     if (provider.isLoading && provider.details == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Loading...')),
-        body: const Center(child: LoadingIndicator()),
+      return const FullscreenModalScaffold(
+        title: Text('Loading...'),
+        body: Center(child: LoadingIndicator()),
       );
     }
 
     if (provider.errorMessage != null && provider.details == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Error')),
+      return FullscreenModalScaffold(
+        title: const Text('Error'),
         body: Center(
           child: ErrorDisplay(
             message: provider.errorMessage!,
@@ -77,9 +78,9 @@ class _TVDetailView extends StatelessWidget {
 
     final details = provider.details;
     if (details == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('TV Show')),
-        body: const Center(child: Text('No details available')),
+      return const FullscreenModalScaffold(
+        title: Text('TV Show'),
+        body: Center(child: Text('No details available')),
       );
     }
 
@@ -908,6 +909,7 @@ class _TVDetailView extends StatelessWidget {
                             genreIds: [],
                           ),
                         ),
+                        fullscreenDialog: true,
                       ),
                     );
                   },
@@ -968,6 +970,7 @@ class _TVDetailView extends StatelessWidget {
                             genreIds: [],
                           ),
                         ),
+                        fullscreenDialog: true,
                       ),
                     );
                   },

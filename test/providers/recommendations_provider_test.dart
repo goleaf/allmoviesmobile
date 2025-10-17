@@ -43,18 +43,32 @@ void main() {
       provider = RecommendationsProvider(_FakeRepo(), storage);
     });
 
-    test('when no favorites, returns popular as recommendations', () async {
+    test('when no favorites, returns popular deterministically (deduped/sorted/limited)', () async {
       await provider.fetchPersonalizedRecommendations();
       expect(provider.recommendedMovies, isNotEmpty);
+      final ids = provider.recommendedMovies.map((m) => m.id).toList(growable: false);
+      // Sorted ascending by id
+      final sorted = [...ids]..sort();
+      expect(ids, sorted);
+      // No duplicates
+      expect(ids.toSet().length, ids.length);
+      // Limited to <= 20
+      expect(ids.length <= 20, isTrue);
     });
 
-    test('when favorites exist, filters out favorites from trending recommendations', () async {
+    test('when favorites exist, filters favorites and returns deterministic list', () async {
       // Add a favorite
       await storage.addToFavorites(101);
 
       await provider.fetchPersonalizedRecommendations();
       // Should not include favorite id 101
       expect(provider.recommendedMovies.where((m) => m.id == 101), isEmpty);
+      // Sorted ascending by id and unique
+      final ids = provider.recommendedMovies.map((m) => m.id).toList(growable: false);
+      final sorted = [...ids]..sort();
+      expect(ids, sorted);
+      expect(ids.toSet().length, ids.length);
+      expect(ids.length <= 20, isTrue);
     });
   });
 }

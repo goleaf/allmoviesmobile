@@ -50,18 +50,25 @@ void main() {
     }
 
     // Region (scroll first)
-    final listView = find.byType(ListView).first;
+    // Scroll until Region tile is visible using the nearest Scrollable
+    final scrollable = find.byType(Scrollable).first;
+    final regionText = find.text('Region');
     await tester.dragUntilVisible(
-      find.textContaining('Region'),
-      listView,
-      const Offset(0, -200),
+      regionText,
+      scrollable,
+      const Offset(0, -300),
     );
-    await tester.tap(find.textContaining('Region'));
+    // Tap Region tile and wait for dialog
+    final regionTileFinder = find.ancestor(of: regionText, matching: find.byType(ListTile));
+    await tester.tap(regionTileFinder.first, warnIfMissed: false);
     await tester.pumpAndSettle();
-    final regionTile = find.byType(RadioListTile<String>).first;
-    if (regionTile.evaluate().isNotEmpty) {
-      await tester.tap(regionTile);
-      await tester.pumpAndSettle();
+    final dialogFinder = find.byType(AlertDialog);
+    if (dialogFinder.evaluate().isNotEmpty) {
+      final regionTiles = find.byType(RadioListTile<String>);
+      if (regionTiles.evaluate().isNotEmpty) {
+        await tester.tap(regionTiles.first, warnIfMissed: false);
+        await tester.pumpAndSettle();
+      }
     }
 
     expect(find.byType(SettingsScreen), findsOneWidget);

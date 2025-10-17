@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+import 'custom_list.dart';
+import 'saved_media_item.dart';
 
 @immutable
 class ListCollaborator {
@@ -344,6 +346,73 @@ class UserList {
       followerIds: followerIds ?? this.followerIds,
       comments: comments ?? this.comments,
       sortMode: sortMode ?? this.sortMode,
+    );
+  }
+}
+
+extension UserListPersistenceX on UserList {
+  CustomList toCustomList() {
+    return CustomList(
+      id: id,
+      name: name,
+      description: description,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      isPublic: isPublic,
+      items: items
+          .map((e) => SavedMediaItem(
+                id: e.mediaId,
+                type: e.mediaType == ListEntryType.tv
+                    ? SavedMediaType.tv
+                    : SavedMediaType.movie,
+                title: e.title,
+                posterPath: e.posterPath,
+                backdropPath: e.backdropPath,
+                overview: e.overview,
+                releaseDate: e.releaseDate != null
+                    ? e.releaseDate!.toIso8601String()
+                    : null,
+                voteAverage: e.voteAverage,
+              ))
+          .toList(growable: false),
+    );
+  }
+
+  static UserList fromCustom(CustomList list) {
+    return UserList(
+      id: list.id,
+      name: list.name,
+      ownerId: 'local-user',
+      ownerName: 'You',
+      description: list.description,
+      posterPath: null,
+      isPublic: list.isPublic,
+      isCollaborative: false,
+      createdAt: list.createdAt,
+      updatedAt: list.updatedAt,
+      items: [
+        for (var index = 0; index < list.items.length; index++)
+          ListEntry(
+            mediaId: list.items[index].id,
+            mediaType: list.items[index].type == SavedMediaType.tv
+                ? ListEntryType.tv
+                : ListEntryType.movie,
+            title: list.items[index].title ?? '',
+            posterPath: list.items[index].posterPath,
+            backdropPath: list.items[index].backdropPath,
+            releaseDate: list.items[index].releaseDate != null
+                ? DateTime.tryParse(list.items[index].releaseDate!)
+                : null,
+            addedBy: '',
+            addedAt: list.updatedAt ?? DateTime.now(),
+            position: index,
+            voteAverage: list.items[index].voteAverage,
+          )
+      ],
+      collaborators: const <ListCollaborator>[],
+      followerIds: const <String>{},
+      comments: const <ListComment>[],
+      sortMode: ListSortMode.manual,
     );
   }
 }

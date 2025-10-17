@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 import '../data/models/person_model.dart';
 import '../data/models/person_detail_model.dart';
@@ -34,8 +35,10 @@ class PeopleSectionState {
 }
 
 class PeopleProvider extends ChangeNotifier {
-  PeopleProvider(this._repository) {
-    _init();
+  PeopleProvider(this._repository, {bool autoInitialize = true}) {
+    if (autoInitialize) {
+      _init();
+    }
   }
 
   final TmdbRepository _repository;
@@ -48,6 +51,8 @@ class PeopleProvider extends ChangeNotifier {
   bool _isRefreshing = false;
   String? _globalError;
 
+  final Completer<void> _initializedCompleter = Completer<void>();
+
   Map<PeopleSection, PeopleSectionState> get sections => _sections;
   bool get isInitialized => _isInitialized;
   bool get isRefreshing => _isRefreshing;
@@ -59,12 +64,7 @@ class PeopleProvider extends ChangeNotifier {
     await refresh(force: true);
   }
 
-  Future<void> get initialized async {
-    if (_isInitialized) return;
-    while (!_isInitialized && _isRefreshing) {
-      await Future<void>.delayed(const Duration(milliseconds: 10));
-    }
-  }
+  Future<void> get initialized => _initializedCompleter.future;
 
   Future<void> refresh({bool force = false}) async {
     if (_isRefreshing) {
@@ -107,6 +107,9 @@ class PeopleProvider extends ChangeNotifier {
     } finally {
       _isRefreshing = false;
       notifyListeners();
+      if (!_initializedCompleter.isCompleted) {
+        _initializedCompleter.complete();
+      }
     }
   }
 

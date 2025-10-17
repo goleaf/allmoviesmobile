@@ -1,12 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/company_model.dart';
-import '../../../data/services/api_config.dart';
 import '../../../data/tmdb_repository.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/media_image.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
   const CompanyDetailScreen({super.key, required this.company});
@@ -155,10 +155,7 @@ class _CompanyDetailAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logoUrl = ApiConfig.getPosterUrl(
-      company.logoPath,
-      size: ApiConfig.posterSizeLarge,
-    );
+    final logoPath = company.logoPath;
 
     return SliverAppBar(
       pinned: true,
@@ -180,16 +177,18 @@ class _CompanyDetailAppBar extends StatelessWidget {
           children: [
             Container(
               color: Theme.of(context).colorScheme.surfaceVariant,
-              child: logoUrl.isNotEmpty
+              child: (logoPath != null && logoPath.isNotEmpty)
                   ? Padding(
                       padding: const EdgeInsets.all(24),
-                      child: CachedNetworkImage(
-                        imageUrl: logoUrl,
+                      child: MediaImage(
+                        path: logoPath,
+                        type: MediaImageType.logo,
+                        size: MediaImageSize.w300,
                         fit: BoxFit.contain,
-                        placeholder: (context, url) => const Center(
+                        placeholder: const Center(
                           child: CircularProgressIndicator(),
                         ),
-                        errorWidget: (context, url, error) => const Icon(
+                        errorWidget: const Icon(
                           Icons.business,
                           size: 96,
                         ),
@@ -543,23 +542,22 @@ class _LogoGallerySection extends StatelessWidget {
             itemCount: company.logoGallery.length,
             itemBuilder: (context, index) {
               final logo = company.logoGallery[index];
-              final logoUrl = ApiConfig.getPosterUrl(
-                logo.filePath,
-                size: ApiConfig.posterSizeLarge,
-              );
+              final path = logo.filePath;
 
               return Card(
                 clipBehavior: Clip.antiAlias,
                 child: Container(
                   color: Theme.of(context).colorScheme.surfaceVariant,
-                  child: logoUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: logoUrl,
+                  child: (path.isNotEmpty)
+                      ? MediaImage(
+                          path: path,
+                          type: MediaImageType.logo,
+                          size: MediaImageSize.w300,
                           fit: BoxFit.contain,
-                          placeholder: (context, url) => const Center(
+                          placeholder: const Center(
                             child: CircularProgressIndicator(),
                           ),
-                          errorWidget: (context, url, error) => const Icon(Icons.broken_image),
+                          errorWidget: const Icon(Icons.broken_image),
                         )
                       : const Icon(Icons.broken_image),
                 ),
@@ -688,7 +686,7 @@ class _ProducedTitlesSectionState extends State<_ProducedTitlesSection> {
           separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (context, index) {
             final title = filteredTitles[index];
-            final posterUrl = ApiConfig.getPosterUrl(title.posterPath);
+            final posterUrl = MediaImageHelper.getPosterUrl(title.posterPath);
             final subtitleParts = <String>[];
             if (title.releaseDate != null) {
               subtitleParts.add(title.formattedYear);
@@ -702,22 +700,12 @@ class _ProducedTitlesSectionState extends State<_ProducedTitlesSection> {
                 leading: posterUrl.isNotEmpty
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: CachedNetworkImage(
-                          imageUrl: posterUrl,
+                        child: MediaImage(
+                          path: title.posterPath,
+                          type: MediaImageType.poster,
+                          size: MediaImageSize.w185,
                           width: 56,
                           fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            width: 56,
-                            height: 84,
-                            color: Theme.of(context).colorScheme.surfaceVariant,
-                            child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            width: 56,
-                            height: 84,
-                            color: Theme.of(context).colorScheme.surfaceVariant,
-                            child: const Icon(Icons.broken_image),
-                          ),
                         ),
                       )
                     : Container(

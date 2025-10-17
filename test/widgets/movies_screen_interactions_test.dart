@@ -44,9 +44,12 @@ void main() {
         providers: [
           ChangeNotifierProvider.value(value: moviesProvider),
         ],
-        child: const MaterialApp(
-          home: MoviesScreen(),
-          onGenerateRoute: _onGenerateRoute,
+        child: const DefaultTabController(
+          length: 4,
+          child: MaterialApp(
+            home: MoviesScreen(),
+            onGenerateRoute: _onGenerateRoute,
+          ),
         ),
       ),
     );
@@ -73,9 +76,12 @@ void main() {
         providers: [
           ChangeNotifierProvider.value(value: moviesProvider),
         ],
-        child: const MaterialApp(
-          home: MoviesScreen(),
-          onGenerateRoute: _onGenerateRoute,
+        child: const DefaultTabController(
+          length: 4,
+          child: MaterialApp(
+            home: MoviesScreen(),
+            onGenerateRoute: _onGenerateRoute,
+          ),
         ),
       ),
     );

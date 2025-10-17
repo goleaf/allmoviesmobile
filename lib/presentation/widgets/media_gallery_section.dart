@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../data/models/image_model.dart';
 import '../../data/services/api_config.dart';
+import '../../core/utils/media_image_helper.dart';
+import 'media_image.dart';
 import '../../providers/media_gallery_provider.dart';
 
 class MediaGallerySection extends StatelessWidget {
@@ -141,13 +143,21 @@ class _GalleryRow extends StatelessWidget {
                   aspectRatio: aspectRatio,
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: CachedNetworkImage(
-                      imageUrl: _thumbnailUrlFor(image, type),
+                    child: MediaImage(
+                      path: image.filePath,
+                      type: switch (type) {
+                        _GalleryImageType.poster => MediaImageType.poster,
+                        _GalleryImageType.backdrop => MediaImageType.backdrop,
+                        _GalleryImageType.still => MediaImageType.still,
+                      },
+                      size: switch (type) {
+                        _GalleryImageType.poster => MediaImageSize.w342,
+                        _GalleryImageType.backdrop => MediaImageSize.w780,
+                        _GalleryImageType.still => MediaImageSize.w300,
+                      },
                       fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        color: Colors.grey[300],
-                      ),
-                      errorWidget: (context, url, error) => Container(
+                      placeholder: Container(color: Colors.grey[300]),
+                      errorWidget: Container(
                         color: Colors.grey[300],
                         child: const Icon(Icons.broken_image),
                       ),
@@ -221,7 +231,7 @@ class _GalleryRow extends StatelessWidget {
     ImageModel image,
     _GalleryImageType type,
   ) async {
-    final imageUrl = _fullImageUrlFor(image, type);
+    final imageUrl = image.filePath;
 
     await showDialog<void>(
       context: context,
@@ -235,13 +245,19 @@ class _GalleryRow extends StatelessWidget {
               Positioned.fill(
                 child: InteractiveViewer(
                   child: Center(
-                    child: CachedNetworkImage(
-                      imageUrl: imageUrl,
+                    child: MediaImage(
+                      path: imageUrl,
+                      type: switch (type) {
+                        _GalleryImageType.poster => MediaImageType.poster,
+                        _GalleryImageType.backdrop => MediaImageType.backdrop,
+                        _GalleryImageType.still => MediaImageType.still,
+                      },
+                      size: MediaImageSize.original,
                       fit: BoxFit.contain,
-                      placeholder: (context, url) => const Center(
+                      placeholder: const Center(
                         child: CircularProgressIndicator(),
                       ),
-                      errorWidget: (context, url, error) => const Icon(
+                      errorWidget: const Icon(
                         Icons.broken_image,
                         color: Colors.white,
                         size: 48,

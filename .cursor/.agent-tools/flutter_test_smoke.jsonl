@@ -1,70 +1,10 @@
-{"protocolVersion":"0.1.1","runnerVersion":null,"pid":56122,"type":"start","time":0}
+{"protocolVersion":"0.1.1","runnerVersion":null,"pid":61122,"type":"start","time":0}
 {"suite":{"id":0,"platform":"vm","path":"/Users/andrejprus/Library/CloudStorage/Dropbox/projects/allmoviesmobile/integration_test/smoke_test.dart"},"type":"suite","time":0}
-{"test":{"id":1,"name":"loading /Users/andrejprus/Library/CloudStorage/Dropbox/projects/allmoviesmobile/integration_test/smoke_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":1}
-{"count":1,"time":9,"type":"allSuites"}
-lib/presentation/screens/search/search_screen.dart:57:23: Error: Type 'SearchProvider' not found.
-  void _performSearch(SearchProvider provider, {String? query}) {
-                      ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:109:21: Error: Type 'SearchProvider' not found.
-  Widget _buildBody(SearchProvider provider) {
-                    ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:129:30: Error: Type 'SearchProvider' not found.
-  Widget _buildSearchHistory(SearchProvider provider) {
-                             ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:191:24: Error: Type 'SearchProvider' not found.
-  Widget _buildResults(SearchProvider provider) {
-                       ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:255:22: Error: Type 'SearchProvider' not found.
-  Widget _buildError(SearchProvider provider) {
-                     ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:41:24: Error: 'SearchProvider' isn't a type.
-          context.read<SearchProvider>(),
-                       ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:57:23: Error: 'SearchProvider' isn't a type.
-  void _performSearch(SearchProvider provider, {String? query}) {
-                      ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:72:42: Error: 'SearchProvider' isn't a type.
-    final searchProvider = context.watch<SearchProvider>();
-                                         ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:109:21: Error: 'SearchProvider' isn't a type.
-  Widget _buildBody(SearchProvider provider) {
-                    ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:129:30: Error: 'SearchProvider' isn't a type.
-  Widget _buildSearchHistory(SearchProvider provider) {
-                             ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:191:24: Error: 'SearchProvider' isn't a type.
-  Widget _buildResults(SearchProvider provider) {
-                       ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:255:22: Error: 'SearchProvider' isn't a type.
-  Widget _buildError(SearchProvider provider) {
-                     ^^^^^^^^^^^^^^
-lib/presentation/screens/search/search_screen.dart:314:15: Error: The getter 'MovieDetailScreen' isn't defined for the type '_SearchResultCard'.
- - '_SearchResultCard' is from 'package:allmovies_mobile/presentation/screens/search/search_screen.dart' ('lib/presentation/screens/search/search_screen.dart').
-Try correcting the name to the name of an existing getter, or defining a getter or field named 'MovieDetailScreen'.
-              MovieDetailScreen.routeName,
-              ^^^^^^^^^^^^^^^^^
-Target kernel_snapshot_program failed: Exception
-#0      KernelSnapshot.build (package:flutter_tools/src/build_system/targets/common.dart:282:7)
-<asynchronous suspension>
-#1      _BuildInstance._invokeInternal (package:flutter_tools/src/build_system/build_system.dart:873:9)
-<asynchronous suspension>
-#2      Future.wait.<anonymous closure> (dart:async/future.dart:525:21)
-<asynchronous suspension>
-#3      _BuildInstance.invokeTarget (package:flutter_tools/src/build_system/build_system.dart:811:32)
-<asynchronous suspension>
-#4      FlutterBuildSystem.build (package:flutter_tools/src/build_system/build_system.dart:631:16)
-<asynchronous suspension>
-#5      BundleBuilder.build (package:flutter_tools/src/bundle_builder.dart:84:32)
-<asynchronous suspension>
-#6      FlutterTesterDevice.startApp (package:flutter_tools/src/tester/flutter_tester.dart:147:5)
-<asynchronous suspension>
-#7      IntegrationTestTestDevice.start (package:flutter_tools/src/test/integration_test_device.dart:57:39)
-<asynchronous suspension>
-#8      FlutterPlatform._startTest.<anonymous closure> (package:flutter_tools/src/test/flutter_platform.dart:680:51)
-<asynchronous suspension>
-#9      asyncGuard.<anonymous closure> (package:flutter_tools/src/base/async_guard.dart:108:24)
-<asynchronous suspension>
+{"test":{"id":1,"name":"loading /Users/andrejprus/Library/CloudStorage/Dropbox/projects/allmoviesmobile/integration_test/smoke_test.dart","suiteID":0,"groupIDs":[],"metadata":{"skip":false,"skipReason":null},"line":null,"column":null,"url":null},"type":"testStart","time":2}
+{"count":1,"time":13,"type":"allSuites"}
 
-{"testID":1,"error":"Failed to load \"/Users/andrejprus/Library/CloudStorage/Dropbox/projects/allmoviesmobile/integration_test/smoke_test.dart\": Failed to build bundle.","stackTrace":"package:flutter_tools/src/base/common.dart 34:3                    throwToolExit\npackage:flutter_tools/src/bundle_builder.dart 93:7                 BundleBuilder.build\n===== asynchronous gap ===========================\npackage:flutter_tools/src/tester/flutter_tester.dart 147:5         FlutterTesterDevice.startApp\n===== asynchronous gap ===========================\npackage:flutter_tools/src/test/integration_test_device.dart 57:39  IntegrationTestTestDevice.start\n===== asynchronous gap ===========================\npackage:flutter_tools/src/test/flutter_platform.dart 680:51        FlutterPlatform._startTest.<fn>\n===== asynchronous gap ===========================\npackage:flutter_tools/src/base/async_guard.dart 108:24             asyncGuard.<fn>\n","isFailure":false,"type":"error","time":35820}
-{"testID":1,"result":"error","skipped":false,"hidden":false,"type":"testDone","time":35837}
-{"success":false,"type":"done","time":35851}
+[{"event":"test.startedProcess","params":{"vmServiceUri":"http://127.0.0.1:56911/laQofAHbSQg=/"}}]
+{"testID":1,"result":"success","skipped":false,"hidden":true,"type":"testDone","time":47765}
+{"group":{"id":2,"suiteID":0,"parentID":null,"name":"","metadata":{"skip":false,"skipReason":null},"testCount":1,"line":null,"column":null,"url":null},"type":"group","time":47770}
+{"test":{"id":3,"name":"Smoke: routes load, images render, modal opens","suiteID":0,"groupIDs":[2],"metadata":{"skip":false,"skipReason":null},"line":174,"column":5,"url":"package:flutter_test/src/widget_tester.dart","root_line":34,"root_column":3,"root_url":"file:///Users/andrejprus/Library/CloudStorage/Dropbox/projects/allmoviesmobile/integration_test/smoke_test.dart"},"type":"testStart","time":47771}
+{"testID":3,"messageType":"print","message":"dynamic_color: Dynamic color not detected on this device.","type":"print","time":49765}

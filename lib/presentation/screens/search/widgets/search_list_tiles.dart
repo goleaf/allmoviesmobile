@@ -6,6 +6,7 @@ import '../../movie_detail/movie_detail_screen.dart';
 import '../../tv_detail/tv_detail_screen.dart';
 import '../../person_detail/person_detail_screen.dart';
 import '../../../widgets/media_image.dart';
+import '../../../../core/utils/media_image_helper.dart';
 import '../../../../core/config/app_config.dart';
 
 class SearchResultListTile extends StatelessWidget {
@@ -29,7 +30,7 @@ class SearchResultListTile extends StatelessWidget {
 
     final tile = ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8),
-      leading: ResultThumbnail(imageUrl: _posterImage),
+      leading: ResultThumbnail(imageUrl: _posterImageUrl),
       title: Text(title.isEmpty ? 'Untitled $mediaLabel' : title),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -82,7 +83,7 @@ class SearchResultListTile extends StatelessWidget {
     );
   }
 
-  String? get _posterImage {
+  String? get _posterImageUrl {
     if (result.posterPath != null && result.posterPath!.isNotEmpty) {
       return AppConfig.tmdbImageBaseUrl + '/w185' + (result.posterPath!.startsWith('/') ? '' : '/') + result.posterPath!;
     }
@@ -172,7 +173,7 @@ class ResultThumbnail extends StatelessWidget {
     }
 
     final image = ClipRRect(
-      borderRadius: isCircular ? null : BorderRadius.circular(8),
+      borderRadius: isCircular ? BorderRadius.zero : BorderRadius.circular(8),
       child: MediaImage(
         path: imageUrl,
         type: isCircular ? MediaImageType.profile : MediaImageType.poster,

@@ -210,8 +210,13 @@ extension on _MoviesScreenState {
       if (result is DiscoverFilters) {
         await context.read<MoviesProvider>().applyFilters(result);
         if (!mounted) return;
-        DefaultTabController.of(context)
-            .animateTo(MovieSection.values.indexOf(MovieSection.discover));
+        final tabCtrl = DefaultTabController.maybeOf(context);
+        if (tabCtrl != null) {
+          final idx = MovieSection.values.indexOf(MovieSection.discover);
+          if (idx >= 0 && idx < tabCtrl.length) {
+            tabCtrl.animateTo(idx);
+          }
+        }
       }
     });
   }

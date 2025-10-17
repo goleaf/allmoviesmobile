@@ -7,6 +7,7 @@ import '../../../providers/keyword_provider.dart';
 import '../../widgets/movie_card.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../tv_detail/tv_detail_screen.dart';
+import '../../widgets/fullscreen_modal_scaffold.dart';
 
 class KeywordDetailScreen extends StatelessWidget {
   static const routeName = '/keyword-detail';
@@ -29,6 +30,7 @@ class KeywordDetailScreen extends StatelessWidget {
         keywordId: keywordId,
         keywordName: keywordName,
       ),
+      fullscreenDialog: true,
     );
   }
 
@@ -82,32 +84,30 @@ class _KeywordDetailView extends StatelessWidget {
       labelStyle: Theme.of(context).textTheme.titleMedium,
     );
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(keywordName),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh keyword info',
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              context
-                  .read<KeywordDetailsProvider>()
-                  .fetchDetails(forceRefresh: true);
-            },
-          ),
-        ],
-        bottom: PreferredSize(
-          preferredSize: Size.fromHeight(
-            48 + (detailsProvider.isLoading ? 2 : 0),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              tabBar,
-              if (detailsProvider.isLoading)
-                const LinearProgressIndicator(minHeight: 2),
-            ],
-          ),
+    return FullscreenModalScaffold(
+      title: Text(keywordName),
+      actions: [
+        IconButton(
+          tooltip: 'Refresh keyword info',
+          icon: const Icon(Icons.refresh),
+          onPressed: () {
+            context
+                .read<KeywordDetailsProvider>()
+                .fetchDetails(forceRefresh: true);
+          },
+        ),
+      ],
+      bottom: PreferredSize(
+        preferredSize: Size.fromHeight(
+          48 + (detailsProvider.isLoading ? 2 : 0),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            tabBar,
+            if (detailsProvider.isLoading)
+              const LinearProgressIndicator(minHeight: 2),
+          ],
         ),
       ),
       body: Column(
@@ -368,12 +368,14 @@ class _KeywordMediaCard extends StatelessWidget {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => TVDetailScreen(tvShow: movie),
+              fullscreenDialog: true,
             ),
           );
         } else {
           Navigator.of(context).push(
             MaterialPageRoute(
               builder: (_) => MovieDetailScreen(movie: movie),
+              fullscreenDialog: true,
             ),
           );
         }

@@ -7,9 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
-import 'bootstrap/isar_warmup.dart';
 import 'data/services/local_storage_service.dart';
-import 'data/services/static_catalog_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -32,6 +30,7 @@ import 'presentation/screens/company_detail/company_detail_screen.dart';
 import 'presentation/screens/network_detail/network_detail_screen.dart';
 import 'presentation/screens/episode_detail/episode_detail_screen.dart';
 import 'presentation/screens/collections/collection_detail_screen.dart';
+import 'presentation/screens/keywords/keyword_detail_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
 import 'data/models/company_model.dart';
@@ -56,10 +55,6 @@ void main() async {
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
-
-  // Warm-open Isar on IO; on web this is a no-op stub
-  // ignore: unawaited_futures
-  warmupIsar();
 
   runApp(AllMoviesApp(
     storageService: storageService,
@@ -131,10 +126,7 @@ class AllMoviesApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
-                home: BootGate(
-                  service: catalogService ?? StaticCatalogService(repo),
-                  onNavigateToHome: () => MoviesScreen.routeName,
-                ),
+                initialRoute: MoviesScreen.routeName,
                 routes: {
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
                   MoviesFiltersScreen.routeName: (context) => const MoviesFiltersScreen(),
@@ -164,7 +156,6 @@ class AllMoviesApp extends StatelessWidget {
                         );
                       }
                       if (args is int) {
-                        // Build minimal Movie with id and empty title; provider will load details
                         return MaterialPageRoute(
                           builder: (_) => MovieDetailScreen(
                             movie: Movie(id: args, title: ''),

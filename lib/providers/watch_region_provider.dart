@@ -8,7 +8,11 @@ class WatchRegionProvider extends ChangeNotifier {
   String _region;
 
   WatchRegionProvider(this._prefs)
-      : _region = (_prefs.getString(_regionKey) ?? 'US').toUpperCase();
+      : _region = (() {
+          final stored = (_prefs.getString(_regionKey) ?? 'US').toUpperCase();
+          final supportedCodes = supportedRegions.map((r) => r['code']).whereType<String>().toSet();
+          return supportedCodes.contains(stored) ? stored : 'US';
+        })();
 
   String get region => _region;
 

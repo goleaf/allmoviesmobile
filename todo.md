@@ -1,3 +1,14 @@
+## Tasks
+
+### Completed
+- Harden `WatchRegionProvider` for determinism (normalize, validate, fallback)
+- Harden `RecommendationsProvider` for determinism (dedupe, sort by id, limit)
+- Add determinism tests for both providers and run lints
+
+### Follow-ups
+- Run full test suite locally and address unrelated widget test failures (e.g., `companies_screen` image enum getters)
+- Monitor other providers for any nondeterministic outputs if requirements expand
+
 Refactor model URL getters to use MediaImageHelper (priority)
 
 - [x] Locate MediaImageHelper and understand its API

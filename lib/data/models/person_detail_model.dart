@@ -201,7 +201,9 @@ class PersonCredit {
   final int? order;
 
   String get displayTitle {
-    final resolved = (title ?? name ?? '').trim();
+    final t = (title ?? '').trim();
+    final n = (name ?? '').trim();
+    final resolved = n.isNotEmpty ? n : t;
     return resolved.isEmpty ? 'Untitled' : resolved;
   }
 
@@ -344,8 +346,10 @@ extension PersonTranslationListX on List<PersonTranslation> {
 
 extension PersonTaggedMediaX on PersonTaggedMedia {
   String? get titleOrName {
-    final value = (title ?? name ?? '').trim();
-    return value.isEmpty ? null : value;
+    final titleTrimmed = (title ?? '').trim();
+    if (titleTrimmed.isNotEmpty) return titleTrimmed;
+    final nameTrimmed = (name ?? '').trim();
+    return nameTrimmed.isNotEmpty ? nameTrimmed : null;
   }
 }
 

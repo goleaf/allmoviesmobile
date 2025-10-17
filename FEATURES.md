@@ -61,9 +61,8 @@ AllMovies is a modern Flutter application with Material Design 3, featuring comp
 - User profile header with avatar
 - Navigation menu items:
   - Home
-  - Favorites (placeholder)
-  - Settings (placeholder)
   - About
+- Favorites and Settings entries removed until those flows are implemented
 - Logout button at bottom
 - Only visible when logged in
 

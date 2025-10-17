@@ -8,7 +8,7 @@ This repository now includes a macOS-friendly automation script that lets you ru
 
 - Smooth loading indicators while browsing movie collections and details.
 - Full-text movie search with instant results.
-- Favorite lists synced between the catalog and detail screens.
+- Navigation drawer with access to Home and About.
 - Language selection dialog for switching between supported locales.
 - Actor detail pages linked from each movie's cast list.
 

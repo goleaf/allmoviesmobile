@@ -12,8 +12,8 @@
 * [Person profile `/person/:id`](#person-profile-personid)
 * [Companies hub `/companies`](#companies-hub-companies)
 * [Company page `/company/:id`](#company-page-companyid)
-* [Favorites `/favorites` and Watchlist `/watchlist` *(if present)*](#favorites-favorites-and-watchlist-watchlist-if-present)
-* [Settings `/settings`](#settings-settings)
+* *(Not available)* Favorites `/favorites` and Watchlist `/watchlist`
+* *(Not available)* Settings `/settings`
 * [Global behaviors (nav, language, theme, errors, a11y, perf)](#global-behaviors)
 
 > **Test data prep (suggested):**
@@ -269,45 +269,15 @@
 
 ---
 
-## Favorites `/favorites` and Watchlist `/watchlist` *(if present)*
+## Favorites `/favorites` and Watchlist `/watchlist`
 
-**Blocks:** local collections, bulk actions, sorting
-
-**Happy path**
-
-* [ ] Mark/unmark from cards and details updates the collections instantly.
-* [ ] Collections show poster, title, type (movie/series), and quick actions.
-* [ ] Sorting by date added, title, year.
-
-**Edge cases**
-
-* [ ] Empty collection → friendly prompt explaining how to add items.
-* [ ] Cross-device: if local only, collections are device-specific and this is communicated.
-
-**Resilience**
-
-* [ ] Data persists across reloads.
-* [ ] Removing items is immediate and reversible (undo or confirm).
+This release does not include Favorites or Watchlist screens. The drawer entries have been removed until the flows are built.
 
 ---
 
 ## Settings `/settings`
 
-**Blocks:** language, theme
-
-**Happy path**
-
-* [ ] Changing language updates all visible text without reload.
-* [ ] Theme switch updates visuals; preference persists across sessions.
-
-**Edge cases**
-
-* [ ] Localized fields missing from content → fallback text (e.g., English) used seamlessly.
-* [ ] Returning to app later preserves selections.
-
-**A11y**
-
-* [ ] Controls labeled and reachable; state changes are announced.
+This release does not ship a Settings screen. The drawer entry has been removed until the experience is implemented.
 
 ---
 

@@ -141,7 +141,7 @@
     },
     {
       "name": "connectivity_plus",
-      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/connectivity_plus-6.1.5",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/connectivity_plus-7.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.2"
     },
@@ -255,9 +255,9 @@
     },
     {
       "name": "fl_chart",
-      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/fl_chart-0.69.2",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/fl_chart-1.1.1",
       "packageUri": "lib/",
-      "languageVersion": "3.2"
+      "languageVersion": "3.6"
     },
     {
       "name": "flutter",
@@ -339,9 +339,9 @@
     },
     {
       "name": "flutter_markdown",
-      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_markdown-0.6.23",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_markdown-0.7.7+1",
       "packageUri": "lib/",
-      "languageVersion": "3.3"
+      "languageVersion": "3.4"
     },
     {
       "name": "flutter_riverpod",
@@ -411,9 +411,9 @@
     },
     {
       "name": "go_router",
-      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/go_router-14.8.1",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/go_router-16.2.5",
       "packageUri": "lib/",
-      "languageVersion": "3.4"
+      "languageVersion": "3.7"
     },
     {
       "name": "google_fonts",
@@ -465,9 +465,9 @@
     },
     {
       "name": "infinite_scroll_pagination",
-      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/infinite_scroll_pagination-4.1.0",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/infinite_scroll_pagination-5.1.1",
       "packageUri": "lib/",
-      "languageVersion": "2.14"
+      "languageVersion": "3.4"
     },
     {
       "name": "integration_test",
@@ -759,13 +759,13 @@
     },
     {
       "name": "share_plus",
-      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/share_plus-10.1.4",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/share_plus-12.0.0",
       "packageUri": "lib/",
       "languageVersion": "3.4"
     },
     {
       "name": "share_plus_platform_interface",
-      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/share_plus_platform_interface-5.0.2",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/share_plus_platform_interface-6.1.0",
       "packageUri": "lib/",
       "languageVersion": "2.18"
     },

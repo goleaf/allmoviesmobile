@@ -233,6 +233,26 @@
     "retry": "Retry",
     "copied": "Link copied to clipboard"
   },
+  "certifications": {
+    "title": "Certifications & Ratings",
+    "movie_tab": "Movies",
+    "tv_tab": "TV",
+    "search_label": "Search ratings",
+    "search_hint": "Search by country code or rating label",
+    "country_label": "Country",
+    "country_all": "All countries",
+    "filter_header": "Age filters",
+    "age_all": "Show all guidance",
+    "age_everyone": "All ages",
+    "age_pg": "Parental guidance",
+    "age_teens": "Ages 13+",
+    "age_mature": "Ages 16+",
+    "age_adults": "Adults only",
+    "empty_state": "No certifications match your filters yet.",
+    "warning_label": "Age guidance",
+    "no_description": "No official description provided.",
+    "active_filters_hint": "Filters applied. Clear search or toggle chips to see more countries."
+  },
   "search": {
     "title": "Search",
     "search_placeholder": "Search movies, TV shows, people...",

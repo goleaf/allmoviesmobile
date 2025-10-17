@@ -4,6 +4,7 @@ import '../../core/constants/app_strings.dart';
 import '../../core/localization/app_localizations.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
+import '../screens/certifications/certifications_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
@@ -115,6 +116,13 @@ class AppDrawer extends StatelessWidget {
             title: Text(AppLocalizations.of(context).t('discover.title')),
             selected: currentRoute == ApiExplorerScreen.routeName,
             onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.verified_user_outlined),
+            title:
+                Text(AppLocalizations.of(context).t('navigation.certifications')),
+            selected: currentRoute == CertificationsScreen.routeName,
+            onTap: () => _navigateTo(context, CertificationsScreen.routeName),
           ),
           const Divider(),
           ListTile(

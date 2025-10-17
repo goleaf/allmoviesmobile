@@ -51,6 +51,7 @@ import 'presentation/screens/lists/lists_screen.dart';
 import 'presentation/screens/videos/videos_screen.dart';
 import 'presentation/screens/video_player/video_player_screen.dart';
 import 'presentation/screens/search/search_results_list_screen.dart';
+import 'presentation/screens/certifications/certifications_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
 import 'data/models/company_model.dart';
@@ -71,6 +72,7 @@ import 'providers/networks_provider.dart';
 import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
+import 'providers/certifications_provider.dart';
 import 'core/navigation/deep_link_handler.dart';
 
 void main() async {
@@ -255,6 +257,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
         ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
         ChangeNotifierProvider(
+          create: (_) => CertificationsProvider(_repository),
+        ),
+        ChangeNotifierProvider(
           create: (_) => ListsProvider(widget.storageService),
         ),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
@@ -327,6 +332,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           const NetworksScreen(),
                       CollectionsBrowserScreen.routeName: (context) =>
                           const CollectionsBrowserScreen(),
+                      CertificationsScreen.routeName: (context) =>
+                          const CertificationsScreen(),
                       SearchResultsListScreen.routeName: (context) =>
                           const SearchResultsListScreen(),
                       VideosScreen.routeName: (context) => const VideosScreen(),

@@ -1,15 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
-import 'package:allmovies_mobile/presentation/navigation/app_navigation_shell.dart';
 import 'package:allmovies_mobile/core/localization/app_localizations.dart';
-import 'package:allmovies_mobile/providers/movies_provider.dart';
-import 'package:allmovies_mobile/providers/series_provider.dart';
-import 'package:allmovies_mobile/providers/search_provider.dart';
+import 'package:allmovies_mobile/core/navigation/deep_link_handler.dart';
+import 'package:allmovies_mobile/data/models/company_model.dart';
+import 'package:allmovies_mobile/data/models/movie.dart';
+import 'package:allmovies_mobile/data/models/paginated_response.dart';
+import 'package:allmovies_mobile/data/models/person_model.dart';
+import 'package:allmovies_mobile/data/models/search_result_model.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/presentation/navigation/app_navigation_shell.dart';
+import 'package:allmovies_mobile/providers/app_state_provider.dart';
+import 'package:allmovies_mobile/providers/movies_provider.dart';
+import 'package:allmovies_mobile/providers/search_provider.dart';
+import 'package:allmovies_mobile/providers/series_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -17,14 +26,34 @@ void main() {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final prefs = await SharedPreferences.getInstance();
     final storage = LocalStorageService(prefs);
-    final repo = TmdbRepository();
+    final repo = _FakeTmdbRepository();
 
     await tester.pumpWidget(
       MultiProvider(
         providers: [
-          ChangeNotifierProvider(create: (_) => MoviesProvider(repo)),
-          ChangeNotifierProvider(create: (_) => SeriesProvider(repo)),
-          ChangeNotifierProvider(create: (_) => SearchProvider(repo, storage)),
+          Provider<TmdbRepository>.value(value: repo),
+          ChangeNotifierProvider(create: (_) => AppStateProvider(prefs)),
+          ChangeNotifierProvider(
+            create: (_) => DeepLinkHandler(
+              uriStream: const Stream<Uri?>.empty(),
+              initialUriGetter: () async => null,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => MoviesProvider(
+              repo,
+              autoInitialize: false,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => SeriesProvider(
+              repo,
+              autoInitialize: false,
+            ),
+          ),
+          ChangeNotifierProvider(
+            create: (_) => SearchProvider(repo, storage),
+          ),
         ],
         child: MaterialApp(
           localizationsDelegates: const [
@@ -69,4 +98,80 @@ void main() {
 
     expect(find.byType(NavigationBar), findsOneWidget);
   });
+}
+
+class _FakeTmdbRepository extends TmdbRepository {
+  _FakeTmdbRepository() : super(apiKey: 'test');
+
+  PaginatedResponse<T> _emptyResponse<T>() {
+    return const PaginatedResponse<T>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 0,
+      results: <T>[],
+    );
+  }
+
+  @override
+  Future<PaginatedResponse<Movie>> fetchTrendingTitles({
+    String mediaType = 'all',
+    String timeWindow = 'day',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return _emptyResponse<Movie>();
+  }
+
+  @override
+  Future<SearchResponse> searchMulti(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return const SearchResponse();
+  }
+
+  @override
+  Future<PaginatedResponse<Movie>> searchMovies(
+    String query, {
+    int page = 1,
+    bool includeAdult = false,
+    String? region,
+    String? year,
+    String? primaryReleaseYear,
+    bool forceRefresh = false,
+  }) async {
+    return _emptyResponse<Movie>();
+  }
+
+  @override
+  Future<PaginatedResponse<Movie>> searchTvSeries(
+    String query, {
+    int page = 1,
+    String? language,
+    String? firstAirDateYear,
+    bool forceRefresh = false,
+  }) async {
+    return _emptyResponse<Movie>();
+  }
+
+  @override
+  Future<PaginatedResponse<Person>> searchPeople(
+    String query, {
+    int page = 1,
+    bool includeAdult = false,
+    String? region,
+    bool forceRefresh = false,
+  }) async {
+    return _emptyResponse<Person>();
+  }
+
+  @override
+  Future<PaginatedResponse<Company>> fetchCompanies({
+    String? query,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    return _emptyResponse<Company>();
+  }
 }

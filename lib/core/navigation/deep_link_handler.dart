@@ -67,9 +67,76 @@ class DeepLinkHandler extends ChangeNotifier {
     return link;
   }
 
+  /// Injects a deep link directly into the handler.
+  ///
+  /// This is primarily intended for tests where platform deep link
+  /// integrations are not available.
+  @visibleForTesting
+  void debugInjectPendingLink(DeepLinkData link) {
+    _pendingLink = link;
+    notifyListeners();
+  }
+
   @override
   void dispose() {
     _subscription?.cancel();
     super.dispose();
+  }
+
+  /// Builds a custom-scheme URI for a movie deep link.
+  static Uri buildMovieUri(int movieId, {bool universal = false}) {
+    final uri = DeepLinkBuilder.movie(movieId);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
+  }
+
+  /// Builds a custom-scheme URI for a TV show deep link.
+  static Uri buildTvShowUri(int tvId, {bool universal = false}) {
+    final uri = DeepLinkBuilder.tvShow(tvId);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
+  }
+
+  /// Builds a custom-scheme URI for a TV season deep link.
+  static Uri buildSeasonUri(
+    int tvId,
+    int seasonNumber, {
+    bool universal = false,
+  }) {
+    final uri = DeepLinkBuilder.season(tvId, seasonNumber);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
+  }
+
+  /// Builds a custom-scheme URI for a TV episode deep link.
+  static Uri buildEpisodeUri(
+    int tvId,
+    int seasonNumber,
+    int episodeNumber, {
+    bool universal = false,
+  }) {
+    final uri = DeepLinkBuilder.episode(tvId, seasonNumber, episodeNumber);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
+  }
+
+  /// Builds a custom-scheme URI for a person deep link.
+  static Uri buildPersonUri(int personId, {bool universal = false}) {
+    final uri = DeepLinkBuilder.person(personId);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
+  }
+
+  /// Builds a custom-scheme URI for a company deep link.
+  static Uri buildCompanyUri(int companyId, {bool universal = false}) {
+    final uri = DeepLinkBuilder.company(companyId);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
+  }
+
+  /// Builds a custom-scheme URI for a collection deep link.
+  static Uri buildCollectionUri(int collectionId, {bool universal = false}) {
+    final uri = DeepLinkBuilder.collection(collectionId);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
+  }
+
+  /// Builds a custom-scheme URI for a search deep link.
+  static Uri buildSearchUri(String query, {bool universal = false}) {
+    final uri = DeepLinkBuilder.search(query);
+    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 }

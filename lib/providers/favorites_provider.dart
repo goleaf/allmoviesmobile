@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../data/services/local_storage_service.dart';
 
 class FavoritesProvider with ChangeNotifier {
-  static const String _favoritesKey = 'favorites';
-  final SharedPreferences _prefs;
+  final LocalStorageService _storage;
   
   Set<int> _favorites = {};
 
-  FavoritesProvider(this._prefs) {
+  FavoritesProvider(this._storage) {
     _loadFavorites();
   }
 
@@ -18,46 +17,41 @@ class FavoritesProvider with ChangeNotifier {
   int get count => _favorites.length;
 
   void _loadFavorites() {
-    final List<String> stored = _prefs.getStringList(_favoritesKey) ?? [];
-    _favorites = stored.map((e) => int.parse(e)).toSet();
+    _favorites = _storage.getFavorites();
     notifyListeners();
   }
 
   Future<void> toggleFavorite(int id) async {
     if (_favorites.contains(id)) {
+      await _storage.removeFromFavorites(id);
       _favorites.remove(id);
     } else {
+      await _storage.addToFavorites(id);
       _favorites.add(id);
     }
     
-    await _saveFavorites();
     notifyListeners();
   }
 
   Future<void> addFavorite(int id) async {
     if (!_favorites.contains(id)) {
+      await _storage.addToFavorites(id);
       _favorites.add(id);
-      await _saveFavorites();
       notifyListeners();
     }
   }
 
   Future<void> removeFavorite(int id) async {
     if (_favorites.contains(id)) {
+      await _storage.removeFromFavorites(id);
       _favorites.remove(id);
-      await _saveFavorites();
       notifyListeners();
     }
   }
 
   Future<void> clearFavorites() async {
+    await _storage.saveFavorites({});
     _favorites.clear();
-    await _saveFavorites();
     notifyListeners();
-  }
-
-  Future<void> _saveFavorites() async {
-    final List<String> toStore = _favorites.map((e) => e.toString()).toList();
-    await _prefs.setStringList(_favoritesKey, toStore);
   }
 }

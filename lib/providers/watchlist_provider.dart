@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../data/services/local_storage_service.dart';
 
 class WatchlistProvider with ChangeNotifier {
-  static const String _watchlistKey = 'watchlist';
-  final SharedPreferences _prefs;
+  final LocalStorageService _storage;
   
   Set<int> _watchlist = {};
 
-  WatchlistProvider(this._prefs) {
+  WatchlistProvider(this._storage) {
     _loadWatchlist();
   }
 
@@ -18,46 +17,41 @@ class WatchlistProvider with ChangeNotifier {
   int get count => _watchlist.length;
 
   void _loadWatchlist() {
-    final List<String> stored = _prefs.getStringList(_watchlistKey) ?? [];
-    _watchlist = stored.map((e) => int.parse(e)).toSet();
+    _watchlist = _storage.getWatchlist();
     notifyListeners();
   }
 
   Future<void> toggleWatchlist(int id) async {
     if (_watchlist.contains(id)) {
+      await _storage.removeFromWatchlist(id);
       _watchlist.remove(id);
     } else {
+      await _storage.addToWatchlist(id);
       _watchlist.add(id);
     }
     
-    await _saveWatchlist();
     notifyListeners();
   }
 
   Future<void> addToWatchlist(int id) async {
     if (!_watchlist.contains(id)) {
+      await _storage.addToWatchlist(id);
       _watchlist.add(id);
-      await _saveWatchlist();
       notifyListeners();
     }
   }
 
   Future<void> removeFromWatchlist(int id) async {
     if (_watchlist.contains(id)) {
+      await _storage.removeFromWatchlist(id);
       _watchlist.remove(id);
-      await _saveWatchlist();
       notifyListeners();
     }
   }
 
   Future<void> clearWatchlist() async {
+    await _storage.saveWatchlist({});
     _watchlist.clear();
-    await _saveWatchlist();
     notifyListeners();
-  }
-
-  Future<void> _saveWatchlist() async {
-    final List<String> toStore = _watchlist.map((e) => e.toString()).toList();
-    await _prefs.setStringList(_watchlistKey, toStore);
   }
 }

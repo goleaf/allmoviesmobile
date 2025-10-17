@@ -9,6 +9,7 @@ import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
+import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
@@ -60,6 +61,7 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
+        ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
         ChangeNotifierProvider(create: (_) => MoviesProvider()),
         ChangeNotifierProvider(create: (_) => SeriesProvider()),
         ChangeNotifierProvider(create: (_) => PeopleProvider()),

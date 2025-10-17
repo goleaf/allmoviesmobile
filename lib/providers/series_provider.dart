@@ -3,7 +3,10 @@ import 'dart:async';
 
 import '../data/models/movie.dart';
 import '../data/models/paginated_response.dart';
+import '../data/models/tv_ref_model.dart';
+import '../data/services/offline_service.dart';
 import '../data/tmdb_repository.dart';
+import '../core/constants/app_strings.dart';
 import 'preferences_provider.dart';
 
 enum SeriesSection { trending, popular, topRated, airingToday, onTheAir }
@@ -54,8 +57,9 @@ class SeriesProvider extends ChangeNotifier {
   SeriesProvider(
     this._repository, {
     PreferencesProvider? preferencesProvider,
+    OfflineService? offlineService,
     bool autoInitialize = true,
-  }) {
+  }) : _offlineService = offlineService {
     _preferences = preferencesProvider;
     if (autoInitialize) {
       _init();
@@ -64,6 +68,7 @@ class SeriesProvider extends ChangeNotifier {
 
   final TmdbRepository _repository;
   PreferencesProvider? _preferences;
+  final OfflineService? _offlineService;
 
   final Map<SeriesSection, SeriesSectionState> _sections = {
     for (final section in SeriesSection.values)
@@ -86,6 +91,10 @@ class SeriesProvider extends ChangeNotifier {
   int? get activeNetworkId => _activeNetworkId;
   Map<String, String>? get activeFilters => _activeFilters;
   String? get activePresetName => _activePresetName;
+
+  void bindPreferencesProvider(PreferencesProvider? provider) {
+    _preferences = provider;
+  }
 
   Future<void> get initialized => _initializedCompleter.future;
 
@@ -134,6 +143,16 @@ class SeriesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      final servedOffline = await _tryServeOffline();
+      if (servedOffline && (_offlineService?.isOffline ?? false)) {
+        _isRefreshing = false;
+        if (!_initializedCompleter.isCompleted) {
+          _initializedCompleter.complete();
+        }
+        notifyListeners();
+        return;
+      }
+
       final sectionsList = SeriesSection.values;
       final futures = <Future<PaginatedResponse<Movie>>>[];
       final previousStates = <SeriesSection, SeriesSectionState>{};
@@ -160,6 +179,19 @@ class SeriesProvider extends ChangeNotifier {
           currentPage: response.page,
           totalPages: response.totalPages,
           pageResults: Map<int, List<Movie>>.unmodifiable(updatedPages),
+        );
+        await _offlineService?.cacheTvSection(
+          _offlineKeyFor(section),
+          response.results
+              .map((item) => TVRef(
+                    id: item.id,
+                    name: item.title,
+                    posterPath: item.posterPath,
+                    backdropPath: item.backdropPath,
+                    voteAverage: item.voteAverage,
+                    firstAirDate: item.releaseDate,
+                  ))
+              .toList(growable: false),
         );
       }
 
@@ -294,6 +326,71 @@ class SeriesProvider extends ChangeNotifier {
         totalPages: 1,
         pageResults: const <int, List<Movie>>{},
       );
+    }
+  }
+
+  Future<bool> _tryServeOffline() async {
+    final service = _offlineService;
+    if (service == null || !(service.isOffline)) {
+      return false;
+    }
+
+    var hasData = false;
+    for (final section in SeriesSection.values) {
+      final cached = await service.loadTvSection(_offlineKeyFor(section));
+      if (cached != null && cached.items.isNotEmpty) {
+        hasData = true;
+        final movies = cached.items
+            .map(
+              (show) => Movie(
+                id: show.id,
+                title: show.name,
+                posterPath: show.posterPath,
+                backdropPath: show.backdropPath,
+                voteAverage: show.voteAverage,
+                releaseDate: show.firstAirDate,
+                mediaType: 'tv',
+              ),
+            )
+            .toList(growable: false);
+        _sections[section] = SeriesSectionState(
+          items: movies,
+          currentPage: 1,
+          totalPages: 1,
+          isLoading: false,
+          errorMessage: null,
+        );
+      } else {
+        _sections[section] = _sections[section]!.copyWith(
+          isLoading: false,
+          errorMessage: AppStrings.offlineCacheUnavailable,
+          items: const <Movie>[],
+        );
+      }
+    }
+
+    if (!hasData) {
+      _globalError = AppStrings.offlineCacheUnavailable;
+      return true;
+    }
+
+    _globalError = null;
+    _isInitialized = true;
+    return true;
+  }
+
+  String _offlineKeyFor(SeriesSection section) {
+    switch (section) {
+      case SeriesSection.trending:
+        return 'trending';
+      case SeriesSection.popular:
+        return 'popular_${_activeNetworkId ?? 'all'}';
+      case SeriesSection.topRated:
+        return 'top_rated';
+      case SeriesSection.airingToday:
+        return 'airing_today';
+      case SeriesSection.onTheAir:
+        return 'on_the_air';
     }
   }
 

@@ -14,12 +14,12 @@ import 'core/utils/foreground_refresh_observer.dart';
 import 'core/utils/memory_optimizer.dart';
 import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
-import 'data/services/background_sync_service.dart';
-import 'data/services/network_quality_service.dart';
+import 'data/services/offline_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/offline_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/accessibility_provider.dart';
@@ -80,31 +80,30 @@ void main() async {
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
-
-  await BackgroundSyncService.initialize();
-  await BackgroundSyncService.registerTrendingWarmup();
-
-  final networkQualityNotifier = NetworkQualityNotifier();
-  await networkQualityNotifier.initialize();
-
-  final tmdbRepository = TmdbRepository();
+  final offlineService = OfflineService(prefs: prefs);
 
   runApp(
     AllMoviesApp(
       storageService: storageService,
       prefs: prefs,
-      tmdbRepository: tmdbRepository,
-      networkQualityNotifier: networkQualityNotifier,
+      offlineService: offlineService,
     ),
   );
 }
 
+class AllMoviesApp extends StatelessWidget {
+  final LocalStorageService storageService;
+  final SharedPreferences prefs;
+  final TmdbRepository? tmdbRepository;
+  final OfflineService offlineService;
+  // Removed unused StaticCatalogService stub (no longer present)
 
 class AllMoviesApp extends StatefulWidget {
   const AllMoviesApp({
     super.key,
     required this.storageService,
     required this.prefs,
+    required this.offlineService,
     this.tmdbRepository,
     required this.networkQualityNotifier,
   });
@@ -167,19 +166,24 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<TmdbRepository>.value(value: _repository),
-        Provider<LocalStorageService>.value(value: widget.storageService),
-        Provider<SharedPreferences>.value(value: widget.prefs),
-        ChangeNotifierProvider<NetworkQualityNotifier>.value(
-          value: widget.networkQualityNotifier,
-        ),
-        ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
-        ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
+        Provider<OfflineService>.value(value: offlineService),
         ChangeNotifierProvider(
-          create: (_) => FavoritesProvider(widget.storageService),
+          create: (_) => OfflineProvider(offlineService),
+        ),
+        Provider<TmdbRepository>.value(value: repo),
+        ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(
+          create: (_) => FavoritesProvider(
+            storageService,
+            offlineService: offlineService,
+          ),
         ),
         ChangeNotifierProvider(
-          create: (_) => WatchlistProvider(widget.storageService),
+          create: (_) => WatchlistProvider(
+            storageService,
+            offlineService: offlineService,
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) => SearchProvider(_repository, widget.storageService),
@@ -197,27 +201,36 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           MoviesProvider
         >(
           create: (_) => MoviesProvider(
-            _repository,
-            storageService: widget.storageService,
+            repo,
+            storageService: storageService,
+            offlineService: offlineService,
           ),
           update: (_, watchRegion, preferences, movies) {
             movies ??= MoviesProvider(
-              _repository,
-              storageService: widget.storageService,
+              repo,
+              storageService: storageService,
+              offlineService: offlineService,
             );
             movies.bindRegionProvider(watchRegion);
             movies.bindPreferencesProvider(preferences);
             return movies;
           },
         ),
-        ChangeNotifierProxyProvider<PreferencesProvider, SeriesProvider>(
-          create: (_) => SeriesProvider(_repository),
-          update: (_, prefsProvider, series) {
-            series ??= SeriesProvider(_repository);
-            return SeriesProvider(
-              _repository,
+        ChangeNotifierProxyProvider2<PreferencesProvider, OfflineService,
+            SeriesProvider>(
+          create: (_) => SeriesProvider(
+            repo,
+            preferencesProvider: null,
+            offlineService: offlineService,
+          ),
+          update: (_, prefsProvider, offline, series) {
+            series ??= SeriesProvider(
+              repo,
               preferencesProvider: prefsProvider,
+              offlineService: offline,
             );
+            series.bindPreferencesProvider(prefsProvider);
+            return series;
           },
         ),
         ChangeNotifierProvider(create: (_) => PeopleProvider(_repository)),

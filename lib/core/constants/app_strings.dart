@@ -116,4 +116,6 @@ class AppStrings {
   static const noOverviewAvailable = 'No overview available.';
   static const includedTitles = 'Included titles';
   static const tmdbV4Reference = 'TMDB v4 Reference';
+  static const offlineCacheUnavailable =
+      'Offline cache not available yet. Connect to refresh.';
 }

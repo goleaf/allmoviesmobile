@@ -1,17 +1,23 @@
 import 'package:flutter/material.dart';
 import '../data/models/saved_media_item.dart';
 import '../data/services/local_storage_service.dart';
+import '../data/services/offline_service.dart';
 import 'package:http/http.dart' as http;
 
 class FavoritesProvider with ChangeNotifier {
   final LocalStorageService _storage;
   final http.Client _httpClient;
+  final OfflineService? _offlineService;
 
   Set<int> _favoriteIds = {};
   List<SavedMediaItem> _favoriteItems = const <SavedMediaItem>[];
 
-  FavoritesProvider(this._storage, {http.Client? httpClient})
-    : _httpClient = httpClient ?? http.Client() {
+  FavoritesProvider(
+    this._storage, {
+    http.Client? httpClient,
+    OfflineService? offlineService,
+  })  : _httpClient = httpClient ?? http.Client(),
+        _offlineService = offlineService {
     _loadFavorites();
   }
 
@@ -40,11 +46,27 @@ class FavoritesProvider with ChangeNotifier {
     int id, {
     SavedMediaType type = SavedMediaType.movie,
   }) async {
-    if (_favoriteIds.contains(id)) {
+    final wasFavorite = _favoriteIds.contains(id);
+    if (wasFavorite) {
       await _storage.removeFromFavorites(id, type: type);
     } else {
       await _storage.addToFavorites(id, type: type);
     }
+    await _offlineService?.recordFavoritesMutation(
+      mediaId: id,
+      mediaType: type,
+      added: !wasFavorite,
+      snapshot: wasFavorite
+          ? null
+          : _favoriteItems.firstWhere(
+              (item) => item.id == id && item.type == type,
+              orElse: () => SavedMediaItem(
+                id: id,
+                type: type,
+                title: 'Media #$id',
+              ),
+            ),
+    );
     _loadFavorites();
   }
 
@@ -55,6 +77,12 @@ class FavoritesProvider with ChangeNotifier {
   }) async {
     if (!_favoriteIds.contains(id)) {
       await _storage.addToFavorites(id, item: item, type: type);
+      await _offlineService?.recordFavoritesMutation(
+        mediaId: id,
+        mediaType: type,
+        added: true,
+        snapshot: item,
+      );
       _loadFavorites();
     }
   }
@@ -65,6 +93,11 @@ class FavoritesProvider with ChangeNotifier {
   }) async {
     if (_favoriteIds.contains(id)) {
       await _storage.removeFromFavorites(id, type: type);
+      await _offlineService?.recordFavoritesMutation(
+        mediaId: id,
+        mediaType: type,
+        added: false,
+      );
       _loadFavorites();
     }
   }

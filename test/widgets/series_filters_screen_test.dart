@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:allmoviesmobile/presentation/screens/series/series_filters_screen.dart';
+import 'package:allmovies_mobile/presentation/screens/series/series_filters_screen.dart';
 
 void main() {
   testWidgets('SeriesFiltersScreen returns Map<String,String> on apply', (tester) async {

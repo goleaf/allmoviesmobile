@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../data/models/search_result_model.dart';
+import '../../../core/config/app_config.dart';
 import '../../../providers/search_provider.dart';
 import '../movie_detail/movie_detail_screen.dart';
 
@@ -308,14 +309,14 @@ class _SearchResultCard extends StatelessWidget {
         MediaType.tv => () {
             Navigator.pushNamed(
               context,
-              TVDetailScreen.routeName,
+              '/tv',
               arguments: result.id,
             );
           },
         MediaType.person => () {
             Navigator.pushNamed(
               context,
-              PersonDetailScreen.routeName,
+              '/person',
               arguments: result.id,
             );
           },

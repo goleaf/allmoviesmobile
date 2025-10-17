@@ -365,6 +365,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
           child: SizedBox(
             width: double.infinity,
             child: FilledButton.icon(
+              key: const ValueKey('moviesApplyFilters'),
               onPressed: _apply,
               icon: const Icon(Icons.check),
               label: const Text(AppStrings.apply),

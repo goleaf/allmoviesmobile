@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_strings.dart';
-import '../screens/home/home_screen.dart';
-import '../screens/more/more_screen.dart';
+// Home/More removed in this app variant; keep movies/search/series only
 import '../screens/movies/movies_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/series/series_screen.dart';
@@ -10,11 +9,10 @@ import '../screens/movies/movies_filters_screen.dart';
 import '../screens/series/series_filters_screen.dart';
 
 enum AppDestination {
-  home,
   movies,
   tv,
   search,
-  more,
+  // more,
 }
 
 class AppNavigationShell extends StatefulWidget {
@@ -30,7 +28,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       destination: GlobalKey<NavigatorState>(),
   };
 
-  AppDestination _currentDestination = AppDestination.home;
+  AppDestination _currentDestination = AppDestination.movies;
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +57,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       return false;
     }
 
-    if (_currentDestination != AppDestination.home) {
+    if (_currentDestination != AppDestination.movies) {
       setState(() {
-        _currentDestination = AppDestination.home;
+        _currentDestination = AppDestination.movies;
       });
       return false;
     }
@@ -101,11 +99,6 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       },
       destinations: const [
         NavigationDestination(
-          icon: Icon(Icons.home_outlined),
-          selectedIcon: Icon(Icons.home),
-          label: AppStrings.home,
-        ),
-        NavigationDestination(
           icon: Icon(Icons.movie_outlined),
           selectedIcon: Icon(Icons.movie),
           label: AppStrings.movies,
@@ -119,11 +112,6 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           icon: Icon(Icons.search),
           selectedIcon: Icon(Icons.search),
           label: AppStrings.search,
-        ),
-        NavigationDestination(
-          icon: Icon(Icons.more_horiz),
-          selectedIcon: Icon(Icons.more),
-          label: AppStrings.more,
         ),
       ],
     );

@@ -7,6 +7,7 @@ import '../../../data/models/person_model.dart';
 import '../../../providers/people_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
+import '../../../core/utils/media_image_helper.dart';
 
 class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';

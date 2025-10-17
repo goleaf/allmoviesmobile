@@ -34,7 +34,9 @@
     "of_the_moment_tv": "Сериалы момента",
     "popular_people": "Популярные люди",
     "featured_collections": "Подборки",
-    "personalized_recommendations": "Рекомендации для вас"
+    "personalized_recommendations": "Рекомендации для вас",
+    "time_window_today": "Сегодня",
+    "time_window_this_week": "На этой неделе"
   },
   "movie": {
     "title": "Фильм",

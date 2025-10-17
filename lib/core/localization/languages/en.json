@@ -34,7 +34,9 @@
     "of_the_moment_tv": "“Of the moment” TV shows",
     "popular_people": "Popular people",
     "featured_collections": "Featured collections",
-    "personalized_recommendations": "Recommended for you"
+    "personalized_recommendations": "Recommended for you",
+    "time_window_today": "Today",
+    "time_window_this_week": "This week"
   },
   "movie": {
     "title": "Movie",

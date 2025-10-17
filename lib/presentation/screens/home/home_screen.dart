@@ -336,10 +336,22 @@ class _MoviesCarousel extends StatelessWidget {
     return Consumer<MoviesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
+        final loc = AppLocalizations.of(context);
+        final bool isTrendingSection = section == MovieSection.trending;
+        final Widget? trailing = isTrendingSection
+            ? _TrendingWindowToggle(
+                selectedValue: provider.trendingWindow,
+                onChanged: provider.setTrendingWindow,
+                todayLabel: loc.home['time_window_today'] ?? 'Today',
+                weekLabel:
+                    loc.home['time_window_this_week'] ?? 'This week',
+              )
+            : null;
         return _HorizontalMediaSection(
           title: title,
           isLoading: state.isLoading,
           errorMessage: state.errorMessage,
+          trailing: trailing,
           items: state.items
               .take(20)
               .map(
@@ -360,6 +372,74 @@ class _MoviesCarousel extends StatelessWidget {
               .toList(growable: false),
         );
       },
+    );
+  }
+}
+
+class _TrendingWindowToggle extends StatelessWidget {
+  const _TrendingWindowToggle({
+    required this.selectedValue,
+    required this.onChanged,
+    required this.todayLabel,
+    required this.weekLabel,
+  });
+
+  final String selectedValue;
+  final ValueChanged<String> onChanged;
+  final String todayLabel;
+  final String weekLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return SizedBox(
+      height: 36,
+      child: SegmentedButton<String>(
+        segments: [
+          ButtonSegment(
+            value: 'day',
+            label: Text(todayLabel),
+            icon: const Icon(Icons.calendar_today_outlined, size: 16),
+          ),
+          ButtonSegment(
+            value: 'week',
+            label: Text(weekLabel),
+            icon: const Icon(Icons.view_week_outlined, size: 16),
+          ),
+        ],
+        showSelectedIcon: false,
+        style: ButtonStyle(
+          visualDensity: VisualDensity.comfortable,
+          textStyle: MaterialStateProperty.all(
+            Theme.of(context).textTheme.bodySmall,
+          ),
+          padding: MaterialStateProperty.all(
+            const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          backgroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(MaterialState.selected)) {
+              return colorScheme.primaryContainer;
+            }
+            return colorScheme.surfaceVariant.withOpacity(0.6);
+          }),
+          foregroundColor: MaterialStateProperty.resolveWith<Color?>((states) {
+            if (states.contains(MaterialState.selected)) {
+              return colorScheme.onPrimaryContainer;
+            }
+            return colorScheme.onSurfaceVariant;
+          }),
+        ),
+        selected: {selectedValue},
+        onSelectionChanged: (selection) {
+          if (selection.isEmpty) {
+            return;
+          }
+          final value = selection.first;
+          if (value != selectedValue) {
+            onChanged(value);
+          }
+        },
+      ),
     );
   }
 }
@@ -556,12 +636,14 @@ class _HorizontalMediaSection extends StatelessWidget {
     required this.items,
     this.isLoading = false,
     this.errorMessage,
+    this.trailing,
   });
 
   final String title;
   final List<Widget> items;
   final bool isLoading;
   final String? errorMessage;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -570,9 +652,20 @@ class _HorizontalMediaSection extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleMedium,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              if (trailing != null) ...[
+                const SizedBox(width: 12),
+                trailing!,
+              ],
+            ],
           ),
         ),
         const SizedBox(height: 12),

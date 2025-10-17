@@ -161,14 +161,22 @@ searchMulti(String query, {int page = 1})
 
 ### Discovery
 ```dart
-// Discover with filters
-discoverMovies({
-  int page = 1,
-  String? sortBy,
-  List<int>? withGenres,
-  int? year,
-  double? voteAverageGte,
-})
+// Discover with rich filters
+final filters = DiscoverFilters(
+  sortBy: SortBy.voteCountDesc,
+  withGenres: '28,12', // Action & Adventure
+  releaseDateGte: '2023-01-01',
+  releaseDateLte: '2023-12-31',
+  withWatchProviders: '8|9', // Netflix or Amazon Prime Video
+  watchRegion: 'US',
+  withWatchMonetizationTypes: 'flatrate',
+  includeAdult: false,
+);
+
+final response = await repository.discoverMovies(
+  discoverFilters: filters,
+  page: 1,
+);
 ```
 
 ### Genres

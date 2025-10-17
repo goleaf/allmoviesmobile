@@ -28,6 +28,7 @@ import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
+import 'providers/recommendations_provider.dart';
 import 'providers/series_provider.dart';
 
 void main() async {

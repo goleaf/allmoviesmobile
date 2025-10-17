@@ -14,6 +14,13 @@ class PreferenceKeys {
   static const String releaseYear = 'settings.release_year';
   static const String seriesFilterPresets =
       'settings.series.filter_presets';
+  // Persist the last applied /discover/tv query so pagination and filters can
+  // resume seamlessly when the app restarts.
+  static const String tvDiscoverActiveFilters =
+      'settings.series.active_filters';
+  // Track which preset (if any) was used so we can highlight it in the UI.
+  static const String tvDiscoverActivePresetName =
+      'settings.series.active_preset';
 
   // Presentation
   static const String imageQuality = 'settings.image_quality';

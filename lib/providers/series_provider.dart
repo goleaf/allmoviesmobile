@@ -92,8 +92,13 @@ class SeriesProvider extends ChangeNotifier {
   Map<String, String>? get activeFilters => _activeFilters;
   String? get activePresetName => _activePresetName;
 
+  /// Allows late binding of [PreferencesProvider] after the provider is
+  /// constructed so we can restore persisted discover filters immediately.
   void bindPreferencesProvider(PreferencesProvider? provider) {
     _preferences = provider;
+    if (provider != null) {
+      _restorePersistedFilters();
+    }
   }
 
   Future<void> get initialized => _initializedCompleter.future;
@@ -115,11 +120,18 @@ class SeriesProvider extends ChangeNotifier {
     await refresh(force: true);
   }
 
+  /// Load any discover filters stored in preferences so pagination restarts
+  /// from the same `/3/discover/tv` query the user last applied.
   void _restorePersistedFilters() {
-    final saved = _preferences?.tvDiscoverFilterPreset;
-    if (saved != null && saved.isNotEmpty) {
-      _activeFilters = Map<String, String>.from(saved);
+    final savedFilters = _preferences?.tvDiscoverFilterPreset;
+    final savedPresetName = _preferences?.tvDiscoverPresetName;
+    if (savedFilters != null && savedFilters.isNotEmpty) {
+      _activeFilters = Map<String, String>.from(savedFilters);
+      _activePresetName = savedPresetName;
       _activeNetworkId = null;
+    } else {
+      _activeFilters = null;
+      _activePresetName = null;
     }
   }
 
@@ -394,9 +406,16 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
+  /// Focus the popular tab on a single network by leveraging
+  /// `/3/discover/tv?with_networks=` underneath.
   Future<void> applyNetworkFilter(int networkId) async {
     _activeNetworkId = networkId;
     _activeFilters = null;
+    _activePresetName = null;
+    final prefs = _preferences;
+    if (prefs != null) {
+      await prefs.setTvDiscoverFilterPreset(null);
+    }
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
       isLoading: true,
       errorMessage: null,
@@ -433,12 +452,23 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
+  /// Apply a custom set of TMDB `/3/discover/tv` parameters and optionally tag
+  /// them with the preset the user selected from the sheet.
   Future<void> applyTvFilters(
     Map<String, String> filters, {
     String? presetName,
   }) async {
     _activeFilters = Map<String, String>.from(filters);
     _activeNetworkId = null;
+    final normalizedPreset = presetName?.trim();
+    _activePresetName = normalizedPreset?.isEmpty ?? true ? null : normalizedPreset;
+    final prefs = _preferences;
+    if (prefs != null) {
+      await prefs.setTvDiscoverFilterPreset(
+        _activeFilters,
+        presetName: _activePresetName,
+      );
+    }
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
       isLoading: true,
       errorMessage: null,
@@ -472,9 +502,12 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
+  /// Reset back to `/3/tv/popular` by clearing any discover filters and the
+  /// stored preset reference.
   Future<void> clearTvFilters() async {
     _activeFilters = null;
     _activeNetworkId = null;
+    _activePresetName = null;
     final prefs = _preferences;
     if (prefs != null) {
       await prefs.setTvDiscoverFilterPreset(null);
@@ -509,11 +542,17 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
+  /// Remove the focused network and return to the vanilla `/3/tv/popular`
+  /// results.
   Future<void> clearNetworkFilter() async {
     if (_activeNetworkId == null) return;
     _activeNetworkId = null;
     _activeFilters = null;
     _activePresetName = null;
+    final prefs = _preferences;
+    if (prefs != null) {
+      await prefs.setTvDiscoverFilterPreset(null);
+    }
     await refresh(force: true);
   }
 }

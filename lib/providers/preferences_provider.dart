@@ -150,4 +150,115 @@ class PreferencesProvider extends ChangeNotifier {
     await _writeSeriesFilterPresets(filtered);
     notifyListeners();
   }
+
+  /// Restore the last applied `/3/discover/tv` filter query that we persisted so
+  /// the TV browse screen can bootstrap itself with the user's previous
+  /// selections.
+  Map<String, String>? get tvDiscoverFilterPreset {
+    final raw = _prefs.getString(PreferenceKeys.tvDiscoverActiveFilters);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map) {
+        final restored = <String, String>{};
+        decoded.forEach((key, value) {
+          if (key is String && value is String) {
+            restored[key] = value;
+          }
+        });
+        return restored.isEmpty ? null : restored;
+      }
+    } catch (_) {
+      // Ignore malformed payloads so corrupt entries do not crash the app.
+    }
+    return null;
+  }
+
+  /// Returns the name of the preset that produced the persisted filters, if any
+  /// was involved during the last visit to the TV filters sheet.
+  String? get tvDiscoverPresetName {
+    final raw =
+        _prefs.getString(PreferenceKeys.tvDiscoverActivePresetName);
+    if (raw == null) {
+      return null;
+    }
+    final trimmed = raw.trim();
+    return trimmed.isEmpty ? null : trimmed;
+  }
+
+  /// Persist the latest discover filters alongside the preset name so both the
+  /// provider and filter screen can rebuild with the correct context.
+  Future<void> setTvDiscoverFilterPreset(
+    Map<String, String>? filters, {
+    String? presetName,
+  }) async {
+    final sanitizedFilters = filters == null
+        ? null
+        : Map<String, String>.fromEntries(
+            filters.entries.map(
+              (entry) => MapEntry(entry.key.trim(), entry.value.trim()),
+            ),
+          )
+            ..removeWhere(
+              (key, value) => key.isEmpty || value.isEmpty,
+            );
+
+    final normalizedName = presetName?.trim();
+    final currentFilters = tvDiscoverFilterPreset;
+    final currentName = tvDiscoverPresetName;
+
+    final filtersChanged = !_stringMapEquals(currentFilters, sanitizedFilters);
+    final nameChanged = (currentName ?? '') != (normalizedName ?? '');
+
+    if (!filtersChanged && !nameChanged) {
+      return;
+    }
+
+    if (sanitizedFilters == null || sanitizedFilters.isEmpty) {
+      await _prefs.remove(PreferenceKeys.tvDiscoverActiveFilters);
+    } else {
+      await _prefs.setString(
+        PreferenceKeys.tvDiscoverActiveFilters,
+        jsonEncode(sanitizedFilters),
+      );
+    }
+
+    if (normalizedName == null || normalizedName.isEmpty) {
+      await _prefs.remove(PreferenceKeys.tvDiscoverActivePresetName);
+    } else {
+      await _prefs.setString(
+        PreferenceKeys.tvDiscoverActivePresetName,
+        normalizedName,
+      );
+    }
+
+    notifyListeners();
+  }
+
+  /// Lightweight equality helper to avoid unnecessary writes to preferences.
+  bool _stringMapEquals(
+    Map<String, String>? a,
+    Map<String, String>? b,
+  ) {
+    if (identical(a, b)) {
+      return true;
+    }
+    if (a == null || a.isEmpty) {
+      return b == null || b.isEmpty;
+    }
+    if (b == null || b.isEmpty) {
+      return false;
+    }
+    if (a.length != b.length) {
+      return false;
+    }
+    for (final entry in a.entries) {
+      if (b[entry.key] != entry.value) {
+        return false;
+      }
+    }
+    return true;
+  }
 }

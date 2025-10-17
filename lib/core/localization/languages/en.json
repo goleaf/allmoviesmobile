@@ -27,7 +27,14 @@
     "new_releases": "New Releases",
     "continue_watching": "Continue Watching",
     "recommended": "Recommended for You",
-    "see_all": "See All"
+    "see_all": "See All",
+    "quick_access": "Quick Access",
+    "genres": "Genres",
+    "of_the_moment_movies": "“Of the moment” movies",
+    "of_the_moment_tv": "“Of the moment” TV shows",
+    "popular_people": "Popular people",
+    "featured_collections": "Featured collections",
+    "personalized_recommendations": "Recommended for you"
   },
   "movie": {
     "title": "Movie",

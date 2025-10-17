@@ -27,7 +27,14 @@
     "new_releases": "Новинки",
     "continue_watching": "Продолжить Просмотр",
     "recommended": "Рекомендовано для Вас",
-    "see_all": "Смотреть Все"
+    "see_all": "Смотреть Все",
+    "quick_access": "Быстрый доступ",
+    "genres": "Жанры",
+    "of_the_moment_movies": "Фильмы момента",
+    "of_the_moment_tv": "Сериалы момента",
+    "popular_people": "Популярные люди",
+    "featured_collections": "Подборки",
+    "personalized_recommendations": "Рекомендации для вас"
   },
   "movie": {
     "title": "Фильм",

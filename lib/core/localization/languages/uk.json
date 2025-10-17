@@ -27,7 +27,14 @@
     "new_releases": "Новинки",
     "continue_watching": "Продовжити Перегляд",
     "recommended": "Рекомендовано для Вас",
-    "see_all": "Дивитись Всі"
+    "see_all": "Дивитись Всі",
+    "quick_access": "Швидкий доступ",
+    "genres": "Жанри",
+    "of_the_moment_movies": "Актуальні фільми",
+    "of_the_moment_tv": "Актуальні серіали",
+    "popular_people": "Популярні люди",
+    "featured_collections": "Добірки",
+    "personalized_recommendations": "Рекомендації для вас"
   },
   "movie": {
     "title": "Фільм",

@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
@@ -8,6 +11,7 @@ import '../../../data/models/discover_filters_model.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../movies/movies_filters_screen.dart';
 import '../../widgets/app_drawer.dart';
+import '../../../data/services/local_storage_service.dart';
 
 class MoviesScreen extends StatefulWidget {
   static const routeName = '/movies';
@@ -18,16 +22,76 @@ class MoviesScreen extends StatefulWidget {
   State<MoviesScreen> createState() => _MoviesScreenState();
 }
 
-class _MoviesScreenState extends State<MoviesScreen> {
+class _MoviesScreenState extends State<MoviesScreen>
+    with SingleTickerProviderStateMixin {
   late final TextEditingController _searchController;
+  late final TabController _tabController;
+  late final LocalStorageService _storageService;
   List<Movie> _searchResults = const [];
   bool _isSearching = false;
   String? _searchError;
+  late final Map<MovieSection, ItemScrollController> _scrollControllers;
+  late final Map<MovieSection, ItemPositionsListener> _positionsListeners;
+  late final Map<MovieSection, VoidCallback> _positionCallbacks;
+  late final Map<MovieSection, int?> _initialScrollIndexes;
+  late final Map<MovieSection, int?> _lastPersistedIndexes;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _storageService = context.read<LocalStorageService>();
+    final sections = MovieSection.values;
+    final initialTabIndex = _storageService.getMoviesTabIndex().clamp(
+      0,
+      sections.length - 1,
+    );
+    _tabController = TabController(
+      length: sections.length,
+      vsync: this,
+      initialIndex: initialTabIndex,
+    );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        return;
+      }
+      unawaited(_storageService.setMoviesTabIndex(_tabController.index));
+    });
+
+    _scrollControllers = {
+      for (final section in sections) section: ItemScrollController()
+    };
+    _positionsListeners = {
+      for (final section in sections) section: ItemPositionsListener.create()
+    };
+    _initialScrollIndexes = {
+      for (final section in sections)
+        section: _storageService.getMoviesScrollIndex(section.name)
+    };
+    _lastPersistedIndexes = Map<MovieSection, int?>.from(_initialScrollIndexes);
+    _positionCallbacks = {
+      for (final section in sections)
+        section: () {
+          final positions =
+              _positionsListeners[section]!.itemPositions.value.toList();
+          if (positions.isEmpty) return;
+          positions.sort((a, b) => a.index.compareTo(b.index));
+          final firstVisible = positions.first.index;
+          if (_lastPersistedIndexes[section] == firstVisible) {
+            return;
+          }
+          _lastPersistedIndexes[section] = firstVisible;
+          unawaited(
+            _storageService.setMoviesScrollIndex(section.name, firstVisible),
+          );
+        }
+    };
+    for (final entry in _positionCallbacks.entries) {
+      _positionsListeners[entry.key]!
+          .itemPositions
+          .addListener(entry.value);
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MoviesProvider>().refresh();
     });
@@ -36,6 +100,12 @@ class _MoviesScreenState extends State<MoviesScreen> {
   @override
   void dispose() {
     _searchController.dispose();
+    _tabController.dispose();
+    for (final entry in _positionCallbacks.entries) {
+      _positionsListeners[entry.key]!
+          .itemPositions
+          .removeListener(entry.value);
+    }
     super.dispose();
   }
 
@@ -87,12 +157,11 @@ class _MoviesScreenState extends State<MoviesScreen> {
     final hasQuery = _searchController.text.trim().isNotEmpty;
 
     final l = AppLocalizations.of(context);
-    return DefaultTabController(
-      length: sections.length,
-      child: Scaffold(
+    return Scaffold(
         appBar: AppBar(
           title: Text(l.t('movie.movies')),
           bottom: TabBar(
+            controller: _tabController,
             isScrollable: true,
             tabs: [
               for (final section in sections)
@@ -218,19 +287,22 @@ class _MoviesScreenState extends State<MoviesScreen> {
             else
               Expanded(
                 child: TabBarView(
+                  controller: _tabController,
                   children: [
                     for (final section in sections)
                       _MoviesSectionView(
                         section: section,
                         onRefreshAll: _refreshAll,
+                        scrollController: _scrollControllers[section]!,
+                        positionsListener: _positionsListeners[section]!,
+                        initialScrollIndex: _initialScrollIndexes[section],
                       ),
                   ],
                 ),
               ),
           ],
         ),
-      ),
-    );
+      );
   }
 
   String _labelForSection(MovieSection section, AppLocalizations l) {
@@ -281,40 +353,60 @@ extension on _MoviesScreenState {
   }
 }
 
-class _MoviesSectionView extends StatelessWidget {
-  const _MoviesSectionView({required this.section, required this.onRefreshAll});
+class _MoviesSectionView extends StatefulWidget {
+  const _MoviesSectionView({
+    required this.section,
+    required this.onRefreshAll,
+    required this.scrollController,
+    required this.positionsListener,
+    this.initialScrollIndex,
+  });
 
   final MovieSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
+  final ItemScrollController scrollController;
+  final ItemPositionsListener positionsListener;
+  final int? initialScrollIndex;
+
+  @override
+  State<_MoviesSectionView> createState() => _MoviesSectionViewState();
+}
+
+class _MoviesSectionViewState extends State<_MoviesSectionView> {
+  bool _restored = false;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<MoviesProvider>(
       builder: (context, provider, _) {
-        final state = provider.sectionState(section);
-        // Always render pager controls; show loader within content area instead of returning early
+        final state = provider.sectionState(widget.section);
 
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
-            onRetry: () => onRefreshAll(context),
+            onRetry: () => widget.onRefreshAll(context),
           );
         }
+
+        _maybeRestore(state.items.length);
 
         return Column(
           children: [
             if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => onRefreshAll(context),
+                onRefresh: () => widget.onRefreshAll(context),
                 child: _MoviesList(
                   movies: state.items,
-                  emptyMessage: AppLocalizations.of(context).t('search.no_results'),
+                  emptyMessage:
+                      AppLocalizations.of(context).t('search.no_results'),
+                  scrollController: widget.scrollController,
+                  positionsListener: widget.positionsListener,
                 ),
               ),
             ),
             _PagerControls(
-              section: section,
+              section: widget.section,
               current: state.currentPage == 0 ? 1 : state.currentPage,
               total: state.totalPages == 0 ? 1 : state.totalPages,
             ),
@@ -323,17 +415,52 @@ class _MoviesSectionView extends StatelessWidget {
       },
     );
   }
+
+  void _maybeRestore(int itemCount) {
+    if (_restored) {
+      return;
+    }
+    final targetIndex = widget.initialScrollIndex;
+    if (targetIndex == null) {
+      _restored = true;
+      return;
+    }
+    if (itemCount <= targetIndex) {
+      return;
+    }
+    if (!widget.scrollController.isAttached) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _restored) return;
+        _maybeRestore(itemCount);
+      });
+      return;
+    }
+    widget.scrollController.jumpTo(index: targetIndex, alignment: 0);
+    _restored = true;
+  }
 }
 
-class _MoviesList extends StatelessWidget {
-  const _MoviesList({required this.movies, required this.emptyMessage});
+class _MoviesList extends StatefulWidget {
+  const _MoviesList({
+    required this.movies,
+    required this.emptyMessage,
+    this.scrollController,
+    this.positionsListener,
+  });
 
   final List<Movie> movies;
   final String emptyMessage;
+  final ItemScrollController? scrollController;
+  final ItemPositionsListener? positionsListener;
 
   @override
+  State<_MoviesList> createState() => _MoviesListState();
+}
+
+class _MoviesListState extends State<_MoviesList> {
+  @override
   Widget build(BuildContext context) {
-    if (movies.isEmpty) {
+    if (widget.movies.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
@@ -346,7 +473,7 @@ class _MoviesList extends StatelessWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              emptyMessage,
+              widget.emptyMessage,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -354,12 +481,15 @@ class _MoviesList extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
+    return ScrollablePositionedList.separated(
+      itemScrollController: widget.scrollController,
+      itemPositionsListener: widget.positionsListener,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: movies.length,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: widget.movies.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final movie = movies[index];
+        final movie = widget.movies[index];
         return _MovieCard(movie: movie);
       },
     );

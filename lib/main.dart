@@ -7,7 +7,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/memory_optimizer.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/services/background_sync_service.dart';
+import 'data/services/network_quality_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -16,8 +19,6 @@ import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
-import 'package:provider/provider.dart'
-    show Provider; // add Provider for repo injection
 import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/splash_preload/boot_gate.dart';
@@ -66,17 +67,32 @@ import 'providers/preferences_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  MemoryOptimizer.instance.initialize();
+
   // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
 
-  runApp(AllMoviesApp(storageService: storageService, prefs: prefs));
+  await BackgroundSyncService.initialize();
+  await BackgroundSyncService.registerTrendingWarmup();
+
+  final networkQualityNotifier = NetworkQualityNotifier();
+  await networkQualityNotifier.initialize();
+
+  runApp(
+    AllMoviesApp(
+      storageService: storageService,
+      prefs: prefs,
+      networkQualityNotifier: networkQualityNotifier,
+    ),
+  );
 }
 
 class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
   final TmdbRepository? tmdbRepository;
+  final NetworkQualityNotifier networkQualityNotifier;
   // Removed unused StaticCatalogService stub (no longer present)
 
   const AllMoviesApp({
@@ -84,6 +100,7 @@ class AllMoviesApp extends StatelessWidget {
     required this.storageService,
     required this.prefs,
     this.tmdbRepository,
+    required this.networkQualityNotifier,
   });
 
   @override
@@ -93,6 +110,11 @@ class AllMoviesApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<TmdbRepository>.value(value: repo),
+        Provider<LocalStorageService>.value(value: storageService),
+        Provider<SharedPreferences>.value(value: prefs),
+        ChangeNotifierProvider<NetworkQualityNotifier>.value(
+          value: networkQualityNotifier,
+        ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(

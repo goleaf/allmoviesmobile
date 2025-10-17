@@ -2,8 +2,11 @@ import 'dart:ui';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/utils/media_image_helper.dart';
+import '../../data/services/compressed_image_cache_manager.dart';
+import '../../data/services/network_quality_service.dart';
 
 class MediaImage extends StatefulWidget {
   const MediaImage({
@@ -76,6 +79,8 @@ class _MediaImageState extends State<MediaImage> {
           context,
           type: widget.type,
           fallback: null,
+          networkQuality:
+              Provider.maybeOf<NetworkQualityNotifier>(context)?.quality,
         );
     final highResUrl = MediaImageHelper.buildUrl(
       widget.path,
@@ -140,6 +145,7 @@ class _MediaImageState extends State<MediaImage> {
     final imageProvider = CachedNetworkImageProvider(
       previewUrl,
       cacheKey: 'preview::$previewUrl',
+      cacheManager: CompressedImageCacheManager.instance,
     );
 
     return AnimatedOpacity(
@@ -159,6 +165,7 @@ class _MediaImageState extends State<MediaImage> {
   Widget _buildHighResLayer(String url, Widget errorWidget) {
     return CachedNetworkImage(
       imageUrl: url,
+      cacheManager: CompressedImageCacheManager.instance,
       fit: widget.fit,
       fadeInDuration: widget.fadeInDuration,
       fadeOutDuration: Duration.zero,

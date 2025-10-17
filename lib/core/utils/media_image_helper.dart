@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import '../config/app_config.dart';
 import '../../providers/preferences_provider.dart';
+import '../../data/services/network_quality_service.dart';
 
 /// Descriptor for TMDB media image categories.
 enum MediaImageType { poster, backdrop, profile, still, logo }
@@ -147,6 +148,7 @@ class MediaImageHelper {
     BuildContext context, {
     required MediaImageType type,
     MediaImageSize? fallback,
+    NetworkQuality? networkQuality,
   }) {
     MediaImageSize fromQuality(String quality) {
       switch (quality) {
@@ -171,7 +173,11 @@ class MediaImageHelper {
 
     try {
       final prefs = context.read<PreferencesProvider>();
-      return fromQuality(prefs.imageQuality);
+      final quality = _applyNetworkOverrides(
+        prefs.imageQuality,
+        networkQuality,
+      );
+      return fromQuality(quality);
     } catch (_) {
       // If no provider in tree, fall back
       return fallback ?? (_defaultSizes[type] ?? MediaImageSize.original);
@@ -191,5 +197,29 @@ class MediaImageHelper {
       return null;
     }
     return path.startsWith('/') ? path : '/$path';
+  }
+
+  static String _applyNetworkOverrides(
+    String preference,
+    NetworkQuality? networkQuality,
+  ) {
+    if (networkQuality == null) {
+      return preference;
+    }
+
+    switch (networkQuality) {
+      case NetworkQuality.offline:
+        return 'low';
+      case NetworkQuality.constrained:
+        return switch (preference) {
+          'original' => 'medium',
+          'high' => 'medium',
+          _ => preference,
+        };
+      case NetworkQuality.balanced:
+        return preference == 'original' ? 'high' : preference;
+      case NetworkQuality.excellent:
+        return preference;
+    }
   }
 }

@@ -26,6 +26,7 @@ import 'presentation/screens/movie_detail/movie_detail_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/person_detail/person_detail_screen.dart';
+import 'presentation/screens/search/search_results_list_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/series/series_category_screen.dart';
@@ -107,6 +108,7 @@ class AllMoviesApp extends StatelessWidget {
             routes: {
               HomeScreen.routeName: (context) => const HomeScreen(),
               SearchScreen.routeName: (context) => const SearchScreen(),
+              SearchResultsListScreen.routeName: (context) => const SearchResultsListScreen(),
               MoviesScreen.routeName: (context) => const MoviesScreen(),
               VideosScreen.routeName: (context) => const VideosScreen(),
               SeriesScreen.routeName: (context) => const SeriesScreen(),

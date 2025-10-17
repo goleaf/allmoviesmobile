@@ -21,6 +21,8 @@ class MediaImage extends StatefulWidget {
     this.enableProgress = true,
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
+    this.gradientOverlay,
+    this.showOverlayWhenLoading = false,
   });
 
   final String? path;
@@ -36,6 +38,8 @@ class MediaImage extends StatefulWidget {
   final bool enableProgress;
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
+  final Gradient? gradientOverlay;
+  final bool showOverlayWhenLoading;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -115,9 +119,28 @@ class _MediaImageState extends State<MediaImage> {
         ? _buildProgressOverlay()
         : const SizedBox.shrink();
 
+    final overlay = widget.gradientOverlay;
+    final overlayLayer = overlay == null
+        ? null
+        : AnimatedOpacity(
+            opacity:
+                (_isHighResReady || widget.showOverlayWhenLoading) ? 1 : 0,
+            duration: widget.crossFadeDuration,
+            child: DecoratedBox(
+              decoration: BoxDecoration(gradient: overlay),
+            ),
+          );
+
+    final stackChildren = <Widget>[
+      if (preview != null) preview,
+      image,
+      if (overlayLayer != null) overlayLayer,
+      progressIndicator,
+    ];
+
     final stack = Stack(
       fit: StackFit.expand,
-      children: [if (preview != null) preview, image, progressIndicator],
+      children: stackChildren,
     );
 
     return _wrapWithSize(

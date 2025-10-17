@@ -1,11 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../data/models/image_model.dart';
 import '../../data/services/api_config.dart';
-import '../../core/utils/media_image_helper.dart';
 import 'media_image.dart';
 import '../../providers/media_gallery_provider.dart';
 
@@ -138,6 +138,14 @@ class _GalleryRow extends StatelessWidget {
               final aspectRatio = image.aspectRatio > 0
                   ? image.aspectRatio
                   : _defaultAspectRatio(type);
+              final gradientOverlay = LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.transparent,
+                  Colors.black.withOpacity(0.6),
+                ],
+              );
               return GestureDetector(
                 onTap: () => _openFullScreenImage(context, image, type),
                 child: AspectRatio(
@@ -162,6 +170,8 @@ class _GalleryRow extends StatelessWidget {
                         color: Colors.grey[300],
                         child: const Icon(Icons.broken_image),
                       ),
+                      gradientOverlay: gradientOverlay,
+                      showOverlayWhenLoading: true,
                     ),
                   ),
                 ),
@@ -238,45 +248,78 @@ class _GalleryRow extends StatelessWidget {
       context: context,
       barrierDismissible: true,
       builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.black,
-          insetPadding: EdgeInsets.zero,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: InteractiveViewer(
-                  child: Center(
-                    child: MediaImage(
-                      path: imageUrl,
-                      type: switch (type) {
-                        _GalleryImageType.poster => MediaImageType.poster,
-                        _GalleryImageType.backdrop => MediaImageType.backdrop,
-                        _GalleryImageType.still => MediaImageType.still,
-                      },
-                      size: MediaImageSize.original,
-                      fit: BoxFit.contain,
-                      placeholder: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      errorWidget: const Icon(
-                        Icons.broken_image,
-                        color: Colors.white,
-                        size: 48,
+        final overlayGradient = LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.black.withOpacity(0.75),
+            Colors.black.withOpacity(0.45),
+          ],
+        );
+
+        return Stack(
+          children: [
+            Positioned.fill(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: Container(
+                  decoration: BoxDecoration(gradient: overlayGradient),
+                ),
+              ),
+            ),
+            Dialog(
+              backgroundColor: Colors.transparent,
+              surfaceTintColor: Colors.transparent,
+              insetPadding: EdgeInsets.zero,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: InteractiveViewer(
+                      child: Center(
+                        child: MediaImage(
+                          path: imageUrl,
+                          type: switch (type) {
+                            _GalleryImageType.poster => MediaImageType.poster,
+                            _GalleryImageType.backdrop => MediaImageType.backdrop,
+                            _GalleryImageType.still => MediaImageType.still,
+                          },
+                          size: MediaImageSize.original,
+                          fit: BoxFit.contain,
+                          placeholder: const Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                          errorWidget: const Icon(
+                            Icons.broken_image,
+                            color: Colors.white,
+                            size: 48,
+                          ),
+                          gradientOverlay: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.black.withOpacity(0.65),
+                              Colors.transparent,
+                              Colors.black.withOpacity(0.8),
+                            ],
+                            stops: const [0, 0.5, 1],
+                          ),
+                          showOverlayWhenLoading: true,
+                        ),
                       ),
                     ),
                   ),
-                ),
+                  Positioned(
+                    top: 16,
+                    right: 16,
+                    child: IconButton(
+                      icon: const Icon(Icons.close, color: Colors.white),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ),
+                ],
               ),
-              Positioned(
-                top: 16,
-                right: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         );
       },
     );

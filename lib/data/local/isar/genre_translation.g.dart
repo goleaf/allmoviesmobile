@@ -16,7 +16,7 @@ extension GetGenreTranslationEntityCollection on Isar {
 
 const GenreTranslationEntitySchema = CollectionSchema(
   name: r'GenreTranslationEntity',
-  id: -2744077845624491195,
+  id: -5889272183229931,
   properties: {
     r'genreId': PropertySchema(id: 0, name: r'genreId', type: IsarType.long),
     r'locale': PropertySchema(id: 1, name: r'locale', type: IsarType.string),
@@ -34,7 +34,7 @@ const GenreTranslationEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'genreId': IndexSchema(
-      id: 3212228459756463684,
+      id: 5665525068670888,
       name: r'genreId',
       unique: false,
       replace: false,
@@ -47,7 +47,7 @@ const GenreTranslationEntitySchema = CollectionSchema(
       ],
     ),
     r'locale': IndexSchema(
-      id: -8287102531631808820,
+      id: -479217270097100,
       name: r'locale',
       unique: false,
       replace: false,

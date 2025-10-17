@@ -16,7 +16,7 @@ extension GetWatchProviderEntityCollection on Isar {
 
 const WatchProviderEntitySchema = CollectionSchema(
   name: r'WatchProviderEntity',
-  id: 7888000997629210359,
+  id: 6701649730843234,
   properties: {
     r'displayPriority': PropertySchema(
       id: 0,
@@ -36,7 +36,7 @@ const WatchProviderEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'providerId': IndexSchema(
-      id: -1675978104265523206,
+      id: -639042883698880,
       name: r'providerId',
       unique: true,
       replace: false,
@@ -705,7 +705,7 @@ extension GetWatchProviderTranslationEntityCollection on Isar {
 
 const WatchProviderTranslationEntitySchema = CollectionSchema(
   name: r'WatchProviderTranslationEntity',
-  id: 2862989751487615727,
+  id: 7707587734721580,
   properties: {
     r'locale': PropertySchema(id: 0, name: r'locale', type: IsarType.string),
     r'providerId': PropertySchema(
@@ -726,7 +726,7 @@ const WatchProviderTranslationEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'providerId': IndexSchema(
-      id: -1675978104265523206,
+      id: -639042883698880,
       name: r'providerId',
       unique: false,
       replace: false,
@@ -739,7 +739,7 @@ const WatchProviderTranslationEntitySchema = CollectionSchema(
       ],
     ),
     r'locale': IndexSchema(
-      id: -8287102531631808820,
+      id: -479217270097100,
       name: r'locale',
       unique: false,
       replace: false,

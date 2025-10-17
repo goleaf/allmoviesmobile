@@ -16,7 +16,7 @@ extension GetLanguageTranslationEntityCollection on Isar {
 
 const LanguageTranslationEntitySchema = CollectionSchema(
   name: r'LanguageTranslationEntity',
-  id: 4443322735694385585,
+  id: 2773503107077022,
   properties: {
     r'iso639_1': PropertySchema(
       id: 0,
@@ -33,7 +33,7 @@ const LanguageTranslationEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'iso639_1_locale': IndexSchema(
-      id: 6415971232823092188,
+      id: 2845363447506596,
       name: r'iso639_1_locale',
       unique: true,
       replace: false,
@@ -51,7 +51,7 @@ const LanguageTranslationEntitySchema = CollectionSchema(
       ],
     ),
     r'locale': IndexSchema(
-      id: -8287102531631808820,
+      id: -479217270097100,
       name: r'locale',
       unique: false,
       replace: false,

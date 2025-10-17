@@ -16,7 +16,7 @@ extension GetWatchProviderRegionEntityCollection on Isar {
 
 const WatchProviderRegionEntitySchema = CollectionSchema(
   name: r'WatchProviderRegionEntity',
-  id: -7295825730063972728,
+  id: -9001532978511009,
   properties: {
     r'englishName': PropertySchema(
       id: 0,
@@ -41,7 +41,7 @@ const WatchProviderRegionEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'iso3166_1': IndexSchema(
-      id: -8619592972702828730,
+      id: -8710485170441334,
       name: r'iso3166_1',
       unique: true,
       replace: false,

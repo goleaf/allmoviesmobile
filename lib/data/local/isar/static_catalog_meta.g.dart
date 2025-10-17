@@ -16,7 +16,7 @@ extension GetStaticCatalogMetaEntityCollection on Isar {
 
 const StaticCatalogMetaEntitySchema = CollectionSchema(
   name: r'StaticCatalogMetaEntity',
-  id: -8150840489294966516,
+  id: -8332363009110652,
   properties: {
     r'key': PropertySchema(id: 0, name: r'key', type: IsarType.string),
     r'lastUpdatedMs': PropertySchema(
@@ -37,7 +37,7 @@ const StaticCatalogMetaEntitySchema = CollectionSchema(
   idName: r'id',
   indexes: {
     r'key': IndexSchema(
-      id: -4906094122524121629,
+      id: -6177727945022525,
       name: r'key',
       unique: true,
       replace: false,

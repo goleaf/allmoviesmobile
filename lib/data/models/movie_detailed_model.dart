@@ -49,6 +49,8 @@ class MovieDetailed with _$MovieDetailed {
     @Default([]) List<ImageModel> images,
     @Default([]) List<MovieRef> recommendations,
     @Default([]) List<MovieRef> similar,
+    @Default([]) List<Cast> cast,
+    @Default([]) List<Crew> crew,
   }) = _MovieDetailed;
 
   factory MovieDetailed.fromJson(Map<String, dynamic> json) =>

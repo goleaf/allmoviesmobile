@@ -82,6 +82,14 @@ _$TVDetailedImpl _$$TVDetailedImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => TVRef.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      cast: (json['cast'] as List<dynamic>?)
+              ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      crew: (json['crew'] as List<dynamic>?)
+              ?.map((e) => Crew.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$TVDetailedImplToJson(_$TVDetailedImpl instance) =>
@@ -114,4 +122,6 @@ Map<String, dynamic> _$$TVDetailedImplToJson(_$TVDetailedImpl instance) =>
       'images': instance.images,
       'recommendations': instance.recommendations,
       'similar': instance.similar,
+      'cast': instance.cast,
+      'crew': instance.crew,
     };

@@ -63,6 +63,8 @@ mixin _$TVDetailed {
   List<ImageModel> get images => throw _privateConstructorUsedError;
   List<TVRef> get recommendations => throw _privateConstructorUsedError;
   List<TVRef> get similar => throw _privateConstructorUsedError;
+  List<Cast> get cast => throw _privateConstructorUsedError;
+  List<Crew> get crew => throw _privateConstructorUsedError;
 
   /// Serializes this TVDetailed to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -110,6 +112,8 @@ abstract class $TVDetailedCopyWith<$Res> {
     List<ImageModel> images,
     List<TVRef> recommendations,
     List<TVRef> similar,
+    List<Cast> cast,
+    List<Crew> crew,
   });
 
   $ExternalIdsCopyWith<$Res> get externalIds;
@@ -158,6 +162,8 @@ class _$TVDetailedCopyWithImpl<$Res, $Val extends TVDetailed>
     Object? images = null,
     Object? recommendations = null,
     Object? similar = null,
+    Object? cast = null,
+    Object? crew = null,
   }) {
     return _then(
       _value.copyWith(
@@ -327,6 +333,8 @@ abstract class _$$TVDetailedImplCopyWith<$Res>
     List<ImageModel> images,
     List<TVRef> recommendations,
     List<TVRef> similar,
+    List<Cast> cast,
+    List<Crew> crew,
   });
 
   @override
@@ -375,6 +383,8 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
     Object? images = null,
     Object? recommendations = null,
     Object? similar = null,
+    Object? cast = null,
+    Object? crew = null,
   }) {
     return _then(
       _$TVDetailedImpl(
@@ -489,7 +499,15 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
         similar: null == similar
             ? _value._similar
             : similar // ignore: cast_nullable_to_non_nullable
-                  as List<TVRef>,
+                as List<TVRef>,
+        cast: null == cast
+            ? _value.cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                as List<Cast>,
+        crew: null == crew
+            ? _value.crew
+            : crew // ignore: cast_nullable_to_non_nullable
+                as List<Crew>,
       ),
     );
   }
@@ -531,6 +549,8 @@ class _$TVDetailedImpl implements _TVDetailed {
     final List<ImageModel> images = const [],
     final List<TVRef> recommendations = const [],
     final List<TVRef> similar = const [],
+    final List<Cast> cast = const [],
+    final List<Crew> crew = const [],
   }) : _episodeRunTime = episodeRunTime,
        _genres = genres,
        _productionCompanies = productionCompanies,
@@ -541,7 +561,9 @@ class _$TVDetailedImpl implements _TVDetailed {
        _videos = videos,
        _images = images,
        _recommendations = recommendations,
-       _similar = similar;
+       _similar = similar,
+       _cast = cast,
+       _crew = crew;
 
   factory _$TVDetailedImpl.fromJson(Map<String, dynamic> json) =>
       _$$TVDetailedImplFromJson(json);
@@ -691,9 +713,27 @@ class _$TVDetailedImpl implements _TVDetailed {
     return EqualUnmodifiableListView(_similar);
   }
 
+  final List<Cast> _cast;
+  @override
+  @JsonKey()
+  List<Cast> get cast {
+    if (_cast is EqualUnmodifiableListView) return _cast;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_cast);
+  }
+
+  final List<Crew> _crew;
+  @override
+  @JsonKey()
+  List<Crew> get crew {
+    if (_crew is EqualUnmodifiableListView) return _crew;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_crew);
+  }
+
   @override
   String toString() {
-    return 'TVDetailed(id: $id, name: $name, originalName: $originalName, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, firstAirDate: $firstAirDate, lastAirDate: $lastAirDate, numberOfSeasons: $numberOfSeasons, numberOfEpisodes: $numberOfEpisodes, episodeRunTime: $episodeRunTime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, networks: $networks, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, seasons: $seasons, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar)';
+    return 'TVDetailed(id: $id, name: $name, originalName: $originalName, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, firstAirDate: $firstAirDate, lastAirDate: $lastAirDate, numberOfSeasons: $numberOfSeasons, numberOfEpisodes: $numberOfEpisodes, episodeRunTime: $episodeRunTime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, networks: $networks, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, seasons: $seasons, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar, cast: $cast, crew: $crew)';
   }
 
   @override
@@ -756,7 +796,9 @@ class _$TVDetailedImpl implements _TVDetailed {
               other._recommendations,
               _recommendations,
             ) &&
-            const DeepCollectionEquality().equals(other._similar, _similar));
+            const DeepCollectionEquality().equals(other._similar, _similar) &&
+            const DeepCollectionEquality().equals(other._cast, _cast) &&
+            const DeepCollectionEquality().equals(other._crew, _crew));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -788,10 +830,12 @@ class _$TVDetailedImpl implements _TVDetailed {
     externalIds,
     const DeepCollectionEquality().hash(_seasons),
     const DeepCollectionEquality().hash(_videos),
-    const DeepCollectionEquality().hash(_images),
-    const DeepCollectionEquality().hash(_recommendations),
-    const DeepCollectionEquality().hash(_similar),
-  ]);
+      const DeepCollectionEquality().hash(_images),
+      const DeepCollectionEquality().hash(_recommendations),
+      const DeepCollectionEquality().hash(_similar),
+      const DeepCollectionEquality().hash(_cast),
+      const DeepCollectionEquality().hash(_crew),
+    ]);
 
   /// Create a copy of TVDetailed
   /// with the given fields replaced by the non-null parameter values.
@@ -839,6 +883,8 @@ abstract class _TVDetailed implements TVDetailed {
     final List<ImageModel> images,
     final List<TVRef> recommendations,
     final List<TVRef> similar,
+    final List<Cast> cast,
+    final List<Crew> crew,
   }) = _$TVDetailedImpl;
 
   factory _TVDetailed.fromJson(Map<String, dynamic> json) =
@@ -914,6 +960,10 @@ abstract class _TVDetailed implements TVDetailed {
   List<TVRef> get recommendations;
   @override
   List<TVRef> get similar;
+  @override
+  List<Cast> get cast;
+  @override
+  List<Crew> get crew;
 
   /// Create a copy of TVDetailed
   /// with the given fields replaced by the non-null parameter values.

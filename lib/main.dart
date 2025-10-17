@@ -14,7 +14,6 @@ import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
-import 'providers/auth_provider.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
@@ -48,6 +47,10 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
+        ChangeNotifierProvider(create: (_) => MoviesProvider()),
+        ChangeNotifierProvider(create: (_) => SeriesProvider()),
+        ChangeNotifierProvider(create: (_) => PeopleProvider()),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider()),
       ],
       child: MaterialApp(
         title: AppStrings.appName,

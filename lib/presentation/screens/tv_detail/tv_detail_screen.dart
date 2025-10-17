@@ -23,6 +23,7 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
+import '../../../core/utils/media_image_helper.dart';
 // duplicate import removed
 
 class TVDetailScreen extends StatelessWidget {

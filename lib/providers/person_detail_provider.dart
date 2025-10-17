@@ -33,7 +33,7 @@ class PersonDetailProvider extends ChangeNotifier {
       );
 
       _detail = result;
-      _summary = Person(
+      _summary ??= Person(
         id: result.id,
         name: result.name,
         profilePath: result.profilePath,

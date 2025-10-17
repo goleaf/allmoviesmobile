@@ -33,7 +33,6 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   Future<Company> _loadCompany({bool forceRefresh = false}) {
     return context.read<TmdbRepository>().fetchCompanyDetails(
           widget.initialCompany.id,
-          forceRefresh: forceRefresh,
         );
   }
 

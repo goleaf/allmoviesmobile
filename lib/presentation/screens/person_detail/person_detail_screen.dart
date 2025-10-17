@@ -1027,7 +1027,7 @@ class _ExternalLinksSection extends StatelessWidget {
         children: links
             .map(
               (link) => OutlinedButton.icon(
-                onPressed: () => _openLink(link.url, context),
+                onPressed: () => _openLink(link.url),
                 icon: Icon(link.icon),
                 label: Text(link.label),
               ),
@@ -1058,7 +1058,7 @@ class _TranslationsSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    final translations = detail.translations;
+    final translations = detail.translations.withUniqueLocales;
     if (translations.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -1084,11 +1084,11 @@ class _TranslationsSection extends StatelessWidget {
                       .bodyLarge
                       ?.copyWith(fontWeight: FontWeight.w600),
                 ),
-                if ((translation.data?.biography ?? '').isNotEmpty)
+                if ((translation.biography ?? '').isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.only(top: 4),
                     child: Text(
-                      translation.data!.biography!,
+                      translation.biography!,
                       style: Theme.of(context)
                           .textTheme
                           .bodyMedium

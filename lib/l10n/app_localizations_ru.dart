@@ -84,7 +84,8 @@ class AppLocalizationsRu extends AppLocalizations {
   String get home => 'Главная';
 
   @override
-  String get exploreCollections => 'Ознакомьтесь с последними новинками нашего каталога.';
+  String get exploreCollections =>
+      'Ознакомьтесь с последними новинками нашего каталога.';
 
   @override
   String get noMoviesFound => 'По вашему запросу ничего не найдено.';

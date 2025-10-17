@@ -84,7 +84,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get home => 'Accueil';
 
   @override
-  String get exploreCollections => 'Découvrez les derniers moments forts de notre catalogue.';
+  String get exploreCollections =>
+      'Découvrez les derniers moments forts de notre catalogue.';
 
   @override
   String get noMoviesFound => 'Aucun titre ne correspond à votre recherche.';
@@ -138,7 +139,8 @@ class AppLocalizationsFr extends AppLocalizations {
   String get watchProvidersIds => 'Fournisseurs (IDs)';
 
   @override
-  String get providerIdsHint => 'IDs de fournisseurs séparés par des virgules, ex.: 8,9,337';
+  String get providerIdsHint =>
+      'IDs de fournisseurs séparés par des virgules, ex.: 8,9,337';
 
   @override
   String get releaseType => 'Type de sortie';
@@ -174,10 +176,12 @@ class AppLocalizationsFr extends AppLocalizations {
   String get withCrewHint => 'Avec équipe (IDs séparés par des virgules)';
 
   @override
-  String get withCompaniesHint => 'Avec sociétés (IDs séparés par des virgules)';
+  String get withCompaniesHint =>
+      'Avec sociétés (IDs séparés par des virgules)';
 
   @override
-  String get withKeywordsHint => 'Avec mots-clés (IDs séparés par des virgules)';
+  String get withKeywordsHint =>
+      'Avec mots-clés (IDs séparés par des virgules)';
 
   @override
   String get apply => 'Appliquer';

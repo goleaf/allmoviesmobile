@@ -23,10 +23,6 @@ void main() {
     await tester.tap(find.text('Search'));
     await tester.pumpAndSettle();
 
-    // Tap More destination
-    await tester.tap(find.text('More'));
-    await tester.pumpAndSettle();
-
     expect(find.byType(NavigationBar), findsOneWidget);
   });
 }

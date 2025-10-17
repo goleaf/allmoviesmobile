@@ -120,6 +120,7 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
   Widget build(BuildContext context) {
     final region = context.watch<WatchRegionProvider?>()?.region;
     return Scaffold(
+      key: const ValueKey('moviesFiltersScaffold'),
       appBar: AppBar(
         title: const Text(AppStrings.filters),
         leading: IconButton(

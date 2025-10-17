@@ -8,12 +8,7 @@ import '../screens/series/series_screen.dart';
 import '../screens/movies/movies_filters_screen.dart';
 import '../screens/series/series_filters_screen.dart';
 
-enum AppDestination {
-  movies,
-  tv,
-  search,
-  // more,
-}
+enum AppDestination { movies, tv, search }
 
 class AppNavigationShell extends StatefulWidget {
   const AppNavigationShell({super.key});
@@ -73,19 +68,6 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       onDestinationSelected: (index) {
         final selected = AppDestination.values[index];
 
-        if (selected == AppDestination.more) {
-          if (_currentDestination != AppDestination.more) {
-            setState(() {
-              _currentDestination = AppDestination.more;
-            });
-          } else {
-            _navigatorKeys[selected]!
-                .currentState
-                ?.popUntil((route) => route.isFirst);
-          }
-          return;
-        }
-
         if (_currentDestination == selected) {
           _navigatorKeys[selected]!
               .currentState
@@ -132,13 +114,6 @@ class _DestinationNavigator extends StatelessWidget {
     final isInitialRoute = settings.name == Navigator.defaultRouteName;
 
     switch (destination) {
-      case AppDestination.home:
-        if (isInitialRoute || settings.name == HomeScreen.routeName) {
-          page = const HomeScreen();
-          break;
-        }
-        page = _buildSharedRoute(settings);
-        break;
       case AppDestination.movies:
         if (isInitialRoute || settings.name == MoviesScreen.routeName) {
           page = const MoviesScreen();
@@ -161,13 +136,6 @@ class _DestinationNavigator extends StatelessWidget {
         }
         page = _buildSharedRoute(settings);
         break;
-      case AppDestination.more:
-        if (isInitialRoute || settings.name == MoreScreen.routeName) {
-          page = const MoreScreen();
-          break;
-        }
-        page = _buildSharedRoute(settings);
-        break;
     }
 
     return MaterialPageRoute(
@@ -178,8 +146,6 @@ class _DestinationNavigator extends StatelessWidget {
 
   Widget _buildSharedRoute(RouteSettings settings) {
     switch (settings.name) {
-      case HomeScreen.routeName:
-        return const HomeScreen();
       case MoviesScreen.routeName:
         return const MoviesScreen();
       case MoviesFiltersScreen.routeName:
@@ -191,8 +157,6 @@ class _DestinationNavigator extends StatelessWidget {
       case SearchScreen.routeName:
         final initialQuery = settings.arguments is String ? settings.arguments as String : null;
         return SearchScreen(initialQuery: initialQuery);
-      case MoreScreen.routeName:
-        return const MoreScreen();
       default:
         return const SizedBox.shrink();
     }

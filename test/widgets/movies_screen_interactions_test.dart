@@ -37,7 +37,10 @@ void main() {
         providers: [
           ChangeNotifierProvider.value(value: moviesProvider),
         ],
-        child: const MaterialApp(home: MoviesScreen()),
+        child: const MaterialApp(
+          home: MoviesScreen(),
+          onGenerateRoute: _onGenerateRoute,
+        ),
       ),
     );
 
@@ -50,7 +53,7 @@ void main() {
     expect(find.byType(MoviesFiltersScreen), findsOneWidget);
 
     // Tap Apply button to close
-    await tester.tap(find.widgetWithText(FilledButton, 'Apply'));
+    await tester.tap(find.byKey(const ValueKey('moviesApplyFilters')));
     await tester.pumpAndSettle();
     expect(find.byType(MoviesFiltersScreen), findsNothing);
   });
@@ -65,7 +68,10 @@ void main() {
         providers: [
           ChangeNotifierProvider.value(value: moviesProvider),
         ],
-        child: const MaterialApp(home: MoviesScreen()),
+        child: const MaterialApp(
+          home: MoviesScreen(),
+          onGenerateRoute: _onGenerateRoute,
+        ),
       ),
     );
 
@@ -80,6 +86,13 @@ void main() {
 
     expect(moviesProvider.trendingWindow, 'week');
   });
+}
+
+Route<dynamic> _onGenerateRoute(RouteSettings settings) {
+  if (settings.name == MoviesFiltersScreen.routeName) {
+    return MaterialPageRoute(builder: (_) => const MoviesFiltersScreen(), settings: settings);
+  }
+  return MaterialPageRoute(builder: (_) => const SizedBox.shrink(), settings: settings);
 }
 
 

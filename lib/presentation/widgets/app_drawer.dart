@@ -123,6 +123,10 @@ class AppDrawer extends StatelessWidget {
                 applicationName: AppStrings.appName,
                 applicationVersion: '1.0.0',
                 applicationIcon: const Icon(Icons.movie_outlined, size: 48),
+                children: const [
+                  SizedBox(height: 16),
+                  Text(AppStrings.createdBy),
+                ],
               );
             },
           ),

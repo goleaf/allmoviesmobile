@@ -60,5 +60,6 @@ class AppStrings {
   static const apiExplorer = 'TMDB Explorer';
   static const tmdbV4Reference = 'TMDB v4 Reference';
   static const exploreCollections = 'Explore the latest highlights from our catalog.';
+  static const createdBy = 'Created by the AllMovies Mobile team';
 }
 

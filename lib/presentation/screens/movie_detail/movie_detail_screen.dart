@@ -19,6 +19,7 @@ import '../../../providers/movie_detail_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../../providers/review_list_provider.dart';
 import '../../../providers/watch_region_provider.dart';
+import '../../../providers/media_gallery_provider.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
@@ -28,6 +29,7 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../widgets/watch_providers_section.dart';
+import '../../widgets/media_gallery_section.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
@@ -40,8 +42,16 @@ class MovieDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final repository = context.read<TmdbRepository>();
 
-    return ChangeNotifierProvider(
-      create: (_) => MovieDetailProvider(repository, movie)..load(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => MovieDetailProvider(repository, movie)..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) =>
+              MediaGalleryProvider(repository)..loadMovieImages(movie.id),
+        ),
+      ],
       child: const _MovieDetailView(),
     );
   }
@@ -103,6 +113,7 @@ class _MovieDetailView extends StatelessWidget {
                 _buildReleaseDates(context, details),
                 _buildTranslations(context, details),
                 _buildWatchProviders(context, details, loc),
+                const MediaGallerySection(),
                 _buildExternalLinks(context, details, loc),
                 if (details.collection != null)
                   _buildCollection(context, details, loc),

@@ -20,6 +20,7 @@ class MediaGalleryProvider extends ChangeNotifier {
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   bool get hasError => _errorMessage != null;
+  MediaGalleryType? get mediaType => _mediaType;
 
   Future<void> loadMovieImages(int movieId, {bool forceRefresh = false}) async {
     await _load(

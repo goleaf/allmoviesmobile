@@ -11,7 +11,6 @@ import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../../data/services/local_storage_service.dart';
 import '../../widgets/virtualized_list_view.dart';
 
 class PeopleScreen extends StatefulWidget {
@@ -79,17 +78,6 @@ class _PeopleScreenState extends State<PeopleScreen>
     });
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    for (final entry in _scrollListeners.entries) {
-      final controller = _scrollControllers[entry.key]!;
-      controller.removeListener(entry.value);
-      controller.dispose();
-    }
-    super.dispose();
-  }
-
   Future<void> _refreshAll(BuildContext context) {
     return context.read<PeopleProvider>().refresh(force: true);
   }
@@ -111,15 +99,25 @@ class _PeopleScreenState extends State<PeopleScreen>
         ),
       ),
       drawer: const AppDrawer(),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          for (final section in _sections)
-            _PeopleSectionView(
-              section: section,
-              onRefreshAll: _refreshAll,
-              controller: _controllers[section],
+          // Client-side department filter applied to TMDB `/trending/person` and
+          // `/person/popular` results that are cached by the provider.
+          const _PeopleDepartmentSelector(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                for (final section in _sections)
+                  _PeopleSectionView(
+                    section: section,
+                    onRefreshAll: _refreshAll,
+                    controller: _controllers[section],
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );
@@ -336,6 +334,9 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
+/// Dropdown-based selector that filters people lists by their known-for
+/// department. The widget listens to [PeopleProvider] updates so that it can
+/// show a localized department name for every available option.
 class _PeopleDepartmentSelector extends StatelessWidget {
   const _PeopleDepartmentSelector();
 
@@ -345,6 +346,11 @@ class _PeopleDepartmentSelector extends StatelessWidget {
       builder: (context, provider, _) {
         final loc = AppLocalizations.of(context);
         final departments = provider.availableDepartments;
+
+        if (departments.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
         final dropdownItems = <DropdownMenuItem<String?>>[
           DropdownMenuItem<String?>(
             value: null,

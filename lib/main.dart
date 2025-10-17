@@ -47,6 +47,7 @@ import 'presentation/screens/season_detail/season_detail_screen.dart';
 import 'presentation/navigation/episode_detail_args.dart';
 import 'presentation/screens/collections/browse_collections_screen.dart';
 import 'presentation/screens/networks/networks_screen.dart';
+import 'presentation/screens/certifications/certifications_screen.dart';
 import 'presentation/screens/lists/lists_screen.dart';
 import 'presentation/screens/videos/videos_screen.dart';
 import 'presentation/screens/video_player/video_player_screen.dart';
@@ -69,6 +70,7 @@ import 'providers/series_provider.dart';
 import 'providers/watch_region_provider.dart';
 import 'providers/networks_provider.dart';
 import 'providers/collections_provider.dart';
+import 'providers/certifications_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'core/navigation/deep_link_handler.dart';
@@ -254,6 +256,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
         ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
         ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CertificationsProvider(_repository)),
         ChangeNotifierProvider(
           create: (_) => ListsProvider(widget.storageService),
         ),
@@ -325,6 +328,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           const KeywordBrowserScreen(),
                       NetworksScreen.routeName: (context) =>
                           const NetworksScreen(),
+                      CertificationsScreen.routeName: (context) =>
+                          const CertificationsScreen(),
                       CollectionsBrowserScreen.routeName: (context) =>
                           const CollectionsBrowserScreen(),
                       SearchResultsListScreen.routeName: (context) =>

@@ -65,9 +65,12 @@ void main() {
               );
             }
             if (settings.name == EpisodeDetailScreen.routeName) {
-              final ep = settings.arguments as Episode;
+              final ep = settings.arguments as EpisodeDetailArgs;
               return MaterialPageRoute(
-                builder: (_) => EpisodeDetailScreen(episode: ep),
+                builder: (_) => EpisodeDetailScreen(
+                  episode: ep.episode,
+                  tvId: ep.tvId,
+                ),
                 settings: settings,
               );
             }

@@ -8,6 +8,7 @@ import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/memory_optimizer.dart';
+import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/background_sync_service.dart';
 import 'data/services/network_quality_service.dart';
@@ -89,12 +90,11 @@ void main() async {
   );
 }
 
-class AllMoviesApp extends StatelessWidget {
+class AllMoviesApp extends StatefulWidget {
   final LocalStorageService storageService;
   final SharedPreferences prefs;
   final TmdbRepository? tmdbRepository;
   final NetworkQualityNotifier networkQualityNotifier;
-  // Removed unused StaticCatalogService stub (no longer present)
 
   const AllMoviesApp({
     super.key,
@@ -105,17 +105,44 @@ class AllMoviesApp extends StatelessWidget {
   });
 
   @override
+  State<AllMoviesApp> createState() => _AllMoviesAppState();
+}
+
+class _AllMoviesAppState extends State<AllMoviesApp> {
+  late final TmdbRepository _repository;
+  late final DeepLinkHandler _deepLinkHandler;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.tmdbRepository ?? TmdbRepository();
+    _deepLinkHandler = DeepLinkHandler(
+      navigatorKey: _navigatorKey,
+      repository: _repository,
+    )..initialize();
+  }
+
+  @override
+  void dispose() {
+    _deepLinkHandler.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final repo = tmdbRepository ?? TmdbRepository();
+    final storageService = widget.storageService;
+    final prefs = widget.prefs;
 
     return MultiProvider(
       providers: [
-        Provider<TmdbRepository>.value(value: repo),
+        Provider<TmdbRepository>.value(value: _repository),
         Provider<LocalStorageService>.value(value: storageService),
         Provider<SharedPreferences>.value(value: prefs),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
-          value: networkQualityNotifier,
+          value: widget.networkQualityNotifier,
         ),
+        Provider<DeepLinkHandler>.value(value: _deepLinkHandler),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(
@@ -125,39 +152,49 @@ class AllMoviesApp extends StatelessWidget {
           create: (_) => WatchlistProvider(storageService),
         ),
         ChangeNotifierProvider(
-          create: (_) => SearchProvider(repo, storageService),
+          create: (_) => SearchProvider(_repository, storageService),
         ),
         ChangeNotifierProvider(
-          create: (_) => RecommendationsProvider(repo, storageService),
+          create: (_) => RecommendationsProvider(_repository, storageService),
         ),
-        ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(repo)),
-        ChangeNotifierProvider(create: (_) => GenresProvider(repo)),
+        ChangeNotifierProvider(
+          create: (_) => TrendingTitlesProvider(_repository),
+        ),
+        ChangeNotifierProvider(create: (_) => GenresProvider(_repository)),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
         ChangeNotifierProxyProvider2<
           WatchRegionProvider,
           PreferencesProvider,
           MoviesProvider
         >(
-          create: (_) => MoviesProvider(repo, storageService: storageService),
+          create: (_) => MoviesProvider(
+            _repository,
+            storageService: storageService,
+          ),
           update: (_, watchRegion, preferences, movies) {
-            movies ??= MoviesProvider(repo, storageService: storageService);
+            movies ??= MoviesProvider(
+              _repository,
+              storageService: storageService,
+            );
             movies.bindRegionProvider(watchRegion);
             movies.bindPreferencesProvider(preferences);
             return movies;
           },
         ),
         ChangeNotifierProxyProvider<PreferencesProvider, SeriesProvider>(
-          create: (_) => SeriesProvider(repo),
+          create: (_) => SeriesProvider(_repository),
           update: (_, prefsProvider, series) {
-            series ??= SeriesProvider(repo);
-            // We can't bind later; re-create with prefs when needed
-            return SeriesProvider(repo, preferencesProvider: prefsProvider);
+            series ??= SeriesProvider(_repository);
+            return SeriesProvider(
+              _repository,
+              preferencesProvider: prefsProvider,
+            );
           },
         ),
-        ChangeNotifierProvider(create: (_) => PeopleProvider(repo)),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider(repo)),
-        ChangeNotifierProvider(create: (_) => NetworksProvider(repo)),
-        ChangeNotifierProvider(create: (_) => CollectionsProvider(repo)),
+        ChangeNotifierProvider(create: (_) => PeopleProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
         ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
       ],
@@ -169,6 +206,7 @@ class AllMoviesApp extends StatelessWidget {
               final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
 
               return MaterialApp(
+                navigatorKey: _navigatorKey,
                 title: AppLocalizations.of(context).t('app.name'),
                 theme: lightTheme,
                 darkTheme: darkTheme,
@@ -348,9 +386,12 @@ class AllMoviesApp extends StatelessWidget {
                       return null;
                     case EpisodeDetailScreen.routeName:
                       final args = settings.arguments;
-                      if (args is Episode) {
+                      if (args is EpisodeDetailArgs) {
                         return MaterialPageRoute(
-                          builder: (_) => EpisodeDetailScreen(episode: args),
+                          builder: (_) => EpisodeDetailScreen(
+                            episode: args.episode,
+                            tvId: args.tvId,
+                          ),
                           settings: settings,
                           fullscreenDialog: true,
                         );

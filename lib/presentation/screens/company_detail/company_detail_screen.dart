@@ -3,12 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/company_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
   static const routeName = '/company-detail';
@@ -23,17 +25,26 @@ class CompanyDetailScreen extends StatefulWidget {
 
 class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
   late Future<Company> _companyFuture;
+  Company? _resolvedCompany;
 
   @override
   void initState() {
     super.initState();
+    _resolvedCompany = widget.initialCompany;
     _companyFuture = _loadCompany();
   }
 
   Future<Company> _loadCompany({bool forceRefresh = false}) {
-    return context.read<TmdbRepository>().fetchCompanyDetails(
-      widget.initialCompany.id,
-    );
+    final future = context.read<TmdbRepository>().fetchCompanyDetails(
+          widget.initialCompany.id,
+        );
+    future.then((company) {
+      if (!mounted) return;
+      setState(() {
+        _resolvedCompany = company;
+      });
+    });
+    return future;
   }
 
   Future<void> _refreshCompany() async {
@@ -49,7 +60,28 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
     final loc = AppLocalizations.of(context);
 
     return FullscreenModalScaffold(
-      title: Text(widget.initialCompany.name),
+      title: Text(_resolvedCompany?.name ?? widget.initialCompany.name),
+      actions: [
+        IconButton(
+          tooltip: 'Share',
+          icon: const Icon(Icons.share),
+          onPressed: () {
+            final company = _resolvedCompany ?? widget.initialCompany;
+            final fallbackUrl = company.homepage?.isNotEmpty == true
+                ? company.homepage!
+                : 'https://www.themoviedb.org/company/${company.id}';
+            showDeepLinkShareSheet(
+              context,
+              title: company.name,
+              deepLink: DeepLinkHandler.buildCompanyUri(
+                company.id,
+                universal: true,
+              ),
+              fallbackUrl: fallbackUrl,
+            );
+          },
+        ),
+      ],
       body: FutureBuilder<Company>(
         future: _companyFuture,
         builder: (context, snapshot) {

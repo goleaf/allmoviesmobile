@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/media_image_helper.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/credit_model.dart';
 import '../../../data/models/episode_model.dart';
 import '../../../data/models/image_model.dart';
@@ -31,6 +32,7 @@ import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../season_detail/season_detail_screen.dart';
 import '../../widgets/watch_providers_section.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -128,6 +130,26 @@ class _TVDetailView extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 250,
       pinned: true,
+      actions: [
+        IconButton(
+          tooltip: 'Share',
+          icon: const Icon(Icons.share),
+          onPressed: () {
+            final fallbackUrl = details.homepage?.isNotEmpty == true
+                ? details.homepage!
+                : 'https://www.themoviedb.org/tv/${details.id}';
+            showDeepLinkShareSheet(
+              context,
+              title: details.name,
+              deepLink: DeepLinkHandler.buildTvUri(
+                details.id,
+                universal: true,
+              ),
+              fallbackUrl: fallbackUrl,
+            );
+          },
+        ),
+      ],
       flexibleSpace: FlexibleSpaceBar(
         title: Text(
           details.name,

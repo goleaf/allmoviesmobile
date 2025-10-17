@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../screens/companies/companies_screen.dart';
+import '../screens/explorer/api_explorer_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
@@ -91,6 +92,12 @@ class AppDrawer extends StatelessWidget {
             title: const Text(AppStrings.companies),
             selected: currentRoute == CompaniesScreen.routeName,
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.explore_outlined),
+            title: const Text(AppStrings.apiExplorer),
+            selected: currentRoute == ApiExplorerScreen.routeName,
+            onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
           ),
           const Divider(),
           ListTile(

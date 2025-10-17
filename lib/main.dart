@@ -15,7 +15,9 @@ import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
+import 'providers/api_explorer_provider.dart';
 import 'presentation/screens/companies/companies_screen.dart';
+import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
@@ -77,6 +79,9 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => SeriesProvider()),
         ChangeNotifierProvider(create: (_) => PeopleProvider()),
         ChangeNotifierProvider(create: (_) => CompaniesProvider()),
+        ChangeNotifierProvider(
+          create: (_) => ApiExplorerProvider(tmdbRepository),
+        ),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
         builder: (context, localeProvider, themeProvider, _) {
@@ -102,6 +107,7 @@ class AllMoviesApp extends StatelessWidget {
               SeriesScreen.routeName: (context) => const SeriesScreen(),
               PeopleScreen.routeName: (context) => const PeopleScreen(),
               CompaniesScreen.routeName: (context) => const CompaniesScreen(),
+              ApiExplorerScreen.routeName: (context) => const ApiExplorerScreen(),
               FavoritesScreen.routeName: (context) => const FavoritesScreen(),
               WatchlistScreen.routeName: (context) => const WatchlistScreen(),
               SettingsScreen.routeName: (context) => const SettingsScreen(),

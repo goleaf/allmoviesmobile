@@ -6,6 +6,7 @@ import '../../../data/models/movie.dart';
 import '../../../providers/trending_titles_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../companies/companies_screen.dart';
+import '../explorer/api_explorer_screen.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../movies/movies_screen.dart';
 import '../people/people_screen.dart';
@@ -107,6 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
               PopupMenuItem(
                 value: CompaniesScreen.routeName,
                 child: Text(AppStrings.companies),
+              ),
+              PopupMenuItem(
+                value: ApiExplorerScreen.routeName,
+                child: Text(AppStrings.apiExplorer),
               ),
             ],
           ),

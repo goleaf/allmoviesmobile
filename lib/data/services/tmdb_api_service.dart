@@ -14,11 +14,22 @@ class TmdbApiService {
   final http.Client _client;
   final String apiKey;
 
-  Map<String, String> get _headers => {
-        'Authorization': 'Bearer $apiKey',
-        'Accept': 'application/json',
-        'Content-Type': 'application/json;charset=utf-8',
-      };
+  bool get _hasJwtToken => apiKey.trim().contains('.');
+
+  bool get _shouldAppendApiKey => apiKey.trim().isNotEmpty && !_hasJwtToken;
+
+  Map<String, String> get _headers {
+    final headers = <String, String>{
+      'Accept': 'application/json',
+      'Content-Type': 'application/json;charset=utf-8',
+    };
+
+    if (_hasJwtToken) {
+      headers['Authorization'] = 'Bearer ${apiKey.trim()}';
+    }
+
+    return headers;
+  }
 
   Future<Map<String, dynamic>> fetchTrending({
     String mediaType = 'all',
@@ -236,6 +247,7 @@ class TmdbApiService {
       path,
       {
         'language': 'en-US',
+        if (_shouldAppendApiKey) 'api_key': apiKey.trim(),
         if (queryParameters != null) ...queryParameters,
       },
     );
@@ -256,6 +268,102 @@ class TmdbApiService {
     }
 
     return decoded;
+  }
+
+  Future<List<dynamic>> _getJsonList(
+    String path, {
+    Map<String, String>? queryParameters,
+  }) async {
+    final uri = Uri.https(
+      _baseHost,
+      path,
+      {
+        if (_shouldAppendApiKey) 'api_key': apiKey.trim(),
+        if (queryParameters != null) ...queryParameters,
+      },
+    );
+
+    final response = await _client.get(uri, headers: _headers);
+
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw TmdbHttpException(
+        'Request failed with status: ${response.statusCode}',
+        statusCode: response.statusCode,
+        body: response.body,
+      );
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) {
+      throw const TmdbHttpException('Malformed TMDB response.');
+    }
+
+    return decoded;
+  }
+
+  Future<Map<String, dynamic>> fetchConfiguration({
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/configuration',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<List<dynamic>> fetchConfigurationLanguages({
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJsonList(
+      '/$_apiVersion/configuration/languages',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<List<dynamic>> fetchConfigurationCountries({
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJsonList(
+      '/$_apiVersion/configuration/countries',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<List<dynamic>> fetchConfigurationTimezones({
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJsonList(
+      '/$_apiVersion/configuration/timezones',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Map<String, dynamic>> fetchCertifications(
+    String mediaType, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/certifications/$mediaType',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Map<String, dynamic>> fetchWatchProviders(
+    String mediaType, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/watch/providers/$mediaType',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<List<dynamic>> fetchWatchProviderRegions({
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJsonList(
+      '/$_apiVersion/watch/providers/regions',
+      queryParameters: queryParameters,
+    );
   }
 }
 

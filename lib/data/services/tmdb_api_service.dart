@@ -126,10 +126,6 @@ class TmdbApiService {
     );
   }
 
-  Future<Map<String, dynamic>> fetchMovieCredits(int movieId) {
-    return _getJson('/$_apiVersion/movie/$movieId/credits');
-  }
-
   Future<Map<String, dynamic>> fetchTvDetails(
     int tvId, {
     Map<String, String>? queryParameters,
@@ -140,13 +136,12 @@ class TmdbApiService {
     );
   }
 
-  Future<Map<String, dynamic>> fetchTvSeasonDetails(
-    int tvId,
-    int seasonNumber, {
+  Future<Map<String, dynamic>> fetchTvEpisodeGroups(
+    int tvId, {
     Map<String, String>? queryParameters,
   }) {
     return _getJson(
-      '/$_apiVersion/tv/$tvId/season/$seasonNumber',
+      '/3/tv/$tvId/episode_groups',
       queryParameters: queryParameters,
     );
   }

@@ -10,7 +10,8 @@ import '../../../data/tmdb_repository.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/media_image.dart';
-import '../../widgets/deep_link_share_sheet.dart';
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class CompanyDetailScreen extends StatefulWidget {
   static const routeName = '/company-detail';
@@ -60,24 +61,16 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
     final loc = AppLocalizations.of(context);
 
     return FullscreenModalScaffold(
-      title: Text(_resolvedCompany?.name ?? widget.initialCompany.name),
+      title: Text(widget.initialCompany.name),
       actions: [
         IconButton(
-          tooltip: 'Share',
           icon: const Icon(Icons.share),
+          tooltip: loc.movie['share'] ?? loc.t('movie.share'),
           onPressed: () {
-            final company = _resolvedCompany ?? widget.initialCompany;
-            final fallbackUrl = company.homepage?.isNotEmpty == true
-                ? company.homepage!
-                : 'https://www.themoviedb.org/company/${company.id}';
-            showDeepLinkShareSheet(
+            showShareLinkSheet(
               context,
-              title: company.name,
-              deepLink: DeepLinkHandler.buildCompanyUri(
-                company.id,
-                universal: true,
-              ),
-              fallbackUrl: fallbackUrl,
+              title: widget.initialCompany.name,
+              link: DeepLinkBuilder.company(widget.initialCompany.id),
             );
           },
         ),

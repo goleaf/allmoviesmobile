@@ -42,6 +42,7 @@ import 'presentation/screens/keywords/keyword_detail_screen.dart';
 import 'presentation/navigation/season_detail_args.dart';
 import 'presentation/navigation/episode_detail_args.dart';
 import 'presentation/screens/season_detail/season_detail_screen.dart';
+import 'presentation/navigation/episode_detail_args.dart';
 import 'presentation/screens/collections/browse_collections_screen.dart';
 import 'presentation/screens/networks/networks_screen.dart';
 import 'presentation/screens/lists/lists_screen.dart';
@@ -51,7 +52,6 @@ import 'presentation/screens/search/search_results_list_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
 import 'data/models/company_model.dart';
-import 'data/models/episode_model.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/movies/movies_filters_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
@@ -69,8 +69,7 @@ import 'providers/networks_provider.dart';
 import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
-import 'providers/recommendations_provider.dart';
-import 'providers/app_state_provider.dart';
+import 'core/navigation/deep_link_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -171,6 +170,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           create: (_) => OfflineProvider(offlineService),
         ),
         Provider<TmdbRepository>.value(value: repo),
+        ChangeNotifierProvider(
+          create: (_) => DeepLinkHandler()..initialize(),
+        ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(
@@ -460,8 +462,99 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                         default:
                           return null;
                       }
-                    },
-                  );
+                      return null;
+                    case TVDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is Movie) {
+                        return MaterialPageRoute(
+                          builder: (_) => TVDetailScreen(tvShow: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) => TVDetailScreen(
+                            tvShow: Movie(id: args, title: ''),
+                          ),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case '/person':
+                      settings = RouteSettings(
+                        name: PersonDetailScreen.routeName,
+                        arguments: settings.arguments,
+                      );
+                    // fall through
+                    case PersonDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) => PersonDetailScreen(personId: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      if (args is Person) {
+                        return MaterialPageRoute(
+                          builder: (_) => PersonDetailScreen(
+                            personId: args.id,
+                            initialPerson: args,
+                          ),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case CompanyDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is Company) {
+                        return MaterialPageRoute(
+                          builder: (_) =>
+                              CompanyDetailScreen(initialCompany: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case NetworkDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) => NetworkDetailScreen(networkId: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case EpisodeDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is EpisodeDetailArgs) {
+                        return MaterialPageRoute(
+                          builder: (_) => EpisodeDetailScreen(
+                            episode: args.episode,
+                            tvId: args.tvId,
+                          ),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case CollectionDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) =>
+                              CollectionDetailScreen(collectionId: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                  }
+                  return null;
                 },
               );
             },

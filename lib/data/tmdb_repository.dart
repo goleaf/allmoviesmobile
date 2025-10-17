@@ -27,6 +27,7 @@ import 'models/person_detail_model.dart';
 import 'models/search_filters.dart';
 import 'models/search_result_model.dart';
 import 'models/season_model.dart';
+import 'models/episode_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/tv_ref_model.dart';
 import 'models/watch_provider_model.dart';
@@ -875,16 +876,13 @@ class TmdbRepository {
     return Season.fromJson(normalized);
   }
 
-  /// TMDB Endpoint: `GET /3/tv/{tv_id}/season/{season_number}/episode/{episode_number}`
-  /// Fetches the JSON payload for a specific episode including appended
-  /// `credits` and `videos` sections, and maps it to an [Episode].
   Future<Episode> fetchTvEpisode(
     int tvId,
     int seasonNumber,
     int episodeNumber, {
     bool forceRefresh = false,
-  }) {
-    final cacheKey = 'tvEpisode::$tvId::$seasonNumber::$episodeNumber';
+  }) async {
+    final cacheKey = 'tv_episode::$tvId::$seasonNumber::$episodeNumber';
     return _cached(
       cacheKey,
       () async {
@@ -896,7 +894,6 @@ class TmdbRepository {
         final normalized = Map<String, dynamic>.from(payload);
         final credits = payload['credits'] as Map<String, dynamic>?;
         normalized['cast'] = credits?['cast'] ?? const [];
-        normalized['guest_stars'] = credits?['guest_stars'] ?? const [];
         normalized['crew'] = credits?['crew'] ?? const [];
         final videos = payload['videos'] as Map<String, dynamic>?;
         normalized['videos'] = videos?['results'] ?? const [];
@@ -904,6 +901,7 @@ class TmdbRepository {
         return Episode.fromJson(normalized);
       },
       forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.movieDetailsTTL,
     );
   }
 

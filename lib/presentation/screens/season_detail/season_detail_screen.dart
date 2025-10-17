@@ -16,8 +16,9 @@ import '../../widgets/image_gallery.dart';
 import '../../navigation/season_detail_args.dart';
 import '../episode_detail/episode_detail_screen.dart';
 import '../../../providers/season_detail_provider.dart';
-import '../../../core/navigation/deep_link_handler.dart';
-import '../../widgets/deep_link_share_sheet.dart';
+// duplicate import removed
+import '../../widgets/share_link_sheet.dart';
+import '../../../core/navigation/deep_link_parser.dart';
 
 class SeasonDetailScreen extends StatelessWidget {
   static const routeName = '/season';
@@ -80,22 +81,19 @@ class _SeasonDetailView extends StatelessWidget {
         title: Text('${loc.t('tv.season')} ${season.seasonNumber}'),
         actions: [
           IconButton(
-            tooltip: 'Share',
             icon: const Icon(Icons.share),
+            tooltip: loc.movie['share'] ?? loc.t('movie.share'),
             onPressed: () {
-              final displayTitle = season.name.isNotEmpty
+              final title = season.name.isNotEmpty
                   ? season.name
                   : '${loc.t('tv.season')} ${season.seasonNumber}';
-              showDeepLinkShareSheet(
+              showShareLinkSheet(
                 context,
-                title: displayTitle,
-                deepLink: DeepLinkHandler.buildSeasonUri(
+                title: title,
+                link: DeepLinkBuilder.season(
                   provider.tvId,
                   season.seasonNumber,
-                  universal: true,
                 ),
-                fallbackUrl:
-                    'https://www.themoviedb.org/tv/${provider.tvId}/season/${season.seasonNumber}',
               );
             },
           ),
@@ -580,7 +578,7 @@ class _EpisodeTile extends StatelessWidget {
           MaterialPageRoute(
             builder: (_) => EpisodeDetailScreen(
               episode: episode,
-              tvId: provider.tvId,
+              tvId: tvId,
             ),
           ),
         );

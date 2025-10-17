@@ -89,6 +89,11 @@
     "read_full": "Read full review",
     "load_more": "Load more"
   },
+  "share": {
+    "title": "Share link",
+    "copy_link": "Copy link",
+    "copied": "Link copied to clipboard"
+  },
   "tv": {
     "title": "TV Show",
     "tv_shows": "TV Shows",

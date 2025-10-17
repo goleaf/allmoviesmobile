@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "season.schema.json",
+  "title": "Season",
+  "type": "object",
+  "required": ["season_number", "name", "episode_count"],
+  "properties": {
+    "season_number": { "type": "integer", "minimum": 0 },
+    "name": { "type": "string" },
+    "overview": { "type": ["string", "null"] },
+    "air_date": { "type": ["string", "null"], "format": "date" },
+    "episode_count": { "type": "integer", "minimum": 0 },
+    "poster_path": { "type": ["string", "null"] },
+    "episodes": {
+      "type": "array",
+      "items": { "$ref": "episode.schema.json" },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

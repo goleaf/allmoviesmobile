@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "movie.schema.json",
+  "title": "Movie",
+  "type": "object",
+  "required": ["id", "title", "original_title", "vote_average", "vote_count"],
+  "properties": {
+    "id": { "type": "integer" },
+    "title": { "type": "string", "minLength": 1 },
+    "original_title": { "type": "string" },
+    "overview": { "type": ["string", "null"] },
+    "tagline": { "type": ["string", "null"] },
+    "release_date": { "type": ["string", "null"], "format": "date" },
+    "runtime": { "type": ["integer", "null"], "minimum": 0 },
+    "genres": {
+      "type": "array",
+      "items": { "$ref": "shared.schema.json#/$defs/Genre" },
+      "default": []
+    },
+    "production_companies": {
+      "type": "array",
+      "items": { "$ref": "company.schema.json" },
+      "default": []
+    },
+    "production_countries": {
+      "type": "array",
+      "items": { "$ref": "shared.schema.json#/$defs/Country" },
+      "default": []
+    },
+    "spoken_languages": {
+      "type": "array",
+      "items": { "$ref": "shared.schema.json#/$defs/Language" },
+      "default": []
+    },
+    "poster_path": { "type": ["string", "null"] },
+    "backdrop_path": { "type": ["string", "null"] },
+    "vote_average": { "type": "number", "minimum": 0, "maximum": 10 },
+    "vote_count": { "type": "integer", "minimum": 0 },
+    "popularity": { "type": ["number", "null"] },
+    "status": {
+      "type": ["string", "null"],
+      "enum": [null, "Rumored", "Planned", "In Production", "Post Production", "Released", "Canceled"]
+    },
+    "homepage": { "type": ["string", "null"], "format": "uri" },
+    "external_ids": {
+      "type": "object",
+      "properties": { "imdb_id": { "type": ["string", "null"] } },
+      "additionalProperties": false,
+      "default": {}
+    },
+    "budget": { "type": ["integer", "null"], "minimum": 0 },
+    "revenue": { "type": ["integer", "null"], "minimum": 0 },
+    "videos": {
+      "type": "array",
+      "items": { "$ref": "video.schema.json" },
+      "default": []
+    },
+    "images": {
+      "type": "array",
+      "items": { "$ref": "image.schema.json" },
+      "default": []
+    },
+    "recommendations": {
+      "type": "array",
+      "items": { "$ref": "movie.ref.schema.json" },
+      "default": []
+    },
+    "similar": {
+      "type": "array",
+      "items": { "$ref": "movie.ref.schema.json" },
+      "default": []
+    }
+  },
+  "additionalProperties": false
+}

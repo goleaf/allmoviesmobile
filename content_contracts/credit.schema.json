@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "credit.schema.json",
+  "title": "Credit",
+  "type": "object",
+  "required": ["id", "media_type", "title_or_name"],
+  "properties": {
+    "id": { "type": "string" },
+    "media_type": { "type": "string", "enum": ["movie", "tv"] },
+    "role": { "type": ["string", "null"] },
+    "character": { "type": ["string", "null"] },
+    "job": { "type": ["string", "null"] },
+    "title_or_name": { "type": "string" },
+    "release_date": { "type": ["string", "null"], "format": "date" },
+    "first_air_date": { "type": ["string", "null"], "format": "date" },
+    "poster_path": { "type": ["string", "null"] }
+  },
+  "additionalProperties": false
+}

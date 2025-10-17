@@ -94,6 +94,22 @@ AllMovies is a modern Flutter application with Material Design 3, featuring comp
 - Icon integration
 - Smooth state transitions
 
+### 🎬 **Core Content Discovery**
+
+#### Movies
+- Browse curated movie collections powered by TMDB
+- Popular movies with paginated infinite scroll
+- Top rated movies for critically acclaimed picks
+- Now playing titles currently in theaters
+- Upcoming releases to plan future watchlists
+- Latest additions for newly released content
+- Browse movies by decade from the 1900s through the 2020s
+- Filter by any of the 28 TMDB genres
+- Discover films by country or region of origin
+- Explore movies by original language
+- View titles by certification (G, PG, PG-13, R, etc.)
+- Surface box office hits ranked by revenue
+
 ## 🏗️ Project Architecture
 
 ```

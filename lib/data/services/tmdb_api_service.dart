@@ -170,6 +170,32 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchNetworks({
+    int page = 1,
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/networks',
+      queryParameters: {
+        'page': '$page',
+        if (queryParameters != null) ...queryParameters,
+      },
+    );
+  }
+
+  Future<Map<String, dynamic>> fetchPopularNetworks({
+    int page = 1,
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/networks/popular',
+      queryParameters: {
+        'page': '$page',
+        if (queryParameters != null) ...queryParameters,
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> fetchList(
     String listId, {
     int page = 1,

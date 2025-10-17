@@ -9,6 +9,7 @@ import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
+import 'models/network_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
@@ -353,6 +354,70 @@ class TmdbRepository {
     final company = Company.fromJson(payload);
     _cache.set(cacheKey, company);
     return company;
+  }
+
+  Future<PaginatedResponse<Network>> fetchNetworks({
+    String query = '',
+    String? country,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmedQuery = query.trim();
+    final normalizedCountry = country?.trim().toUpperCase();
+
+    final cacheKey = 'networks-${trimmedQuery.isEmpty ? 'all' : trimmedQuery.toLowerCase()}-${normalizedCountry ?? 'all'}-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Network>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final filters = <String, String>{
+      if (trimmedQuery.isNotEmpty) 'query': trimmedQuery,
+      if (normalizedCountry != null && normalizedCountry.isNotEmpty)
+        'with_countries': normalizedCountry,
+    };
+
+    final payload = await _apiService.fetchNetworks(
+      page: page,
+      queryParameters: filters.isEmpty ? null : filters,
+    );
+
+    final response = PaginatedResponse<Network>.fromJson(
+      payload,
+      Network.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
+  Future<PaginatedResponse<Network>> fetchPopularNetworks({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'networks-popular-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Network>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchPopularNetworks(page: page);
+
+    final response = PaginatedResponse<Network>.fromJson(
+      payload,
+      Network.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.trendingTTL);
+    return response;
   }
 
   Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {

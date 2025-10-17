@@ -29,8 +29,10 @@ import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
+import 'presentation/screens/networks/networks_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
+import 'providers/networks_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/recommendations_provider.dart';
 import 'providers/series_provider.dart';
@@ -78,7 +80,14 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => MoviesProvider()),
         ChangeNotifierProvider(create: (_) => SeriesProvider()),
         ChangeNotifierProvider(create: (_) => PeopleProvider()),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider()),
+        ChangeNotifierProvider(
+          create: (context) =>
+              CompaniesProvider(context.read<TmdbRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) =>
+              NetworksProvider(context.read<TmdbRepository>()),
+        ),
         ChangeNotifierProvider(
           create: (_) => ApiExplorerProvider(tmdbRepository),
         ),
@@ -107,6 +116,7 @@ class AllMoviesApp extends StatelessWidget {
               SeriesScreen.routeName: (context) => const SeriesScreen(),
               PeopleScreen.routeName: (context) => const PeopleScreen(),
               CompaniesScreen.routeName: (context) => const CompaniesScreen(),
+              NetworksScreen.routeName: (context) => const NetworksScreen(),
               ApiExplorerScreen.routeName: (context) => const ApiExplorerScreen(),
               FavoritesScreen.routeName: (context) => const FavoritesScreen(),
               WatchlistScreen.routeName: (context) => const WatchlistScreen(),

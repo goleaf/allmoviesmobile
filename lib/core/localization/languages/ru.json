@@ -10,6 +10,7 @@
     "series": "Сериалы",
     "people": "Люди",
     "companies": "Компании",
+    "networks": "Телеканалы",
     "search": "Поиск",
     "discover": "Обзор",
     "favorites": "Избранное",
@@ -101,6 +102,16 @@
     "origin_country": "Страна Происхождения",
     "produced_movies": "Произведенные Фильмы",
     "produced_series": "Произведенные Сериалы"
+  },
+  "network": {
+    "title": "Телеканалы",
+    "search_placeholder": "Поиск телеканалов",
+    "search_hint": "например, Netflix",
+    "popular": "Популярные сети",
+    "by_country": "Сети по странам",
+    "search_results": "Результаты поиска",
+    "empty": "Сети не найдены. Попробуйте другой запрос.",
+    "error_loading": "Не удалось загрузить сети. Попробуйте ещё раз."
   },
   "search": {
     "title": "Поиск",

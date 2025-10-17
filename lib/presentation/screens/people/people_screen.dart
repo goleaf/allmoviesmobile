@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_strings.dart';
 import '../../../data/models/person_model.dart';
 import '../../../providers/people_provider.dart';
 import '../../../data/models/person_detail_model.dart';
@@ -181,29 +180,38 @@ class _PeopleSectionView extends StatelessWidget {
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => onRefreshAll(context),
-          child: _PeopleList(
-            people: state.items,
-            onPersonSelected: (person) async {
-              try {
-                final PersonDetail details = await provider.loadDetails(
-                  person.id,
-                );
-                // ignore: use_build_context_synchronously
-                if (context.mounted) {
-                  _showPersonDetails(context, details.id);
-                }
-              } catch (error) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to load details: $error')),
-                  );
-                }
-              }
-            },
-            controller: scrollController,
-          ),
+        return Column(
+          children: [
+            const _PeopleDepartmentSelector(),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => onRefreshAll(context),
+                child: _PeopleList(
+                  people: state.items,
+                  onPersonSelected: (person) async {
+                    try {
+                      final PersonDetail details = await provider.loadDetails(
+                        person.id,
+                      );
+                      // ignore: use_build_context_synchronously
+                      if (context.mounted) {
+                        _showPersonDetails(context, details.id);
+                      }
+                    } catch (error) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content:
+                                Text('Failed to load details: $error'),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
@@ -231,6 +239,7 @@ class _PeopleList extends StatelessWidget {
       return ListView(
         controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         children: [
           const SizedBox(height: 120),
           Icon(
@@ -329,6 +338,70 @@ class _PersonCard extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _PeopleDepartmentSelector extends StatelessWidget {
+  const _PeopleDepartmentSelector();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PeopleProvider>(
+      builder: (context, provider, _) {
+        final loc = AppLocalizations.of(context);
+        final departments = provider.availableDepartments;
+        final dropdownItems = <DropdownMenuItem<String?>>[
+          DropdownMenuItem<String?>(
+            value: null,
+            child: Text(loc.t('people.departments.all')),
+          ),
+          for (final department in departments)
+            DropdownMenuItem<String?>(
+              value: department,
+              child: Text(_localizedDepartmentLabel(loc, department)),
+            ),
+        ];
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: InputDecorator(
+            decoration: InputDecoration(
+              labelText: loc.t('people.departments.label'),
+              border: const OutlineInputBorder(),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String?>(
+                key: const Key('peopleDepartmentDropdown'),
+                isExpanded: true,
+                value: provider.selectedDepartment,
+                items: dropdownItems,
+                onChanged: provider.selectDepartment,
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static String _localizedDepartmentLabel(
+    AppLocalizations loc,
+    String department,
+  ) {
+    final sanitized = department
+        .toLowerCase()
+        .replaceAll('&', 'and')
+        .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
+        .replaceAll(RegExp(r'_+'), '_')
+        .replaceAll(RegExp(r'^_+'), '')
+        .replaceAll(RegExp(r'_+$'), '');
+
+    final key = 'people.departments.$sanitized';
+    final localized = loc.t(key);
+    if (localized == key) {
+      return department;
+    }
+    return localized;
   }
 }
 

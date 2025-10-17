@@ -143,6 +143,26 @@
   "withCrewHint": "With Crew (comma-separated person IDs)",
   "withCompaniesHint": "With Companies (comma-separated company IDs)",
   "withKeywordsHint": "With Keywords (comma-separated keyword IDs)",
-  "apply": "Apply"
+  "apply": "Apply",
+  "peopleDepartmentsLabel": "Department",
+  "@peopleDepartmentsLabel": {
+    "description": "Label for the department filter on the people screen"
+  },
+  "peopleDepartmentsAll": "All departments",
+  "@peopleDepartmentsAll": {
+    "description": "Option to show all departments"
+  },
+  "peopleDepartmentsActing": "Acting",
+  "peopleDepartmentsDirecting": "Directing",
+  "peopleDepartmentsProduction": "Production",
+  "peopleDepartmentsWriting": "Writing",
+  "peopleDepartmentsEditing": "Editing",
+  "peopleDepartmentsCamera": "Camera",
+  "peopleDepartmentsSound": "Sound",
+  "peopleDepartmentsArt": "Art",
+  "peopleDepartmentsCostumeAndMakeUp": "Costume & Make-Up",
+  "peopleDepartmentsCrew": "Crew",
+  "peopleDepartmentsLighting": "Lighting",
+  "peopleDepartmentsVisualEffects": "Visual Effects"
 }
 

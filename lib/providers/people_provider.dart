@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:collection';
+
+import 'package:flutter/material.dart';
 
 import '../data/models/person_model.dart';
 import '../data/models/person_detail_model.dart';
@@ -49,9 +51,15 @@ class PeopleProvider extends ChangeNotifier {
       section: const PeopleSectionState(),
   };
 
+  final Map<PeopleSection, List<Person>> _allSectionItems = {
+    for (final section in PeopleSection.values) section: const <Person>[],
+  };
+
   bool _isInitialized = false;
   bool _isRefreshing = false;
   String? _globalError;
+  String? _selectedDepartment;
+  List<String> _availableDepartments = const <String>[];
 
   final Completer<void> _initializedCompleter = Completer<void>();
 
@@ -59,6 +67,9 @@ class PeopleProvider extends ChangeNotifier {
   bool get isInitialized => _isInitialized;
   bool get isRefreshing => _isRefreshing;
   String? get globalError => _globalError;
+  String? get selectedDepartment => _selectedDepartment;
+  List<String> get availableDepartments =>
+      UnmodifiableListView<String>(_availableDepartments);
 
   PeopleSectionState sectionState(PeopleSection section) => _sections[section]!;
 
@@ -98,7 +109,11 @@ class PeopleProvider extends ChangeNotifier {
         final section = sectionsList[index];
         final sectionItems = results[index];
         _sections[section] = PeopleSectionState(items: sectionItems);
+        _allSectionItems[section] = sectionItems;
       }
+
+      _rebuildAvailableDepartments();
+      _applyDepartmentFilter(notifyListeners: false);
 
       _globalError = null;
       _isInitialized = true;
@@ -124,7 +139,10 @@ class PeopleProvider extends ChangeNotifier {
         errorMessage: message,
         items: const <Person>[],
       );
+      _allSectionItems[section] = const <Person>[];
     }
+    _availableDepartments = const <String>[];
+    _selectedDepartment = null;
   }
 
   Future<PersonDetail> loadDetails(int personId) async {
@@ -132,6 +150,61 @@ class PeopleProvider extends ChangeNotifier {
       return await _repository.fetchPersonDetails(personId);
     } catch (error) {
       throw TmdbException('Failed to load person details: $error');
+    }
+  }
+
+  void selectDepartment(String? department) {
+    if (_selectedDepartment == department) {
+      return;
+    }
+    _selectedDepartment = department;
+    _applyDepartmentFilter();
+  }
+
+  void _applyDepartmentFilter({bool notifyListeners = true}) {
+    for (final section in PeopleSection.values) {
+      final items = _allSectionItems[section] ?? const <Person>[];
+      final filteredItems = _filterByDepartment(items);
+      _sections[section] = _sections[section]!.copyWith(
+        items: filteredItems,
+        isLoading: false,
+      );
+    }
+    if (notifyListeners) {
+      notifyListeners();
+    }
+  }
+
+  List<Person> _filterByDepartment(List<Person> people) {
+    final department = _selectedDepartment;
+    if (department == null || department.isEmpty) {
+      return people;
+    }
+
+    return people
+        .where((person) =>
+            (person.knownForDepartment ?? '').toLowerCase().trim() ==
+            department.toLowerCase().trim())
+        .toList(growable: false);
+  }
+
+  void _rebuildAvailableDepartments() {
+    final departmentSet = <String>{};
+    for (final sectionItems in _allSectionItems.values) {
+      for (final person in sectionItems) {
+        final department = person.knownForDepartment?.trim();
+        if (department != null && department.isNotEmpty) {
+          departmentSet.add(department);
+        }
+      }
+    }
+
+    final sortedDepartments = departmentSet.toList()..sort();
+    _availableDepartments = sortedDepartments;
+
+    if (_selectedDepartment != null &&
+        !_availableDepartments.contains(_selectedDepartment)) {
+      _selectedDepartment = null;
     }
   }
 }

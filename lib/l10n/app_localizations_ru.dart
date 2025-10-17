@@ -182,4 +182,46 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get apply => 'Применить';
+
+  @override
+  String get peopleDepartmentsLabel => 'Направление';
+
+  @override
+  String get peopleDepartmentsAll => 'Все направления';
+
+  @override
+  String get peopleDepartmentsActing => 'Актёрская игра';
+
+  @override
+  String get peopleDepartmentsDirecting => 'Режиссура';
+
+  @override
+  String get peopleDepartmentsProduction => 'Продюсирование';
+
+  @override
+  String get peopleDepartmentsWriting => 'Сценарий';
+
+  @override
+  String get peopleDepartmentsEditing => 'Монтаж';
+
+  @override
+  String get peopleDepartmentsCamera => 'Операторская работа';
+
+  @override
+  String get peopleDepartmentsSound => 'Звук';
+
+  @override
+  String get peopleDepartmentsArt => 'Художественный отдел';
+
+  @override
+  String get peopleDepartmentsCostumeAndMakeUp => 'Костюмы и грим';
+
+  @override
+  String get peopleDepartmentsCrew => 'Съемочная группа';
+
+  @override
+  String get peopleDepartmentsLighting => 'Освещение';
+
+  @override
+  String get peopleDepartmentsVisualEffects => 'Визуальные эффекты';
 }

@@ -158,6 +158,24 @@
     "external_links": "External Links",
     "translations": "Translations"
   },
+  "people": {
+    "departments": {
+      "label": "Department",
+      "all": "All departments",
+      "acting": "Acting",
+      "directing": "Directing",
+      "production": "Production",
+      "writing": "Writing",
+      "editing": "Editing",
+      "camera": "Camera",
+      "sound": "Sound",
+      "art": "Art",
+      "costume_and_make_up": "Costume & Make-Up",
+      "crew": "Crew",
+      "lighting": "Lighting",
+      "visual_effects": "Visual Effects"
+    }
+  },
   "company": {
     "title": "Company",
     "companies": "Companies",

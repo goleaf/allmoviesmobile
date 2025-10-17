@@ -57,7 +57,21 @@
   "withCrewHint": "С командой (ID через запятую)",
   "withCompaniesHint": "С компаниями (ID через запятую)",
   "withKeywordsHint": "С ключевыми словами (ID через запятую)",
-  "apply": "Применить"
+  "apply": "Применить",
+  "peopleDepartmentsLabel": "Направление",
+  "peopleDepartmentsAll": "Все направления",
+  "peopleDepartmentsActing": "Актёрская игра",
+  "peopleDepartmentsDirecting": "Режиссура",
+  "peopleDepartmentsProduction": "Продюсирование",
+  "peopleDepartmentsWriting": "Сценарий",
+  "peopleDepartmentsEditing": "Монтаж",
+  "peopleDepartmentsCamera": "Операторская работа",
+  "peopleDepartmentsSound": "Звук",
+  "peopleDepartmentsArt": "Художественный отдел",
+  "peopleDepartmentsCostumeAndMakeUp": "Костюмы и грим",
+  "peopleDepartmentsCrew": "Съемочная группа",
+  "peopleDepartmentsLighting": "Освещение",
+  "peopleDepartmentsVisualEffects": "Визуальные эффекты"
 }
 
 

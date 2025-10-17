@@ -1,13 +1,27 @@
 import 'dart:convert';
+
 import 'package:http/http.dart' as http;
 
+import '../core/config/app_config.dart';
+import 'models/collection_model.dart';
 import 'models/company_model.dart';
 import 'models/genre_model.dart';
+import 'models/image_model.dart';
+import 'models/keyword_model.dart';
+import 'models/media_images.dart';
 import 'models/movie.dart';
+import 'models/movie_detailed_model.dart';
+import 'models/network_detailed_model.dart';
+import 'models/network_model.dart';
 import 'models/paginated_response.dart';
+import 'models/person_detail_model.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
+import 'models/season_model.dart';
+import 'models/tmdb_list_model.dart';
+import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
+import 'services/cache_service.dart';
 
 class TmdbRepository {
   TmdbRepository({http.Client? client, String? apiKey})
@@ -49,11 +63,16 @@ class TmdbRepository {
   }
 
   // Trending
-  Future<PaginatedResponse<SearchResult>> fetchTrendingTitles({
+  Future<PaginatedResponse<Movie>> fetchTrendingTitles({
     String mediaType = 'all',
     String timeWindow = 'day',
     int page = 1,
+    bool forceRefresh = false,
   }) async {
+    if (forceRefresh) {
+      // No caching layer wired yet; parameter reserved for future use.
+    }
+
     final payload = await _get(
       '/trending/$mediaType/$timeWindow',
       {
@@ -61,14 +80,26 @@ class TmdbRepository {
       },
     );
 
-    return PaginatedResponse<SearchResult>.fromJson(
+    final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      (json) => SearchResult.fromJson(json),
+      (json) => Movie.fromJson(json),
+    );
+
+    return PaginatedResponse<Movie>(
+      page: response.page,
+      totalPages: response.totalPages,
+      totalResults: response.totalResults,
+      results: response.results
+          .where((movie) => movie.title.isNotEmpty)
+          .toList(growable: false),
     );
   }
 
-  Future<List<Movie>> fetchTrendingMovies({String timeWindow = 'day'}) async {
-    final payload = await _get('/trending/movie/$timeWindow');
+  Future<List<Movie>> fetchTrendingMovies({
+    String timeWindow = 'day',
+    int page = 1,
+  }) async {
+    final payload = await _get('/trending/movie/$timeWindow', {'page': '$page'});
     final results = payload['results'];
 
     if (results is! List) {
@@ -188,26 +219,51 @@ class TmdbRepository {
     List<int>? withGenres,
     int? year,
     double? voteAverageGte,
+    double? voteAverageLte,
+  }) async {
+    final response = await discoverMoviesPaginated(
+      page: page,
+      sortBy: sortBy,
+      withGenres: withGenres,
+      year: year,
+      voteAverageGte: voteAverageGte,
+      voteAverageLte: voteAverageLte,
+    );
+    return response.results;
+  }
+
+  Future<PaginatedResponse<Movie>> discoverMoviesPaginated({
+    int page = 1,
+    String? sortBy,
+    List<int>? withGenres,
+    int? year,
+    double? voteAverageGte,
+    double? voteAverageLte,
   }) async {
     final queryParams = <String, String>{
       'page': '$page',
       if (sortBy != null) 'sort_by': sortBy,
-      if (withGenres != null && withGenres.isNotEmpty) 
+      if (withGenres != null && withGenres.isNotEmpty)
         'with_genres': withGenres.join(','),
       if (year != null) 'year': '$year',
       if (voteAverageGte != null) 'vote_average.gte': '$voteAverageGte',
+      if (voteAverageLte != null) 'vote_average.lte': '$voteAverageLte',
     };
 
     final payload = await _get('/discover/movie', queryParams);
-    final results = payload['results'] as List?;
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      (json) => Movie.fromJson(json),
+    );
 
-    if (results == null) return [];
-
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(Movie.fromJson)
-        .where((movie) => movie.title.isNotEmpty)
-        .toList(growable: false);
+    return PaginatedResponse<Movie>(
+      page: response.page,
+      totalPages: response.totalPages,
+      totalResults: response.totalResults,
+      results: response.results
+          .where((movie) => movie.title.isNotEmpty)
+          .toList(growable: false),
+    );
   }
 
   // Genres
@@ -236,8 +292,11 @@ class TmdbRepository {
   }
 
   // TV
-  Future<List<Movie>> fetchTrendingTv({String timeWindow = 'day'}) async {
-    final payload = await _get('/trending/tv/$timeWindow');
+  Future<List<Movie>> fetchTrendingTv({
+    String timeWindow = 'day',
+    int page = 1,
+  }) async {
+    final payload = await _get('/trending/tv/$timeWindow', {'page': '$page'});
     final results = payload['results'] as List?;
 
     if (results == null) return [];
@@ -299,6 +358,59 @@ class TmdbRepository {
         .map(Movie.fromJson)
         .where((show) => show.title.isNotEmpty)
         .toList(growable: false);
+  }
+
+  Future<PaginatedResponse<Movie>> discoverTvPaginated({
+    int page = 1,
+    String? sortBy,
+    List<int>? withGenres,
+    double? voteAverageGte,
+    double? voteAverageLte,
+    String? firstAirDateGte,
+    String? firstAirDateLte,
+  }) async {
+    final queryParams = <String, String>{
+      'page': '$page',
+      if (sortBy != null) 'sort_by': sortBy,
+      if (withGenres != null && withGenres.isNotEmpty)
+        'with_genres': withGenres.join(','),
+      if (voteAverageGte != null) 'vote_average.gte': '$voteAverageGte',
+      if (voteAverageLte != null) 'vote_average.lte': '$voteAverageLte',
+      if (firstAirDateGte != null) 'first_air_date.gte': firstAirDateGte,
+      if (firstAirDateLte != null) 'first_air_date.lte': firstAirDateLte,
+    };
+
+    final payload = await _get('/discover/tv', queryParams);
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      (json) => Movie.fromJson(json),
+    );
+
+    return PaginatedResponse<Movie>(
+      page: response.page,
+      totalPages: response.totalPages,
+      totalResults: response.totalResults,
+      results: response.results
+          .where((show) => show.title.isNotEmpty)
+          .toList(growable: false),
+    );
+  }
+
+  Future<List<Movie>> discoverTvShows({
+    int page = 1,
+    String? sortBy,
+    List<int>? withGenres,
+    double? voteAverageGte,
+    double? voteAverageLte,
+  }) async {
+    final response = await discoverTvPaginated(
+      page: page,
+      sortBy: sortBy,
+      withGenres: withGenres,
+      voteAverageGte: voteAverageGte,
+      voteAverageLte: voteAverageLte,
+    );
+    return response.results;
   }
 
   // People

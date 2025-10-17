@@ -50,7 +50,7 @@ class WatchlistProvider with ChangeNotifier {
   }
 
   Future<void> clearWatchlist() async {
-    await _storage.saveWatchlist({});
+    await _storage.saveWatchlist(<int>{});
     _watchlist.clear();
     notifyListeners();
   }

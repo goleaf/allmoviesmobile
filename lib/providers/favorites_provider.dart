@@ -50,7 +50,7 @@ class FavoritesProvider with ChangeNotifier {
   }
 
   Future<void> clearFavorites() async {
-    await _storage.saveFavorites({});
+    await _storage.saveFavorites(<int>{});
     _favorites.clear();
     notifyListeners();
   }

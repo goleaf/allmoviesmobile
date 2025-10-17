@@ -1,5 +1,7 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../core/utils/media_image_helper.dart';
+
 part 'movie_ref_model.freezed.dart';
 part 'movie_ref_model.g.dart';
 
@@ -21,12 +23,29 @@ class MovieRef with _$MovieRef {
 }
 
 extension MovieRefX on MovieRef {
-  String? get posterUrl =>
-      posterPath != null ? 'https://image.tmdb.org/t/p/w342$posterPath' : null;
+  String? get posterUrl => MediaImageHelper.buildUrl(
+        posterPath,
+        type: MediaImageType.poster,
+        size: MediaImageSize.w342,
+      );
 
-  String? get backdropUrl => backdropPath != null
-      ? 'https://image.tmdb.org/t/p/w780$backdropPath'
-      : null;
+  String? get backdropUrl => MediaImageHelper.buildUrl(
+        backdropPath,
+        type: MediaImageType.backdrop,
+        size: MediaImageSize.w780,
+      );
+
+  String? posterUrlFor(MediaImageSize size) => MediaImageHelper.buildUrl(
+        posterPath,
+        type: MediaImageType.poster,
+        size: size,
+      );
+
+  String? backdropUrlFor(MediaImageSize size) => MediaImageHelper.buildUrl(
+        backdropPath,
+        type: MediaImageType.backdrop,
+        size: size,
+      );
 
   String? get releaseYear => releaseDate != null && releaseDate!.isNotEmpty
       ? releaseDate!.split('-').first

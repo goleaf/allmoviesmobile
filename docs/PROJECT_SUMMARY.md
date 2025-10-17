@@ -352,6 +352,11 @@ All without user accounts - fully local!
 - Retry detection
 - Max attempts
 
+#### Media Gallery Tests (new)
+- MediaGallerySection widget states (loading, error, empty, populated)
+- Zoomable image dialog gesture, close control, and fallback visuals
+- MediaGalleryProvider refresh and caching flows with mocked TMDB responses
+
 **Pass Rate: 95.7%** (45/47 passing)
 
 ---

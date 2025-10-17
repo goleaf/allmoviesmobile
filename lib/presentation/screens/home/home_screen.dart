@@ -51,6 +51,18 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Preloads the content needed for the home screen hero sections by
+  /// dispatching the following API-backed providers:
+  /// - Movies: [`GET /3/trending/movie`](https://developer.themoviedb.org/reference/trending-movies)
+  /// - Series: [`GET /3/trending/tv`](https://developer.themoviedb.org/reference/trending-tv)
+  /// - People: [`GET /3/person/popular`](https://developer.themoviedb.org/reference/person-popular-list)
+  /// - Collections: [`GET /3/collection/{collection_id}`](https://developer.themoviedb.org/reference/collection-details)
+  /// - Personalized recommendations: derived from trending/popular mixes via
+  ///   `RecommendationsProvider` helper methods that layer local favorites and
+  ///   watch history.
+  ///
+  /// Each provider internally caches its JSON response; we simply trigger the
+  /// fetch here so that the UI renders with data on the first frame.
   Future<void> _preloadContent() async {
     final moviesProvider = context.read<MoviesProvider>();
     final seriesProvider = context.read<SeriesProvider>();
@@ -70,6 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Pull-to-refresh handler that re-queries all home screen endpoints.
+  /// The provider methods trigger the same TMDB endpoints listed in
+  /// [_preloadContent] but with `force: true` to bypass caches when supported.
   Future<void> _refreshAll() async {
     final moviesProvider = context.read<MoviesProvider>();
     final seriesProvider = context.read<SeriesProvider>();
@@ -86,6 +101,9 @@ class _HomeScreenState extends State<HomeScreen> {
     ]);
   }
 
+  /// Opens the dedicated search screen once the user submits from the inline
+  /// search bar. The search feature uses the multi-search endpoint
+  /// `GET /3/search/multi` (see `SearchScreen`) and expects a trimmed query.
   void _openSearch(BuildContext context, String query) {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
@@ -114,6 +132,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
             ),
             const SizedBox(height: 12),
+            // Persistent search field requested by the UI spec so users can
+            // immediately jump to the global search experience.
             _HomeSearchField(
               controller: _searchController,
               hintText: loc.search['search_placeholder'] ??
@@ -132,6 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           children: [
             const SizedBox(height: 16),
+            // Shortcut cards to the most frequented discovery surfaces.
             _QuickAccessSection(
               title: loc.home['quick_access'] ?? 'Quick Access',
               items: [
@@ -156,35 +177,46 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             const SizedBox(height: 24),
+            // Trending movies carousel ("Of the moment") powered by
+            // `GET /3/trending/movie/day`.
             _MoviesCarousel(
               title:
                   loc.home['of_the_moment_movies'] ?? 'Of the moment movies',
               section: MovieSection.trending,
             ),
             const SizedBox(height: 24),
+            // Trending TV carousel powered by `GET /3/trending/tv/day`.
             _SeriesCarousel(
               title: loc.home['of_the_moment_tv'] ?? 'Of the moment TV',
               section: SeriesSection.trending,
             ),
             const SizedBox(height: 24),
+            // Popular people carousel sourced from `GET /3/person/popular`.
             _PeopleCarousel(
               title: loc.home['popular_people'] ?? 'Popular people',
             ),
             const SizedBox(height: 24),
+            // Curated collections via `GET /3/collection/{collection_id}`
+            // resolved by `CollectionsProvider`.
             _CollectionsCarousel(
               title:
                   loc.home['featured_collections'] ?? 'Featured collections',
             ),
             const SizedBox(height: 24),
+            // Now playing movies (`GET /3/movie/now_playing`) fulfilling the
+            // "New releases" requirement.
             _MoviesCarousel(
               title: loc.home['new_releases'] ?? 'New releases',
               section: MovieSection.nowPlaying,
             ),
             const SizedBox(height: 24),
+            // Continue watching derived from the local watchlist storage.
             _ContinueWatchingSection(
               title: loc.home['continue_watching'] ?? 'Continue watching',
             ),
             const SizedBox(height: 24),
+            // Personalized recommendation rail combining favorites, history,
+            // and trending/popular fallbacks via `RecommendationsProvider`.
             _RecommendationsSection(
               title:
                   loc.home['personalized_recommendations'] ??
@@ -198,6 +230,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+/// Stateless widget wrapping the persistent search box displayed in the home
+/// app bar. This widget is purely presentational; the parent wires callbacks
+/// to the search flow that ultimately hits `GET /3/search/multi`.
 class _HomeSearchField extends StatelessWidget {
   const _HomeSearchField({
     required this.controller,
@@ -235,6 +270,8 @@ class _HomeSearchField extends StatelessWidget {
   }
 }
 
+/// Horizontal row of quick access shortcuts that deep-link into high-traffic
+/// discovery areas (API Explorer, Trending, Genres).
 class _QuickAccessSection extends StatelessWidget {
   const _QuickAccessSection({
     required this.title,
@@ -273,6 +310,8 @@ class _QuickAccessSection extends StatelessWidget {
   }
 }
 
+/// Model describing each quick access button, storing the icon, label, and
+/// navigation callback.
 class _QuickAccessItem {
   const _QuickAccessItem({
     required this.icon,
@@ -285,6 +324,7 @@ class _QuickAccessItem {
   final VoidCallback onTap;
 }
 
+/// Visual card used for the quick access shortcuts.
 class _QuickAccessCard extends StatelessWidget {
   const _QuickAccessCard({required this.item});
 
@@ -322,6 +362,8 @@ class _QuickAccessCard extends StatelessWidget {
   }
 }
 
+/// Reusable carousel for movie rails. The [section] determines which provider
+/// slice we query (trending, now playing, etc.).
 class _MoviesCarousel extends StatelessWidget {
   const _MoviesCarousel({
     required this.title,
@@ -364,6 +406,7 @@ class _MoviesCarousel extends StatelessWidget {
   }
 }
 
+/// Carousel for TV shows leveraging the `SeriesProvider` section data.
 class _SeriesCarousel extends StatelessWidget {
   const _SeriesCarousel({
     required this.title,
@@ -406,6 +449,7 @@ class _SeriesCarousel extends StatelessWidget {
   }
 }
 
+/// Carousel showcasing popular people returned by `GET /3/person/popular`.
 class _PeopleCarousel extends StatelessWidget {
   const _PeopleCarousel({required this.title});
 
@@ -442,6 +486,8 @@ class _PeopleCarousel extends StatelessWidget {
   }
 }
 
+/// Carousel presenting curated TMDB collections sourced from the
+/// `CollectionsProvider` popular feed.
 class _CollectionsCarousel extends StatelessWidget {
   const _CollectionsCarousel({required this.title});
 
@@ -479,6 +525,8 @@ class _CollectionsCarousel extends StatelessWidget {
   }
 }
 
+/// Horizontal rail built from the locally persisted watchlist to encourage
+/// users to resume unfinished content.
 class _ContinueWatchingSection extends StatelessWidget {
   const _ContinueWatchingSection({required this.title});
 
@@ -508,6 +556,9 @@ class _ContinueWatchingSection extends StatelessWidget {
   }
 }
 
+/// Personalized recommendation rail leveraging the local
+/// `RecommendationsProvider`, which combines favorites/watch history with
+/// trending and popular movie feeds.
 class _RecommendationsSection extends StatelessWidget {
   const _RecommendationsSection({required this.title});
 
@@ -550,6 +601,8 @@ class _RecommendationsSection extends StatelessWidget {
   }
 }
 
+/// Generic horizontal list template shared by all rails in this screen. It
+/// handles loading, error, and empty states before rendering the scroll view.
 class _HorizontalMediaSection extends StatelessWidget {
   const _HorizontalMediaSection({
     required this.title,
@@ -617,6 +670,7 @@ class _HorizontalMediaSection extends StatelessWidget {
   }
 }
 
+/// Card UI for a single person entry showing profile picture and metadata.
 class _PersonCard extends StatelessWidget {
   const _PersonCard({
     required this.name,
@@ -690,6 +744,7 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
+/// Card representation for collections highlighting the poster and overview.
 class _CollectionCard extends StatelessWidget {
   const _CollectionCard({
     required this.name,
@@ -763,6 +818,7 @@ class _CollectionCard extends StatelessWidget {
   }
 }
 
+/// Card for a saved media item in the watchlist (movie or TV show).
 class _WatchlistCard extends StatelessWidget {
   const _WatchlistCard({required this.item});
 

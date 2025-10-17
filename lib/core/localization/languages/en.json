@@ -156,7 +156,15 @@
     "homepage": "Homepage",
     "origin_country": "Origin Country",
     "produced_movies": "Produced Movies",
-    "produced_series": "Produced Series"
+    "produced_series": "Produced Series",
+    "filter_label": "Filter by country",
+    "filter_all": "All countries",
+    "filter_empty": "Country list will load automatically when online.",
+    "empty_prompt": "Search for a production company to get started.",
+    "popular_title": "Popular production companies",
+    "popular_subtitle": "Studios making headlines this week",
+    "popular_empty": "Trending studios will appear here soon.",
+    "logo_gallery": "Logo gallery"
   },
   "network": {
     "details_title": "Network details",
@@ -302,6 +310,7 @@
     "loading": "Loading...",
     "error": "Error",
     "retry": "Retry",
+    "refresh": "Refresh",
     "cancel": "Cancel",
     "ok": "OK",
     "yes": "Yes",

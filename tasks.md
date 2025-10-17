@@ -599,9 +599,9 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Produced TV shows list
 
 #### 🔄 Enhancement Opportunities
-- [ ] Companies by country filter (browse screen)
-- [ ] Popular production companies list (trending companies)
-- [ ] Company logo gallery (multiple logos/versions)
+- [x] Companies by country filter (browse screen)
+- [x] Popular production companies list (trending companies)
+- [x] Company logo gallery (multiple logos/versions)
 
 **Files Implemented**:
 - ✅ `lib/presentation/screens/companies/companies_screen.dart`

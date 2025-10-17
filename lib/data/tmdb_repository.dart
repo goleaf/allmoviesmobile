@@ -866,9 +866,203 @@ class TmdbRepository {
     );
   }
 
-  Future<Company> fetchCompanyDetails(int companyId) async {
-    final payload = await _getJson('/company/$companyId');
-    return Company.fromJson(payload);
+  Future<Company> fetchCompanyDetails(
+    int companyId, {
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'company_details::$companyId';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson('/company/$companyId');
+        final normalized = Map<String, dynamic>.from(payload);
+
+        Future<void> loadAlternativeNames() async {
+          try {
+            final response =
+                await _getJson('/company/$companyId/alternative_names');
+            final results = response['results'];
+            if (results is List) {
+              normalized['alternative_names'] = results
+                  .whereType<Map<String, dynamic>>()
+                  .map((item) => (item['name'] as String?)?.trim())
+                  .whereType<String>()
+                  .where((name) => name.isNotEmpty)
+                  .toList(growable: false);
+            }
+          } catch (_) {
+            // Silently ignore alternative names failure
+          }
+        }
+
+        Future<void> loadLogos() async {
+          try {
+            final response = await _getJson('/company/$companyId/images');
+            final logos = response['logos'];
+            if (logos is List) {
+              normalized['logo_gallery'] = logos
+                  .whereType<Map<String, dynamic>>()
+                  .map((logo) => {
+                        'file_path': logo['file_path'],
+                        'width': logo['width'],
+                        'height': logo['height'],
+                        'aspect_ratio': logo['aspect_ratio'],
+                        'vote_average':
+                            (logo['vote_average'] as num?)?.toDouble(),
+                        'vote_count': logo['vote_count'],
+                      })
+                  .toList(growable: false);
+            }
+          } catch (_) {
+            // Ignore image fetch failures
+          }
+        }
+
+        Future<void> loadProducedMovies() async {
+          try {
+            final response = await _getJson(
+              '/discover/movie',
+              query: {
+                'with_companies': '$companyId',
+                'sort_by': 'popularity.desc',
+                'page': '1',
+              },
+            );
+            final results = response['results'];
+            if (results is List) {
+              normalized['produced_movies'] = results
+                  .whereType<Map<String, dynamic>>()
+                  .map((movie) => {
+                        'id': movie['id'],
+                        'title': movie['title'] ?? movie['name'] ?? '',
+                        'poster_path': movie['poster_path'],
+                        'release_date': movie['release_date'],
+                        'media_type': movie['media_type'],
+                      })
+                  .where((item) =>
+                      (item['title'] as String?)?.toString().trim().isNotEmpty ??
+                      false)
+                  .take(20)
+                  .toList(growable: false);
+            }
+          } catch (_) {
+            // Ignore discover failures
+          }
+        }
+
+        Future<void> loadProducedSeries() async {
+          try {
+            final response = await _getJson(
+              '/discover/tv',
+              query: {
+                'with_companies': '$companyId',
+                'sort_by': 'popularity.desc',
+                'page': '1',
+              },
+            );
+            final results = response['results'];
+            if (results is List) {
+              normalized['produced_series'] = results
+                  .whereType<Map<String, dynamic>>()
+                  .map((show) => {
+                        'id': show['id'],
+                        'title': show['name'] ?? show['title'] ?? '',
+                        'poster_path': show['poster_path'],
+                        'first_air_date': show['first_air_date'],
+                        'media_type': show['media_type'],
+                      })
+                  .where((item) =>
+                      (item['title'] as String?)?.toString().trim().isNotEmpty ??
+                      false)
+                  .take(20)
+                  .toList(growable: false);
+            }
+          } catch (_) {
+            // Ignore discover failures
+          }
+        }
+
+        await Future.wait([
+          loadAlternativeNames(),
+          loadLogos(),
+          loadProducedMovies(),
+          loadProducedSeries(),
+        ]);
+
+        return Company.fromJson(normalized);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
+    );
+  }
+
+  Future<List<Company>> fetchPopularProductionCompanies({
+    int limit = 12,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'popular_production_companies::$limit';
+    return _cached(
+      cacheKey,
+      () async {
+        final trendingMovies = await fetchTrendingMovies(
+          forceRefresh: forceRefresh,
+        );
+        final trendingShowsResponse = await fetchTrendingTv(
+          forceRefresh: forceRefresh,
+        );
+        final trendingShows = trendingShowsResponse.results;
+
+        final queue = <Map<String, dynamic>>[...trendingMovies
+                .take(10)
+                .map((movie) => {'id': movie.id, 'type': 'movie'}),
+            ...trendingShows
+                .take(10)
+                .map((show) => {'id': show.id, 'type': 'tv'})];
+
+        final collected = <Company>[];
+        final seen = <int>{};
+
+        Future<void> addCompanies(List<Company> companies) async {
+          for (final company in companies) {
+            if (company.id == 0) continue;
+            if (company.name.trim().isEmpty) continue;
+            if (seen.add(company.id)) {
+              collected.add(company);
+              if (collected.length >= limit) {
+                return;
+              }
+            }
+          }
+        }
+
+        for (final item in queue) {
+          if (collected.length >= limit) {
+            break;
+          }
+          try {
+            if (item['type'] == 'tv') {
+              final details = await fetchTvDetails(
+                item['id'] as int,
+                forceRefresh: forceRefresh,
+              );
+              await addCompanies(details.productionCompanies);
+            } else {
+              final details = await fetchMovieDetails(
+                item['id'] as int,
+                forceRefresh: forceRefresh,
+              );
+              await addCompanies(details.productionCompanies);
+            }
+          } catch (_) {
+            // Ignore failures for individual media items
+          }
+        }
+
+        return collected.take(limit).toList(growable: false);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.trendingTTL,
+    );
   }
 
   // ---------------------------------------------------------------------------

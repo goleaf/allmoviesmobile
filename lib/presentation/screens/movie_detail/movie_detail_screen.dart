@@ -927,7 +927,12 @@ class _MovieDetailView extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: WatchProvidersSection(region: region, providers: providers),
+      child: WatchProvidersAvailabilitySection(
+        mediaType: 'movie',
+        mediaId: details.id,
+        region: region,
+        providers: providers,
+      ),
     );
   }
 

@@ -764,7 +764,7 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Provider logos and links
 - [x] "Where to Watch" section on all details pages
 - [x] Filter content by specific providers
-- [ ] Notifications for new availability (future)
+- [x] Notifications for new availability (future)
 
 **Settings & Region**:
 - [x] Region selector and normalization (fallback to US)

@@ -18,6 +18,8 @@ class LocalStorageService {
   static const String _searchHistoryKey = 'allmovies_search_history';
   static const String _customListsKey = 'allmovies_custom_lists';
   static const String _notificationsKey = 'allmovies_notifications';
+  static const String _watchAvailabilityKey =
+      'allmovies_watch_availability_snapshots';
 
   // Movies browsing persistence
   static const String _discoverFiltersKey = 'allmovies_discover_filters';
@@ -182,6 +184,129 @@ class LocalStorageService {
   }
 
   Future<bool> clearWatchlist() => _prefs.remove(_watchlistKey);
+
+  // ---------------------------------------------------------------------------
+  // Watch provider availability snapshots
+  // ---------------------------------------------------------------------------
+
+  /// Builds a deterministic storage key for watch provider snapshots using the
+  /// TMDB media type (`movie` or `tv`), the content identifier, and the region
+  /// code returned by the watch provider endpoints
+  /// (`GET /3/movie/{movie_id}/watch/providers` and
+  /// `GET /3/tv/{tv_id}/watch/providers`).
+  String _watchAvailabilityStorageKey(
+    String mediaType,
+    int mediaId,
+    String region,
+  ) {
+    final trimmedType = mediaType.trim().toLowerCase();
+    final normalizedRegion = region.trim().toUpperCase();
+    return '$trimmedType::$mediaId::$normalizedRegion';
+  }
+
+  Map<String, dynamic> _getWatchAvailabilityMap() {
+    final raw = _prefs.getString(_watchAvailabilityKey);
+    if (raw == null || raw.isEmpty) {
+      return <String, dynamic>{};
+    }
+
+    try {
+      final decoded = json.decode(raw);
+      if (decoded is Map<String, dynamic>) {
+        return decoded;
+      }
+      if (decoded is Map) {
+        return decoded.map(
+          (key, value) => MapEntry(key.toString(), value),
+        );
+      }
+    } catch (_) {
+      // Ignore malformed data and reset below by returning empty map.
+    }
+    return <String, dynamic>{};
+  }
+
+  Future<bool> _saveWatchAvailabilityMap(Map<String, dynamic> map) {
+    if (map.isEmpty) {
+      return _prefs.remove(_watchAvailabilityKey);
+    }
+
+    return _prefs.setString(
+      _watchAvailabilityKey,
+      json.encode(map),
+    );
+  }
+
+  /// Returns the stored watch provider identifiers for a media/region combo,
+  /// mirroring the payload from the TMDB endpoints:
+  /// - Movies: `GET /3/movie/{movie_id}/watch/providers`
+  /// - TV shows: `GET /3/tv/{tv_id}/watch/providers`
+  Set<int> getWatchProviderSnapshot(
+    String mediaType,
+    int mediaId,
+    String region,
+  ) {
+    final storageKey = _watchAvailabilityStorageKey(mediaType, mediaId, region);
+    final map = _getWatchAvailabilityMap();
+    final raw = map[storageKey];
+
+    if (raw is List) {
+      return raw
+          .whereType<num>()
+          .map((value) => value.toInt())
+          .toSet(growable: false);
+    }
+    if (raw is Iterable) {
+      return raw
+          .whereType<num>()
+          .map((value) => value.toInt())
+          .toSet(growable: false);
+    }
+
+    return <int>{};
+  }
+
+  /// Whether a snapshot already exists for the provided media/region pair.
+  bool hasWatchProviderSnapshot(
+    String mediaType,
+    int mediaId,
+    String region,
+  ) {
+    final storageKey = _watchAvailabilityStorageKey(mediaType, mediaId, region);
+    final map = _getWatchAvailabilityMap();
+    return map.containsKey(storageKey);
+  }
+
+  /// Persists the set of provider identifiers returned by TMDB watch provider
+  /// endpoints so that the app can notify the user when new services become
+  /// available in their selected region.
+  Future<bool> saveWatchProviderSnapshot(
+    String mediaType,
+    int mediaId,
+    String region,
+    Iterable<int> providerIds,
+  ) {
+    final storageKey = _watchAvailabilityStorageKey(mediaType, mediaId, region);
+    final map = _getWatchAvailabilityMap();
+    map[storageKey] = providerIds.toSet().toList(growable: false);
+    return _saveWatchAvailabilityMap(map);
+  }
+
+  /// Removes the stored snapshot for the given media if the user clears
+  /// notifications or the record becomes obsolete.
+  Future<bool> clearWatchProviderSnapshot(
+    String mediaType,
+    int mediaId,
+    String region,
+  ) {
+    final storageKey = _watchAvailabilityStorageKey(mediaType, mediaId, region);
+    final map = _getWatchAvailabilityMap();
+    final removed = map.remove(storageKey);
+    if (removed == null) {
+      return Future.value(true);
+    }
+    return _saveWatchAvailabilityMap(map);
+  }
 
   // ---------------------------------------------------------------------------
   // Favorites/watchlist sync toggles

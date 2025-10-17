@@ -150,4 +150,59 @@ class PreferencesProvider extends ChangeNotifier {
     await _writeSeriesFilterPresets(filtered);
     notifyListeners();
   }
+
+  /// Return the last applied discover filter parameters for TV series.
+  Map<String, String>? get tvDiscoverFilterPreset {
+    final raw = _prefs.getString(PreferenceKeys.seriesActiveFilters);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is Map<String, dynamic>) {
+        final result = <String, String>{};
+        decoded.forEach((key, value) {
+          if (key is String && value is String) {
+            result[key] = value;
+          }
+        });
+        return result.isEmpty ? null : result;
+      }
+    } catch (_) {
+      // Ignore malformed payloads so corrupted values do not crash startup.
+    }
+
+    return null;
+  }
+
+  /// Persist the active discover filter parameters for quick restoration.
+  Future<void> setTvDiscoverFilterPreset(Map<String, String>? filters) async {
+    if (filters == null || filters.isEmpty) {
+      await _prefs.remove(PreferenceKeys.seriesActiveFilters);
+    } else {
+      await _prefs.setString(
+        PreferenceKeys.seriesActiveFilters,
+        jsonEncode(filters),
+      );
+    }
+    notifyListeners();
+  }
+
+  /// Read the last preset name applied through the filters sheet, if any.
+  String? get tvDiscoverPresetName =>
+      _prefs.getString(PreferenceKeys.seriesActivePresetName);
+
+  /// Persist the last used preset name for UI display/restoration.
+  Future<void> setTvDiscoverPresetName(String? name) async {
+    if (name == null || name.trim().isEmpty) {
+      await _prefs.remove(PreferenceKeys.seriesActivePresetName);
+    } else {
+      await _prefs.setString(
+        PreferenceKeys.seriesActivePresetName,
+        name.trim(),
+      );
+    }
+    notifyListeners();
+  }
 }

@@ -2,23 +2,25 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
-import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
+import '../../../data/services/local_storage_service.dart';
 import '../../../providers/series_provider.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
-import '../../../data/services/local_storage_service.dart';
-import '../series/series_filters_screen.dart';
-import '../../../data/services/local_storage_service.dart';
 import '../../widgets/virtualized_list_view.dart';
+import 'series_filters_screen.dart';
 
+/// Primary entry point for browsing television series collections.
+///
+/// The screen mirrors the movies experience with tabbed sections, pagination
+/// controls, and persistent filters stored locally for fast restoration.
 class SeriesScreen extends StatefulWidget {
-  static const routeName = '/series';
-
   const SeriesScreen({super.key});
+
+  static const routeName = '/series';
 
   @override
   State<SeriesScreen> createState() => _SeriesScreenState();
@@ -26,26 +28,32 @@ class SeriesScreen extends StatefulWidget {
 
 class _SeriesScreenState extends State<SeriesScreen>
     with SingleTickerProviderStateMixin {
-  late final LocalStorageService _storageService;
   late final TabController _tabController;
-  final Map<SeriesSection, ScrollController> _scrollControllers = {};
-  final Map<SeriesSection, VoidCallback> _scrollListeners = {};
-  final Map<SeriesSection, Timer?> _scrollDebouncers = {};
+  late final LocalStorageService _storageService;
   late final List<SeriesSection> _sections;
+
+  /// Individual scroll controllers per section so we can persist offsets.
+  final Map<SeriesSection, ScrollController> _scrollControllers = {};
+
+  /// Debounce timers that persist scroll offsets without spamming disk writes.
+  final Map<SeriesSection, Timer?> _scrollPersistenceTimers = {};
 
   @override
   void initState() {
     super.initState();
     _storageService = context.read<LocalStorageService>();
     _sections = SeriesSection.values;
+
     final initialIndex = _storageService
         .getSeriesTabIndex()
         .clamp(0, _sections.length - 1);
+
     _tabController = TabController(
       length: _sections.length,
       vsync: this,
       initialIndex: initialIndex,
     );
+
     _tabController.addListener(() {
       if (_tabController.indexIsChanging) {
         return;
@@ -54,13 +62,14 @@ class _SeriesScreenState extends State<SeriesScreen>
     });
 
     for (final section in _sections) {
-      final offset = _storageService.getSeriesScrollOffset(section.name);
-      final controller = ScrollController(
-        initialScrollOffset: offset ?? 0.0,
-      );
-      void listener() {
-        _scrollDebouncers[section]?.cancel();
-        _scrollDebouncers[section] = Timer(const Duration(milliseconds: 400), () {
+      final initialOffset =
+          _storageService.getSeriesScrollOffset(section.name) ?? 0.0;
+      final controller = ScrollController(initialScrollOffset: initialOffset);
+      controller.addListener(() {
+        final timer = _scrollPersistenceTimers[section];
+        timer?.cancel();
+        _scrollPersistenceTimers[section] =
+            Timer(const Duration(milliseconds: 350), () {
           unawaited(
             _storageService.setSeriesScrollOffset(
               section.name,
@@ -68,11 +77,8 @@ class _SeriesScreenState extends State<SeriesScreen>
             ),
           );
         });
-      }
-
-      controller.addListener(listener);
+      });
       _scrollControllers[section] = controller;
-      _scrollListeners[section] = listener;
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -80,27 +86,64 @@ class _SeriesScreenState extends State<SeriesScreen>
     });
   }
 
-  Future<void> _refreshSection(
-    BuildContext context,
-    SeriesSection section,
-  ) {
-    return context.read<SeriesProvider>().refreshSection(section);
-  }
-
   @override
   void dispose() {
-    for (final entry in _positionCallbacks.entries) {
-      _positionsListeners[entry.key]!
-          .itemPositions
-          .removeListener(entry.value);
+    for (final timer in _scrollPersistenceTimers.values) {
+      timer?.cancel();
     }
+
+    for (final entry in _scrollControllers.entries) {
+      unawaited(
+        _storageService.setSeriesScrollOffset(
+          entry.key.name,
+          entry.value.offset,
+        ),
+      );
+      entry.value.dispose();
+    }
+
     _tabController.dispose();
     super.dispose();
+  }
+
+  /// Launch the advanced filters screen and apply the resulting selection.
+  Future<void> _openFilters() async {
+    final provider = context.read<SeriesProvider>();
+    final result = await Navigator.of(context).pushNamed(
+      SeriesFiltersScreen.routeName,
+      arguments: SeriesFiltersScreenArguments(
+        initialFilters: provider.activeFilters,
+        initialPresetName: provider.activePresetName,
+      ),
+    );
+
+    if (!mounted) return;
+    if (result is SeriesFilterResult) {
+      await provider.applyTvFilters(
+        result.filters,
+        presetName: result.presetName,
+      );
+      if (!mounted) return;
+      _tabController.animateTo(
+        SeriesSection.values.indexOf(SeriesSection.popular),
+      );
+    }
+  }
+
+  /// Clear any active discover/network filters and reload the popular section.
+  Future<void> _clearFilters() async {
+    await context.read<SeriesProvider>().clearTvFilters();
+    if (!mounted) return;
+    _tabController.animateTo(
+      SeriesSection.values.indexOf(SeriesSection.popular),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final provider = context.watch<SeriesProvider>();
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l.t('tv.series')),
@@ -113,49 +156,42 @@ class _SeriesScreenState extends State<SeriesScreen>
           ],
         ),
         actions: [
+          if (provider.hasActiveFilters)
+            IconButton(
+              tooltip: l.t('discover.clear_filters'),
+              icon: const Icon(Icons.filter_alt_off_outlined),
+              onPressed: _clearFilters,
+            ),
           IconButton(
-            tooltip: 'Filter by Network',
-            icon: const Icon(Icons.hub_outlined),
-            onPressed: _openNetworkFilter,
+            tooltip: l.t('discover.filters'),
+            icon: const Icon(Icons.filter_list),
+            onPressed: _openFilters,
           ),
         ],
       ),
       drawer: const AppDrawer(),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          for (final section in _sections)
-            _SeriesSectionView(
-              section: section,
-              onRefreshAll: _refreshAll,
-              controller: _scrollControllers[section],
+          if (provider.hasActiveFilters)
+            _ActiveFiltersBanner(provider: provider),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                for (final section in _sections)
+                  _SeriesSectionView(
+                    section: section,
+                    controller: _scrollControllers[section]!,
+                  ),
+              ],
             ),
+          ),
         ],
       ),
     );
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    for (final section in _sections) {
-      _scrollDebouncers[section]?.cancel();
-      final controller = _scrollControllers[section];
-      final listener = _scrollListeners[section];
-      if (controller != null && listener != null) {
-        controller.removeListener(listener);
-        unawaited(
-          _storageService.setSeriesScrollOffset(
-            section.name,
-            controller.offset,
-          ),
-        );
-        controller.dispose();
-      }
-    }
-    super.dispose();
-  }
-
+  /// Map each section to the localized label used in the tab bar.
   String _labelForSection(SeriesSection section, AppLocalizations l) {
     switch (section) {
       case SeriesSection.trending:
@@ -165,87 +201,90 @@ class _SeriesScreenState extends State<SeriesScreen>
       case SeriesSection.topRated:
         return l.t('home.top_rated');
       case SeriesSection.airingToday:
-        return l.t('tv.title');
+        return l.t('tv.airing_today');
       case SeriesSection.onTheAir:
-        return l.t('tv.tv_shows');
+        return l.t('tv.on_the_air');
     }
   }
 }
 
-extension on _SeriesScreenState {
-  void _openNetworkFilter() {
-    Navigator.of(context)
-        .pushNamed(
-      SeriesFiltersScreen.routeName,
-      arguments: SeriesFiltersScreenArguments(
-        initialFilters: context.read<SeriesProvider>().activeFilters,
-        initialPresetName: context.read<SeriesProvider>().activePresetName,
-      ),
-    )
-        .then((
-      result,
-    ) async {
-      if (!mounted) return;
-      if (result is SeriesFilterResult) {
-        await context.read<SeriesProvider>().applyTvFilters(
-              result.filters,
-              presetName: result.presetName,
-            );
-        if (!mounted) return;
-        _tabController.animateTo(
-          SeriesSection.values.indexOf(SeriesSection.popular),
-        );
-      }
+/// Highlights the currently applied preset or quick filters so users can see
+/// why the popular feed looks the way it does.
+class _ActiveFiltersBanner extends StatelessWidget {
+  const _ActiveFiltersBanner({required this.provider});
 
-      if (!mounted) return;
-      DefaultTabController.of(context)
-          ?.animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
-    });
-  }
-}
-
-class _NetworkChip extends StatelessWidget {
-  const _NetworkChip({required this.id, required this.name});
-
-  final int id;
-  final String name;
+  final SeriesProvider provider;
 
   @override
   Widget build(BuildContext context) {
-    return OutlinedButton.icon(
-      onPressed: () async {
-        Navigator.pop(context);
-        await context.read<SeriesProvider>().applyNetworkFilter(id);
-        final screenState = context.findAncestorStateOfType<_SeriesScreenState>();
-        if (screenState != null) {
-          screenState._tabController.animateTo(
-            SeriesSection.values.indexOf(SeriesSection.popular),
-          );
-        }
-      },
-      icon: const Icon(Icons.tv),
-      label: Text(name),
+    final chips = <Widget>[];
+
+    if (provider.activePresetName != null &&
+        provider.activePresetName!.isNotEmpty) {
+      chips.add(
+        InputChip(
+          label: Text('Preset: ${provider.activePresetName!}'),
+          onDeleted: () {
+            unawaited(provider.clearTvFilters());
+          },
+        ),
+      );
+    }
+
+    if (provider.activeNetworkId != null) {
+      chips.add(
+        InputChip(
+          label: Text('Network #${provider.activeNetworkId}'),
+          onDeleted: () {
+            unawaited(provider.clearNetworkFilter());
+          },
+        ),
+      );
+    }
+
+    if (chips.isEmpty && provider.activeFilters != null) {
+      chips.add(
+        InputChip(
+          label: Text('${provider.activeFilters!.length} filters active'),
+          onDeleted: () {
+            unawaited(provider.clearTvFilters());
+          },
+        ),
+      );
+    }
+
+    if (chips.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Material(
+      color: Theme.of(context).colorScheme.surfaceVariant,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Wrap(spacing: 8, runSpacing: 8, children: chips),
+      ),
     );
   }
 }
 
+/// Renders a single section list with pull-to-refresh and pagination controls.
 class _SeriesSectionView extends StatelessWidget {
   const _SeriesSectionView({
     required this.section,
-    required this.onRefreshAll,
-    this.controller,
+    required this.controller,
   });
 
   final SeriesSection section;
-  final Future<void> Function(BuildContext context) onRefreshAll;
-  final ScrollController? controller;
+  final ScrollController controller;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
-        Future<void> refreshSection() => onRefreshSection(context, section);
+        final l = AppLocalizations.of(context);
+
         if (state.isLoading && state.items.isEmpty) {
           return const _SeriesListSkeleton();
         }
@@ -253,11 +292,9 @@ class _SeriesSectionView extends StatelessWidget {
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
-            onRetry: refreshSection,
+            onRetry: () => provider.refreshSection(section),
           );
         }
-
-        _maybeRestore(state.items.length);
 
         return Column(
           children: [
@@ -265,117 +302,88 @@ class _SeriesSectionView extends StatelessWidget {
               const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => onRefreshAll(context),
-                child: _SeriesList(
-                  series: state.items,
-                  controller: controller,
-                ),
+                onRefresh: () => provider.refreshSection(section),
+                child: state.items.isEmpty
+                    ? _EmptySeriesList(
+                        controller: controller,
+                        message: l.t('discover.no_results'),
+                      )
+                    : VirtualizedSeparatedListView(
+                        controller: controller,
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        itemCount: state.items.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: 12),
+                        itemBuilder: (context, index) {
+                          final show = state.items[index];
+                          return _SeriesCard(show: show);
+                        },
+                        cacheExtent: 720,
+                        addAutomaticKeepAlives: true,
+                      ),
               ),
             ),
             if (state.errorMessage != null && state.items.isNotEmpty)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
                     state.errorMessage!,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodyMedium
-                        ?.copyWith(color: Theme.of(context).colorScheme.error),
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
                   ),
                 ),
               ),
             if (state.totalPages > 1)
-              _PaginationControls(
-                section: widget.section,
-                state: state,
-              ),
+              _SeriesPaginationControls(section: section, state: state),
           ],
         );
       },
     );
   }
-
-  void _maybeRestore(int itemCount) {
-    if (_restored) {
-      return;
-    }
-
-    final targetIndex = widget.initialScrollIndex;
-    if (targetIndex == null) {
-      _restored = true;
-      return;
-    }
-    if (itemCount <= targetIndex) {
-      return;
-    }
-    if (!widget.scrollController.isAttached) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!mounted || _restored) return;
-        _maybeRestore(itemCount);
-      });
-      return;
-    }
-    widget.scrollController.jumpTo(index: targetIndex, alignment: 0);
-    _restored = true;
-  }
 }
 
-class _SeriesList extends StatelessWidget {
-  const _SeriesList({required this.series, this.controller});
+/// Lightweight empty-state widget shown when the filters produce no results.
+class _EmptySeriesList extends StatelessWidget {
+  const _EmptySeriesList({required this.controller, required this.message});
 
-  final List<Movie> series;
-  final ScrollController? controller;
+  final ScrollController controller;
+  final String message;
 
-  @override
-  State<_SeriesList> createState() => _SeriesListState();
-}
-
-class _SeriesListState extends State<_SeriesList> {
   @override
   Widget build(BuildContext context) {
-    if (widget.series.isEmpty) {
-      return ListView(
-        controller: controller,
-        physics: const AlwaysScrollableScrollPhysics(),
-        children: [
-          const SizedBox(height: 120),
-          Icon(
-            Icons.live_tv_outlined,
-            size: 48,
-            color: Theme.of(context).colorScheme.onSurfaceVariant,
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Text(
-              widget.emptyMessage,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-        ],
-      );
-    }
-
-    return VirtualizedSeparatedListView(
+    return ListView(
       controller: controller,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.series.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        final show = widget.series[index];
-        return _SeriesCard(show: show);
-      },
-      cacheExtent: 720,
-      addAutomaticKeepAlives: true,
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 120),
+      children: [
+        Icon(
+          Icons.live_tv_outlined,
+          size: 48,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
+      ],
     );
   }
 }
 
-class _PaginationControls extends StatelessWidget {
-  const _PaginationControls({required this.section, required this.state});
+/// Pagination controls with previous/next buttons and a jump-to-page dialog.
+class _SeriesPaginationControls extends StatelessWidget {
+  const _SeriesPaginationControls({
+    required this.section,
+    required this.state,
+  });
 
   final SeriesSection section;
   final SeriesSectionState state;
@@ -384,21 +392,22 @@ class _PaginationControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.read<SeriesProvider>();
     final messenger = ScaffoldMessenger.of(context);
-    final textTheme = Theme.of(context).textTheme;
+    final l = AppLocalizations.of(context);
 
     Future<void> handleAction(Future<void> Function() action) async {
       final previousPage = provider.sectionState(section).currentPage;
       await action();
-      final nextState = provider.sectionState(section);
-      if (nextState.errorMessage != null && nextState.currentPage == previousPage) {
+      final updated = provider.sectionState(section);
+      if (updated.errorMessage != null && updated.currentPage == previousPage) {
         messenger.showSnackBar(
-          SnackBar(content: Text(nextState.errorMessage!)),
+          SnackBar(content: Text(updated.errorMessage!)),
         );
       }
     }
 
     Future<void> showJumpDialog() async {
-      final controller = TextEditingController(text: state.currentPage.toString());
+      final controller =
+          TextEditingController(text: state.currentPage.toString());
       final selected = await showDialog<int>(
         context: context,
         builder: (dialogContext) {
@@ -415,7 +424,7 @@ class _PaginationControls extends StatelessWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(dialogContext).pop(),
-                child: const Text(AppStrings.cancel),
+                child: Text(l.t('common.cancel')),
               ),
               FilledButton(
                 onPressed: () {
@@ -437,19 +446,24 @@ class _PaginationControls extends StatelessWidget {
         },
       );
 
-      if (selected != null) {
-        if (selected < 1 || selected > state.totalPages) {
-          messenger.showSnackBar(
-            SnackBar(
-              content: Text(
-                '${AppStrings.page} must be between 1 and ${state.totalPages}.',
-              ),
-            ),
-          );
-          return;
-        }
-        await handleAction(() => provider.loadSectionPage(section, selected));
+      if (selected == null) {
+        return;
       }
+
+      if (selected < 1 || selected > state.totalPages) {
+        messenger.showSnackBar(
+          SnackBar(
+            content: Text(
+              '${AppStrings.page} must be between 1 and ${state.totalPages}.',
+            ),
+          ),
+        );
+        return;
+      }
+
+      await handleAction(
+        () => provider.loadSectionPage(section, selected),
+      );
     }
 
     return Padding(
@@ -460,11 +474,7 @@ class _PaginationControls extends StatelessWidget {
             icon: const Icon(Icons.chevron_left),
             tooltip: 'Previous page',
             onPressed: provider.canGoPrev(section) && !state.isLoading
-                ? () async {
-                    await handleAction(
-                      () => provider.loadPreviousPage(section),
-                    );
-                  }
+                ? () => handleAction(() => provider.loadPreviousPage(section))
                 : null,
           ),
           Expanded(
@@ -473,16 +483,11 @@ class _PaginationControls extends StatelessWidget {
               children: [
                 Text(
                   '${AppStrings.page} ${state.currentPage} ${AppStrings.of} ${state.totalPages}',
-                  style: textTheme.bodyMedium,
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 4),
                 TextButton.icon(
-                  onPressed: state.isLoading
-                      ? null
-                      : () async {
-                          await showJumpDialog();
-                        },
+                  onPressed: state.isLoading ? null : showJumpDialog,
                   icon: const Icon(Icons.input),
                   label: const Text(AppStrings.jump),
                 ),
@@ -493,11 +498,7 @@ class _PaginationControls extends StatelessWidget {
             icon: const Icon(Icons.chevron_right),
             tooltip: 'Next page',
             onPressed: provider.canGoNext(section) && !state.isLoading
-                ? () async {
-                    await handleAction(
-                      () => provider.loadNextPage(section),
-                    );
-                  }
+                ? () => handleAction(() => provider.loadNextPage(section))
                 : null,
           ),
         ],
@@ -506,23 +507,21 @@ class _PaginationControls extends StatelessWidget {
   }
 }
 
+/// Skeleton shimmer used while the first page of a section is loading.
 class _SeriesListSkeleton extends StatelessWidget {
   const _SeriesListSkeleton();
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final cardColor = theme.colorScheme.surfaceVariant;
-    final chipColor = theme.colorScheme.secondaryContainer;
+    final baseColor = theme.colorScheme.surfaceVariant;
+    final accentColor = theme.colorScheme.secondaryContainer;
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: 8,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
+      itemBuilder: (_, __) {
         return Card(
-          clipBehavior: Clip.antiAlias,
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
@@ -530,77 +529,46 @@ class _SeriesListSkeleton extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(radius: 20, backgroundColor: cardColor),
+                    _SkeletonBox(width: 48, height: 48, color: accentColor),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _SkeletonBox(
-                            width: double.infinity,
-                            height: 16,
-                            color: cardColor,
-                          ),
-                          const SizedBox(height: 8),
-                          _SkeletonBox(
-                            width: 140,
-                            height: 12,
-                            color: cardColor,
-                          ),
+                        children: const [
+                          _SkeletonBox(width: double.infinity, height: 16),
+                          SizedBox(height: 8),
+                          _SkeletonBox(width: 160, height: 14),
                         ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: chipColor,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: _SkeletonBox(
-                        width: 28,
-                        height: 12,
-                        color: chipColor.withOpacity(0.6),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
-                _SkeletonBox(
-                  width: double.infinity,
-                  height: 12,
-                  color: cardColor,
-                ),
-                const SizedBox(height: 6),
-                _SkeletonBox(
-                  width: double.infinity,
-                  height: 12,
-                  color: cardColor,
-                ),
-                const SizedBox(height: 6),
-                _SkeletonBox(width: 180, height: 12, color: cardColor),
+                const SizedBox(height: 16),
+                const _SkeletonBox(width: double.infinity, height: 14),
+                const SizedBox(height: 8),
+                const _SkeletonBox(width: double.infinity, height: 14),
               ],
             ),
           ),
         );
       },
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemCount: 6,
     );
   }
 }
 
+/// Generic rounded rectangle placeholder block.
 class _SkeletonBox extends StatelessWidget {
   const _SkeletonBox({
     required this.width,
     required this.height,
-    required this.color,
+    this.color,
   });
 
   final double width;
   final double height;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -608,13 +576,14 @@ class _SkeletonBox extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: color,
+        color: color ?? Theme.of(context).colorScheme.surfaceVariant,
         borderRadius: BorderRadius.circular(6),
       ),
     );
   }
 }
 
+/// Card representation of a single show with quick metadata and rating.
 class _SeriesCard extends StatelessWidget {
   const _SeriesCard({required this.show});
 
@@ -629,7 +598,9 @@ class _SeriesCard extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => MovieDetailScreen(movie: show)),
+            MaterialPageRoute(
+              builder: (_) => MovieDetailScreen(movie: show),
+            ),
           );
         },
         child: Padding(
@@ -676,9 +647,9 @@ class _SeriesCard extends StatelessWidget {
                 const SizedBox(height: 12),
                 Text(
                   show.overview!,
-                  style: Theme.of(context).textTheme.bodyMedium,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
               ],
             ],
@@ -689,17 +660,18 @@ class _SeriesCard extends StatelessWidget {
   }
 
   String _buildSubtitle(Movie show) {
-    final buffer = <String>[];
+    final segments = <String>[];
     if (show.releaseYear != null && show.releaseYear!.isNotEmpty) {
-      buffer.add(show.releaseYear!);
+      segments.add(show.releaseYear!);
     }
     if (show.genresText.isNotEmpty) {
-      buffer.add(show.genresText);
+      segments.add(show.genresText);
     }
-    return buffer.join(' • ');
+    return segments.join(' • ');
   }
 }
 
+/// Error presenter used when the initial load fails.
 class _ErrorView extends StatelessWidget {
   const _ErrorView({required this.message, required this.onRetry});
 
@@ -708,44 +680,32 @@ class _ErrorView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+
     return ListView(
       physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 120),
       children: [
-        const SizedBox(height: 120),
         Icon(
           Icons.error_outline,
           size: 48,
           color: Theme.of(context).colorScheme.error,
         ),
         const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            message,
-            style: Theme.of(context).textTheme.bodyMedium,
-            textAlign: TextAlign.center,
-          ),
+        Text(
+          message,
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.bodyMedium,
         ),
         const SizedBox(height: 16),
         Center(
           child: FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: Text(AppLocalizations.of(context).t('common.retry')),
+            label: Text(l.t('common.retry')),
           ),
         ),
       ],
     );
   }
-}
-
-class _TvFilterState {
-  static DateTime? startDate;
-  static DateTime? endDate;
-  static final Set<int> genres = <int>{};
-  static bool includeNullFirstAirDates = false;
-  static bool screenedTheatrically = false;
-  static String timezone = '';
-  static String watchProviders = '';
-  static final Set<String> monetization = <String>{'flatrate', 'rent', 'buy'};
 }

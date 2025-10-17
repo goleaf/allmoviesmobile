@@ -59,5 +59,10 @@ class AppStrings {
   static const companies = 'Companies';
   static const apiExplorer = 'TMDB Explorer';
   static const exploreCollections = 'Explore the latest highlights from our catalog.';
+  static const recommendedForYou = 'Recommended for You';
+  static const recommendationsSubtitle =
+      'Discover fresh picks tailored to your taste.';
+  static const recommendationsEmpty =
+      'Add favorites or start watching titles to unlock personalized picks.';
 }
 

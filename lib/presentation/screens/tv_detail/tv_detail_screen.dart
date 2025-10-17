@@ -32,6 +32,8 @@ import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../season_detail/season_detail_screen.dart';
 import '../../widgets/watch_providers_section.dart';
+import '../../../providers/media_gallery_provider.dart';
+import '../../widgets/media_gallery_section.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -44,8 +46,16 @@ class TVDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final repository = context.read<TmdbRepository>();
 
-    return ChangeNotifierProvider(
-      create: (_) => TvDetailProvider(repository, tvId: tvShow.id)..load(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => TvDetailProvider(repository, tvId: tvShow.id)..load(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) =>
+              MediaGalleryProvider(repository)..loadTvImages(tvShow.id),
+        ),
+      ],
       child: const _TVDetailView(),
     );
   }
@@ -107,6 +117,7 @@ class _TVDetailView extends StatelessWidget {
                 _buildVideos(context, details, loc),
                 _buildKeywords(context, details, loc),
                 _buildWatchProviders(context, details),
+                const MediaGallerySection(),
                 _buildExternalLinks(context, details, loc),
                 _buildRecommendations(context, details, loc),
                 _buildSimilar(context, details, loc),

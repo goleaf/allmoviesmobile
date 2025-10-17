@@ -707,8 +707,8 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Sortable results
 
 #### 🔄 Enhancement Opportunities
-- [ ] Keyword statistics (usage count, popularity)
-- [ ] Related keywords suggestions
+- [x] Keyword statistics (usage count, popularity)
+- [x] Related keywords suggestions
 
 **Files Implemented**:
 - ✅ `lib/presentation/screens/keywords/keyword_browser_screen.dart`

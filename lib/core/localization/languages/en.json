@@ -287,7 +287,17 @@
     "empty_trending": "No trending keywords right now.",
     "search_prompt": "Start typing to search keywords",
     "empty_results": "No keywords match your search",
-    "search_results_title": "Search results"
+    "search_results_title": "Search results",
+    "stats_title": "Keyword insights",
+    "stats_total_usage": "Total titles",
+    "stats_movies": "Movies",
+    "stats_tv": "TV Shows",
+    "stats_avg_movie_popularity": "Avg movie popularity",
+    "stats_avg_tv_popularity": "Avg TV popularity",
+    "stats_error": "Could not load keyword statistics.",
+    "related_title": "Related keywords",
+    "related_empty": "No related keywords found yet.",
+    "related_error": "Could not load related keywords."
   },
   "collection": {
     "title": "Collection",

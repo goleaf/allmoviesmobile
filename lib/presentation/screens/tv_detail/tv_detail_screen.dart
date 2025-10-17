@@ -5,10 +5,12 @@ import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/services/api_config.dart';
+import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../providers/media_gallery_provider.dart';
 import '../../../providers/watchlist_provider.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/rating_display.dart';
+import '../../widgets/media_gallery_section.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -22,26 +24,36 @@ class TVDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context);
-    
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context, loc),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context, loc),
-                _buildActions(context, loc),
-                _buildOverview(context, loc),
-                _buildMetadata(context, loc),
-                _buildGenres(context, loc),
-                const SizedBox(height: 24),
+    final repository = context.read<TmdbRepository>();
+
+    return ChangeNotifierProvider(
+      create: (_) => MediaGalleryProvider(repository)..loadTvImages(tvShow.id),
+      child: Builder(
+        builder: (context) {
+          final loc = AppLocalizations.of(context);
+
+          return Scaffold(
+            body: CustomScrollView(
+              slivers: [
+                _buildAppBar(context, loc),
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(context, loc),
+                      _buildActions(context, loc),
+                      _buildOverview(context, loc),
+                      _buildMetadata(context, loc),
+                      _buildGenres(context, loc),
+                      const MediaGallerySection(),
+                      const SizedBox(height: 24),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+          );
+        },
       ),
     );
   }

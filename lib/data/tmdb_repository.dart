@@ -4,8 +4,10 @@ import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
+import 'models/image_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
+import 'models/media_images.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
@@ -228,6 +230,31 @@ class TmdbRepository {
     return movie;
   }
 
+  Future<MediaImages> fetchMovieImages(int movieId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKeyPrefix = 'movie-images-';
+    final cacheKey = '$cacheKeyPrefix$movieId';
+    if (!forceRefresh) {
+      final cached = _cache.get<MediaImages>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieDetails(
+      movieId,
+      queryParameters: const {
+        'append_to_response': 'images',
+        'include_image_language': 'en,null',
+      },
+    );
+
+    final images = _parseImagesPayload(payload['images']);
+    _cache.set(cacheKey, images, ttlSeconds: CacheService.movieDetailsTTL);
+    return images;
+  }
+
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
@@ -251,6 +278,31 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
+  }
+
+  Future<MediaImages> fetchTvImages(int tvId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKeyPrefix = 'tv-images-';
+    final cacheKey = '$cacheKeyPrefix$tvId';
+    if (!forceRefresh) {
+      final cached = _cache.get<MediaImages>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTvDetails(
+      tvId,
+      queryParameters: const {
+        'append_to_response': 'images',
+        'include_image_language': 'en,null',
+      },
+    );
+
+    final images = _parseImagesPayload(payload['images']);
+    _cache.set(cacheKey, images, ttlSeconds: CacheService.movieDetailsTTL);
+    return images;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -723,6 +775,35 @@ class TmdbRepository {
 
     _cache.set(cacheKey, regions, ttlSeconds: CacheService.movieDetailsTTL);
     return regions;
+  }
+
+  MediaImages _parseImagesPayload(dynamic raw) {
+    if (raw is! Map<String, dynamic>) {
+      return MediaImages.empty();
+    }
+
+    final posters = _parseImageList(raw['posters']);
+    final backdrops = _parseImageList(raw['backdrops']);
+    final stillsRaw = _parseImageList(raw['stills']);
+    final logos = _parseImageList(raw['logos']);
+    final stills = stillsRaw.isNotEmpty ? stillsRaw : logos;
+
+    return MediaImages(
+      posters: posters,
+      backdrops: backdrops,
+      stills: stills,
+    );
+  }
+
+  List<ImageModel> _parseImageList(dynamic rawList) {
+    if (rawList is! List) {
+      return const <ImageModel>[];
+    }
+
+    return rawList
+        .whereType<Map<String, dynamic>>()
+        .map(ImageModel.fromJson)
+        .toList(growable: false);
   }
 
   Map<String, dynamic> _normalizeDetailPayload(Map<String, dynamic> payload) {

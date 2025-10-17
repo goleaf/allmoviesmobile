@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../data/models/search_result_model.dart';
 import '../../../providers/search_provider.dart';
-import '../movie_detail/movie_detail_screen.dart';
+import 'search_results_list_screen.dart';
+import 'widgets/search_list_tiles.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -21,6 +23,13 @@ class _SearchScreenState extends State<SearchScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final provider = context.read<SearchProvider>();
+      if (provider.inputQuery.isNotEmpty) {
+        _searchController.text = provider.inputQuery;
+        _searchController.selection = TextSelection.fromPosition(
+          TextPosition(offset: _searchController.text.length),
+        );
+      }
       _focusNode.requestFocus();
     });
   }
@@ -32,16 +41,50 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _performSearch(SearchProvider provider) {
-    final query = _searchController.text.trim();
-    if (query.isNotEmpty) {
-      provider.search(query);
+  void _performSearch(SearchProvider provider, {String? query}) {
+    final effectiveQuery = (query ?? _searchController.text).trim();
+    if (effectiveQuery.isEmpty) {
+      provider.clearResults();
+      return;
     }
+
+    _searchController.text = effectiveQuery;
+    _searchController.selection = TextSelection.fromPosition(
+      TextPosition(offset: effectiveQuery.length),
+    );
+
+    provider.search(effectiveQuery);
+    provider.clearSuggestions();
+    FocusScope.of(context).unfocus();
+  }
+
+  void _handleSuggestionTap(SearchProvider provider, String suggestion) {
+    _performSearch(provider, query: suggestion);
+  }
+
+  void _openViewAll(MediaType type) {
+    Navigator.pushNamed(
+      context,
+      SearchResultsListScreen.routeName,
+      arguments: SearchResultsListArgs(mediaType: type),
+    );
+  }
+
+  void _openViewAllCompanies() {
+    Navigator.pushNamed(
+      context,
+      SearchResultsListScreen.routeName,
+      arguments: const SearchResultsListArgs(showCompanies: true),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final searchProvider = context.watch<SearchProvider>();
+    final trimmedInput = searchProvider.inputQuery.trim();
+    final showSuggestions = trimmedInput.isNotEmpty &&
+        (trimmedInput != searchProvider.query.trim() || !searchProvider.hasQuery) &&
+        (searchProvider.suggestions.isNotEmpty || searchProvider.isFetchingSuggestions);
 
     return Scaffold(
       appBar: AppBar(
@@ -49,14 +92,16 @@ class _SearchScreenState extends State<SearchScreen> {
           controller: _searchController,
           focusNode: _focusNode,
           decoration: InputDecoration(
-            hintText: 'Search movies, TV shows...',
+            hintText: 'Search movies, TV shows, people, companies...',
             border: InputBorder.none,
             suffixIcon: _searchController.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(Icons.clear),
                     onPressed: () {
                       _searchController.clear();
-                      searchProvider.clearResults();
+                      context.read<SearchProvider>()
+                        ..clearResults()
+                        ..clearSuggestions();
                     },
                   )
                 : null,
@@ -64,6 +109,7 @@ class _SearchScreenState extends State<SearchScreen> {
           textInputAction: TextInputAction.search,
           onSubmitted: (_) => _performSearch(searchProvider),
           onChanged: (value) {
+            context.read<SearchProvider>().updateInputQuery(value);
             setState(() {});
           },
         ),
@@ -74,7 +120,39 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
         ],
       ),
-      body: _buildBody(searchProvider),
+      body: Column(
+        children: [
+          if (showSuggestions) _buildSuggestions(searchProvider),
+          Expanded(child: _buildBody(searchProvider)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestions(SearchProvider provider) {
+    final suggestions = provider.suggestions;
+
+    return Card(
+      margin: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (provider.isFetchingSuggestions)
+            const LinearProgressIndicator(minHeight: 2),
+          ...suggestions.map((suggestion) {
+            return ListTile(
+              leading: const Icon(Icons.search),
+              title: Text(suggestion),
+              onTap: () => _handleSuggestionTap(provider, suggestion),
+            );
+          }),
+          if (!provider.isFetchingSuggestions && suggestions.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(12),
+              child: Text('No suggestions yet. Keep typing...'),
+            ),
+        ],
+      ),
     );
   }
 
@@ -88,18 +166,22 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     if (!provider.hasQuery) {
-      return _buildSearchHistory(provider);
+      return _buildInitialContent(provider);
     }
 
-    if (!provider.hasResults) {
+    final hasAnyResults = provider.hasResults || provider.hasCompanyResults;
+    if (!hasAnyResults) {
       return _buildNoResults();
     }
 
     return _buildResults(provider);
   }
 
-  Widget _buildSearchHistory(SearchProvider provider) {
-    if (provider.searchHistory.isEmpty) {
+  Widget _buildInitialContent(SearchProvider provider) {
+    final hasHistory = provider.searchHistory.isNotEmpty;
+    final hasTrending = provider.trendingSearches.isNotEmpty;
+
+    if (!hasHistory && !hasTrending) {
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -111,8 +193,9 @@ class _SearchScreenState extends State<SearchScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'Search for movies and TV shows',
+              'Search for movies, shows, people or companies',
               style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -122,80 +205,92 @@ class _SearchScreenState extends State<SearchScreen> {
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Recent Searches',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
+        if (hasHistory) ...[
+          _SectionHeader(
+            title: 'Recent Searches',
+            actionLabel: 'Clear All',
+            onActionTap: provider.clearHistory,
+          ),
+          const SizedBox(height: 8),
+          ...provider.searchHistory.map((query) {
+            return ListTile(
+              leading: const Icon(Icons.history),
+              title: Text(query),
+              trailing: IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: () => provider.removeFromHistory(query),
+              ),
+              onTap: () {
+                _searchController.text = query;
+                _searchController.selection = TextSelection.fromPosition(
+                  TextPosition(offset: query.length),
+                );
+                provider.searchFromHistory(query);
+              },
+            );
+          }),
+          const SizedBox(height: 24),
+        ],
+        if (hasTrending) ...[
+          const _SectionHeader(title: 'Trending Searches'),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: provider.trendingSearches
+                .map(
+                  (query) => ActionChip(
+                    avatar: const Icon(Icons.trending_up, size: 18),
+                    label: Text(query),
+                    onPressed: () => _handleSuggestionTap(provider, query),
                   ),
-            ),
-            TextButton(
-              onPressed: () {
-                provider.clearHistory();
-              },
-              child: const Text('Clear All'),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        ...provider.searchHistory.map((query) {
-          return ListTile(
-            leading: const Icon(Icons.history),
-            title: Text(query),
-            trailing: IconButton(
-              icon: const Icon(Icons.close, size: 20),
-              onPressed: () {
-                provider.removeFromHistory(query);
-              },
-            ),
-            onTap: () {
-              _searchController.text = query;
-              provider.searchFromHistory(query);
-            },
-          );
-        }),
+                )
+                .toList(),
+          ),
+        ],
       ],
     );
   }
 
   Widget _buildResults(SearchProvider provider) {
-    final itemCount = provider.results.length + (provider.isLoadingMore ? 1 : 0);
+    final sections = <Widget>[];
 
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        final metrics = notification.metrics;
-        final shouldLoadMore =
-            metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                provider.canLoadMore &&
-                !provider.isLoadingMore &&
-                !provider.isLoading;
+    void addMediaSection(String title, MediaType type) {
+      final results = provider.groupedResults[type] ?? const <SearchResult>[];
+      if (results.isEmpty) return;
 
-        if (shouldLoadMore) {
-          provider.loadMore();
-        }
-
-        return false;
-      },
-      child: GridView.builder(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.7,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
+      sections.add(
+        _ResultSection(
+          title: title,
+          onViewAll: () => _openViewAll(type),
+          children: results.take(5).map((result) {
+            return SearchResultListTile(result: result);
+          }).toList(),
         ),
-        itemCount: itemCount,
-        itemBuilder: (context, index) {
-          if (index >= provider.results.length) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      );
+    }
 
-          final result = provider.results[index];
-          return _SearchResultCard(result: result);
-        },
-      ),
+    addMediaSection('Movies', MediaType.movie);
+    addMediaSection('TV Shows', MediaType.tv);
+    addMediaSection('People', MediaType.person);
+
+    if (provider.companyResults.isNotEmpty) {
+      sections.add(
+        _ResultSection(
+          title: 'Companies',
+          onViewAll: provider.canLoadMoreCompanies || provider.companyResults.length > 5
+              ? _openViewAllCompanies
+              : null,
+          children: provider.companyResults.take(5).map((company) {
+            return CompanyResultTile(company: company);
+          }).toList(),
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      children: sections,
     );
   }
 
@@ -258,107 +353,76 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
-class _SearchResultCard extends StatelessWidget {
-  const _SearchResultCard({required this.result});
+class _ResultSection extends StatelessWidget {
+  const _ResultSection({
+    required this.title,
+    required this.children,
+    this.onViewAll,
+  });
 
-  final SearchResult result;
+  final String title;
+  final List<Widget> children;
+  final VoidCallback? onViewAll;
 
   @override
   Widget build(BuildContext context) {
-    final title = (result.title ?? result.name ?? '').trim();
-    final overview = (result.overview ?? '').trim();
-    final mediaLabel = switch (result.mediaType) {
-      MediaType.movie => 'Movie',
-      MediaType.tv => 'TV',
-      MediaType.person => 'Person',
-    };
-
-    return Card(
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: result.mediaType == MediaType.movie
-            ? () {
-                Navigator.pushNamed(
-                  context,
-                  MovieDetailScreen.routeName,
-                  arguments: result.id,
-                );
-              }
-            : null,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Container(
-                width: double.infinity,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  image: _posterImage != null
-                      ? DecorationImage(
-                          image: NetworkImage(_posterImage!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: _posterImage == null
-                    ? Center(
-                        child: Text(
-                          (title.isNotEmpty ? title[0] : mediaLabel[0]).toUpperCase(),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onPrimaryContainer,
-                              ),
-                        ),
-                      )
-                    : null,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title.isEmpty ? 'Untitled $mediaLabel' : title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    mediaLabel,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  if (overview.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      overview,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodySmall,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ],
               ),
-            ),
-          ],
-        ),
+              if (onViewAll != null)
+                TextButton(
+                  onPressed: onViewAll,
+                  child: const Text('View all'),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...children,
+        ],
       ),
     );
   }
-
-  String? get _posterImage {
-    if (result.posterPath != null && result.posterPath!.isNotEmpty) {
-      return 'https://image.tmdb.org/t/p/w342${result.posterPath}';
-    }
-    if (result.profilePath != null && result.profilePath!.isNotEmpty) {
-      return 'https://image.tmdb.org/t/p/w342${result.profilePath}';
-    }
-    return null;
-  }
 }
 
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    this.actionLabel,
+    this.onActionTap,
+  });
+
+  final String title;
+  final String? actionLabel;
+  final VoidCallback? onActionTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          title,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        if (actionLabel != null && onActionTap != null)
+          TextButton(
+            onPressed: onActionTap,
+            child: Text(actionLabel!),
+          ),
+      ],
+    );
+  }
+}

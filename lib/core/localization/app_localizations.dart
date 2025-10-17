@@ -23,6 +23,7 @@ class AppLocalizations {
         'series': 'Series',
         'people': 'People',
         'companies': 'Companies',
+        'statistics': 'Statistics',
       },
       'company': {
         'title': 'Company',
@@ -82,6 +83,39 @@ class AppLocalizations {
             'Use palettes that remain legible for common color blindness.',
         'text_size': 'Text size',
         'text_size_description': 'Adjust interface text scale.',
+      },
+      'statistics': {
+        'title': 'Statistics',
+        'chart_placeholder': 'Add more items to unlock this chart.',
+        'watch_time_title': 'Watch time overview',
+        'watch_time_total': 'Total planned',
+        'watch_time_watched': 'Watched',
+        'watch_time_remaining': 'Remaining',
+        'watch_time_completion': 'Completion rate',
+        'watch_time_movies': 'Movies',
+        'watch_time_tv': 'TV shows',
+        'watch_time_watched_count': 'Watched titles',
+        'watch_time_unwatched_count': 'Queued titles',
+        'rating_distribution': 'Rating distribution',
+        'actor_timeline': 'Actor career timeline',
+        'release_timeline': 'Release timeline',
+        'genre_popularity': 'Genre popularity',
+        'box_office_trend': 'Box office trend (vote count proxy)',
+        'budget_vs_revenue': 'Budget vs revenue (runtime vs votes)',
+        'budget_vs_revenue_x_label': 'Runtime (minutes)',
+        'budget_vs_revenue_y_label': 'Vote count',
+        'episode_ratings': 'Episode ratings by series',
+        'episode_ratings_x_label': 'Episode index',
+        'episode_ratings_y_label': 'Average rating',
+        'season_comparison': 'Season comparison',
+        'season_comparison_y_label': 'Avg episodes / season',
+        'season_label': 'seasons',
+        'episode_label': 'episodes',
+        'updated_at': 'Last updated {timestamp}',
+        'empty_title': 'No insights yet',
+        'empty_message':
+            'Add favorites or watchlist entries to unlock personalized charts.',
+        'empty_action': 'Refresh',
       },
       'home': {
         'trending': 'Trending',
@@ -251,6 +285,7 @@ class AppLocalizations {
   Map<String, dynamic> get favorites => _localizedStrings['favorites'] ?? {};
   Map<String, dynamic> get watchlist => _localizedStrings['watchlist'] ?? {};
   Map<String, dynamic> get settings => _localizedStrings['settings'] ?? {};
+  Map<String, dynamic> get statistics => _localizedStrings['statistics'] ?? {};
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};
   Map<String, dynamic> get errors => _localizedStrings['errors'] ?? {};
   Map<String, dynamic> get genres => _localizedStrings['genres'] ?? {};

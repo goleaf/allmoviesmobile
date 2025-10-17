@@ -1127,16 +1127,16 @@ All search types are fully implemented in repository and accessible via search p
 **Status**: 🔴 Not Started  
 **Priority**: LOW
 
-- [ ] Watch time statistics
-- [ ] Charts for:
-  - Box office trends
-  - Rating distributions
-  - Release timelines
-  - Genre popularity
-  - Actor career timeline
-  - Budget vs revenue scatter
-  - Episode ratings graph
-  - Season comparison charts
+- [x] Watch time statistics
+- [x] Charts for:
+  - [x] Box office trends
+  - [x] Rating distributions
+  - [x] Release timelines
+  - [x] Genre popularity
+  - [x] Actor career timeline
+  - [x] Budget vs revenue scatter
+  - [x] Episode ratings graph
+  - [x] Season comparison charts
 
 **Files to Create**:
 - `lib/presentation/screens/statistics/statistics_screen.dart`

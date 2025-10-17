@@ -10,6 +10,7 @@ import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/keywords/keyword_browser_screen.dart';
+import '../screens/statistics/statistics_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -109,6 +110,12 @@ class AppDrawer extends StatelessWidget {
             ),
             selected: currentRoute == KeywordBrowserScreen.routeName,
             onTap: () => _navigateTo(context, KeywordBrowserScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.analytics_outlined),
+            title: Text(AppLocalizations.of(context).t('navigation.statistics')),
+            selected: currentRoute == StatisticsScreen.routeName,
+            onTap: () => _navigateTo(context, StatisticsScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.explore_outlined),

@@ -14,7 +14,8 @@
     "discover": "Огляд",
     "favorites": "Обране",
     "watchlist": "Список перегляду",
-    "settings": "Налаштування"
+    "settings": "Налаштування",
+    "statistics": "Статистика"
   },
   "home": {
     "trending": "У тренді",
@@ -449,5 +450,37 @@
     "war": "Військовий",
     "war_politics": "Війна та політика",
     "western": "Вестерн"
+  },
+  "statistics": {
+    "title": "Статистика",
+    "chart_placeholder": "Додайте більше матеріалів, щоб побачити цю діаграму.",
+    "watch_time_title": "Огляд часу перегляду",
+    "watch_time_total": "Усього заплановано",
+    "watch_time_watched": "Переглянуто",
+    "watch_time_remaining": "Залишилось",
+    "watch_time_completion": "Завершеність",
+    "watch_time_movies": "Фільми",
+    "watch_time_tv": "Серіали",
+    "watch_time_watched_count": "Переглянуті",
+    "watch_time_unwatched_count": "У черзі",
+    "rating_distribution": "Розподіл оцінок",
+    "release_timeline": "Хронологія релізів",
+    "genre_popularity": "Популярність жанрів",
+    "box_office_trend": "Касові тренди (за голосами)",
+    "budget_vs_revenue": "Бюджет проти зборів (тривалість і голоси)",
+    "budget_vs_revenue_x_label": "Тривалість (хвилини)",
+    "budget_vs_revenue_y_label": "Кількість голосів",
+    "episode_ratings": "Рейтинги епізодів за серіалами",
+    "episode_ratings_x_label": "Індекс епізоду",
+    "episode_ratings_y_label": "Середній рейтинг",
+    "season_comparison": "Порівняння сезонів",
+    "season_comparison_y_label": "Середня кількість епізодів / сезон",
+    "season_label": "сезонів",
+    "episode_label": "епізодів",
+    "updated_at": "Оновлено {timestamp}",
+    "empty_title": "Немає даних",
+    "empty_message": "Додайте фільми чи серіали до обраних або списку перегляду, щоб побачити аналітику.",
+    "empty_action": "Оновити",
+    "actor_timeline": "Таймлайн кар'єри акторів"
   }
 }

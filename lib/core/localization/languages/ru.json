@@ -14,7 +14,8 @@
     "discover": "Обзор",
     "favorites": "Избранное",
     "watchlist": "Список просмотра",
-    "settings": "Настройки"
+    "settings": "Настройки",
+    "statistics": "Статистика"
   },
   "home": {
     "trending": "В тренде",
@@ -449,5 +450,37 @@
     "war": "Военный",
     "war_politics": "Война и политика",
     "western": "Вестерн"
+  },
+  "statistics": {
+    "title": "Статистика",
+    "chart_placeholder": "Добавьте больше элементов, чтобы разблокировать диаграмму.",
+    "watch_time_title": "Обзор времени просмотра",
+    "watch_time_total": "Всего запланировано",
+    "watch_time_watched": "Просмотрено",
+    "watch_time_remaining": "Осталось",
+    "watch_time_completion": "Завершено",
+    "watch_time_movies": "Фильмы",
+    "watch_time_tv": "Сериалы",
+    "watch_time_watched_count": "Просмотренные",
+    "watch_time_unwatched_count": "В очереди",
+    "rating_distribution": "Распределение оценок",
+    "release_timeline": "Хронология релизов",
+    "genre_popularity": "Популярность жанров",
+    "box_office_trend": "Кассовые тренды (по голосам)",
+    "budget_vs_revenue": "Бюджет vs. сборы (хронометраж и голоса)",
+    "budget_vs_revenue_x_label": "Хронометраж (минуты)",
+    "budget_vs_revenue_y_label": "Количество голосов",
+    "episode_ratings": "Рейтинги эпизодов по сериалам",
+    "episode_ratings_x_label": "Индекс эпизода",
+    "episode_ratings_y_label": "Средний рейтинг",
+    "season_comparison": "Сравнение сезонов",
+    "season_comparison_y_label": "Среднее эпизодов / сезон",
+    "season_label": "сезонов",
+    "episode_label": "эпизодов",
+    "updated_at": "Последнее обновление {timestamp}",
+    "empty_title": "Нет данных",
+    "empty_message": "Добавьте фильмы или сериалы в избранное/список ожидания, чтобы увидеть аналитику.",
+    "empty_action": "Обновить",
+    "actor_timeline": "Таймлайн карьеры актёров"
   }
 }

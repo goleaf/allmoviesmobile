@@ -41,6 +41,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   List<Video> _videos = const [];
   Video? _selectedVideo;
   String? _selectedType;
+  String? _selectedSite;
   bool _autoPlay = false;
   bool _initialized = false;
   bool _isFullScreen = false;
@@ -98,6 +99,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       }
       _selectedVideo = video;
       _selectedType = video.type;
+      _selectedSite = video.site;
       if (isYoutubeVideo) {
         if (_ytController == null) {
           _initializeYoutubeController(video);
@@ -161,7 +163,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
       return;
     }
 
-    final normalized = quality == 'auto' ? 'default' : quality;
+    final normalized = quality == 'auto' ? 'default' : quality.toLowerCase();
     try {
       await webController.evaluateJavascript(
         source: 'setPlaybackQuality("$normalized")',
@@ -279,6 +281,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  Iterable<String> get _availableSites sync* {
+    final seen = <String>{};
+    for (final video in _videos) {
+      if (seen.add(video.site)) {
+        yield video.site;
+      }
+    }
+  }
+
   void _onTypeSelected(String type) {
     if (_selectedType == type) {
       return;
@@ -291,16 +302,39 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  void _onSiteSelected(String site) {
+    if (_selectedSite == site) {
+      return;
+    }
+    for (final video in _videos) {
+      if (video.site == site &&
+          (_selectedType == null || video.type == _selectedType)) {
+        _selectVideo(video);
+        return;
+      }
+    }
+    // Fallback: select the first video for the chosen site.
+    for (final video in _videos) {
+      if (video.site == site) {
+        _selectVideo(video);
+        return;
+      }
+    }
+  }
+
   List<Video> get _videosForCurrentType {
-    if (_selectedType == null) {
-      return _videos;
+    Iterable<Video> filtered = _videos;
+    if (_selectedType != null) {
+      final typeFiltered =
+          filtered.where((video) => video.type == _selectedType).toList();
+      filtered = typeFiltered.isEmpty ? filtered : typeFiltered;
     }
-    final filtered =
-        _videos.where((video) => video.type == _selectedType).toList();
-    if (filtered.isEmpty) {
-      return _videos;
+    if (_selectedSite != null) {
+      final siteFiltered =
+          filtered.where((video) => video.site == _selectedSite).toList();
+      filtered = siteFiltered.isEmpty ? filtered : siteFiltered;
     }
-    return filtered;
+    return filtered.toList();
   }
 
   String _formatPublishedDate(Video video) {
@@ -415,6 +449,32 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               onSelected: (selected) {
                 if (selected) {
                   _onTypeSelected(type);
+                }
+              },
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSiteSelector() {
+    final sites = _availableSites.toList();
+    if (sites.length <= 1) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final site in sites)
+            ChoiceChip(
+              label: Text(site),
+              selected: _selectedSite == site,
+              onSelected: (selected) {
+                if (selected) {
+                  _onSiteSelected(site);
                 }
               },
             ),
@@ -617,6 +677,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                     showQualitySelector: showQualitySelector,
                   ),
                   _buildTypeSelector(),
+                  _buildSiteSelector(),
                   _buildVideoList(),
                 ],
               ),

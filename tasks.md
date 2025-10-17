@@ -911,8 +911,8 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Embedded YouTube player screen
 - [x] Full-screen mode
 - [x] Play/pause controls
-- [x] Quality selection
-- [x] Multiple video types support
+- [x] Quality selection (in-app YouTube playback quality picker)
+- [x] Multiple video types support (type & provider filters)
 - [x] Video thumbnails (in detail screen)
 - [x] Auto-play toggle
 

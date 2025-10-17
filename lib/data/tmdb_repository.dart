@@ -496,34 +496,69 @@ class TmdbRepository {
     );
   }
 
+  Future<PaginatedResponse<Movie>> fetchTrendingTvPaginated({
+    String timeWindow = 'day',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    if (forceRefresh) {
+      // No caching for this endpoint; parameter kept for API parity.
+    }
+    final payload = await _getJson(
+      '/trending/tv/$timeWindow',
+      query: {'page': '$page'},
+    );
+    return _mapPaginated<Movie>(
+      payload,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
+    );
+  }
+
   Future<List<Movie>> fetchTrendingTv({
     String timeWindow = 'day',
     bool forceRefresh = false,
   }) async {
-    final payload = await _getJson('/trending/tv/$timeWindow');
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    final response = await fetchTrendingTvPaginated(
+      timeWindow: timeWindow,
+      page: 1,
+      forceRefresh: forceRefresh,
+    );
+    return response.results;
   }
 
-  Future<List<Movie>> fetchPopularTv({int page = 1}) async {
+  Future<PaginatedResponse<Movie>> fetchPopularTvPaginated({
+    int page = 1,
+  }) async {
     final payload = await _getJson('/tv/popular', query: {'page': '$page'});
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
-  Future<List<Movie>> fetchTopRatedTv({int page = 1}) async {
+  Future<List<Movie>> fetchPopularTv({int page = 1}) async {
+    final response = await fetchPopularTvPaginated(page: page);
+    return response.results;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchTopRatedTvPaginated({
+    int page = 1,
+  }) async {
     final payload = await _getJson('/tv/top_rated', query: {'page': '$page'});
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
-  Future<List<Movie>> fetchAiringTodayTv({int page = 1}) async {
+  Future<List<Movie>> fetchTopRatedTv({int page = 1}) async {
+    final response = await fetchTopRatedTvPaginated(page: page);
+    return response.results;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchAiringTodayTvPaginated({
+    int page = 1,
+  }) async {
     final payload = await _getJson(
       '/tv/airing_today',
       query: {'page': '$page'},
@@ -531,15 +566,27 @@ class TmdbRepository {
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
-  Future<List<Movie>> fetchOnTheAirTv({int page = 1}) async {
+  Future<List<Movie>> fetchAiringTodayTv({int page = 1}) async {
+    final response = await fetchAiringTodayTvPaginated(page: page);
+    return response.results;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchOnTheAirTvPaginated({
+    int page = 1,
+  }) async {
     final payload = await _getJson('/tv/on_the_air', query: {'page': '$page'});
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
+  }
+
+  Future<List<Movie>> fetchOnTheAirTv({int page = 1}) async {
+    final response = await fetchOnTheAirTvPaginated(page: page);
+    return response.results;
   }
 
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) {

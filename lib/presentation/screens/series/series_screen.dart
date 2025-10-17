@@ -148,9 +148,24 @@ class _SeriesSectionView extends StatelessWidget {
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => onRefreshAll(context),
-          child: _SeriesList(series: state.items),
+        final currentPage = state.currentPage == 0 ? 1 : state.currentPage;
+        final totalPages = state.totalPages == 0 ? 1 : state.totalPages;
+
+        return Column(
+          children: [
+            if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => onRefreshAll(context),
+                child: _SeriesList(series: state.items),
+              ),
+            ),
+            _SeriesPagerControls(
+              section: section,
+              current: currentPage,
+              total: totalPages,
+            ),
+          ],
         );
       },
     );
@@ -193,6 +208,95 @@ class _SeriesList extends StatelessWidget {
         final show = series[index];
         return _SeriesCard(show: show);
       },
+    );
+  }
+}
+
+class _SeriesPagerControls extends StatelessWidget {
+  const _SeriesPagerControls({
+    required this.section,
+    required this.current,
+    required this.total,
+  });
+
+  final SeriesSection section;
+  final int current;
+  final int total;
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<SeriesProvider>();
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+        child: Row(
+          children: [
+            Text('Page $current of $total'),
+            const Spacer(),
+            IconButton(
+              key: ValueKey('series_${section.name}_pager_prev'),
+              tooltip:
+                  '${AppLocalizations.of(context).t('common.page')} ${current - 1}',
+              onPressed: current > 1
+                  ? () => provider.loadPage(section, current - 1)
+                  : null,
+              icon: const Icon(Icons.chevron_left),
+            ),
+            IconButton(
+              key: ValueKey('series_${section.name}_pager_next'),
+              tooltip:
+                  '${AppLocalizations.of(context).t('common.page')} ${current + 1}',
+              onPressed: current < total
+                  ? () => provider.loadPage(section, current + 1)
+                  : null,
+              icon: const Icon(Icons.chevron_right),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              key: ValueKey('series_${section.name}_pager_jump'),
+              icon: const Icon(Icons.keyboard),
+              label: const Text('Jump'),
+              onPressed: () async {
+                final controller = TextEditingController(text: '$current');
+                final target = await showDialog<int>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Jump to page'),
+                    content: TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      decoration:
+                          const InputDecoration(hintText: 'Enter page number'),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          final value = int.tryParse(controller.text.trim());
+                          final maxPage = total == 0 ? 1 : total;
+                          if (value != null && value >= 1 && value <= maxPage) {
+                            Navigator.pop(ctx, value);
+                          } else {
+                            Navigator.pop(ctx);
+                          }
+                        },
+                        child: const Text('Go'),
+                      ),
+                    ],
+                  ),
+                );
+                if (target != null) {
+                  await provider.jumpToPage(section, target);
+                }
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

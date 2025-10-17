@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 
 import '../data/models/movie.dart';
+import '../data/models/paginated_response.dart';
 import '../data/tmdb_repository.dart';
 import 'preferences_provider.dart';
 
@@ -12,6 +13,8 @@ class SeriesSectionState {
     this.items = const <Movie>[],
     this.isLoading = false,
     this.errorMessage,
+    this.currentPage = 0,
+    this.totalPages = 0,
   });
 
   static const _sentinel = Object();
@@ -19,11 +22,15 @@ class SeriesSectionState {
   final List<Movie> items;
   final bool isLoading;
   final String? errorMessage;
+  final int currentPage;
+  final int totalPages;
 
   SeriesSectionState copyWith({
     List<Movie>? items,
     bool? isLoading,
     Object? errorMessage = _sentinel,
+    int? currentPage,
+    int? totalPages,
   }) {
     return SeriesSectionState(
       items: items ?? this.items,
@@ -31,6 +38,8 @@ class SeriesSectionState {
       errorMessage: errorMessage == _sentinel
           ? this.errorMessage
           : errorMessage as String?,
+      currentPage: currentPage ?? this.currentPage,
+      totalPages: totalPages ?? this.totalPages,
     );
   }
 }
@@ -59,6 +68,7 @@ class SeriesProvider extends ChangeNotifier {
   bool _isRefreshing = false;
   String? _globalError;
   int? _activeNetworkId;
+  Map<String, String>? _activeTvFilters;
 
   final Completer<void> _initializedCompleter = Completer<void>();
 
@@ -67,6 +77,7 @@ class SeriesProvider extends ChangeNotifier {
   bool get isRefreshing => _isRefreshing;
   String? get globalError => _globalError;
   int? get activeNetworkId => _activeNetworkId;
+  Map<String, String>? get activeTvFilters => _activeTvFilters;
 
   Future<void> get initialized => _initializedCompleter.future;
 
@@ -96,20 +107,38 @@ class SeriesProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      final includeAdult = _preferences?.includeAdult ?? false;
-      final results = await Future.wait<List<Movie>>([
-        _repository.fetchTrendingTv(forceRefresh: false),
-        _loadPopularSeries(),
-        _repository.fetchTopRatedTv(),
-        _repository.fetchAiringTodayTv(),
-        _repository.fetchOnTheAirTv(),
+      final targetPages = {
+        for (final section in SeriesSection.values)
+          section: _sections[section]!.currentPage <= 0
+              ? 1
+              : _sections[section]!.currentPage,
+      };
+
+      final responses = await Future.wait<PaginatedResponse<Movie>>([
+        _repository.fetchTrendingTvPaginated(
+          page: targetPages[SeriesSection.trending]!,
+        ),
+        _loadPopularSeries(page: targetPages[SeriesSection.popular]!),
+        _repository.fetchTopRatedTvPaginated(
+          page: targetPages[SeriesSection.topRated]!,
+        ),
+        _repository.fetchAiringTodayTvPaginated(
+          page: targetPages[SeriesSection.airingToday]!,
+        ),
+        _repository.fetchOnTheAirTvPaginated(
+          page: targetPages[SeriesSection.onTheAir]!,
+        ),
       ]);
 
       final sectionsList = SeriesSection.values;
       for (var index = 0; index < sectionsList.length; index++) {
         final section = sectionsList[index];
-        final sectionItems = results[index];
-        _sections[section] = SeriesSectionState(items: sectionItems);
+        final response = responses[index];
+        _sections[section] = SeriesSectionState(
+          items: response.results,
+          currentPage: response.page,
+          totalPages: response.totalPages,
+        );
       }
 
       _globalError = null;
@@ -129,14 +158,22 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
-  Future<List<Movie>> _loadPopularSeries() async {
+  Future<PaginatedResponse<Movie>> _loadPopularSeries({required int page}) {
     if (_activeNetworkId != null) {
-      final response = await _repository.fetchNetworkTvShows(
+      return _repository.fetchNetworkTvShows(
         networkId: _activeNetworkId!,
+        page: page,
       );
-      return response.results;
     }
-    return _repository.fetchPopularTv();
+
+    if (_activeTvFilters != null) {
+      return _repository.discoverTvSeries(
+        page: page,
+        filters: _activeTvFilters,
+      );
+    }
+
+    return _repository.fetchPopularTvPaginated(page: page);
   }
 
   void _setErrorForAll(String? message) {
@@ -145,59 +182,86 @@ class SeriesProvider extends ChangeNotifier {
         isLoading: false,
         errorMessage: message,
         items: const <Movie>[],
+        currentPage: 0,
+        totalPages: 0,
       );
     }
   }
 
   Future<void> applyNetworkFilter(int networkId) async {
     _activeNetworkId = networkId;
-    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
-    notifyListeners();
-
-    try {
-      final response = await _repository.fetchNetworkTvShows(
-        networkId: networkId,
-      );
-      _sections[SeriesSection.popular] = SeriesSectionState(
-        items: response.results,
-      );
-    } catch (error) {
-      _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-          .copyWith(
-            isLoading: false,
-            errorMessage: '$error',
-            items: const <Movie>[],
-          );
-    } finally {
-      notifyListeners();
-    }
+    _activeTvFilters = null;
+    await loadPage(SeriesSection.popular, 1);
   }
 
   Future<void> applyTvFilters(Map<String, String> filters) async {
-    _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-        .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
-    notifyListeners();
-    try {
-      final response = await _repository.discoverTvSeries(filters: filters);
-      _sections[SeriesSection.popular] = SeriesSectionState(
-        items: response.results,
-      );
-    } catch (error) {
-      _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
-          .copyWith(
-            isLoading: false,
-            errorMessage: '$error',
-            items: const <Movie>[],
-          );
-    } finally {
-      notifyListeners();
-    }
+    _activeNetworkId = null;
+    _activeTvFilters = Map<String, String>.from(filters);
+    await loadPage(SeriesSection.popular, 1);
   }
 
   Future<void> clearNetworkFilter() async {
     if (_activeNetworkId == null) return;
     _activeNetworkId = null;
+    _activeTvFilters = null;
     await refresh(force: true);
+  }
+
+  Future<void> loadPage(SeriesSection section, int page) async {
+    if (page < 1) return;
+    final state = _sections[section]!;
+    if (state.isLoading) return;
+    if (state.currentPage == page && state.items.isNotEmpty) return;
+
+    _sections[section] = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+    );
+    notifyListeners();
+
+    try {
+      PaginatedResponse<Movie> response;
+      switch (section) {
+        case SeriesSection.trending:
+          response = await _repository.fetchTrendingTvPaginated(page: page);
+          break;
+        case SeriesSection.popular:
+          response = await _loadPopularSeries(page: page);
+          break;
+        case SeriesSection.topRated:
+          response = await _repository.fetchTopRatedTvPaginated(page: page);
+          break;
+        case SeriesSection.airingToday:
+          response = await _repository.fetchAiringTodayTvPaginated(page: page);
+          break;
+        case SeriesSection.onTheAir:
+          response = await _repository.fetchOnTheAirTvPaginated(page: page);
+          break;
+      }
+
+      _sections[section] = state.copyWith(
+        isLoading: false,
+        items: response.results,
+        currentPage: response.page,
+        totalPages: response.totalPages,
+        errorMessage: null,
+      );
+    } catch (error) {
+      _sections[section] = state.copyWith(
+        isLoading: false,
+        errorMessage: '$error',
+      );
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> jumpToPage(SeriesSection section, int page) =>
+      loadPage(section, page);
+
+  Future<void> loadNextPage(SeriesSection section) async {
+    final state = _sections[section]!;
+    if (state.currentPage >= state.totalPages) return;
+    await loadPage(section, state.currentPage + 1);
   }
 }

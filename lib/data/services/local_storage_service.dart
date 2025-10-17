@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../models/saved_media_item.dart';
+
 class LocalStorageService {
   static const String _favoritesKey = 'allmovies_favorites';
   static const String _watchlistKey = 'allmovies_watchlist';
@@ -11,64 +13,190 @@ class LocalStorageService {
 
   LocalStorageService(this._prefs);
 
+  static const String _favoritesSyncEnabledKey = 'allmovies_favorites_sync_enabled';
+  static const String _watchlistSyncEnabledKey = 'allmovies_watchlist_sync_enabled';
+  static const String _favoritesLastSyncedKey = 'allmovies_favorites_last_synced';
+  static const String _watchlistLastSyncedKey = 'allmovies_watchlist_last_synced';
+
+  final SharedPreferences _prefs;
+
+  LocalStorageService(this._prefs);
+
   // Favorites Management
-  Set<int> getFavorites() {
+  List<SavedMediaItem> getFavoriteItems() {
     final favoritesJson = _prefs.getString(_favoritesKey);
-    if (favoritesJson == null || favoritesJson.isEmpty) return {};
-    
-    final List<dynamic> favoritesList = json.decode(favoritesJson);
-    return favoritesList.whereType<int>().toSet();
+    return SavedMediaItem.decodeList(favoritesJson);
   }
 
-  Future<bool> saveFavorites(Set<int> favorites) async {
-    final favoritesJson = json.encode(favorites.toList());
-    return await _prefs.setString(_favoritesKey, favoritesJson);
+  Future<bool> saveFavoriteItems(List<SavedMediaItem> favorites) async {
+    final favoritesJson = SavedMediaItem.encodeList(favorites);
+    return _prefs.setString(_favoritesKey, favoritesJson);
   }
 
-  Future<bool> addToFavorites(int movieId) async {
-    final favorites = getFavorites();
-    favorites.add(movieId);
-    return await saveFavorites(favorites);
+  Future<bool> upsertFavorite(SavedMediaItem item) async {
+    final favorites = getFavoriteItems();
+    final index = favorites.indexWhere((element) => element.storageId == item.storageId);
+    if (index >= 0) {
+      favorites[index] = item.copyWith(updatedAt: DateTime.now());
+    } else {
+      favorites.add(item.copyWith(addedAt: DateTime.now(), updatedAt: DateTime.now()));
+    }
+    return saveFavoriteItems(favorites);
   }
 
-  Future<bool> removeFromFavorites(int movieId) async {
-    final favorites = getFavorites();
-    favorites.remove(movieId);
-    return await saveFavorites(favorites);
+  Future<bool> removeFavorite(int id, SavedMediaType type) async {
+    final favorites = getFavoriteItems();
+    favorites.removeWhere((item) => item.id == id && item.type == type);
+    return saveFavoriteItems(favorites);
   }
 
-  bool isFavorite(int movieId) {
-    return getFavorites().contains(movieId);
+  bool isFavorite(int id, SavedMediaType type) {
+    final favorites = getFavoriteItems();
+    return favorites.any((item) => item.id == id && item.type == type);
+  }
+
+  Future<bool> clearFavorites() async {
+    return _prefs.remove(_favoritesKey);
   }
 
   // Watchlist Management
-  Set<int> getWatchlist() {
+  List<SavedMediaItem> getWatchlistItems() {
     final watchlistJson = _prefs.getString(_watchlistKey);
-    if (watchlistJson == null || watchlistJson.isEmpty) return {};
-    
-    final List<dynamic> watchlist = json.decode(watchlistJson);
-    return watchlist.whereType<int>().toSet();
+    return SavedMediaItem.decodeList(watchlistJson);
   }
 
-  Future<bool> saveWatchlist(Set<int> watchlist) async {
-    final watchlistJson = json.encode(watchlist.toList());
-    return await _prefs.setString(_watchlistKey, watchlistJson);
+  Future<bool> saveWatchlistItems(List<SavedMediaItem> watchlist) async {
+    final watchlistJson = SavedMediaItem.encodeList(watchlist);
+    return _prefs.setString(_watchlistKey, watchlistJson);
   }
 
-  Future<bool> addToWatchlist(int movieId) async {
-    final watchlist = getWatchlist();
-    watchlist.add(movieId);
-    return await saveWatchlist(watchlist);
+  Future<bool> upsertWatchlistItem(SavedMediaItem item) async {
+    final watchlist = getWatchlistItems();
+    final index = watchlist.indexWhere((element) => element.storageId == item.storageId);
+    if (index >= 0) {
+      watchlist[index] = item.copyWith(updatedAt: DateTime.now());
+    } else {
+      watchlist.add(item.copyWith(addedAt: DateTime.now(), updatedAt: DateTime.now()));
+    }
+    return saveWatchlistItems(watchlist);
   }
 
-  Future<bool> removeFromWatchlist(int movieId) async {
-    final watchlist = getWatchlist();
-    watchlist.remove(movieId);
-    return await saveWatchlist(watchlist);
+  Future<bool> removeFromWatchlist(int id, SavedMediaType type) async {
+    final watchlist = getWatchlistItems();
+    watchlist.removeWhere((item) => item.id == id && item.type == type);
+    return saveWatchlistItems(watchlist);
   }
 
-  bool isInWatchlist(int movieId) {
-    return getWatchlist().contains(movieId);
+  bool isInWatchlist(int id, SavedMediaType type) {
+    final watchlist = getWatchlistItems();
+    return watchlist.any((item) => item.id == id && item.type == type);
+  }
+
+  Future<bool> clearWatchlist() async {
+    return _prefs.remove(_watchlistKey);
+  }
+
+  bool getFavoritesSyncEnabled() {
+    return _prefs.getBool(_favoritesSyncEnabledKey) ?? false;
+  }
+
+  Future<bool> setFavoritesSyncEnabled(bool value) {
+    return _prefs.setBool(_favoritesSyncEnabledKey, value);
+  }
+
+  bool getWatchlistSyncEnabled() {
+    return _prefs.getBool(_watchlistSyncEnabledKey) ?? false;
+  }
+
+  Future<bool> setWatchlistSyncEnabled(bool value) {
+    return _prefs.setBool(_watchlistSyncEnabledKey, value);
+  }
+
+  DateTime? getFavoritesLastSyncedAt() {
+    final raw = _prefs.getString(_favoritesLastSyncedKey);
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
+    }
+
+  Future<bool> setFavoritesLastSyncedAt(DateTime timestamp) {
+    return _prefs.setString(_favoritesLastSyncedKey, timestamp.toIso8601String());
+  }
+
+  DateTime? getWatchlistLastSyncedAt() {
+    final raw = _prefs.getString(_watchlistLastSyncedKey);
+    if (raw == null || raw.isEmpty) return null;
+    return DateTime.tryParse(raw);
+  }
+
+  Future<bool> setWatchlistLastSyncedAt(DateTime timestamp) {
+    return _prefs.setString(_watchlistLastSyncedKey, timestamp.toIso8601String());
+  }
+
+  String exportFavorites() {
+    final favorites = getFavoriteItems();
+    return SavedMediaItem.encodeList(favorites);
+  }
+
+  Future<bool> importFavorites(
+    String exportJson, {
+    bool replaceExisting = false,
+  }) async {
+    final decoded = SavedMediaItem.decodeList(exportJson);
+    if (decoded.isEmpty) return false;
+
+    if (replaceExisting) {
+      return saveFavoriteItems(decoded);
+    }
+
+    final current = getFavoriteItems();
+    final mergedIds = current.map((item) => item.storageId).toSet();
+    final mergedItems = <SavedMediaItem>[...current];
+
+    for (final item in decoded) {
+      if (mergedIds.add(item.storageId)) {
+        mergedItems.add(item);
+      }
+    }
+
+    mergedItems.sort((a, b) => a.addedAt.compareTo(b.addedAt));
+
+    if (mergedItems.length == current.length) {
+      return false;
+    }
+
+    return saveFavoriteItems(mergedItems);
+  }
+
+  String exportWatchlist() {
+    final watchlist = getWatchlistItems();
+    return SavedMediaItem.encodeList(watchlist);
+  }
+
+  Future<bool> importWatchlist(String exportJson, {bool replaceExisting = false}) async {
+    final decoded = SavedMediaItem.decodeList(exportJson);
+    if (decoded.isEmpty) return false;
+
+    if (replaceExisting) {
+      return saveWatchlistItems(decoded);
+    }
+
+    final current = getWatchlistItems();
+    final mergedIds = current.map((item) => item.storageId).toSet();
+    final mergedItems = <SavedMediaItem>[...current];
+
+    for (final item in decoded) {
+      if (mergedIds.add(item.storageId)) {
+        mergedItems.add(item);
+      }
+    }
+
+    mergedItems.sort((a, b) => a.addedAt.compareTo(b.addedAt));
+
+    if (mergedItems.length == current.length) {
+      return false;
+    }
+
+    return saveWatchlistItems(mergedItems);
   }
 
   // Recently Viewed Management
@@ -136,4 +264,3 @@ class LocalStorageService {
     return true;
   }
 }
-

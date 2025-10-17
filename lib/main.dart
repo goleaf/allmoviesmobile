@@ -1,3 +1,4 @@
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -75,31 +76,38 @@ class AllMoviesApp extends StatelessWidget {
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
         builder: (context, localeProvider, themeProvider, _) {
-          return MaterialApp(
-            title: AppStrings.appName,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeProvider.materialThemeMode,
-            locale: localeProvider.locale,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: AppLocalizations.supportedLocales,
-            debugShowCheckedModeBanner: false,
-            initialRoute: HomeScreen.routeName,
-            routes: {
-              HomeScreen.routeName: (context) => const HomeScreen(),
-              SearchScreen.routeName: (context) => const SearchScreen(),
-              MoviesScreen.routeName: (context) => const MoviesScreen(),
-              SeriesScreen.routeName: (context) => const SeriesScreen(),
-              PeopleScreen.routeName: (context) => const PeopleScreen(),
-              CompaniesScreen.routeName: (context) => const CompaniesScreen(),
-              FavoritesScreen.routeName: (context) => const FavoritesScreen(),
-              WatchlistScreen.routeName: (context) => const WatchlistScreen(),
-              SettingsScreen.routeName: (context) => const SettingsScreen(),
+          return DynamicColorBuilder(
+            builder: (lightDynamic, darkDynamic) {
+              final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
+              final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+
+              return MaterialApp(
+                title: AppStrings.appName,
+                theme: lightTheme,
+                darkTheme: darkTheme,
+                themeMode: themeProvider.materialThemeMode,
+                locale: localeProvider.locale,
+                localizationsDelegates: const [
+                  AppLocalizations.delegate,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: AppLocalizations.supportedLocales,
+                debugShowCheckedModeBanner: false,
+                initialRoute: HomeScreen.routeName,
+                routes: {
+                  HomeScreen.routeName: (context) => const HomeScreen(),
+                  SearchScreen.routeName: (context) => const SearchScreen(),
+                  MoviesScreen.routeName: (context) => const MoviesScreen(),
+                  SeriesScreen.routeName: (context) => const SeriesScreen(),
+                  PeopleScreen.routeName: (context) => const PeopleScreen(),
+                  CompaniesScreen.routeName: (context) => const CompaniesScreen(),
+                  FavoritesScreen.routeName: (context) => const FavoritesScreen(),
+                  WatchlistScreen.routeName: (context) => const WatchlistScreen(),
+                  SettingsScreen.routeName: (context) => const SettingsScreen(),
+                },
+              );
             },
           );
         },

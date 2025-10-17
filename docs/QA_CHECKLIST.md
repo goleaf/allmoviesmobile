@@ -14,6 +14,8 @@
 * [Company page `/company/:id`](#company-page-companyid)
 * [Favorites `/favorites` and Watchlist `/watchlist` *(if present)*](#favorites-favorites-and-watchlist-watchlist-if-present)
 * [Settings `/settings`](#settings-settings)
+* [Certifications](#certifications)
+* [Countries & Regions](#countries--regions)
 * [Global behaviors (nav, language, theme, errors, a11y, perf)](#global-behaviors)
 
 > **Test data prep (suggested):**
@@ -311,6 +313,119 @@
 
 ---
 
+## Certifications
+
+**Blocks:** locale selector, certification badges, explanations, filters, warnings
+
+**Happy path**
+
+* [ ] Movie certification badges display the correct rating for the active country (e.g., US: G, PG, PG-13, R, NC-17).
+* [ ] TV content ratings surface the expected set (TV-Y, TV-G, TV-PG, TV-14, TV-MA) and match the title metadata.
+* [ ] Selecting or focusing a certification reveals an explanation with clear age guidance.
+
+**Filtering**
+
+* [ ] Certification filters appear on applicable movie/series listings and narrow results to matching titles.
+* [ ] Clearing a certification filter restores the previous list without dropping other active filters.
+
+**Edge cases**
+
+* [ ] Titles missing certification display a neutral fallback (e.g., "NR") without breaking layout or interactions.
+* [ ] Changing country/localization swaps the certification set while preserving equivalent selections when possible.
+* [ ] Conflicting certification data (multiple regions, movie vs. TV) resolves predictably or prompts for a choice.
+
+**Warnings & A11y**
+
+* [ ] Age-appropriate content warnings (violence, language, etc.) accompany restrictive certifications with icon + text.
+* [ ] Certification badges, warnings, and explanations expose accessible names/labels and are not color-only indicators.
+* [ ] Closing an explanation modal/sheet returns focus to the trigger element.
+
+---
+
+## External links
+
+**General behavior**
+
+* [ ] External link chips/buttons appear only when the corresponding URL exists; no empty placeholders.
+* [ ] Links open in the platform-appropriate browser/web view with HTTPS enforced; failures surface a retry/toast without leaving the screen.
+* [ ] Icons and labels match the destination (IMDb, TVDB, etc.) and expose accessible names.
+* [ ] Share/deep-link flows include the canonical route and append external IDs when required.
+
+**IMDb integration**
+
+* [ ] Movie and series details surface an IMDb chip or badge when `imdb_id` exists, displaying rating when provided.
+* [ ] Tapping the IMDb link opens the correct title/person page; fallback copy states when the ID is missing.
+
+**Official website**
+
+* [ ] Official site link shows the readable domain and opens in a new tab/web view.
+* [ ] Malformed or http-only URLs are sanitized or rejected gracefully.
+
+**Social profiles**
+
+* [ ] Facebook, Twitter, and Instagram links use branded icons, open the native app when available, and otherwise open in browser.
+* [ ] Links with locale/path suffixes remain valid; missing profiles are hidden without leaving gaps.
+
+**TV-specific directories**
+
+* [ ] TV detail pages surface TVDB and TVRage chips when IDs exist, linking to the correct show page.
+* [ ] Requests for missing or deprecated IDs fail silently without blocking other links.
+
+**Wikidata integration**
+
+* [ ] Wikidata link points to the correct entity ID and opens in browser.
+* [ ] Long entity labels truncate with tooltip/title attribute for desktop readers.
+
+**Deep link sharing**
+
+* [ ] "Share" exposes app-specific deep links (e.g., `allmovies://movie/:id`) plus web fallback.
+* [ ] Opening a deep link lands on the expected screen with preloaded data.
+* [ ] Invalid deep links surface an error state without crashing the app.
+
+---
+
+## Countries & Regions
+
+**Blocks:** production country directory, regional filters, release schedules, watch providers, localized certifications, timezone awareness
+
+**Production countries list**
+
+* [ ] Country directory enumerates 195+ production countries with localized names and ISO codes for searching/filtering.
+* [ ] Search, quick-jump, and keyboard navigation work across the full list without lag or skipped entries.
+* [ ] Each country shows a flag or neutral badge; missing assets fall back cleanly without broken icons.
+
+**Regional content filtering**
+
+* [ ] Movie/series indexes expose a region filter that limits results to titles available or produced in the selected country/region.
+* [ ] Applying a region filter preserves other active filters and sorts, and updates counts without layout jump.
+* [ ] Clearing the region filter restores the prior dataset while keeping scroll position intact.
+
+**Country-specific releases**
+
+* [ ] Release timelines highlight theatrical/digital dates per country, grouped chronologically with timezone-adjusted labels.
+* [ ] Switching countries refreshes release data and clearly indicates when information is unavailable.
+* [ ] Staggered releases surface the next upcoming date for the selected region with fallback messaging for past events.
+
+**Regional watch providers**
+
+* [ ] Watch provider lists reflect the providers available in the chosen country with correct logos and plan types (stream/rent/buy).
+* [ ] Provider links deep-link to country-specific destinations; providers not operating in the region are hidden.
+* [ ] Changing the country triggers a fresh fetch to avoid mixing provider data between regions.
+
+**Regional certifications**
+
+* [ ] Certification pickers load the rating sets associated with the active country and keep equivalent choices when swapping locales (e.g., US ↔ CA).
+* [ ] Detail cards and filters display the correct badge/description for the selected region; unsupported regions show a neutral fallback.
+* [ ] Multi-region views label which certification belongs to which territory to avoid ambiguity.
+
+**Timezone support**
+
+* [ ] Release countdowns and "available now" badges respect the viewer's local timezone while showing the origin region (e.g., "Premieres in 5h (Tokyo)").
+* [ ] Date/time strings format according to the active locale and handle daylight saving transitions correctly.
+* [ ] Cache updates or retries never show stale times after the user changes timezone or locale.
+
+---
+
 ## Global behaviors
 
 **Navigation & layout**
@@ -319,10 +434,14 @@
 * [ ] Back/forward browser navigation restores scroll and filter states.
 * [ ] Deep links (copy/paste a details URL) render the correct page fully.
 
-**Language**
+**Language & translations**
 
-* [ ] Language affects interface text and content fields where available.
-* [ ] Switching language mid-session re-requests localized content where applicable.
+* [ ] Language selector lists 40+ options; current locale is highlighted and persists across sessions.
+* [ ] Switching language updates interface chrome plus localized titles, taglines, synopses, and other translatable content.
+* [ ] Details pages surface the original language when it differs from the selected locale.
+* [ ] Video player (or equivalent) advertises accurate subtitle language availability with counts matching the API.
+* [ ] Audio track selector exposes all delivered languages, defaults sensibly, and falls back gracefully when missing.
+* [ ] Browsing and search views offer a language filter that scopes results and resets cleanly.
 
 **Errors**
 
@@ -334,6 +453,7 @@
 * [ ] Pages have unique titles; landmarks used consistently.
 * [ ] Contrast meets recommended ratios in both themes.
 * [ ] Focus is visible and not trapped; modals/galleries return focus on close.
+* [ ] Extended accessibility checklist reviewed (`docs/ACCESSIBILITY_GUIDE.md`).
 
 **Performance**
 

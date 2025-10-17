@@ -172,6 +172,8 @@ extension MovieDetailedX on MovieDetailed {
     (provider) =>
         provider.buy.isNotEmpty ||
         provider.rent.isNotEmpty ||
-        provider.flatrate.isNotEmpty,
+        provider.flatrate.isNotEmpty ||
+        provider.ads.isNotEmpty ||
+        provider.free.isNotEmpty,
   );
 }

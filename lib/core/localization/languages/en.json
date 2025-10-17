@@ -66,6 +66,22 @@
     "remove_from_watchlist": "Remove from Watchlist",
     "share": "Share"
   },
+  "reviews": {
+    "title": "User Reviews",
+    "empty": "No reviews yet",
+    "filter_label": "Rating",
+    "sort_label": "Sort",
+    "sort_newest": "Newest",
+    "sort_highest": "Highest rated",
+    "report": "Report",
+    "reported": "Reported",
+    "report_success": "Thanks, we'll take a look.",
+    "helpful": "Helpful",
+    "not_helpful": "Not helpful",
+    "helpful_votes": "Helpful votes",
+    "read_full": "Read full review",
+    "load_more": "Load more"
+  },
   "tv": {
     "title": "TV Show",
     "tv_shows": "TV Shows",
@@ -296,4 +312,3 @@
     "western": "Western"
   }
 }
-

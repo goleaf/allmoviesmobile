@@ -4,7 +4,10 @@ import 'package:http/http.dart' as http;
 import 'models/company_model.dart';
 import 'models/genre_model.dart';
 import 'models/movie.dart';
+import 'models/paginated_response.dart';
 import 'models/person_model.dart';
+import 'models/search_result_model.dart';
+import 'models/watch_provider_model.dart';
 
 class TmdbRepository {
   TmdbRepository({http.Client? client, String? apiKey})
@@ -46,8 +49,26 @@ class TmdbRepository {
   }
 
   // Trending
+  Future<PaginatedResponse<SearchResult>> fetchTrendingTitles({
+    String mediaType = 'all',
+    String timeWindow = 'day',
+    int page = 1,
+  }) async {
+    final payload = await _get(
+      '/trending/$mediaType/$timeWindow',
+      {
+        'page': '$page',
+      },
+    );
+
+    return PaginatedResponse<SearchResult>.fromJson(
+      payload,
+      (json) => SearchResult.fromJson(json),
+    );
+  }
+
   Future<List<Movie>> fetchTrendingMovies({String timeWindow = 'day'}) async {
-    final payload = await _get('/trending/all/$timeWindow');
+    final payload = await _get('/trending/movie/$timeWindow');
     final results = payload['results'];
 
     if (results is! List) {
@@ -366,6 +387,63 @@ class TmdbRepository {
         .map(Movie.fromJson)
         .where((movie) => movie.title.isNotEmpty)
         .toList(growable: false);
+  }
+
+  // Watch Providers
+  Future<List<WatchProviderRegion>> fetchWatchProviderRegions() async {
+    final payload = await _get('/watch/providers/regions');
+    final results = payload['results'];
+
+    if (results is! List) {
+      return const <WatchProviderRegion>[];
+    }
+
+    return results
+        .whereType<Map<String, dynamic>>()
+        .map(WatchProviderRegion.fromJson)
+        .toList(growable: false);
+  }
+
+  Future<Map<String, WatchProviderResults>> fetchMovieWatchProviders(int movieId) async {
+    final payload = await _get('/movie/$movieId/watch/providers');
+    final results = payload['results'];
+
+    if (results is! Map) {
+      return const {};
+    }
+
+    return results.map(
+      (key, value) {
+        if (value is Map<String, dynamic>) {
+          return MapEntry(
+            '$key',
+            WatchProviderResults.fromJson(value),
+          );
+        }
+        return MapEntry('$key', const WatchProviderResults());
+      },
+    );
+  }
+
+  Future<Map<String, WatchProviderResults>> fetchTvWatchProviders(int tvId) async {
+    final payload = await _get('/tv/$tvId/watch/providers');
+    final results = payload['results'];
+
+    if (results is! Map) {
+      return const {};
+    }
+
+    return results.map(
+      (key, value) {
+        if (value is Map<String, dynamic>) {
+          return MapEntry(
+            '$key',
+            WatchProviderResults.fromJson(value),
+          );
+        }
+        return MapEntry('$key', const WatchProviderResults());
+      },
+    );
   }
 }
 

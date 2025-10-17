@@ -26,6 +26,8 @@ class WatchProviderResults with _$WatchProviderResults {
     @Default([]) List<WatchProvider> flatrate,
     @Default([]) List<WatchProvider> buy,
     @Default([]) List<WatchProvider> rent,
+    @Default([]) List<WatchProvider> ads,
+    @Default([]) List<WatchProvider> free,
   }) = _WatchProviderResults;
 
   factory WatchProviderResults.fromJson(Map<String, dynamic> json) =>
@@ -44,4 +46,3 @@ class WatchProviderRegion with _$WatchProviderRegion {
   factory WatchProviderRegion.fromJson(Map<String, dynamic> json) =>
       _$WatchProviderRegionFromJson(json);
 }
-

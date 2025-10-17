@@ -110,6 +110,20 @@ AllMovies is a modern Flutter application with Material Design 3, featuring comp
 - View titles by certification (G, PG, PG-13, R, etc.)
 - Surface box office hits ranked by revenue
 
+### 📸 **Media & Images**
+- Posters (vertical), backdrops (horizontal), profile stills, production logos, and episodic still images rendered in dedicated carousels.
+- Users can switch between TMDB image sizes (`w92`, `w154`, `w185`, `w342`, `w500`, `w780`, `original`) per asset type to balance fidelity and bandwidth.
+- Images stream in lazily with shimmer placeholders and fade-in progressive loading so long lists stay responsive.
+- Placeholder art and explicit error states ensure broken or missing assets never break layout integrity.
+- All artwork flows through `CachedNetworkImage`, giving automatic disk caching, retry logic, and offline reuse for previously viewed assets.
+
+### 🎥 **Video Player**
+- Embedded YouTube trailers sit inline on detail pages with branded metadata and preview thumbnails.
+- Supports trailer, teaser, clip, featurette, and behind-the-scenes categories with quick filters so users can jump to the content they care about.
+- Custom player chrome surfaces play/pause, seek, quality selection, caption toggles, and an auto-play switch that persists between sessions.
+- Full-screen mode uses system overlays for an immersive viewing experience while preserving the ability to dismiss and resume from the exact timestamp.
+- Thumbnails and metadata hydrate instantly while the player streams progressively, avoiding layout shifts and keeping navigation snappy.
+
 ## 🏗️ Project Architecture
 
 ```
@@ -254,4 +268,3 @@ The architecture is designed to easily add:
 - In production, use proper encryption and secure storage
 - Ready to integrate with any movie API
 - Search bar filters the fetched TMDB titles locally
-

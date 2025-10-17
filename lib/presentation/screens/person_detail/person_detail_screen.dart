@@ -1,392 +1,302 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
-import '../../../data/models/movie.dart';
+import '../../../data/models/person_model.dart';
+import '../../../data/tmdb_repository.dart';
 
-class PersonDetailScreen extends StatelessWidget {
+class PersonDetailScreen extends StatefulWidget {
   static const routeName = '/person-detail';
-  
-  final Movie person;
+
+  final int personId;
+  final String? initialName;
 
   const PersonDetailScreen({
     super.key,
-    required this.person,
+    required this.personId,
+    this.initialName,
   });
+
+  @override
+  State<PersonDetailScreen> createState() => _PersonDetailScreenState();
+}
+
+class _PersonDetailScreenState extends State<PersonDetailScreen> {
+  late Future<Person> _personFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    final repository = context.read<TmdbRepository>();
+    _personFuture = repository.fetchPersonDetails(widget.personId);
+  }
 
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    
-    return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          _buildAppBar(context, loc),
-          SliverToBoxAdapter(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context, loc),
-                _buildBiography(context, loc),
-                _buildPersonalInfo(context, loc),
-                _buildKnownFor(context, loc),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildAppBar(BuildContext context, AppLocalizations loc) {
-    final profileUrl = person.posterUrl; // Using posterPath for profile image
-    
-    return SliverAppBar(
-      expandedHeight: 300,
-      pinned: true,
-      flexibleSpace: FlexibleSpaceBar(
-        background: profileUrl != null && profileUrl.isNotEmpty
-            ? Stack(
-                fit: StackFit.expand,
-                children: [
-                  CachedNetworkImage(
-                    imageUrl: profileUrl,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person, size: 64),
-                    ),
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.8),
-                        ],
+    return Scaffold(
+      body: FutureBuilder<Person>(
+        future: _personFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  title: Text(widget.initialName ?? loc.t('person.title')),
+                ),
+                const SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+              ],
+            );
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  title: Text(widget.initialName ?? loc.t('person.title')),
+                ),
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(24),
+                      child: Text(
+                        loc.t('errors.load_failed'),
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ),
                   ),
-                  Positioned(
-                    bottom: 16,
-                    left: 16,
-                    right: 16,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          person.title,
-                          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(
-                                Icons.person,
-                                size: 14,
-                                color: Colors.white,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                person.mediaLabel,
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
+                ),
+              ],
+            );
+          }
+
+          final person = snapshot.data!;
+          final profileUrl = _buildProfileUrl(person.profilePath);
+
+          return CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 320,
+                pinned: true,
+                title: Text(person.name),
+                flexibleSpace: FlexibleSpaceBar(
+                  background: profileUrl != null
+                      ? Stack(
+                          fit: StackFit.expand,
+                          children: [
+                            CachedNetworkImage(
+                              imageUrl: profileUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: Colors.grey[300],
+                                child: const Center(
+                                  child: CircularProgressIndicator(),
                                 ),
                               ),
-                            ],
+                              errorWidget: (context, url, error) => Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.person, size: 80),
+                              ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                  colors: [
+                                    Colors.transparent,
+                                    Colors.black.withOpacity(0.75),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            Positioned(
+                              left: 16,
+                              right: 16,
+                              bottom: 24,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    person.name,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headlineSmall
+                                        ?.copyWith(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                  ),
+                                  if (person.knownForDepartment != null &&
+                                      person.knownForDepartment!.isNotEmpty) ...[
+                                    const SizedBox(height: 8),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        person.knownForDepartment!,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        )
+                      : Container(
+                          color: Colors.grey[300],
+                          child: Center(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Text(
+                                person.name,
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineSmall
+                                    ?.copyWith(fontWeight: FontWeight.bold),
+                              ),
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-                ],
-              )
-            : Container(
-                color: Colors.grey[300],
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.person, size: 120),
-                    const SizedBox(height: 16),
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Text(
-                        person.title,
-                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
                 ),
               ),
-      ),
-    );
-  }
-
-  Widget _buildHeader(BuildContext context, AppLocalizations loc) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (person.popularity != null && person.popularity! > 0) ...[
-                  Row(
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.trending_up,
-                        size: 20,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        '${loc.t('person.popularity')}: ${person.popularity!.toStringAsFixed(1)}',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
+                      _buildBiographySection(context, loc, person),
+                      const SizedBox(height: 24),
+                      _buildPersonalInfoSection(context, loc, person),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                ],
-                if (person.mediaLabel.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      person.mediaLabel,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ],
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
-  Widget _buildBiography(BuildContext context, AppLocalizations loc) {
-    // In a real implementation, this would come from the API
-    // For now, showing overview if available
-    if (person.overview == null || person.overview!.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              loc.t('person.biography'),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.surfaceVariant,
-                borderRadius: BorderRadius.circular(8),
+  Widget _buildBiographySection(
+    BuildContext context,
+    AppLocalizations loc,
+    Person person,
+  ) {
+    if (person.biography == null || person.biography!.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          loc.t('person.biography'),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline,
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      loc.t('person.no_biography'),
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+        ),
+        const SizedBox(height: 8),
+        Text(
+          person.biography!,
+          style: Theme.of(context).textTheme.bodyLarge,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPersonalInfoSection(
+    BuildContext context,
+    AppLocalizations loc,
+    Person person,
+  ) {
+    final entries = <MapEntry<String, String>>[];
+
+    if (person.birthday != null && person.birthday!.isNotEmpty) {
+      entries.add(MapEntry(loc.t('person.birthday'), person.birthday!));
+    }
+
+    if (person.placeOfBirth != null && person.placeOfBirth!.isNotEmpty) {
+      entries
+          .add(MapEntry(loc.t('person.place_of_birth'), person.placeOfBirth!));
+    }
+
+    if (person.alsoKnownAs.isNotEmpty) {
+      entries.add(
+        MapEntry(
+          loc.t('person.also_known_as'),
+          person.alsoKnownAs.join(', '),
         ),
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            loc.t('person.biography'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            person.overview!,
-            style: Theme.of(context).textTheme.bodyLarge,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPersonalInfo(BuildContext context, AppLocalizations loc) {
-    final info = <MapEntry<String, String>>[];
-
-    if (person.originalLanguage != null && person.originalLanguage!.isNotEmpty) {
-      info.add(MapEntry(
-        loc.t('person.known_for_department'),
-        person.originalLanguage!.toUpperCase(),
-      ));
-    }
-
-    if (person.popularity != null) {
-      info.add(MapEntry(
-        loc.t('person.popularity'),
-        person.popularity!.toStringAsFixed(1),
-      ));
-    }
-
-    if (info.isEmpty) {
+    if (entries.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            loc.t('person.personal_info'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Column(
-              children: info.map((entry) => Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          width: 140,
-                          child: Text(
-                            entry.key,
-                            style: TextStyle(
-                              fontWeight: FontWeight.w600,
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          child: Text(
-                            entry.value,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildKnownFor(BuildContext context, AppLocalizations loc) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            loc.t('person.known_for'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceVariant,
-              borderRadius: BorderRadius.circular(8),
-            ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          loc.t('person.title'),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+        const SizedBox(height: 12),
+        ...entries.map(
+          (entry) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(
-                  Icons.movie_outlined,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  size: 32,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        loc.t('person.filmography_coming_soon'),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        loc.t('person.filmography_description'),
-                        style: TextStyle(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant.withOpacity(0.7),
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                SizedBox(
+                  width: 140,
+                  child: Text(
+                    entry.key,
+                    style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey[700],
+                    ),
                   ),
+                ),
+                Expanded(
+                  child: Text(entry.value),
                 ),
               ],
             ),
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
-}
 
+  String? _buildProfileUrl(String? profilePath) {
+    if (profilePath == null || profilePath.isEmpty) {
+      return null;
+    }
+    return 'https://image.tmdb.org/t/p/w780$profilePath';
+  }
+}

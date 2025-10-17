@@ -52,6 +52,10 @@ _$MovieDetailedImpl _$$MovieDetailedImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Video.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      cast: (json['cast'] as List<dynamic>?)
+              ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       images:
           (json['images'] as List<dynamic>?)
               ?.map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
@@ -93,6 +97,7 @@ Map<String, dynamic> _$$MovieDetailedImplToJson(_$MovieDetailedImpl instance) =>
       'budget': instance.budget,
       'revenue': instance.revenue,
       'videos': instance.videos,
+      'cast': instance.cast,
       'images': instance.images,
       'recommendations': instance.recommendations,
       'similar': instance.similar,

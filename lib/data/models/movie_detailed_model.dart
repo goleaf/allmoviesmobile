@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'company_model.dart';
 import 'country_model.dart';
+import 'credit_model.dart';
 import 'external_ids_model.dart';
 import 'genre_model.dart';
 import 'image_model.dart';
@@ -44,6 +45,7 @@ class MovieDetailed with _$MovieDetailed {
     int? budget,
     int? revenue,
     @Default([]) List<Video> videos,
+    @Default([]) List<Cast> cast,
     @Default([]) List<ImageModel> images,
     @Default([]) List<MovieRef> recommendations,
     @Default([]) List<MovieRef> similar,

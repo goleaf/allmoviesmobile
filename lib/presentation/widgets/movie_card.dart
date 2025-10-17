@@ -30,130 +30,169 @@ class MovieCard extends StatelessWidget {
     final loc = AppLocalizations.of(context);
     final favoritesProvider = context.watch<FavoritesProvider>();
     final isFavorite = favoritesProvider.isFavorite(id);
+    final theme = Theme.of(context);
+    final accessibilityStrings = loc.accessibility;
 
-    final releaseYear =
-        releaseDate != null && releaseDate!.isNotEmpty ? releaseDate!.substring(0, 4) : null;
-    final semanticsParts = <String>[
-      title,
-      if (releaseYear != null) releaseYear,
-      if (voteAverage != null)
-        '${voteAverage!.toStringAsFixed(1)} / 10',
-      if (showingLabel != null && showingLabel!.isNotEmpty) showingLabel!,
-    ];
-
+    final year = (releaseDate != null && releaseDate!.length >= 4)
+        ? releaseDate!.substring(0, 4)
+        : null;
+    final semanticsParts = <String>[title];
+    if (year != null) {
+      semanticsParts.add(
+        '${loc.movie['release_date'] ?? 'Release date'} $year',
+      );
+    }
+    if (voteAverage != null) {
+      semanticsParts.add(
+        '${loc.movie['rating'] ?? 'Rating'} ${voteAverage!.toStringAsFixed(1)}',
+      );
+    }
     final semanticsLabel = semanticsParts.join(', ');
-    final hint = loc.t('common.viewDetailsHint');
+    final semanticsHint = accessibilityStrings['open_details'] ?? 'Open details';
+    final posterLabelTemplate =
+        accessibilityStrings['poster_label'] ?? 'Poster for {title}';
+    final posterSemanticLabel =
+        posterLabelTemplate.replaceAll('{title}', title);
+    final favoriteAddLabel =
+        accessibilityStrings['favorite_add'] ?? 'Add to favorites';
+    final favoriteRemoveLabel =
+        accessibilityStrings['favorite_remove'] ?? 'Remove from favorites';
 
     return Semantics(
-      label: semanticsLabel,
+      container: true,
       button: onTap != null,
-      hint: hint,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: InkWell(
-          onTap: onTap,
-          child: Stack(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(child: _buildPoster(loc)),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            if (voteAverage != null) ...[
-                              const Icon(
-                                Icons.star,
-                                size: 14,
-                                color: Colors.amber,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                voteAverage!.toStringAsFixed(1),
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ],
-                            const Spacer(),
-                            if (releaseYear != null)
-                              Text(
-                                releaseYear,
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                          ],
-                        ),
-                        if (showingLabel != null && showingLabel!.isNotEmpty) ...[
-                          const SizedBox(height: 4),
+      label: semanticsLabel,
+      hint: semanticsHint,
+      child: Focus(
+        canRequestFocus: onTap != null,
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          elevation: 4,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          child: InkWell(
+            onTap: onTap,
+            focusColor: theme.focusColor,
+            borderRadius: BorderRadius.circular(12),
+            child: Stack(
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: _buildPoster(posterSemanticLabel)),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
                           Text(
-                            showingLabel!,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Theme.of(context).colorScheme.primary,
-                              fontWeight: FontWeight.w600,
+                            title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              if (voteAverage != null) ...[
+                                const Icon(
+                                  Icons.star,
+                                  size: 14,
+                                  color: Colors.amber,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  voteAverage!.toStringAsFixed(1),
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                              ],
+                              const Spacer(),
+                              if (year != null)
+                                Text(
+                                  year,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          if (showingLabel != null && showingLabel!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 4),
+                              child: Text(
+                                showingLabel!,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.primary,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                         ],
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              Positioned(
-                top: 4,
-                right: 4,
-                child: Tooltip(
-                  message: isFavorite
-                      ? loc.t('common.removeFromFavorites')
-                      : loc.t('common.addToFavorites'),
-                  child: Material(
-                    color: Colors.black54,
-                    shape: const CircleBorder(),
-                    child: IconButton(
-                      iconSize: 20,
-                      padding: const EdgeInsets.all(4.0),
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.red : Colors.white,
                       ),
-                      onPressed: () {
-                        favoritesProvider.toggleFavorite(id);
-                      },
+                    ),
+                  ],
+                ),
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: Semantics(
+                    button: true,
+                    toggled: isFavorite,
+                    label: isFavorite ? favoriteRemoveLabel : favoriteAddLabel,
+                    child: Tooltip(
+                      message:
+                          isFavorite ? favoriteRemoveLabel : favoriteAddLabel,
+                      child: Material(
+                        color: Colors.black54,
+                        shape: const CircleBorder(),
+                        child: InkWell(
+                          customBorder: const CircleBorder(),
+                          onTap: () {
+                            favoritesProvider.toggleFavorite(id);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: Icon(
+                              isFavorite
+                                  ? Icons.favorite
+                                  : Icons.favorite_border,
+                              color: isFavorite
+                                  ? theme.colorScheme.error
+                                  : Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildPoster(AppLocalizations loc) {
+  Widget _buildPoster(String semanticLabel) {
     if (posterPath == null || posterPath!.isEmpty) {
-      return Container(
-        color: Colors.grey[300],
-        child: const Center(
-          child: Icon(Icons.movie, size: 48, color: Colors.grey),
+      return MediaImage(
+        path: null,
+        placeholder: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.movie, size: 48, color: Colors.grey),
+          ),
         ),
+        errorWidget: Container(
+          color: Colors.grey[300],
+          child: const Center(
+            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+          ),
+        ),
+        semanticLabel: semanticLabel,
       );
     }
 
@@ -162,8 +201,7 @@ class MovieCard extends StatelessWidget {
       type: MediaImageType.poster,
       size: MediaImageSize.w342,
       fit: BoxFit.cover,
-      semanticsLabel:
-          '${loc.t('common.posterLabelPrefix')} $title',
+      semanticLabel: semanticLabel,
       overlay: MediaImageOverlay(
         gradientResolvers: [
           (theme, _) {

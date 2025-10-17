@@ -70,6 +70,7 @@ import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/accessibility_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -210,20 +211,15 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         builder: (context, localeProvider, themeProvider, accessibility, _) {
           return DynamicColorBuilder(
             builder: (lightDynamic, darkDynamic) {
-              final accessibilityOptions = AccessibilityThemeOptions(
-                highContrast: accessibility.highContrast,
-                emphasizeFocus: accessibility.showFocusIndicators,
-                colorBlindFriendlyPalette:
-                    accessibility.colorBlindFriendlyPalette,
-              );
-
               final lightTheme = AppTheme.light(
                 dynamicScheme: lightDynamic,
-                options: accessibilityOptions,
+                highContrast: accessibility.highContrastEnabled,
+                colorBlindFriendly: accessibility.colorBlindFriendlyPalette,
               );
               final darkTheme = AppTheme.dark(
                 dynamicScheme: darkDynamic,
-                options: accessibilityOptions,
+                highContrast: accessibility.highContrastEnabled,
+                colorBlindFriendly: accessibility.colorBlindFriendlyPalette,
               );
 
               return MaterialApp(
@@ -233,6 +229,20 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                 darkTheme: darkTheme,
                 themeMode: themeProvider.materialThemeMode,
                 locale: localeProvider.locale,
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  return MediaQuery(
+                    data: mediaQuery.copyWith(
+                      textScaler: TextScaler.linear(
+                        accessibility.textScaleFactor,
+                      ),
+                    ),
+                    child: FocusTraversalGroup(
+                      policy: OrderedTraversalPolicy(),
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  );
+                },
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,

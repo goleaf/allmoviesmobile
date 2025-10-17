@@ -291,6 +291,19 @@
     "added": "Додано до списку",
     "removed": "Видалено зі списку"
   },
+  "accessibility": {
+    "search_hint": "Пошук фільмів, серіалів або людей",
+    "search_label": "Пошук у каталозі",
+    "quick_access_navigation": "Швидкі дії",
+    "section_list_hint": "Горизонтальний список. Використовуйте стрілки вліво та вправо для навігації.",
+    "open_details": "Відкрити деталі",
+    "favorite_add": "Додати до улюбленого",
+    "favorite_remove": "Прибрати з улюбленого",
+    "navigation_drawer": "Основне меню навігації",
+    "poster_label": "Постер {title}",
+    "profile_label": "Фото профілю {name}",
+    "collection_label": "Постер колекції {title}"
+  },
   "settings": {
     "title": "Налаштування",
     "appearance": "Зовнішній Вигляд",
@@ -310,21 +323,12 @@
     "version": "Версія",
     "terms": "Умови Використання",
     "privacy": "Політика Конфіденційності",
-    "highContrast": "Режим високого контрасту",
-    "highContrastEnabled": "Висококонтрастні кольори увімкнено",
-    "highContrastDisabled": "Висококонтрастні кольори вимкнено",
-    "colorBlindFriendly": "Палітра, дружня до дальтонізму",
-    "colorBlindFriendlyDescription": "Використовує кольори, що залишаються різними при поширених порушеннях кольоросприйняття.",
-    "textScale": "Розмір тексту",
-    "chooseTextScale": "Оберіть розмір тексту",
-    "textScaleSmall": "Малий (90%)",
-    "textScaleNormal": "Звичайний (100%)",
-    "textScaleLarge": "Великий (120%)",
-    "textScaleExtraLarge": "Дуже великий (135%)",
-    "focusIndicators": "Індикатори фокусу",
-    "focusIndicatorsDescription": "Показувати чітке виділення елементів при фокусі з клавіатури.",
-    "keyboardNavigation": "Клавіатурна навігація",
-    "keyboardNavigationDescription": "Використовуйте стрілки разом із Tab для переходу між елементами."
+    "high_contrast": "Висока контрастність",
+    "high_contrast_description": "Збільшує контраст для кращої читабельності.",
+    "color_blind_friendly": "Палітра для людей з дальтонізмом",
+    "color_blind_friendly_description": "Використовує кольори, що залишаються розрізнюваними при поширених формах дальтонізму.",
+    "text_size": "Розмір тексту",
+    "text_size_description": "Налаштування масштабу тексту інтерфейсу."
   },
   "common": {
     "loading": "Завантаження...",

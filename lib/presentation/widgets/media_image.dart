@@ -25,7 +25,8 @@ class MediaImage extends StatefulWidget {
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
     this.overlay = const MediaImageOverlay.none(),
-    this.semanticsLabel,
+    this.semanticLabel,
+    this.excludeFromSemantics = false,
   });
 
   final String? path;
@@ -42,7 +43,8 @@ class MediaImage extends StatefulWidget {
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
   final MediaImageOverlay overlay;
-  final String? semanticsLabel;
+  final String? semanticLabel;
+  final bool excludeFromSemantics;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -114,7 +116,7 @@ class _MediaImageState extends State<MediaImage> {
         );
 
     if (highResUrl == null) {
-      return _wrapWithSize(placeholder);
+      return _wrapWithSize(_withSemantics(placeholder));
     }
 
     final preview = _buildPreviewLayer(previewUrl, placeholder);
@@ -138,23 +140,12 @@ class _MediaImageState extends State<MediaImage> {
       children: stackChildren,
     );
 
-    final clipped = _wrapWithSize(
-      ClipRRect(
-        borderRadius: widget.borderRadius ?? BorderRadius.zero,
-        child: stack,
-      ),
+    final imageContent = ClipRRect(
+      borderRadius: widget.borderRadius ?? BorderRadius.zero,
+      child: stack,
     );
 
-    final label = widget.semanticsLabel;
-    if (label == null || label.isEmpty) {
-      return ExcludeSemantics(child: clipped);
-    }
-
-    return Semantics(
-      image: true,
-      label: label,
-      child: clipped,
-    );
+    return _wrapWithSize(_withSemantics(imageContent));
   }
 
   Widget? _buildPreviewLayer(String? previewUrl, Widget placeholder) {
@@ -239,6 +230,21 @@ class _MediaImageState extends State<MediaImage> {
       return child;
     }
     return SizedBox(width: widget.width, height: widget.height, child: child);
+  }
+
+  Widget _withSemantics(Widget child) {
+    if (widget.excludeFromSemantics) {
+      return ExcludeSemantics(child: child);
+    }
+    final label = widget.semanticLabel;
+    if (label != null && label.isNotEmpty) {
+      return Semantics(
+        label: label,
+        image: true,
+        child: child,
+      );
+    }
+    return child;
   }
 
   void _updateProgress(double? value) {

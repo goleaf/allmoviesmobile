@@ -10,6 +10,7 @@ import '../../../core/utils/service_locator.dart';
 import '../../../data/services/cache_service.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../providers/preferences_provider.dart';
+import '../../../providers/accessibility_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   static const routeName = '/settings';
@@ -26,12 +27,12 @@ class SettingsScreen extends StatelessWidget {
         children: [
           _SettingsHeader(title: l.t('settings.appearance')),
           _ThemeTile(),
-          _SettingsHeader(title: l.t('settings.accessibility')),
+          _SettingsHeader(
+            title: l.settings['accessibility'] ?? 'Accessibility',
+          ),
           const _HighContrastTile(),
-          const _ColorBlindPaletteTile(),
+          const _ColorBlindTile(),
           const _TextScaleTile(),
-          const _FocusIndicatorsTile(),
-          const _KeyboardNavigationTile(),
           _SettingsHeader(title: l.t('settings.localization')),
           _LanguageTile(),
           _RegionTile(),
@@ -117,6 +118,88 @@ class _ThemeTile extends StatelessWidget {
           builder: (context) => const _ThemeDialog(),
         );
       },
+    );
+  }
+}
+
+class _HighContrastTile extends StatelessWidget {
+  const _HighContrastTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.contrast),
+      title: Text(l.settings['high_contrast'] ?? 'High contrast mode'),
+      subtitle: Text(
+        l.settings['high_contrast_description'] ??
+            'Increase color contrast for better readability.',
+      ),
+      value: provider.highContrastEnabled,
+      onChanged: (value) =>
+          context.read<AccessibilityProvider>().setHighContrastEnabled(value),
+    );
+  }
+}
+
+class _ColorBlindTile extends StatelessWidget {
+  const _ColorBlindTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.color_lens_outlined),
+      title: Text(
+        l.settings['color_blind_friendly'] ?? 'Color-blind friendly palette',
+      ),
+      subtitle: Text(
+        l.settings['color_blind_friendly_description'] ??
+            'Use palettes that remain legible for common color blindness.',
+      ),
+      value: provider.colorBlindFriendlyPalette,
+      onChanged: (value) => context
+          .read<AccessibilityProvider>()
+          .setColorBlindFriendlyPalette(value),
+    );
+  }
+}
+
+class _TextScaleTile extends StatelessWidget {
+  const _TextScaleTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+    final textScale = provider.textScaleFactor;
+
+    return ListTile(
+      leading: const Icon(Icons.format_size),
+      title: Text(l.settings['text_size'] ?? 'Text size'),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            l.settings['text_size_description'] ??
+                'Adjust interface text scale.',
+          ),
+          Slider(
+            value: textScale,
+            min: 0.9,
+            max: 1.6,
+            divisions: 7,
+            label: textScale.toStringAsFixed(2),
+            onChanged: (value) => context
+                .read<AccessibilityProvider>()
+                .setTextScaleFactor(value),
+          ),
+        ],
+      ),
     );
   }
 }

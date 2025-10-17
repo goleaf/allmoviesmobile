@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
@@ -240,25 +243,36 @@ class _HomeSearchField extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    return TextField(
-      controller: controller,
-      style: TextStyle(color: colorScheme.onPrimary),
-      cursorColor: colorScheme.onPrimary,
-      decoration: InputDecoration(
-        hintText: hintText,
-        hintStyle: TextStyle(
-          color: colorScheme.onPrimary.withOpacity(0.7),
+    final accessibility = AppLocalizations.of(context).accessibility;
+    final semanticsLabel =
+        accessibility['search_label'] ?? 'Search the catalog';
+    final semanticsHint =
+        accessibility['search_hint'] ?? 'Search for movies, shows, or people';
+
+    return Semantics(
+      label: semanticsLabel,
+      hint: semanticsHint,
+      textField: true,
+      child: TextField(
+        controller: controller,
+        style: TextStyle(color: colorScheme.onPrimary),
+        cursorColor: colorScheme.onPrimary,
+        decoration: InputDecoration(
+          hintText: hintText,
+          hintStyle: TextStyle(
+            color: colorScheme.onPrimary.withOpacity(0.7),
+          ),
+          prefixIcon: Icon(Icons.search, color: colorScheme.onPrimary),
+          filled: true,
+          fillColor: colorScheme.primary.withOpacity(0.3),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide.none,
+          ),
         ),
-        prefixIcon: Icon(Icons.search, color: colorScheme.onPrimary),
-        filled: true,
-        fillColor: colorScheme.primary.withOpacity(0.3),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(28),
-          borderSide: BorderSide.none,
-        ),
+        onSubmitted: onSubmitted,
       ),
-      onSubmitted: onSubmitted,
     );
   }
 }
@@ -274,34 +288,53 @@ class _QuickAccessSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accessibility = AppLocalizations.of(context).accessibility;
+    final navLabel =
+        accessibility['quick_access_navigation'] ?? 'Quick actions';
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Semantics(
-            header: true,
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
+      child: Semantics(
+        container: true,
+        label: navLabel,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Semantics(
+              header: true,
+              child: Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          FocusTraversalGroup(
-            policy: const WidgetOrderTraversalPolicy(),
-            child: Row(
-              children: [
-                for (final item in items)
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: _QuickAccessCard(item: item),
-                    ),
-                  ),
-              ],
+            const SizedBox(height: 12),
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final columns = constraints.maxWidth > 720
+                    ? 3
+                    : constraints.maxWidth > 480
+                        ? 2
+                        : 1;
+                final spacing = 12.0;
+                final totalSpacing = spacing * (columns - 1);
+                final itemWidth = (constraints.maxWidth - totalSpacing) /
+                    columns;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: items
+                      .map(
+                        (item) => SizedBox(
+                          width: itemWidth,
+                          child: _QuickAccessCard(item: item),
+                        ),
+                      )
+                      .toList(growable: false),
+                );
+              },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -327,34 +360,47 @@ class _QuickAccessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l = AppLocalizations.of(context);
+    final accessibility = AppLocalizations.of(context).accessibility;
+    final hint =
+        '${accessibility['open_details'] ?? 'Open details'}: ${item.label}';
+
     return Semantics(
       button: true,
       label: item.label,
-      hint: l.t('common.viewDetailsHint'),
-      child: Material(
-        color: colorScheme.secondaryContainer,
-        borderRadius: BorderRadius.circular(16),
-        child: InkWell(
-          onTap: item.onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(item.icon,
-                    size: 28, color: colorScheme.onSecondaryContainer),
-                const SizedBox(height: 12),
-                Text(
-                  item.label,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colorScheme.onSecondaryContainer,
-                        fontWeight: FontWeight.w600,
-                      ),
+      hint: hint,
+      child: Focus(
+        child: Tooltip(
+          message: item.label,
+          child: Material(
+            color: colorScheme.secondaryContainer,
+            borderRadius: BorderRadius.circular(16),
+            child: InkWell(
+              onTap: item.onTap,
+              borderRadius: BorderRadius.circular(16),
+              focusColor: Theme.of(context).focusColor,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: 20, horizontal: 12),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      item.icon,
+                      size: 28,
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      item.label,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSecondaryContainer,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -614,7 +660,7 @@ class _RecommendationsSection extends StatelessWidget {
   }
 }
 
-class _HorizontalMediaSection extends StatelessWidget {
+class _HorizontalMediaSection extends StatefulWidget {
   const _HorizontalMediaSection({
     required this.title,
     required this.items,
@@ -628,61 +674,152 @@ class _HorizontalMediaSection extends StatelessWidget {
   final String? errorMessage;
 
   @override
+  State<_HorizontalMediaSection> createState() => _HorizontalMediaSectionState();
+}
+
+class _HorizontalMediaSectionState extends State<_HorizontalMediaSection> {
+  late final ScrollController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _scrollFocusedIntoView() {
+    final focusedContext = FocusManager.instance.primaryFocus?.context;
+    if (focusedContext == null) {
+      return;
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Scrollable.ensureVisible(
+        focusedContext,
+        alignment: 0.5,
+        duration: const Duration(milliseconds: 220),
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Semantics(
-            header: true,
-            child: Text(
-              title,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        if (isLoading)
-          const SizedBox(
-            height: 220,
-            child: Center(child: LoadingIndicator()),
-          )
-        else if (errorMessage != null && errorMessage!.isNotEmpty)
-          SizedBox(
-            height: 220,
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ErrorDisplay(
-                  message: errorMessage!,
-                ),
-              ),
-            ),
-          )
-        else if (items.isEmpty)
-          const SizedBox(
-            height: 220,
-            child: Center(child: Text('No items available')),
-          )
-        else
-          SizedBox(
-            height: 260,
-            child: FocusTraversalGroup(
-              policy: const WidgetOrderTraversalPolicy(),
-              child: ListView.separated(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                scrollDirection: Axis.horizontal,
-                itemBuilder: (context, index) => SizedBox(
-                  width: 160,
-                  child: items[index],
-                ),
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemCount: items.length,
+    final theme = Theme.of(context);
+    final accessibility = AppLocalizations.of(context).accessibility;
+    final sectionHint = accessibility['section_list_hint'] ??
+        'Horizontal list. Use left and right arrows to browse items.';
+    final textScale = MediaQuery.textScaleFactorOf(context);
+    final baseHeight = widget.items.isEmpty ? 220.0 : 260.0;
+    final scaledHeight = math.max(baseHeight, baseHeight + (textScale - 1) * 120);
+
+    return Semantics(
+      container: true,
+      label: widget.title,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Semantics(
+              header: true,
+              child: Text(
+                widget.title,
+                style: theme.textTheme.titleMedium,
               ),
             ),
           ),
-      ],
+          const SizedBox(height: 12),
+          if (widget.isLoading)
+            const SizedBox(
+              height: 220,
+              child: Center(child: LoadingIndicator()),
+            )
+          else if (widget.errorMessage != null &&
+              widget.errorMessage!.isNotEmpty)
+            SizedBox(
+              height: 220,
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ErrorDisplay(
+                    message: widget.errorMessage!,
+                  ),
+                ),
+              ),
+            )
+          else if (widget.items.isEmpty)
+            const SizedBox(
+              height: 220,
+              child: Center(child: Text('No items available')),
+            )
+          else
+            SizedBox(
+              height: scaledHeight,
+              child: Shortcuts(
+                shortcuts: const <ShortcutActivator, Intent>{
+                  SingleActivator(LogicalKeyboardKey.arrowRight):
+                      NextFocusIntent(),
+                  SingleActivator(LogicalKeyboardKey.arrowLeft):
+                      PreviousFocusIntent(),
+                  SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+                  SingleActivator(LogicalKeyboardKey.select): ActivateIntent(),
+                },
+                child: Actions(
+                  actions: <Type, Action<Intent>>{
+                    NextFocusIntent: CallbackAction<NextFocusIntent>(
+                      onInvoke: (intent) {
+                        FocusScope.of(context).nextFocus();
+                        _scrollFocusedIntoView();
+                        return null;
+                      },
+                    ),
+                    PreviousFocusIntent: CallbackAction<PreviousFocusIntent>(
+                      onInvoke: (intent) {
+                        FocusScope.of(context).previousFocus();
+                        _scrollFocusedIntoView();
+                        return null;
+                      },
+                    ),
+                    ActivateIntent: CallbackAction<ActivateIntent>(
+                      onInvoke: (intent) {
+                        final focusedContext =
+                            FocusManager.instance.primaryFocus?.context;
+                        if (focusedContext != null) {
+                          Actions.invoke(focusedContext, intent);
+                        }
+                        return null;
+                      },
+                    ),
+                  },
+                  child: Scrollbar(
+                    controller: _controller,
+                    thumbVisibility: true,
+                    child: Semantics(
+                      explicitChildNodes: true,
+                      hint: sectionHint,
+                      child: ListView.separated(
+                        controller: _controller,
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (context, index) => SizedBox(
+                          width: 168,
+                          child: widget.items[index],
+                        ),
+                        separatorBuilder: (_, __) => const SizedBox(width: 12),
+                        itemCount: widget.items.length,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -703,66 +840,79 @@ class _PersonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l = AppLocalizations.of(context);
-    final semanticsLabel = subtitle.isEmpty ? name : '$name, $subtitle';
+    final loc = AppLocalizations.of(context);
+    final accessibility = loc.accessibility;
+    final semanticsLabel = subtitle.isNotEmpty ? '$name, $subtitle' : name;
+    final imageLabelTemplate =
+        accessibility['profile_label'] ?? 'Profile image for {name}';
+    final semanticImageLabel =
+        imageLabelTemplate.replaceAll('{name}', name);
+
     return Semantics(
+      container: true,
       button: true,
       label: semanticsLabel,
-      hint: l.t('common.viewDetailsHint'),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ClipOval(
-                  child: SizedBox(
-                    width: 80,
-                    height: 80,
-                    child: (profilePath != null && profilePath!.isNotEmpty)
-                        ? MediaImage(
-                            path: profilePath,
-                            type: MediaImageType.profile,
-                            size: MediaImageSize.w185,
-                            fit: BoxFit.cover,
-                            semanticsLabel:
-                                '${l.t('common.profileLabelPrefix')} $name',
-                          )
-                        : ExcludeSemantics(
-                            child: Container(
-                              color: colorScheme.surfaceVariant,
-                              child: Icon(
-                                Icons.person,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
+      hint: accessibility['open_details'] ?? 'Open details',
+      child: Focus(
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            focusColor: Theme.of(context).focusColor,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ClipOval(
+                    child: SizedBox(
+                      width: 80,
+                      height: 80,
+                      child: MediaImage(
+                        path: profilePath,
+                        type: MediaImageType.profile,
+                        size: MediaImageSize.w185,
+                        fit: BoxFit.cover,
+                        semanticLabel: semanticImageLabel,
+                        placeholder: Container(
+                          color: colorScheme.surfaceVariant,
+                          child: Icon(
+                            Icons.person,
+                            color: colorScheme.onSurfaceVariant,
                           ),
+                        ),
+                        errorWidget: Container(
+                          color: colorScheme.surfaceVariant,
+                          child: Icon(
+                            Icons.person_off,
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  name,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                if (subtitle.isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 12),
                   Text(
-                    subtitle,
-                    maxLines: 1,
+                    name,
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium,
                   ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),
@@ -787,73 +937,82 @@ class _CollectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final l = AppLocalizations.of(context);
-    final description = (overview ?? '').trim();
-    final truncatedDescription = description.length > 120
-        ? '${description.substring(0, 117)}...'
-        : description;
+    final loc = AppLocalizations.of(context);
+    final accessibility = loc.accessibility;
     final semanticsLabel =
-        truncatedDescription.isEmpty ? name : '$name. $truncatedDescription';
+        overview != null && overview!.isNotEmpty ? '$name, $overview' : name;
+    final imageLabelTemplate = accessibility['collection_label'] ??
+        'Collection poster for {title}';
+    final semanticImageLabel =
+        imageLabelTemplate.replaceAll('{title}', name);
 
     return Semantics(
+      container: true,
       button: true,
       label: semanticsLabel,
-      hint: l.t('common.viewDetailsHint'),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: (posterPath != null && posterPath!.isNotEmpty)
-                    ? MediaImage(
-                        path: posterPath,
-                        type: MediaImageType.poster,
-                        size: MediaImageSize.w342,
-                        fit: BoxFit.cover,
-                        semanticsLabel:
-                            '${l.t('common.posterLabelPrefix')} $name',
-                      )
-                    : ExcludeSemantics(
-                        child: Container(
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(
-                            Icons.collections_bookmark,
-                            size: 48,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+      hint: accessibility['open_details'] ?? 'Open details',
+      child: Focus(
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            focusColor: Theme.of(context).focusColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: MediaImage(
+                    path: posterPath,
+                    type: MediaImageType.poster,
+                    size: MediaImageSize.w342,
+                    fit: BoxFit.cover,
+                    semanticLabel: semanticImageLabel,
+                    placeholder: Container(
+                      color: colorScheme.surfaceVariant,
+                      child: Icon(
+                        Icons.collections_bookmark,
+                        size: 48,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    if (overview != null && overview!.isNotEmpty) ...[
-                      const SizedBox(height: 4),
+                    errorWidget: Container(
+                      color: colorScheme.surfaceVariant,
+                      child: Icon(
+                        Icons.collections_outlined,
+                        size: 48,
+                        color: colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       Text(
-                        overview!,
+                        name,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        style: Theme.of(context).textTheme.bodyMedium,
                       ),
+                      if (overview != null && overview!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          overview!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -870,80 +1029,89 @@ class _WatchlistCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final releaseYear = item.releaseYear;
-    final l = AppLocalizations.of(context);
-    final typeLabel = item.type == SavedMediaType.tv
-        ? (l.navigation['series'] ?? 'Series')
-        : (l.navigation['movies'] ?? 'Movies');
-    final semanticsParts = <String>[
-      item.title,
-      typeLabel,
-      if (releaseYear != null) releaseYear,
-    ];
+    final loc = AppLocalizations.of(context);
+    final accessibility = loc.accessibility;
+    final semanticsParts = <String>[item.title];
+    if (releaseYear != null) {
+      semanticsParts.add(releaseYear);
+    }
+    final semanticsLabel = semanticsParts.join(', ');
+    final imageLabelTemplate = accessibility['poster_label'] ?? 'Poster for {title}';
+    final semanticImageLabel =
+        imageLabelTemplate.replaceAll('{title}', item.title);
 
     return Semantics(
+      container: true,
       button: true,
-      label: semanticsParts.join(', '),
-      hint: l.t('common.viewDetailsHint'),
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: () {
-            final route = item.type == SavedMediaType.tv
-                ? TVDetailScreen.routeName
-                : MovieDetailScreen.routeName;
-            Navigator.of(context).pushNamed(route, arguments: item.id);
-          },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: (item.posterPath != null && item.posterPath!.isNotEmpty)
-                    ? MediaImage(
-                        path: item.posterPath,
-                        type: MediaImageType.poster,
-                        size: MediaImageSize.w342,
-                        fit: BoxFit.cover,
-                        semanticsLabel:
-                            '${l.t('common.posterLabelPrefix')} ${item.title}',
-                      )
-                    : ExcludeSemantics(
-                        child: Container(
-                          color: colorScheme.surfaceVariant,
-                          child: Icon(
-                            item.type == SavedMediaType.tv
-                                ? Icons.tv
-                                : Icons.movie,
-                            size: 48,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
+      label: semanticsLabel,
+      hint: accessibility['open_details'] ?? 'Open details',
+      child: Focus(
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              final route = item.type == SavedMediaType.tv
+                  ? TVDetailScreen.routeName
+                  : MovieDetailScreen.routeName;
+              Navigator.of(context).pushNamed(route, arguments: item.id);
+            },
+            focusColor: Theme.of(context).focusColor,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: MediaImage(
+                    path: item.posterPath,
+                    type: MediaImageType.poster,
+                    size: MediaImageSize.w342,
+                    fit: BoxFit.cover,
+                    semanticLabel: semanticImageLabel,
+                    placeholder: Container(
+                      color: colorScheme.surfaceVariant,
+                      child: Icon(
+                        item.type == SavedMediaType.tv
+                            ? Icons.tv
+                            : Icons.movie,
+                        size: 48,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item.title,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
-                    if (releaseYear != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        releaseYear,
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(color: colorScheme.onSurfaceVariant),
+                    errorWidget: Container(
+                      color: colorScheme.surfaceVariant,
+                      child: Icon(
+                        Icons.broken_image,
+                        size: 48,
+                        color: colorScheme.onSurfaceVariant,
                       ),
-                    ],
-                  ],
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        item.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      ),
+                      if (releaseYear != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          releaseYear,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: colorScheme.onSurfaceVariant),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

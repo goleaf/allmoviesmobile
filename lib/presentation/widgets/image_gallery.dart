@@ -78,24 +78,27 @@ class _ImageGalleryState extends State<ImageGallery> {
           Column(
             children: [
               SafeArea(
+                bottom: false,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.close, color: Colors.white),
-                        onPressed: _handleClose,
-                        tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                      ),
-                      const Spacer(),
-                      Text(
-                        '${_currentIndex + 1} / ${widget.images.length}',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w600,
+                  child: _BackdropBlurAppBar(
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: _handleClose,
+                          tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
                         ),
-                      ),
-                    ],
+                        const Spacer(),
+                        Text(
+                          '${_currentIndex + 1} / ${widget.images.length}',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -122,11 +125,20 @@ class _ImageGalleryState extends State<ImageGallery> {
           ),
           _EdgeGradientOverlay(position: EdgeGradientPosition.top),
           _EdgeGradientOverlay(position: EdgeGradientPosition.bottom),
+          _EdgeGradientOverlay(position: EdgeGradientPosition.left),
+          _EdgeGradientOverlay(position: EdgeGradientPosition.right),
         ],
       ),
     );
   }
 
+  /// Builds a medium-sized TMDB image that is blurred via [ImageFilter.blur].
+  ///
+  /// The preview URL is produced by [`MediaImageHelper.buildPreviewUrl`],
+  /// which internally maps to CDN sizes documented at
+  /// `https://developer.themoviedb.org/reference/images`, the same endpoint
+  /// used by `/3/movie/{id}/images` and `/3/tv/{id}/images`. The lighter weight
+  /// preview keeps memory usage low while still providing a high-quality blur.
   Widget _buildBlurredBackdrop(String? url) {
     if (url == null) {
       return Container(color: Colors.black);
@@ -161,7 +173,7 @@ class _ImageGalleryState extends State<ImageGallery> {
   }
 }
 
-enum EdgeGradientPosition { top, bottom }
+enum EdgeGradientPosition { top, bottom, left, right }
 
 class _EdgeGradientOverlay extends StatelessWidget {
   const _EdgeGradientOverlay({required this.position});
@@ -170,30 +182,87 @@ class _EdgeGradientOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final begin = position == EdgeGradientPosition.top
-        ? Alignment.topCenter
-        : Alignment.bottomCenter;
-    final end = position == EdgeGradientPosition.top
-        ? Alignment.bottomCenter
-        : Alignment.topCenter;
+    switch (position) {
+      case EdgeGradientPosition.top:
+      case EdgeGradientPosition.bottom:
+        final begin =
+            position == EdgeGradientPosition.top ? Alignment.topCenter : Alignment.bottomCenter;
+        final end =
+            position == EdgeGradientPosition.top ? Alignment.bottomCenter : Alignment.topCenter;
 
-    return Positioned(
-      top: position == EdgeGradientPosition.top ? 0 : null,
-      bottom: position == EdgeGradientPosition.bottom ? 0 : null,
-      left: 0,
-      right: 0,
-      child: IgnorePointer(
-        child: Container(
-          height: 180,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: begin,
-              end: end,
-              colors: [
-                Colors.black.withOpacity(0.7),
-                Colors.black.withOpacity(0.0),
-              ],
+        return Positioned(
+          top: position == EdgeGradientPosition.top ? 0 : null,
+          bottom: position == EdgeGradientPosition.bottom ? 0 : null,
+          left: 0,
+          right: 0,
+          child: IgnorePointer(
+            child: Container(
+              height: 180,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: begin,
+                  end: end,
+                  colors: [
+                    Colors.black.withOpacity(0.72),
+                    Colors.black.withOpacity(0.0),
+                  ],
+                ),
+              ),
             ),
+          ),
+        );
+      case EdgeGradientPosition.left:
+      case EdgeGradientPosition.right:
+        final begin =
+            position == EdgeGradientPosition.left ? Alignment.centerLeft : Alignment.centerRight;
+        final end =
+            position == EdgeGradientPosition.left ? Alignment.centerRight : Alignment.centerLeft;
+        return Positioned(
+          top: 0,
+          bottom: 0,
+          left: position == EdgeGradientPosition.left ? 0 : null,
+          right: position == EdgeGradientPosition.right ? 0 : null,
+          child: IgnorePointer(
+            child: Container(
+              width: 120,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: begin,
+                  end: end,
+                  colors: [
+                    Colors.black.withOpacity(0.65),
+                    Colors.black.withOpacity(0.0),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+    }
+  }
+}
+
+/// Blurred glassmorphism container that keeps gallery controls legible while
+/// still revealing the underlying TMDB backdrop image.
+class _BackdropBlurAppBar extends StatelessWidget {
+  const _BackdropBlurAppBar({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(20),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: Colors.black.withOpacity(0.35),
+            border: Border.all(color: Colors.white.withOpacity(0.05)),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: child,
           ),
         ),
       ),

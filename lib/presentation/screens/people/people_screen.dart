@@ -5,6 +5,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/models/person_model.dart';
 import '../../../providers/people_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../person_detail/person_detail_screen.dart';
 
 class PeopleScreen extends StatelessWidget {
   static const routeName = '/people';
@@ -104,44 +105,56 @@ class _PersonCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            CircleAvatar(
-              radius: 28,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                person.name.substring(0, 1).toUpperCase(),
-                style: Theme.of(context).textTheme.titleLarge,
+      child: InkWell(
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => PersonDetailScreen(
+                personId: person.id,
+                initialPerson: person,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    person.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    subtitleParts.join(' • '),
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    (person.biography?.isNotEmpty ?? false)
-                        ? person.biography!
-                        : 'Biography not available yet.',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                ],
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 28,
+                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                child: Text(
+                  person.name.substring(0, 1).toUpperCase(),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
-            ),
-          ],
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      person.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitleParts.join(' • '),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      (person.biography?.isNotEmpty ?? false)
+                          ? person.biography!
+                          : 'Biography not available yet.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

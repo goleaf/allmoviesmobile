@@ -77,8 +77,12 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => RecommendationsProvider(tmdbRepository, storageService)),
         ChangeNotifierProvider(create: (_) => MoviesProvider()),
         ChangeNotifierProvider(create: (_) => SeriesProvider()),
-        ChangeNotifierProvider(create: (_) => PeopleProvider()),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider()),
+        ChangeNotifierProvider(
+          create: (context) => PeopleProvider(context.read<TmdbRepository>()),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => CompaniesProvider(context.read<TmdbRepository>()),
+        ),
         ChangeNotifierProvider(
           create: (_) => ApiExplorerProvider(tmdbRepository),
         ),

@@ -4,6 +4,7 @@ import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
+import 'models/keyword_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
@@ -353,6 +354,58 @@ class TmdbRepository {
     final company = Company.fromJson(payload);
     _cache.set(cacheKey, company);
     return company;
+  }
+
+  Future<KeywordDetails> fetchKeywordDetails(int keywordId, {bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    final cacheKey = 'keyword-details-$keywordId';
+    if (!forceRefresh) {
+      final cached = _cache.get<KeywordDetails>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchKeywordDetails(keywordId);
+    final details = KeywordDetails.fromJson(payload);
+    _cache.set(cacheKey, details);
+    return details;
+  }
+
+  Future<PaginatedResponse<Movie>> fetchKeywordMovies({
+    required int keywordId,
+    int page = 1,
+    String sortBy = 'popularity.desc',
+    bool includeAdult = false,
+    bool forceRefresh = false,
+  }) {
+    return discoverMovies(
+      filters: {
+        'with_keywords': '$keywordId',
+        'sort_by': sortBy,
+        'include_adult': includeAdult ? 'true' : 'false',
+      },
+      page: page,
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchKeywordTvShows({
+    required int keywordId,
+    int page = 1,
+    String sortBy = 'popularity.desc',
+    bool forceRefresh = false,
+  }) {
+    return discoverTvSeries(
+      filters: {
+        'with_keywords': '$keywordId',
+        'sort_by': sortBy,
+        'include_null_first_air_dates': 'false',
+      },
+      page: page,
+      forceRefresh: forceRefresh,
+    );
   }
 
   Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {

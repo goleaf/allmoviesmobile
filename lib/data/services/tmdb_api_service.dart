@@ -170,6 +170,16 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchKeywordDetails(
+    int keywordId, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/3/keyword/$keywordId',
+      queryParameters: queryParameters,
+    );
+  }
+
   Future<Map<String, dynamic>> fetchList(
     String listId, {
     int page = 1,

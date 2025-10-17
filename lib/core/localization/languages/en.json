@@ -27,7 +27,14 @@
     "new_releases": "New Releases",
     "continue_watching": "Continue Watching",
     "recommended": "Recommended for You",
-    "see_all": "See All"
+    "see_all": "See All",
+    "popular_people": "Popular People",
+    "featured_collections": "Featured Collections",
+    "quick_access": "Quick Access",
+    "quick_discover": "Discover",
+    "quick_trending": "Trending",
+    "quick_genres": "Genres",
+    "search_hint": "Search movies, TV shows, people..."
   },
   "movie": {
     "title": "Movie",

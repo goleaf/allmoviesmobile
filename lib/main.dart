@@ -16,6 +16,7 @@ import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
+import 'providers/recommendations_provider.dart';
 import 'package:provider/provider.dart'
     show Provider; // add Provider for repo injection
 import 'presentation/navigation/app_navigation_shell.dart';
@@ -24,7 +25,7 @@ import 'presentation/screens/splash_preload/boot_gate.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
-// HomeScreen removed - default to MoviesScreen as initial route
+import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/person_detail/person_detail_screen.dart';
@@ -104,6 +105,9 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => SearchProvider(repo, storageService),
         ),
+        ChangeNotifierProvider(
+          create: (_) => RecommendationsProvider(repo, storageService),
+        ),
         ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(repo)),
         ChangeNotifierProvider(create: (_) => GenresProvider(repo)),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
@@ -158,6 +162,7 @@ class AllMoviesApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 home: const AppNavigationShell(),
                 routes: {
+                  HomeScreen.routeName: (context) => const HomeScreen(),
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
                   MoviesFiltersScreen.routeName: (context) =>
                       const MoviesFiltersScreen(),

@@ -12,7 +12,12 @@ import '../../widgets/app_drawer.dart';
 class MoviesScreen extends StatefulWidget {
   static const routeName = '/movies';
 
-  const MoviesScreen({super.key});
+  const MoviesScreen({
+    super.key,
+    this.initialSection = MovieSection.trending,
+  });
+
+  final MovieSection initialSection;
 
   @override
   State<MoviesScreen> createState() => _MoviesScreenState();
@@ -23,11 +28,16 @@ class _MoviesScreenState extends State<MoviesScreen> {
   List<Movie> _searchResults = const [];
   bool _isSearching = false;
   String? _searchError;
+  late int _initialTabIndex;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
+    _initialTabIndex = MovieSection.values.indexOf(widget.initialSection);
+    if (_initialTabIndex < 0) {
+      _initialTabIndex = 0;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<MoviesProvider>().refresh();
     });
@@ -89,6 +99,8 @@ class _MoviesScreenState extends State<MoviesScreen> {
     final l = AppLocalizations.of(context);
     return DefaultTabController(
       length: sections.length,
+      initialIndex:
+          _initialTabIndex.clamp(0, sections.length - 1),
       child: Scaffold(
         appBar: AppBar(
           title: Text(l.t('movie.movies')),

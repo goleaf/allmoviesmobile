@@ -184,8 +184,8 @@ write all code with comments, maximum comments, update files if not comments for
 - [x] Infinite scroll pagination
 
 #### 🔄 Remaining Tasks
-- [ ] Enhanced pagination with jump-to-page
-- [ ] Filter presets save/load
+- [x] Enhanced pagination with jump-to-page
+- [x] Filter presets save/load
 
 **Files Implemented**:
 - ✅ `lib/presentation/screens/series/series_screen.dart`

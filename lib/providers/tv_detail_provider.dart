@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../data/models/episode_group_model.dart';
 import '../data/models/episode_model.dart';
+import '../data/models/media_images.dart';
 import '../data/models/season_model.dart';
 import '../data/models/tv_detailed_model.dart';
 import '../data/tmdb_repository.dart';
@@ -20,6 +22,12 @@ class TvDetailProvider extends ChangeNotifier {
   final Map<int, Season> _seasonDetails = <int, Season>{};
   final Set<int> _loadingSeasons = <int>{};
   final Map<int, String> _seasonErrors = <int, String>{};
+  final List<EpisodeGroup> _episodeGroups = <EpisodeGroup>[];
+  bool _episodeGroupsLoading = false;
+  String? _episodeGroupsError;
+  final Map<int, MediaImages> _seasonImages = <int, MediaImages>{};
+  final Set<int> _loadingSeasonImages = <int>{};
+  final Map<int, String> _seasonImageErrors = <int, String>{};
 
   TVDetailed? get details => _details;
   bool get isLoading => _isLoading;
@@ -27,6 +35,15 @@ class TvDetailProvider extends ChangeNotifier {
   int? get selectedSeasonNumber => _selectedSeasonNumber;
 
   List<Season> get seasons => _details?.seasons ?? const [];
+  List<EpisodeGroup> get episodeGroups => List.unmodifiable(_episodeGroups);
+  bool get isEpisodeGroupsLoading => _episodeGroupsLoading;
+  String? get episodeGroupsError => _episodeGroupsError;
+
+  MediaImages? seasonImages(int seasonNumber) => _seasonImages[seasonNumber];
+  bool isSeasonImagesLoading(int seasonNumber) =>
+      _loadingSeasonImages.contains(seasonNumber);
+  String? seasonImagesError(int seasonNumber) =>
+      _seasonImageErrors[seasonNumber];
 
   Season? seasonForNumber(int? seasonNumber) {
     if (seasonNumber == null) {
@@ -70,6 +87,13 @@ class TvDetailProvider extends ChangeNotifier {
       _seasonDetails.clear();
       _seasonErrors.clear();
       _loadingSeasons.clear();
+      _episodeGroups
+        ..clear();
+      _episodeGroupsError = null;
+      _episodeGroupsLoading = false;
+      _seasonImages.clear();
+      _loadingSeasonImages.clear();
+      _seasonImageErrors.clear();
 
       _selectedSeasonNumber = _resolveInitialSeasonNumber(details);
       notifyListeners();
@@ -77,7 +101,9 @@ class TvDetailProvider extends ChangeNotifier {
       final selected = _selectedSeasonNumber;
       if (selected != null) {
         unawaited(_ensureSeasonLoaded(selected));
+        unawaited(_loadSeasonImages(selected));
       }
+      unawaited(_loadEpisodeGroups(forceRefresh: forceRefresh));
     } catch (error) {
       _errorMessage = _mapError(error);
     } finally {
@@ -94,11 +120,18 @@ class TvDetailProvider extends ChangeNotifier {
     }
     _selectedSeasonNumber = seasonNumber;
     notifyListeners();
+    unawaited(_loadSeasonImages(seasonNumber));
     await _ensureSeasonLoaded(seasonNumber);
   }
 
   Future<void> retrySeason(int seasonNumber) =>
       _ensureSeasonLoaded(seasonNumber, forceRefresh: true);
+
+  Future<void> retrySeasonImages(int seasonNumber) =>
+      _loadSeasonImages(seasonNumber, forceRefresh: true);
+
+  Future<void> refreshEpisodeGroups() =>
+      _loadEpisodeGroups(forceRefresh: true);
 
   Future<void> _ensureSeasonLoaded(
     int seasonNumber, {
@@ -125,10 +158,81 @@ class TvDetailProvider extends ChangeNotifier {
       );
       _seasonDetails[seasonNumber] = season;
       _mergeSeasonIntoDetails(season);
+      unawaited(_loadSeasonImages(
+        seasonNumber,
+        forceRefresh: forceRefresh,
+      ));
     } catch (error) {
       _seasonErrors[seasonNumber] = _mapError(error);
     } finally {
       _loadingSeasons.remove(seasonNumber);
+      notifyListeners();
+    }
+  }
+
+  Future<void> _loadEpisodeGroups({bool forceRefresh = false}) async {
+    if (_episodeGroupsLoading) {
+      return;
+    }
+
+    if (!forceRefresh && _episodeGroups.isNotEmpty) {
+      return;
+    }
+
+    _episodeGroupsLoading = true;
+    if (forceRefresh) {
+      _episodeGroupsError = null;
+    }
+    notifyListeners();
+
+    try {
+      final groups = await _repository.fetchTvEpisodeGroups(
+        tvId,
+        forceRefresh: forceRefresh,
+      );
+      _episodeGroups
+        ..clear()
+        ..addAll(groups);
+      _episodeGroupsError = null;
+    } catch (error) {
+      _episodeGroupsError = _mapError(error);
+      if (forceRefresh) {
+        _episodeGroups.clear();
+      }
+    } finally {
+      _episodeGroupsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> _loadSeasonImages(
+    int seasonNumber, {
+    bool forceRefresh = false,
+  }) async {
+    if (_loadingSeasonImages.contains(seasonNumber)) {
+      return;
+    }
+
+    final cached = _seasonImages[seasonNumber];
+    if (!forceRefresh && cached != null && cached.hasAny) {
+      return;
+    }
+
+    _loadingSeasonImages.add(seasonNumber);
+    _seasonImageErrors.remove(seasonNumber);
+    notifyListeners();
+
+    try {
+      final images = await _repository.fetchTvSeasonImages(
+        tvId,
+        seasonNumber,
+        forceRefresh: forceRefresh,
+      );
+      _seasonImages[seasonNumber] = images;
+    } catch (error) {
+      _seasonImageErrors[seasonNumber] = _mapError(error);
+    } finally {
+      _loadingSeasonImages.remove(seasonNumber);
       notifyListeners();
     }
   }

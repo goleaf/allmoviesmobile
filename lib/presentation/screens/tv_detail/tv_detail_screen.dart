@@ -6,7 +6,9 @@ import '../../../core/utils/media_image_helper.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/credit_model.dart';
+import '../../../data/models/episode_group_model.dart';
 import '../../../data/models/episode_model.dart';
+import '../../../data/models/image_model.dart';
 import '../../../data/models/keyword_model.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/models/network_model.dart';
@@ -100,6 +102,7 @@ class _TVDetailView extends StatelessWidget {
                 _buildGenres(context, details, loc),
                 _buildNetworks(context, details, loc),
                 _buildSeasons(context, details, loc, provider),
+                _buildEpisodeGroups(context, provider),
                 _buildCast(context, details, loc),
                 _buildVideos(context, details, loc),
                 _buildKeywords(context, details, loc),
@@ -626,6 +629,67 @@ class _TVDetailView extends StatelessWidget {
     );
   }
 
+  Widget _buildEpisodeGroups(
+    BuildContext context,
+    TvDetailProvider provider,
+  ) {
+    final groups = provider.episodeGroups;
+    final isLoading = provider.isEpisodeGroupsLoading;
+    final error = provider.episodeGroupsError;
+
+    if (groups.isEmpty && !isLoading && error == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Episode groups',
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          if (isLoading && groups.isEmpty)
+            const Center(child: CircularProgressIndicator()),
+          if (error != null && groups.isEmpty)
+            ErrorDisplay(
+              message: error,
+              onRetry: () => provider.refreshEpisodeGroups(),
+            )
+          else ...[
+            Column(
+              children: groups
+                  .map((group) => _EpisodeGroupCard(group: group))
+                  .toList(),
+            ),
+            if (isLoading)
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: LinearProgressIndicator(minHeight: 2),
+              ),
+            if (error != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 12),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton.icon(
+                    onPressed: () => provider.refreshEpisodeGroups(),
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ),
+              ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildSelectedSeasonDetails(
     BuildContext context,
     TVDetailed details,
@@ -659,14 +723,23 @@ class _TVDetailView extends StatelessWidget {
                   message: error,
                   onRetry: () => provider.retrySeason(seasonNumber),
                 )
-              else if (season != null && season.episodes.isNotEmpty)
-                ...season.episodes.map(
-                  (episode) => _EpisodeCard(
-                    episode: episode,
-                    tvId: details.id,
-                    seasonNumber: seasonNumber,
-                  ),
-                )
+              else if (season != null) ...[
+                if (season.episodes.isNotEmpty)
+                  ...season.episodes.map(
+                    (episode) => _EpisodeCard(
+                      episode: episode,
+                      tvId: details.id,
+                      seasonNumber: seasonNumber,
+                    ),
+                  )
+                else
+                  const Center(child: Text('No episodes available')),
+                const SizedBox(height: 16),
+                _SeasonImagesSection(
+                  provider: provider,
+                  seasonNumber: seasonNumber,
+                ),
+              ]
               else
                 const Center(child: Text('No episodes available')),
             ],
@@ -1248,6 +1321,275 @@ class _SeasonCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _EpisodeGroupCard extends StatelessWidget {
+  const _EpisodeGroupCard({required this.group});
+
+  final EpisodeGroup group;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final info = <String>[];
+    if (group.groupCount != null) {
+      info.add('${group.groupCount} groups');
+    }
+    if (group.episodeCount != null) {
+      info.add('${group.episodeCount} episodes');
+    }
+    if (group.network != null && group.network!.name.isNotEmpty) {
+      info.add(group.network!.name);
+    }
+
+    final subtitle = info.isEmpty ? null : info.join(' • ');
+    final description = group.description?.trim();
+
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: ExpansionTile(
+        title: Text(group.name),
+        subtitle: subtitle != null ? Text(subtitle) : null,
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        children: [
+          if (description != null && description.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(description, style: theme.textTheme.bodyMedium),
+            ),
+          if (group.groups.isNotEmpty)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: group.groups
+                  .map((node) => _EpisodeGroupNodeTile(node: node))
+                  .toList(),
+            )
+          else
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'No alternative orderings available.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EpisodeGroupNodeTile extends StatelessWidget {
+  const _EpisodeGroupNodeTile({required this.node});
+
+  final EpisodeGroupNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final subtitle = <String>[];
+    if (node.order != null) {
+      subtitle.add('Order ${node.order}');
+    }
+    if (node.lockOrder != null && node.lockOrder != 0) {
+      subtitle.add('Locked');
+    }
+
+    final overview = node.overview?.trim();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            node.name,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          if (subtitle.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 4),
+              child: Text(
+                subtitle.join(' • '),
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+          if (overview != null && overview.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                overview,
+                style: theme.textTheme.bodyMedium,
+              ),
+            ),
+          if (node.episodes.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: node.episodes
+                    .take(18)
+                    .map((episode) => Chip(
+                          label: Text(_formatEpisodeGroupChip(episode)),
+                        ))
+                    .toList(),
+              ),
+            )
+          else
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Text(
+                'No episodes listed for this group.',
+                style: theme.textTheme.bodySmall,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  String _formatEpisodeGroupChip(EpisodeGroupEpisode episode) {
+    final seasonCode = episode.seasonNumber.toString().padLeft(2, '0');
+    final episodeCode = episode.episodeNumber.toString().padLeft(2, '0');
+    final title = episode.name.trim();
+    final code = 'S$seasonCodeE$episodeCode';
+    if (title.isEmpty) {
+      return code;
+    }
+    return '$code • $title';
+  }
+}
+
+class _SeasonImagesSection extends StatelessWidget {
+  const _SeasonImagesSection({
+    required this.provider,
+    required this.seasonNumber,
+  });
+
+  final TvDetailProvider provider;
+  final int seasonNumber;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final images = provider.seasonImages(seasonNumber);
+    final isLoading = provider.isSeasonImagesLoading(seasonNumber);
+    final error = provider.seasonImagesError(seasonNumber);
+
+    final entries = <_SeasonImageEntry>[];
+    if (images != null) {
+      entries
+        ..addAll(images.posters
+            .map((image) => _SeasonImageEntry(image, MediaImageType.poster)))
+        ..addAll(images.backdrops
+            .map((image) => _SeasonImageEntry(image, MediaImageType.backdrop)))
+        ..addAll(images.stills
+            .map((image) => _SeasonImageEntry(image, MediaImageType.still)));
+    }
+
+    if (entries.isEmpty && !isLoading && error == null) {
+      return const SizedBox.shrink();
+    }
+
+    final visibleEntries = entries.take(15).toList(growable: false);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Season gallery',
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 12),
+        if (isLoading && visibleEntries.isEmpty)
+          const Center(child: CircularProgressIndicator())
+        else if (error != null && visibleEntries.isEmpty)
+          ErrorDisplay(
+            message: error,
+            onRetry: () => provider.retrySeasonImages(seasonNumber),
+          )
+        else if (visibleEntries.isNotEmpty)
+          SizedBox(
+            height: 160,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemBuilder: (context, index) {
+                final entry = visibleEntries[index];
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AspectRatio(
+                    aspectRatio: _resolveAspectRatio(entry),
+                    child: MediaImage(
+                      path: entry.image.filePath,
+                      type: entry.type,
+                      size: _resolveImageSize(entry.type),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                );
+              },
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
+              itemCount: visibleEntries.length,
+            ),
+          ),
+        if (error != null && visibleEntries.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8),
+            child: TextButton.icon(
+              onPressed: () => provider.retrySeasonImages(seasonNumber),
+              icon: const Icon(Icons.refresh),
+              label: const Text('Retry loading gallery'),
+            ),
+          ),
+        if (isLoading && visibleEntries.isNotEmpty)
+          const Padding(
+            padding: EdgeInsets.only(top: 8),
+            child: LinearProgressIndicator(minHeight: 2),
+          ),
+      ],
+    );
+  }
+
+  double _resolveAspectRatio(_SeasonImageEntry entry) {
+    if (entry.image.aspectRatio == 0) {
+      switch (entry.type) {
+        case MediaImageType.backdrop:
+          return 16 / 9;
+        case MediaImageType.logo:
+        case MediaImageType.poster:
+        case MediaImageType.profile:
+        case MediaImageType.still:
+          return 2 / 3;
+      }
+    }
+    return entry.image.aspectRatio;
+  }
+
+  MediaImageSize _resolveImageSize(MediaImageType type) {
+    switch (type) {
+      case MediaImageType.backdrop:
+        return MediaImageSize.w780;
+      case MediaImageType.poster:
+        return MediaImageSize.w342;
+      case MediaImageType.profile:
+        return MediaImageSize.w185;
+      case MediaImageType.still:
+        return MediaImageSize.w300;
+      case MediaImageType.logo:
+        return MediaImageSize.w300;
+    }
+  }
+}
+
+class _SeasonImageEntry {
+  const _SeasonImageEntry(this.image, this.type);
+
+  final ImageModel image;
+  final MediaImageType type;
 }
 
 class _EpisodeCard extends StatelessWidget {

@@ -10,6 +10,7 @@ import 'models/collection_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
 import 'models/discover_filters_model.dart';
+import 'models/episode_group_model.dart';
 import 'models/genre_model.dart';
 import 'models/image_model.dart';
 import 'models/keyword_model.dart';
@@ -598,6 +599,33 @@ class TmdbRepository {
         setList('translations', translations?['translations'] as List?);
 
         return TVDetailed.fromJson(normalized);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.movieDetailsTTL,
+    );
+  }
+
+  /// Fetches alternative episode orderings for a TV show.
+  ///
+  /// Uses the TMDB V3 endpoint `GET /3/tv/{tv_id}/episode_groups` and returns
+  /// the parsed JSON payload as strongly typed [EpisodeGroup] models.
+  Future<List<EpisodeGroup>> fetchTvEpisodeGroups(
+    int tvId, {
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_episode_groups::$tvId';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson('/tv/$tvId/episode_groups');
+        final results = payload['results'];
+        if (results is! List) {
+          return const <EpisodeGroup>[];
+        }
+        return results
+            .whereType<Map<String, dynamic>>()
+            .map(EpisodeGroup.fromJson)
+            .toList(growable: false);
       },
       forceRefresh: forceRefresh,
       ttlSeconds: CacheService.movieDetailsTTL,

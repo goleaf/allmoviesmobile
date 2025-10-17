@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 import '../data/models/episode_model.dart';
+import '../data/models/media_images.dart';
 import '../data/models/season_model.dart';
 import '../data/models/tv_detailed_model.dart';
 import '../data/tmdb_repository.dart';
@@ -20,6 +21,9 @@ class TvDetailProvider extends ChangeNotifier {
   final Map<int, Season> _seasonDetails = <int, Season>{};
   final Set<int> _loadingSeasons = <int>{};
   final Map<int, String> _seasonErrors = <int, String>{};
+  final Map<int, MediaImages> _seasonImages = <int, MediaImages>{};
+  final Set<int> _loadingSeasonImages = <int>{};
+  final Map<int, String> _seasonImageErrors = <int, String>{};
 
   TVDetailed? get details => _details;
   bool get isLoading => _isLoading;
@@ -35,6 +39,13 @@ class TvDetailProvider extends ChangeNotifier {
     return _seasonDetails[seasonNumber] ?? _findSeason(seasonNumber);
   }
 
+  MediaImages? seasonImagesForNumber(int? seasonNumber) {
+    if (seasonNumber == null) {
+      return null;
+    }
+    return _seasonImages[seasonNumber];
+  }
+
   List<Episode> episodesForSeason(int? seasonNumber) {
     final season = seasonForNumber(seasonNumber);
     if (season == null) {
@@ -47,6 +58,12 @@ class TvDetailProvider extends ChangeNotifier {
       _loadingSeasons.contains(seasonNumber);
 
   String? seasonError(int seasonNumber) => _seasonErrors[seasonNumber];
+
+  bool isSeasonImagesLoading(int seasonNumber) =>
+      _loadingSeasonImages.contains(seasonNumber);
+
+  String? seasonImagesError(int seasonNumber) =>
+      _seasonImageErrors[seasonNumber];
 
   Future<void> load({bool forceRefresh = false}) async {
     if (_isLoading && !forceRefresh) {
@@ -70,6 +87,9 @@ class TvDetailProvider extends ChangeNotifier {
       _seasonDetails.clear();
       _seasonErrors.clear();
       _loadingSeasons.clear();
+      _seasonImages.clear();
+      _seasonImageErrors.clear();
+      _loadingSeasonImages.clear();
 
       _selectedSeasonNumber = _resolveInitialSeasonNumber(details);
       notifyListeners();
@@ -77,6 +97,7 @@ class TvDetailProvider extends ChangeNotifier {
       final selected = _selectedSeasonNumber;
       if (selected != null) {
         unawaited(_ensureSeasonLoaded(selected));
+        unawaited(_ensureSeasonImagesLoaded(selected));
       }
     } catch (error) {
       _errorMessage = _mapError(error);
@@ -94,11 +115,17 @@ class TvDetailProvider extends ChangeNotifier {
     }
     _selectedSeasonNumber = seasonNumber;
     notifyListeners();
-    await _ensureSeasonLoaded(seasonNumber);
+    await Future.wait<void>([
+      _ensureSeasonLoaded(seasonNumber),
+      _ensureSeasonImagesLoaded(seasonNumber),
+    ]);
   }
 
   Future<void> retrySeason(int seasonNumber) =>
       _ensureSeasonLoaded(seasonNumber, forceRefresh: true);
+
+  Future<void> retrySeasonImages(int seasonNumber) =>
+      _ensureSeasonImagesLoaded(seasonNumber, forceRefresh: true);
 
   Future<void> _ensureSeasonLoaded(
     int seasonNumber, {
@@ -129,6 +156,38 @@ class TvDetailProvider extends ChangeNotifier {
       _seasonErrors[seasonNumber] = _mapError(error);
     } finally {
       _loadingSeasons.remove(seasonNumber);
+      notifyListeners();
+    }
+  }
+
+  Future<void> _ensureSeasonImagesLoaded(
+    int seasonNumber, {
+    bool forceRefresh = false,
+  }) async {
+    if (_loadingSeasonImages.contains(seasonNumber)) {
+      return;
+    }
+
+    final cached = _seasonImages[seasonNumber];
+    if (!forceRefresh && cached != null) {
+      return;
+    }
+
+    _loadingSeasonImages.add(seasonNumber);
+    _seasonImageErrors.remove(seasonNumber);
+    notifyListeners();
+
+    try {
+      final images = await _repository.fetchTvSeasonImages(
+        tvId,
+        seasonNumber,
+        forceRefresh: forceRefresh,
+      );
+      _seasonImages[seasonNumber] = images;
+    } catch (error) {
+      _seasonImageErrors[seasonNumber] = _mapError(error);
+    } finally {
+      _loadingSeasonImages.remove(seasonNumber);
       notifyListeners();
     }
   }

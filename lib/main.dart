@@ -21,13 +21,16 @@ import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
+import 'presentation/screens/person_detail/person_detail_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
+import 'providers/recommendations_provider.dart';
 import 'providers/series_provider.dart';
 
 void main() async {
@@ -59,6 +62,7 @@ class AllMoviesApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
+        Provider<TmdbRepository>.value(value: tmdbRepository),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(create: (_) => FavoritesProvider(storageService)),
@@ -68,10 +72,11 @@ class AllMoviesApp extends StatelessWidget {
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
         ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => MoviesProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => SeriesProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => PeopleProvider(tmdbRepository)),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => RecommendationsProvider(tmdbRepository, storageService)),
+        ChangeNotifierProvider(create: (_) => MoviesProvider()),
+        ChangeNotifierProvider(create: (_) => SeriesProvider()),
+        ChangeNotifierProvider(create: (_) => PeopleProvider()),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider()),
       ],
       child: Consumer2<LocaleProvider, ThemeProvider>(
         builder: (context, localeProvider, themeProvider, _) {

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../providers/accessibility_provider.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../providers/watch_region_provider.dart';
@@ -21,11 +22,22 @@ class SettingsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(title: Text(l.t('settings.title'))),
-      body: ListView(
-        children: [
-          _SettingsHeader(title: l.t('settings.appearance')),
-          _ThemeTile(),
-          _SettingsHeader(title: l.t('settings.localization')),
+      body: Semantics(
+        container: true,
+        label: l.t('settings.title'),
+        explicitChildNodes: true,
+        child: ListView(
+          children: [
+            _SettingsHeader(title: l.t('settings.appearance')),
+            const _ThemeTile(),
+            _SettingsHeader(title: l.t('settings.accessibility.title')),
+            const _HighContrastTile(),
+            const _ColorBlindTile(),
+            const _BoldTextTile(),
+            const _FocusIndicatorTile(),
+            const _KeyboardHintTile(),
+            const _TextScaleTile(),
+            _SettingsHeader(title: l.t('settings.localization')),
           _LanguageTile(),
           _RegionTile(),
           _SettingsHeader(title: l.t('settings.content')),
@@ -46,7 +58,8 @@ class SettingsScreen extends StatelessWidget {
             title: l.t('settings.appVersion'),
             value: '1.0.0',
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -59,13 +72,16 @@ class _SettingsHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(
-        title,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+    final text = Theme.of(context)
+        .textTheme
+        .titleMedium
+        ?.copyWith(fontWeight: FontWeight.bold);
+
+    return Semantics(
+      header: true,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+        child: Text(title, style: text),
       ),
     );
   }
@@ -110,6 +126,137 @@ class _ThemeTile extends StatelessWidget {
           builder: (context) => const _ThemeDialog(),
         );
       },
+    );
+  }
+}
+
+/// Toggles high contrast rendering for TMDB list and detail payloads.
+class _HighContrastTile extends StatelessWidget {
+  const _HighContrastTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.contrast),
+      title: Text(l.t('settings.accessibility.high_contrast')),
+      subtitle: Text(l.t('settings.accessibility.high_contrast_desc')),
+      value: provider.highContrast,
+      onChanged: (value) => provider.setHighContrast(value),
+    );
+  }
+}
+
+/// Toggles color-blind safe palettes for TMDB sourced posters and chips.
+class _ColorBlindTile extends StatelessWidget {
+  const _ColorBlindTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.invert_colors_on),
+      title: Text(l.t('settings.accessibility.color_blind')),
+      subtitle: Text(l.t('settings.accessibility.color_blind_desc')),
+      value: provider.colorBlindFriendly,
+      onChanged: (value) => provider.setColorBlindFriendly(value),
+    );
+  }
+}
+
+/// Enables heavier font weights for improved readability of TMDB metadata.
+class _BoldTextTile extends StatelessWidget {
+  const _BoldTextTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.format_bold),
+      title: Text(l.t('settings.accessibility.bold_text')),
+      subtitle: Text(l.t('settings.accessibility.bold_text_desc')),
+      value: provider.boldText,
+      onChanged: (value) => provider.setBoldText(value),
+    );
+  }
+}
+
+/// Controls whether focus indicators surround posters when using a keyboard.
+class _FocusIndicatorTile extends StatelessWidget {
+  const _FocusIndicatorTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.center_focus_strong),
+      title: Text(l.t('settings.accessibility.focus_indicators')),
+      subtitle: Text(l.t('settings.accessibility.focus_indicators_desc')),
+      value: provider.showFocusIndicators,
+      onChanged: (value) => provider.setShowFocusIndicators(value),
+    );
+  }
+}
+
+/// Adds semantic keyboard navigation hints for list/grid items.
+class _KeyboardHintTile extends StatelessWidget {
+  const _KeyboardHintTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+
+    return SwitchListTile.adaptive(
+      secondary: const Icon(Icons.keyboard),
+      title: Text(l.t('settings.accessibility.keyboard_hints')),
+      subtitle: Text(l.t('settings.accessibility.keyboard_hints_desc')),
+      value: provider.keyboardNavigationHints,
+      onChanged: (value) => provider.setKeyboardNavigationHints(value),
+    );
+  }
+}
+
+/// Slider for scaling text size across TMDB sourced UI content.
+class _TextScaleTile extends StatelessWidget {
+  const _TextScaleTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final provider = context.watch<AccessibilityProvider>();
+    final percent = (provider.textScaleFactor * 100).round();
+
+    return ListTile(
+      leading: const Icon(Icons.format_size),
+      title: Text(l.t('settings.accessibility.text_scale')),
+      subtitle: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l.t('settings.accessibility.text_scale_desc')),
+          Semantics(
+            label: l
+                .t('settings.accessibility.text_scale_semantics')
+                .replaceAll('{percent}', percent.toString()),
+            child: Slider.adaptive(
+              min: 1.0,
+              max: 1.6,
+              divisions: 3,
+              value: provider.textScaleFactor,
+              onChanged: (value) => provider.setTextScaleFactor(value),
+            ),
+          ),
+        ],
+      ),
+      trailing: Text('$percent%'),
     );
   }
 }

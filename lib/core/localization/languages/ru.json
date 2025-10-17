@@ -265,6 +265,22 @@
     "language_english": "Английский",
     "language_russian": "Русский",
     "language_ukrainian": "Украинский",
+    "accessibility": {
+      "title": "Доступность",
+      "high_contrast": "Высокая контрастность цветов",
+      "high_contrast_desc": "Увеличивает контраст для лучшей читаемости.",
+      "color_blind": "Палитра, удобная для дальтоников",
+      "color_blind_desc": "Использовать различимые синие и оранжевые акценты.",
+      "bold_text": "Полужирные подписи",
+      "bold_text_desc": "Увеличивает толщину текста во всём интерфейсе.",
+      "focus_indicators": "Показывать индикаторы фокуса",
+      "focus_indicators_desc": "Отображать контуры при навигации с клавиатуры или пульта.",
+      "keyboard_hints": "Подсказки клавиатурной навигации",
+      "keyboard_hints_desc": "Озвучивать, как активировать карточки с клавиатуры.",
+      "text_scale": "Размер текста",
+      "text_scale_desc": "Настроить размер текстов интерфейса.",
+      "text_scale_semantics": "Размер текста {percent} процентов."
+    },
     "cache": "Кэш",
     "clear_cache": "Очистить Кэш",
     "cache_cleared": "Кэш успешно очищен",
@@ -299,7 +315,11 @@
     "show_less": "Показать Меньше",
     "copy": "Скопировать ссылку",
     "unknown": "Неизвестно",
-    "not_available": "Н/Д"
+    "not_available": "Н/Д",
+    "view_details_action": "Открыть детали",
+    "open_details_keyboard_hint": "Нажмите Enter или пробел, чтобы открыть детали.",
+    "toggle_favorite_hint": "Нажмите Enter или пробел, чтобы переключить избранное.",
+    "poster_semantics_prefix": "Постер для"
   },
   "errors": {
     "generic": "Что-то пошло не так",

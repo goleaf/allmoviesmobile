@@ -281,6 +281,22 @@
     "language_english": "English",
     "language_russian": "Russian",
     "language_ukrainian": "Ukrainian",
+    "accessibility": {
+      "title": "Accessibility",
+      "high_contrast": "High contrast colors",
+      "high_contrast_desc": "Increase contrast for improved readability.",
+      "color_blind": "Color-blind friendly palette",
+      "color_blind_desc": "Use blue and orange accents that stay distinguishable.",
+      "bold_text": "Bold text labels",
+      "bold_text_desc": "Increase text weight across the interface.",
+      "focus_indicators": "Show focus indicators",
+      "focus_indicators_desc": "Display outlines when navigating with keyboard or remote.",
+      "keyboard_hints": "Keyboard navigation hints",
+      "keyboard_hints_desc": "Announce how to activate cards using the keyboard.",
+      "text_scale": "Text size",
+      "text_scale_desc": "Adjust the size of interface text.",
+      "text_scale_semantics": "Text size set to {percent} percent."
+    },
     "cache": "Cache",
     "clear_cache": "Clear Cache",
     "cache_cleared": "Cache cleared successfully",
@@ -315,7 +331,11 @@
     "show_less": "Show Less",
     "copy": "Copy link",
     "unknown": "Unknown",
-    "not_available": "N/A"
+    "not_available": "N/A",
+    "view_details_action": "Open details",
+    "open_details_keyboard_hint": "Press Enter or Space to open details.",
+    "toggle_favorite_hint": "Press Enter or Space to toggle favorite status.",
+    "poster_semantics_prefix": "Poster for"
   },
   "errors": {
     "generic": "Something went wrong",

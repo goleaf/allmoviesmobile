@@ -265,6 +265,22 @@
     "language_english": "Англійська",
     "language_russian": "Російська",
     "language_ukrainian": "Українська",
+    "accessibility": {
+      "title": "Доступність",
+      "high_contrast": "Висока контрастність кольорів",
+      "high_contrast_desc": "Збільшує контраст для кращої читабельності.",
+      "color_blind": "Палітра, зручна для дальтоніків",
+      "color_blind_desc": "Використовувати сині та помаранчеві акценти, що легко розрізняються.",
+      "bold_text": "Написи жирним шрифтом",
+      "bold_text_desc": "Збільшує товщину тексту по всьому інтерфейсу.",
+      "focus_indicators": "Показувати індикатори фокусу",
+      "focus_indicators_desc": "Відображати контури під час навігації з клавіатури чи пульта.",
+      "keyboard_hints": "Підказки клавіатурної навігації",
+      "keyboard_hints_desc": "Повідомляти, як активувати картки за допомогою клавіатури.",
+      "text_scale": "Розмір тексту",
+      "text_scale_desc": "Налаштуйте розмір тексту інтерфейсу.",
+      "text_scale_semantics": "Розмір тексту {percent} відсотків."
+    },
     "cache": "Кеш",
     "clear_cache": "Очистити Кеш",
     "cache_cleared": "Кеш успішно очищено",
@@ -299,7 +315,11 @@
     "show_less": "Показати Менше",
     "copy": "Скопіювати посилання",
     "unknown": "Невідомо",
-    "not_available": "Н/Д"
+    "not_available": "Н/Д",
+    "view_details_action": "Відкрити деталі",
+    "open_details_keyboard_hint": "Натисніть Enter або пробіл, щоб відкрити деталі.",
+    "toggle_favorite_hint": "Натисніть Enter або пробіл, щоб перемкнути обране.",
+    "poster_semantics_prefix": "Постер для"
   },
   "errors": {
     "generic": "Щось пішло не так",

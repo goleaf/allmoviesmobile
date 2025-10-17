@@ -9,6 +9,7 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
+import 'providers/accessibility_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -96,6 +97,9 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(
+          create: (_) => AccessibilityProvider(prefs),
+        ),
+        ChangeNotifierProvider(
           create: (_) => FavoritesProvider(storageService),
         ),
         ChangeNotifierProvider(
@@ -135,12 +139,20 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
       ],
-      child: Consumer2<LocaleProvider, ThemeProvider>(
-        builder: (context, localeProvider, themeProvider, _) {
+      child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
+        builder:
+            (context, localeProvider, themeProvider, accessibilityProvider, _) {
           return DynamicColorBuilder(
             builder: (lightDynamic, darkDynamic) {
-              final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-              final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+              final options = accessibilityProvider.options;
+              final lightTheme = AppTheme.light(
+                dynamicScheme: lightDynamic,
+                accessibilityOptions: options,
+              );
+              final darkTheme = AppTheme.dark(
+                dynamicScheme: darkDynamic,
+                accessibilityOptions: options,
+              );
 
               return MaterialApp(
                 title: AppLocalizations.of(context).t('app.name'),
@@ -156,6 +168,30 @@ class AllMoviesApp extends StatelessWidget {
                 ],
                 supportedLocales: AppLocalizations.supportedLocales,
                 debugShowCheckedModeBanner: false,
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  final deviceScale = mediaQuery.textScaleFactor;
+                  final effectiveScale =
+                      (deviceScale * accessibilityProvider.textScaleFactor)
+                          .clamp(1.0, 2.0);
+                  final textScaler = TextScaler.linear(effectiveScale);
+                  final mergedQuery = mediaQuery.copyWith(
+                    textScaleFactor: effectiveScale,
+                    textScaler: textScaler,
+                    boldText:
+                        accessibilityProvider.boldText || mediaQuery.boldText,
+                    highContrast: accessibilityProvider.highContrast ||
+                        mediaQuery.highContrast,
+                  );
+
+                  return FocusTraversalGroup(
+                    policy: OrderedTraversalPolicy(),
+                    child: MediaQuery(
+                      data: mergedQuery,
+                      child: child ?? const SizedBox.shrink(),
+                    ),
+                  );
+                },
                 home: const AppNavigationShell(),
                 routes: {
                   MoviesScreen.routeName: (context) => const MoviesScreen(),

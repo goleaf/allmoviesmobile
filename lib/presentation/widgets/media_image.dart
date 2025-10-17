@@ -21,6 +21,8 @@ class MediaImage extends StatefulWidget {
     this.enableProgress = true,
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
+    this.semanticLabel,
+    this.excludeFromSemantics = false,
   });
 
   final String? path;
@@ -36,6 +38,8 @@ class MediaImage extends StatefulWidget {
   final bool enableProgress;
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
+  final String? semanticLabel;
+  final bool excludeFromSemantics;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -120,12 +124,12 @@ class _MediaImageState extends State<MediaImage> {
       children: [if (preview != null) preview, image, progressIndicator],
     );
 
-    return _wrapWithSize(
-      ClipRRect(
-        borderRadius: widget.borderRadius ?? BorderRadius.zero,
-        child: stack,
-      ),
+    final clipped = ClipRRect(
+      borderRadius: widget.borderRadius ?? BorderRadius.zero,
+      child: stack,
     );
+
+    return _wrapWithSize(clipped);
   }
 
   Widget? _buildPreviewLayer(String? previewUrl, Widget placeholder) {
@@ -204,10 +208,23 @@ class _MediaImageState extends State<MediaImage> {
   }
 
   Widget _wrapWithSize(Widget child) {
-    if (widget.width == null && widget.height == null) {
-      return child;
+    Widget wrapped = child;
+
+    if (widget.excludeFromSemantics) {
+      wrapped = ExcludeSemantics(child: wrapped);
+    } else if ((widget.semanticLabel ?? '').isNotEmpty) {
+      wrapped = Semantics(
+        image: true,
+        label: widget.semanticLabel,
+        child: wrapped,
+      );
     }
-    return SizedBox(width: widget.width, height: widget.height, child: child);
+
+    if (widget.width != null || widget.height != null) {
+      wrapped = SizedBox(width: widget.width, height: widget.height, child: wrapped);
+    }
+
+    return wrapped;
   }
 
   void _updateProgress(double? value) {

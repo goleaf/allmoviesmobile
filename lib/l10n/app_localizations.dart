@@ -509,6 +509,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Visual Effects'**
   String get peopleDepartmentsVisualEffects;
+
+  /// In en, this message translates to:
+  /// **'Genres'**
+  String get genresTitle;
+
+  /// In en, this message translates to:
+  /// **'Movies'**
+  String get genresMoviesTab;
+
+  /// In en, this message translates to:
+  /// **'TV Shows'**
+  String get genresTvTab;
+
+  /// In en, this message translates to:
+  /// **"Movie genres will appear once we're synced with TMDB."**
+  String get genresEmptyMovies;
+
+  /// In en, this message translates to:
+  /// **"TV genres will appear once we're synced with TMDB."**
+  String get genresEmptyTv;
+
+  /// In en, this message translates to:
+  /// **'Discover movies'**
+  String get genresDiscoverMovies;
+
+  /// In en, this message translates to:
+  /// **'Discover series'**
+  String get genresDiscoverTv;
+
+  /// In en, this message translates to:
+  /// **'Adjust filters'**
+  String get genresAdjustFilters;
+
+  /// In en, this message translates to:
+  /// **"We're showing fallback genres until TMDB responds."**
+  String get genresErrorFallback;
 }
 
 class _AppLocalizationsDelegate

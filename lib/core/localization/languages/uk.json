@@ -6,6 +6,7 @@
   "navigation": {
     "home": "Головна",
     "movies": "Фільми",
+    "genres": "Жанри",
     "tv_shows": "ТВ Шоу",
     "series": "Серіали",
     "people": "Люди",
@@ -35,6 +36,17 @@
     "popular_people": "Популярні люди",
     "featured_collections": "Добірки",
     "personalized_recommendations": "Рекомендації для вас"
+  },
+  "genres": {
+    "title": "Жанри",
+    "movies_tab": "Фільми",
+    "tv_tab": "Серіали",
+    "empty_movies": "Жанри фільмів з'являться після синхронізації з TMDB.",
+    "empty_tv": "Жанри серіалів з'являться після синхронізації з TMDB.",
+    "discover_movies": "Відкрити добірку фільмів",
+    "discover_tv": "Відкрити добірку серіалів",
+    "adjust_filters": "Налаштувати фільтри",
+    "error_fallback": "Показуємо резервний список жанрів, доки TMDB недоступний."
   },
   "movie": {
     "title": "Фільм",

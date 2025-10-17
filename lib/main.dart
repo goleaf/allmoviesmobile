@@ -46,6 +46,7 @@ import 'presentation/navigation/episode_detail_args.dart';
 import 'presentation/screens/season_detail/season_detail_screen.dart';
 import 'presentation/navigation/episode_detail_args.dart';
 import 'presentation/screens/collections/browse_collections_screen.dart';
+import 'presentation/screens/genres/genres_screen.dart';
 import 'presentation/screens/networks/networks_screen.dart';
 import 'presentation/screens/lists/lists_screen.dart';
 import 'presentation/screens/videos/videos_screen.dart';
@@ -72,6 +73,7 @@ import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'core/navigation/deep_link_handler.dart';
+import 'data/models/discover_filters_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -304,7 +306,30 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                     home: const AppNavigationShell(),
                     routes: {
                       HomeScreen.routeName: (context) => const HomeScreen(),
-                      MoviesScreen.routeName: (context) => const MoviesScreen(),
+                      MoviesScreen.routeName: (context) {
+                        final args = ModalRoute.of(context)?.settings.arguments;
+                        MovieSection? initialSection;
+                        DiscoverFilters? discoverFilters;
+                        if (args is MovieSection) {
+                          initialSection = args;
+                        } else if (args is DiscoverFilters) {
+                          discoverFilters = args;
+                          initialSection = MovieSection.discover;
+                        } else if (args is Map) {
+                          final rawSection = args['initialSection'];
+                          if (rawSection is MovieSection) {
+                            initialSection = rawSection;
+                          }
+                          final rawFilters = args['discoverFilters'];
+                          if (rawFilters is DiscoverFilters) {
+                            discoverFilters = rawFilters;
+                          }
+                        }
+                        return MoviesScreen(
+                          initialSection: initialSection,
+                          initialDiscoverFilters: discoverFilters,
+                        );
+                      },
                       MoviesFiltersScreen.routeName: (context) =>
                           const MoviesFiltersScreen(),
                       SearchScreen.routeName: (context) => const SearchScreen(),
@@ -327,6 +352,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           const NetworksScreen(),
                       CollectionsBrowserScreen.routeName: (context) =>
                           const CollectionsBrowserScreen(),
+                      GenresScreen.routeName: (context) => const GenresScreen(),
                       SearchResultsListScreen.routeName: (context) =>
                           const SearchResultsListScreen(),
                       VideosScreen.routeName: (context) => const VideosScreen(),

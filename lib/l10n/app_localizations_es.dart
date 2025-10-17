@@ -227,4 +227,31 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get peopleDepartmentsVisualEffects => 'Efectos visuales';
+
+  @override
+  String get genresTitle => 'Géneros';
+
+  @override
+  String get genresMoviesTab => 'Películas';
+
+  @override
+  String get genresTvTab => 'Series';
+
+  @override
+  String get genresEmptyMovies => 'Los géneros de películas aparecerán cuando se sincronice con TMDB.';
+
+  @override
+  String get genresEmptyTv => 'Los géneros de series aparecerán cuando se sincronice con TMDB.';
+
+  @override
+  String get genresDiscoverMovies => 'Descubrir películas';
+
+  @override
+  String get genresDiscoverTv => 'Descubrir series';
+
+  @override
+  String get genresAdjustFilters => 'Ajustar filtros';
+
+  @override
+  String get genresErrorFallback => 'Mostramos géneros de reserva hasta que TMDB responda.';
 }

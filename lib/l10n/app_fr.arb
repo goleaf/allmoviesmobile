@@ -71,6 +71,24 @@
   "peopleDepartmentsCostumeAndMakeUp": "Costumes et maquillage",
   "peopleDepartmentsCrew": "Équipe technique",
   "peopleDepartmentsLighting": "Éclairage",
-  "peopleDepartmentsVisualEffects": "Effets visuels"
+  "peopleDepartmentsVisualEffects": "Effets visuels",
+  "genresTitle": "Genres",
+  "@genresTitle": {"description": "Titre de l'écran des genres"},
+  "genresMoviesTab": "Films",
+  "@genresMoviesTab": {"description": "Libellé de l'onglet films"},
+  "genresTvTab": "Séries",
+  "@genresTvTab": {"description": "Libellé de l'onglet séries"},
+  "genresEmptyMovies": "Les genres de films apparaîtront une fois synchronisés avec TMDB.",
+  "@genresEmptyMovies": {"description": "Message vide pour les genres de films"},
+  "genresEmptyTv": "Les genres de séries apparaîtront une fois synchronisés avec TMDB.",
+  "@genresEmptyTv": {"description": "Message vide pour les genres de séries"},
+  "genresDiscoverMovies": "Découvrir des films",
+  "@genresDiscoverMovies": {"description": "Bouton pour découvrir des films"},
+  "genresDiscoverTv": "Découvrir des séries",
+  "@genresDiscoverTv": {"description": "Bouton pour découvrir des séries"},
+  "genresAdjustFilters": "Ajuster les filtres",
+  "@genresAdjustFilters": {"description": "Bouton pour ouvrir les filtres"},
+  "genresErrorFallback": "Nous affichons des genres de secours en attendant la réponse de TMDB.",
+  "@genresErrorFallback": {"description": "Texte d'aide lors de l'affichage des genres de secours"}
 }
 

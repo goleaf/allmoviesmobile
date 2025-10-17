@@ -22,6 +22,7 @@ import '../person_detail/person_detail_screen.dart';
 import '../tv_detail/tv_detail_screen.dart';
 import '../movies/movies_screen.dart';
 import '../movies/movies_filters_screen.dart';
+import '../genres/genres_screen.dart';
 import '../explorer/api_explorer_screen.dart';
 import '../search/search_screen.dart';
 import '../collections/collection_detail_screen.dart';
@@ -143,8 +144,8 @@ class _HomeScreenState extends State<HomeScreen> {
               _QuickAccessItem(
                 icon: Icons.category_outlined,
                 label: loc.home['genres'] ?? 'Genres',
-                onTap: () => Navigator.of(context)
-                    .pushNamed(MoviesFiltersScreen.routeName),
+                onTap: () =>
+                    Navigator.of(context).pushNamed(GenresScreen.routeName),
               ),
             ],
           ),

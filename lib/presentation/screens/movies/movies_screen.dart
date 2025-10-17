@@ -16,7 +16,14 @@ import '../../../data/services/local_storage_service.dart';
 class MoviesScreen extends StatefulWidget {
   static const routeName = '/movies';
 
-  const MoviesScreen({super.key});
+  const MoviesScreen({
+    super.key,
+    this.initialSection,
+    this.initialDiscoverFilters,
+  });
+
+  final MovieSection? initialSection;
+  final DiscoverFilters? initialDiscoverFilters;
 
   @override
   State<MoviesScreen> createState() => _MoviesScreenState();
@@ -27,6 +34,7 @@ class _MoviesScreenState extends State<MoviesScreen>
   late final TextEditingController _searchController;
   late final TabController _tabController;
   late final LocalStorageService _storageService;
+  late final List<MovieSection> _sections;
   List<Movie> _searchResults = const [];
   bool _isSearching = false;
   String? _searchError;
@@ -41,13 +49,23 @@ class _MoviesScreenState extends State<MoviesScreen>
     super.initState();
     _searchController = TextEditingController();
     _storageService = context.read<LocalStorageService>();
-    final sections = MovieSection.values;
-    final initialTabIndex = _storageService.getMoviesTabIndex().clamp(
+    _sections = MovieSection.values;
+    final storedIndex = _storageService.getMoviesTabIndex().clamp(
       0,
-      sections.length - 1,
+      _sections.length - 1,
     );
+    final initialTabIndex = () {
+      final requested = widget.initialSection;
+      if (requested != null) {
+        final idx = _sections.indexOf(requested);
+        if (idx >= 0) {
+          return idx;
+        }
+      }
+      return storedIndex;
+    }();
     _tabController = TabController(
-      length: sections.length,
+      length: _sections.length,
       vsync: this,
       initialIndex: initialTabIndex,
     );
@@ -59,18 +77,18 @@ class _MoviesScreenState extends State<MoviesScreen>
     });
 
     _scrollControllers = {
-      for (final section in sections) section: ItemScrollController()
+      for (final section in _sections) section: ItemScrollController()
     };
     _positionsListeners = {
-      for (final section in sections) section: ItemPositionsListener.create()
+      for (final section in _sections) section: ItemPositionsListener.create()
     };
     _initialScrollIndexes = {
-      for (final section in sections)
+      for (final section in _sections)
         section: _storageService.getMoviesScrollIndex(section.name)
     };
     _lastPersistedIndexes = Map<MovieSection, int?>.from(_initialScrollIndexes);
     _positionCallbacks = {
-      for (final section in sections)
+      for (final section in _sections)
         section: () {
           final positions =
               _positionsListeners[section]!.itemPositions.value.toList();
@@ -93,7 +111,21 @@ class _MoviesScreenState extends State<MoviesScreen>
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<MoviesProvider>().refresh();
+      final provider = context.read<MoviesProvider>();
+      provider.refresh();
+      final discoverFilters = widget.initialDiscoverFilters;
+      if (discoverFilters != null) {
+        unawaited(provider.applyFilters(discoverFilters));
+        final discoverIndex = _sections.indexOf(MovieSection.discover);
+        if (discoverIndex >= 0 && discoverIndex != _tabController.index) {
+          _tabController.animateTo(discoverIndex);
+        }
+      } else if (widget.initialSection == MovieSection.discover) {
+        final discoverIndex = _sections.indexOf(MovieSection.discover);
+        if (discoverIndex >= 0 && discoverIndex != _tabController.index) {
+          _tabController.animateTo(discoverIndex);
+        }
+      }
     });
   }
 
@@ -153,7 +185,6 @@ class _MoviesScreenState extends State<MoviesScreen>
 
   @override
   Widget build(BuildContext context) {
-    final sections = MovieSection.values;
     final hasQuery = _searchController.text.trim().isNotEmpty;
 
     final l = AppLocalizations.of(context);
@@ -164,7 +195,7 @@ class _MoviesScreenState extends State<MoviesScreen>
             controller: _tabController,
             isScrollable: true,
             tabs: [
-              for (final section in sections)
+              for (final section in _sections)
                 Tab(text: _labelForSection(section, l)),
             ],
           ),
@@ -192,7 +223,7 @@ class _MoviesScreenState extends State<MoviesScreen>
                   onPressed: () async {
                     final tabController = DefaultTabController.of(ctx);
                     final currentIndex = tabController?.index ?? 0;
-                    final sections = MovieSection.values;
+                    final sections = _sections;
                     final currentSection = sections[currentIndex];
                     final provider = ctx.read<MoviesProvider>();
                     final state = provider.sectionState(currentSection);
@@ -290,7 +321,7 @@ class _MoviesScreenState extends State<MoviesScreen>
                 child: TabBarView(
                   controller: _tabController,
                   children: [
-                    for (final section in sections)
+                    for (final section in _sections)
                       _MoviesSectionView(
                         section: section,
                         onRefreshAll: _refreshAll,

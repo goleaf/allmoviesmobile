@@ -7,12 +7,13 @@ import '../../core/utils/media_image_helper.dart';
 import '../../data/models/image_model.dart';
 import 'zoomable_image.dart';
 
-/// Fullscreen gallery that presents TMDB media images with zoom support.
+/// Immersive, full-screen gallery that presents TMDB media images with zoom
+/// support.
 ///
 /// The widget expects `ImageModel` instances produced by endpoints like
 /// `/3/movie/{id}/images` or `/3/tv/{id}/images`, whose JSON payload includes
-/// `file_path` entries. Those paths are passed to the [ZoomableImage] widget
-/// to build original-sized assets while a blurred backdrop uses medium-sized
+/// `file_path` entries. Those paths are passed to the [ZoomableImage] widget to
+/// build original-sized assets while a blurred backdrop uses medium-sized
 /// variants.
 class ImageGallery extends StatefulWidget {
   const ImageGallery({
@@ -44,6 +45,8 @@ class ImageGallery extends StatefulWidget {
 }
 
 class _ImageGalleryState extends State<ImageGallery> {
+  static const _chromeAnimationDuration = Duration(milliseconds: 200);
+
   late final PageController _pageController;
   late int _currentIndex;
   bool _showChrome = true;
@@ -79,6 +82,7 @@ class _ImageGalleryState extends State<ImageGallery> {
           Column(
             children: [
               _GalleryTopBar(
+                key: const ValueKey('imageGallery/topBar'),
                 isVisible: _showChrome,
                 currentIndex: _currentIndex,
                 total: widget.images.length,
@@ -97,6 +101,7 @@ class _ImageGalleryState extends State<ImageGallery> {
                         imagePath: img.filePath,
                         type: widget.mediaType,
                         heroTag: heroTag,
+                        onTap: _toggleChrome,
                         onInteractionStart: _handleInteractionStart,
                         onInteractionEnd: _handleInteractionEnd,
                       ),
@@ -105,22 +110,38 @@ class _ImageGalleryState extends State<ImageGallery> {
                 ),
               ),
               if (widget.images.length > 1)
-                _ThumbnailStrip(
-                  images: widget.images,
-                  mediaType: widget.mediaType,
-                  currentIndex: _currentIndex,
-                  onTap: _jumpToIndex,
+                AnimatedOpacity(
+                  key: const ValueKey('imageGallery/thumbnails'),
+                  duration: _chromeAnimationDuration,
+                  opacity: _showChrome ? 1 : 0,
+                  child: _ThumbnailStrip(
+                    images: widget.images,
+                    mediaType: widget.mediaType,
+                    currentIndex: _currentIndex,
+                    onTap: _jumpToIndex,
+                  ),
                 ),
               const SizedBox(height: 24),
             ],
           ),
-          _EdgeGradientOverlay(position: EdgeGradientPosition.top),
-          _EdgeGradientOverlay(position: EdgeGradientPosition.bottom),
+          _EdgeGradientOverlay(
+            position: EdgeGradientPosition.top,
+            isVisible: _showChrome,
+          ),
+          _EdgeGradientOverlay(
+            position: EdgeGradientPosition.bottom,
+            isVisible: _showChrome,
+          ),
         ],
       ),
     );
   }
 
+  /// Builds the blurred background that uses TMDB preview sizes to soften the
+  /// experience behind the zoomable foreground image.
+  ///
+  /// When the associated TMDB endpoint (`/3/{mediaType}/{id}/images`) does not
+  /// provide a valid URL, the gallery falls back to a solid black backdrop.
   Widget _buildBlurredBackdrop(String? url) {
     if (url == null) {
       return Container(color: Colors.black);
@@ -149,11 +170,14 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
+  /// Handles closing the gallery by popping the navigator and notifying
+  /// [ImageGallery.onClose].
   void _handleClose() {
     widget.onClose?.call();
     Navigator.of(context).maybePop();
   }
 
+  /// Animates the primary [PageView] to the tapped thumbnail index.
   void _jumpToIndex(int index) {
     _pageController.animateToPage(
       index,
@@ -162,6 +186,8 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
+  /// Hides the chrome (top bar, gradients, thumbnails) while the user is
+  /// actively interacting with the zoom view to reduce visual distraction.
   void _handleInteractionStart() {
     if (!_showChrome) {
       return;
@@ -169,20 +195,32 @@ class _ImageGalleryState extends State<ImageGallery> {
     setState(() => _showChrome = false);
   }
 
+  /// Restores the chrome after the user completes their interaction with the
+  /// zoomable content.
   void _handleInteractionEnd() {
     if (_showChrome) {
       return;
     }
     setState(() => _showChrome = true);
   }
+
+  /// Toggles the chrome visibility when the user performs a simple tap gesture
+  /// on the zoomable content.
+  void _toggleChrome() {
+    setState(() => _showChrome = !_showChrome);
+  }
 }
 
 enum EdgeGradientPosition { top, bottom }
 
 class _EdgeGradientOverlay extends StatelessWidget {
-  const _EdgeGradientOverlay({required this.position});
+  const _EdgeGradientOverlay({
+    required this.position,
+    required this.isVisible,
+  });
 
   final EdgeGradientPosition position;
+  final bool isVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -198,17 +236,21 @@ class _EdgeGradientOverlay extends StatelessWidget {
       bottom: position == EdgeGradientPosition.bottom ? 0 : null,
       left: 0,
       right: 0,
-      child: IgnorePointer(
-        child: Container(
-          height: 180,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: begin,
-              end: end,
-              colors: [
-                Colors.black.withOpacity(0.7),
-                Colors.black.withOpacity(0.0),
-              ],
+      child: AnimatedOpacity(
+        duration: _ImageGalleryState._chromeAnimationDuration,
+        opacity: isVisible ? 1 : 0,
+        child: IgnorePointer(
+          child: Container(
+            height: 180,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: begin,
+                end: end,
+                colors: [
+                  Colors.black.withOpacity(0.7),
+                  Colors.black.withOpacity(0.0),
+                ],
+              ),
             ),
           ),
         ),
@@ -219,6 +261,7 @@ class _EdgeGradientOverlay extends StatelessWidget {
 
 class _GalleryTopBar extends StatelessWidget {
   const _GalleryTopBar({
+    super.key,
     required this.isVisible,
     required this.currentIndex,
     required this.total,

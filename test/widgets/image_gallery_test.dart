@@ -52,4 +52,48 @@ void main() {
 
     expect(find.text('2 / 2'), findsOneWidget);
   });
+
+  testWidgets('ImageGallery chrome toggles on tap', (tester) async {
+    final images = [
+      const ImageModel(
+        filePath: '',
+        width: 500,
+        height: 281,
+        aspectRatio: 1.78,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ImageGallery(
+          images: images,
+          mediaType: MediaImageType.backdrop,
+        ),
+      ),
+    );
+
+    final thumbnailsFinder =
+        find.byKey(const ValueKey('imageGallery/thumbnails'));
+
+    expect(
+      tester.widget<AnimatedOpacity>(thumbnailsFinder).opacity,
+      1,
+    );
+
+    await tester.tap(find.byType(InteractiveViewer));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<AnimatedOpacity>(thumbnailsFinder).opacity,
+      0,
+    );
+
+    await tester.tap(find.byType(InteractiveViewer));
+    await tester.pumpAndSettle();
+
+    expect(
+      tester.widget<AnimatedOpacity>(thumbnailsFinder).opacity,
+      1,
+    );
+  });
 }

@@ -18,6 +18,7 @@ class ZoomableImage extends StatefulWidget {
     this.minScale = 1.0,
     this.maxScale = 4.0,
     this.padding = const EdgeInsets.all(12),
+    this.onTap,
     this.onInteractionStart,
     this.onInteractionEnd,
   })  : assert(minScale > 0),
@@ -40,6 +41,9 @@ class ZoomableImage extends StatefulWidget {
 
   /// Padding applied around the zoomable content.
   final EdgeInsets padding;
+
+  /// Callback triggered when a simple tap is detected on the image.
+  final VoidCallback? onTap;
 
   /// Callback triggered when a user begins a gesture interaction.
   final VoidCallback? onInteractionStart;
@@ -92,8 +96,10 @@ class _ZoomableImageState extends State<ZoomableImage>
     return Padding(
       padding: widget.padding,
       child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
         onDoubleTapDown: (details) => _doubleTapDetails = details,
         onDoubleTap: _handleDoubleTap,
+        onTap: _handleTap,
         child: InteractiveViewer(
           transformationController: _controller,
           clipBehavior: Clip.none,
@@ -107,6 +113,12 @@ class _ZoomableImageState extends State<ZoomableImage>
     );
   }
 
+  /// Toggles the zoom chrome through [ZoomableImage.onTap] callbacks.
+  void _handleTap() {
+    widget.onTap?.call();
+  }
+
+  /// Implements double-tap zooming by animating the transformation matrix.
   void _handleDoubleTap() {
     widget.onInteractionStart?.call();
     final position = _doubleTapDetails?.localPosition;
@@ -142,12 +154,15 @@ class _ZoomableImageState extends State<ZoomableImage>
       ..forward();
   }
 
+  /// Generates a matrix that zooms into [focalPoint] by [scale].
   Matrix4 _zoomMatrix(Offset focalPoint, double scale) {
     final translation = Matrix4.identity()
       ..translate(-focalPoint.dx * (scale - 1), -focalPoint.dy * (scale - 1));
     return translation..scale(scale);
   }
 
+  /// Determines whether the provided matrix is approximately the identity
+  /// matrix, allowing us to detect when the content is not zoomed.
   bool _isIdentityMatrix(Matrix4 matrix) {
     for (var row = 0; row < 4; row++) {
       for (var column = 0; column < 4; column++) {

@@ -3,7 +3,21 @@ class AppStrings {
 
   // App
   static const appName = 'AllMovies';
-  
+  static const welcome = 'Welcome,';
+  static const guestUser = 'Guest';
+  static const discoverHeading = 'Discover trending hits';
+  static const sortBy = 'Sort by';
+  static const filterAll = 'All';
+  static const filterTrending = 'Trending';
+  static const filterPopular = 'Popular';
+  static const sortPopularity = 'Popularity';
+  static const sortRating = 'Rating';
+  static const sortReleaseDate = 'Release date';
+  static const sortTitle = 'Title';
+  static const unableToLoadMovies = 'Unable to load movies';
+  static const retry = 'Retry';
+  static const noMoviesFound = 'No movies match your filters yet.';
+
   // Auth
   static const login = 'Login';
   static const register = 'Register';

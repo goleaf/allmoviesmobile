@@ -52,10 +52,11 @@ AllMovies is a modern Flutter application with Material Design 3, featuring comp
 - **Right**: Hamburger menu icon
 
 #### Movie Grid
-- Responsive 2-column grid layout
-- Placeholder movie cards
-- Card-based design with shadows
-- Ready for integration with movie API
+- Responsive 2-column grid layout fed by TMDB trending and popular endpoints
+- Requires a TMDB API key supplied via `--dart-define=TMDB_API_KEY=<your_key>`
+- Filter chips for **All**, **Trending**, and **Popular** collections
+- Sorting controls for popularity, rating, release date, and title
+- Real-time search that narrows results within the chosen collection
 
 #### Side Drawer
 - User profile header with avatar

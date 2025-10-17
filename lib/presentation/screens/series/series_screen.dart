@@ -92,8 +92,11 @@ class _SeriesScreenState extends State<SeriesScreen>
     });
   }
 
-  Future<void> _refreshAll(BuildContext context) {
-    return context.read<SeriesProvider>().refresh(force: true);
+  Future<void> _refreshSection(
+    BuildContext context,
+    SeriesSection section,
+  ) {
+    return context.read<SeriesProvider>().refreshSection(section);
   }
 
   @override
@@ -120,7 +123,10 @@ class _SeriesScreenState extends State<SeriesScreen>
           isScrollable: true,
           tabs: [
             for (final section in sections)
-              Tab(text: _labelForSection(section, l)),
+              _SeriesSectionView(
+                section: section,
+                onRefreshSection: _refreshSection,
+              ),
           ],
         ),
         actions: [
@@ -226,33 +232,22 @@ class _NetworkChip extends StatelessWidget {
   }
 }
 
-class _SeriesSectionView extends StatefulWidget {
+class _SeriesSectionView extends StatelessWidget {
   const _SeriesSectionView({
     required this.section,
-    required this.onRefreshAll,
-    required this.scrollController,
-    required this.positionsListener,
-    this.initialScrollIndex,
+    required this.onRefreshSection,
   });
 
   final SeriesSection section;
-  final Future<void> Function(BuildContext context) onRefreshAll;
-  final ItemScrollController scrollController;
-  final ItemPositionsListener positionsListener;
-  final int? initialScrollIndex;
-
-  @override
-  State<_SeriesSectionView> createState() => _SeriesSectionViewState();
-}
-
-class _SeriesSectionViewState extends State<_SeriesSectionView> {
-  bool _restored = false;
+  final Future<void> Function(BuildContext context, SeriesSection section)
+      onRefreshSection;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
-        final state = provider.sectionState(widget.section);
+        final state = provider.sectionState(section);
+        Future<void> refreshSection() => onRefreshSection(context, section);
         if (state.isLoading && state.items.isEmpty) {
           return const _SeriesListSkeleton();
         }
@@ -260,7 +255,7 @@ class _SeriesSectionViewState extends State<_SeriesSectionView> {
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
-            onRetry: () => widget.onRefreshAll(context),
+            onRetry: refreshSection,
           );
         }
 
@@ -272,14 +267,8 @@ class _SeriesSectionViewState extends State<_SeriesSectionView> {
               const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => widget.onRefreshAll(context),
-                child: _SeriesList(
-                  series: state.items,
-                  scrollController: widget.scrollController,
-                  positionsListener: widget.positionsListener,
-                  emptyMessage:
-                      AppLocalizations.of(context).t('search.no_results'),
-                ),
+                onRefresh: refreshSection,
+                child: _SeriesList(series: state.items),
               ),
             ),
             if (state.errorMessage != null && state.items.isNotEmpty)

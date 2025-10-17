@@ -107,6 +107,11 @@ class _ZoomableImageState extends State<ZoomableImage>
     );
   }
 
+  /// Handles the double-tap gesture to quickly toggle between the identity
+  /// matrix and a zoomed-in transformation centered around the tap location.
+  ///
+  /// The assets still come from TMDB's `/images` endpoints, but zooming allows
+  /// the user to inspect the high-resolution JSON-provided artwork in detail.
   void _handleDoubleTap() {
     widget.onInteractionStart?.call();
     final position = _doubleTapDetails?.localPosition;
@@ -142,12 +147,18 @@ class _ZoomableImageState extends State<ZoomableImage>
       ..forward();
   }
 
+  /// Generates a zoom matrix that anchors the transformation around the
+  /// [focalPoint] reported by the gesture, ensuring the tapped area remains
+  /// under the user's finger during the animation.
   Matrix4 _zoomMatrix(Offset focalPoint, double scale) {
     final translation = Matrix4.identity()
       ..translate(-focalPoint.dx * (scale - 1), -focalPoint.dy * (scale - 1));
     return translation..scale(scale);
   }
 
+  /// Utility that approximates whether the current transformation is the
+  /// identity matrix. The small epsilon avoids floating point jitter when the
+  /// controller animates back to rest.
   bool _isIdentityMatrix(Matrix4 matrix) {
     for (var row = 0; row < 4; row++) {
       for (var column = 0; column < 4; column++) {

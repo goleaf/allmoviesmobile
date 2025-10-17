@@ -35,6 +35,11 @@ class SettingsScreen extends StatelessWidget {
           _MinVoteCountTile(),
           _CertificationCountryTile(),
           _CertificationValueTile(),
+          _SettingsHeader(title: l.t('settings.notifications')),
+          const _NotificationNewReleasesTile(),
+          const _NotificationWatchlistAlertsTile(),
+          const _NotificationRecommendationsTile(),
+          const _NotificationMarketingTile(),
           _SettingsHeader(title: l.t('settings.media')),
           // _ImageQualityTile(),
           _SettingsHeader(title: l.t('settings.cache')),
@@ -334,6 +339,78 @@ class _IncludeAdultTile extends StatelessWidget {
       subtitle: Text(l.t('settings.include_adult_subtitle')),
       value: prefs.includeAdult,
       onChanged: (value) => prefs.setIncludeAdult(value),
+    );
+  }
+}
+
+class _NotificationNewReleasesTile extends StatelessWidget {
+  const _NotificationNewReleasesTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.new_releases_outlined),
+      title: Text(l.t('settings.notifications_new_releases')),
+      subtitle: Text(l.t('settings.notifications_new_releases_subtitle')),
+      value: prefs.notificationsNewReleases,
+      onChanged: prefs.setNotificationsNewReleases,
+    );
+  }
+}
+
+class _NotificationWatchlistAlertsTile extends StatelessWidget {
+  const _NotificationWatchlistAlertsTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.notifications_active_outlined),
+      title: Text(l.t('settings.notifications_watchlist_alerts')),
+      subtitle: Text(l.t('settings.notifications_watchlist_alerts_subtitle')),
+      value: prefs.notificationsWatchlistAlerts,
+      onChanged: prefs.setNotificationsWatchlistAlerts,
+    );
+  }
+}
+
+class _NotificationRecommendationsTile extends StatelessWidget {
+  const _NotificationRecommendationsTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.auto_awesome_outlined),
+      title: Text(l.t('settings.notifications_recommendations')),
+      subtitle: Text(l.t('settings.notifications_recommendations_subtitle')),
+      value: prefs.notificationsRecommendations,
+      onChanged: prefs.setNotificationsRecommendations,
+    );
+  }
+}
+
+class _NotificationMarketingTile extends StatelessWidget {
+  const _NotificationMarketingTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+
+    return SwitchListTile(
+      secondary: const Icon(Icons.campaign_outlined),
+      title: Text(l.t('settings.notifications_marketing')),
+      subtitle: Text(l.t('settings.notifications_marketing_subtitle')),
+      value: prefs.notificationsMarketing,
+      onChanged: prefs.setNotificationsMarketing,
     );
   }
 }

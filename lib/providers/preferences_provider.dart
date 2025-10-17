@@ -19,6 +19,42 @@ class PreferencesProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  bool get notificationsNewReleases =>
+      _prefs.getBool(PreferenceKeys.notificationsNewReleases) ?? true;
+
+  Future<void> setNotificationsNewReleases(bool value) async {
+    if (value == notificationsNewReleases) return;
+    await _prefs.setBool(PreferenceKeys.notificationsNewReleases, value);
+    notifyListeners();
+  }
+
+  bool get notificationsWatchlistAlerts =>
+      _prefs.getBool(PreferenceKeys.notificationsWatchlistAlerts) ?? true;
+
+  Future<void> setNotificationsWatchlistAlerts(bool value) async {
+    if (value == notificationsWatchlistAlerts) return;
+    await _prefs.setBool(PreferenceKeys.notificationsWatchlistAlerts, value);
+    notifyListeners();
+  }
+
+  bool get notificationsRecommendations =>
+      _prefs.getBool(PreferenceKeys.notificationsRecommendations) ?? true;
+
+  Future<void> setNotificationsRecommendations(bool value) async {
+    if (value == notificationsRecommendations) return;
+    await _prefs.setBool(PreferenceKeys.notificationsRecommendations, value);
+    notifyListeners();
+  }
+
+  bool get notificationsMarketing =>
+      _prefs.getBool(PreferenceKeys.notificationsMarketing) ?? false;
+
+  Future<void> setNotificationsMarketing(bool value) async {
+    if (value == notificationsMarketing) return;
+    await _prefs.setBool(PreferenceKeys.notificationsMarketing, value);
+    notifyListeners();
+  }
+
   // Default discover sort (stored as raw string like 'popularity.desc')
   String get defaultDiscoverSortRaw =>
       _prefs.getString(PreferenceKeys.defaultSort) ?? 'popularity.desc';

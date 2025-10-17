@@ -48,6 +48,19 @@ class AppLocalizations {
         'chooseLanguage': 'Choose Language',
         'region': 'Region',
         'chooseRegion': 'Choose Region',
+        'notifications': 'Notifications',
+        'notifications_new_releases': 'New releases',
+        'notifications_new_releases_subtitle':
+            'Get alerts when new titles you follow arrive.',
+        'notifications_watchlist_alerts': 'Watchlist alerts',
+        'notifications_watchlist_alerts_subtitle':
+            'Be reminded about expiring or returning watchlist titles.',
+        'notifications_recommendations': 'Recommendations',
+        'notifications_recommendations_subtitle':
+            'Receive personalised movie and show suggestions.',
+        'notifications_marketing': 'News & offers',
+        'notifications_marketing_subtitle':
+            'Hear about promotions, events and product updates.',
       },
       'home': {
         'trending': 'Trending',

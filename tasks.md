@@ -804,7 +804,7 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Cache management (clear cache button)
 - [x] Clear search history
 - [x] Data usage settings (image quality)
-- [ ] Notification preferences (future)
+- [x] Notification preferences
 
 **Files Modified/Created**:
 - `lib/presentation/screens/settings/settings_screen.dart`

@@ -3,7 +3,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:allmovies_mobile/data/models/movie.dart';
 import 'package:allmovies_mobile/data/models/paginated_response.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
+import 'package:allmovies_mobile/providers/preferences_provider.dart';
 import 'package:allmovies_mobile/providers/series_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class _FakeRepo extends TmdbRepository {
   _FakeRepo();
@@ -52,6 +54,21 @@ class _FakeRepo extends TmdbRepository {
       results: [Movie(id: 99, title: 'By Network')],
     );
   }
+
+  @override
+  Future<PaginatedResponse<Movie>> discoverTvSeries({
+    int page = 1,
+    Map<String, String>? filters,
+    bool forceRefresh = false,
+  }) async {
+    final label = filters?['with_original_language'] ?? 'default';
+    return PaginatedResponse<Movie>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 1,
+      results: [Movie(id: 102, title: 'Discover $label')],
+    );
+  }
 }
 
 void main() {
@@ -79,5 +96,49 @@ void main() {
         );
       },
     );
+
+    test('saved filters persist across provider reloads', () async {
+      SharedPreferences.setMockInitialValues({});
+      final prefs = await SharedPreferences.getInstance();
+      final preferencesProvider = PreferencesProvider(prefs);
+      final repo = _FakeRepo();
+
+      final provider = SeriesProvider(
+        repo,
+        preferencesProvider: preferencesProvider,
+        autoInitialize: false,
+      );
+
+      await provider.loadSavedFilters();
+      await provider.refresh(force: true);
+
+      final filters = {
+        'with_original_language': 'ja',
+        'vote_average.gte': '6.5',
+      };
+
+      await provider.applyTvFilters(filters);
+
+      expect(provider.savedFilters['with_original_language'], 'ja');
+      expect(
+        provider.sectionState(SeriesSection.popular).items.first.title,
+        'Discover ja',
+      );
+
+      final reloadedProvider = SeriesProvider(
+        repo,
+        preferencesProvider: preferencesProvider,
+        autoInitialize: false,
+      );
+
+      await reloadedProvider.loadSavedFilters();
+      await reloadedProvider.refresh(force: true);
+
+      expect(reloadedProvider.savedFilters['with_original_language'], 'ja');
+      expect(
+        reloadedProvider.sectionState(SeriesSection.popular).items.first.title,
+        'Discover ja',
+      );
+    });
   });
 }

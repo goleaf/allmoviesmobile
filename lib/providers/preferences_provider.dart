@@ -105,4 +105,22 @@ class PreferencesProvider extends ChangeNotifier {
     await _prefs.setString(PreferenceKeys.imageQuality, normalized);
     notifyListeners();
   }
+
+  String? get seriesFiltersJson =>
+      _prefs.getString(PreferenceKeys.seriesFilters);
+
+  Future<void> setSeriesFiltersJson(String? value) async {
+    if (value == null || value.isEmpty) {
+      if (_prefs.containsKey(PreferenceKeys.seriesFilters)) {
+        await _prefs.remove(PreferenceKeys.seriesFilters);
+        notifyListeners();
+      }
+      return;
+    }
+    if (_prefs.getString(PreferenceKeys.seriesFilters) == value) {
+      return;
+    }
+    await _prefs.setString(PreferenceKeys.seriesFilters, value);
+    notifyListeners();
+  }
 }

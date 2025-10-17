@@ -1,5 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
 
 import '../data/models/movie.dart';
 import '../data/tmdb_repository.dart';
@@ -49,6 +51,7 @@ class SeriesProvider extends ChangeNotifier {
 
   final TmdbRepository _repository;
   PreferencesProvider? _preferences;
+  Map<String, String> _savedFilters = const {};
 
   final Map<SeriesSection, SeriesSectionState> _sections = {
     for (final section in SeriesSection.values)
@@ -67,12 +70,14 @@ class SeriesProvider extends ChangeNotifier {
   bool get isRefreshing => _isRefreshing;
   String? get globalError => _globalError;
   int? get activeNetworkId => _activeNetworkId;
+  Map<String, String> get savedFilters => Map.unmodifiable(_savedFilters);
 
   Future<void> get initialized => _initializedCompleter.future;
 
   SeriesSectionState sectionState(SeriesSection section) => _sections[section]!;
 
   Future<void> _init() async {
+    await loadSavedFilters();
     await refresh(force: true);
   }
 
@@ -136,6 +141,12 @@ class SeriesProvider extends ChangeNotifier {
       );
       return response.results;
     }
+    if (_savedFilters.isNotEmpty) {
+      final response = await _repository.discoverTvSeries(
+        filters: _savedFilters,
+      );
+      return response.results;
+    }
     return _repository.fetchPopularTv();
   }
 
@@ -175,6 +186,7 @@ class SeriesProvider extends ChangeNotifier {
   }
 
   Future<void> applyTvFilters(Map<String, String> filters) async {
+    _activeNetworkId = null;
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
         .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
     notifyListeners();
@@ -183,6 +195,7 @@ class SeriesProvider extends ChangeNotifier {
       _sections[SeriesSection.popular] = SeriesSectionState(
         items: response.results,
       );
+      await saveFilters(filters, notify: false);
     } catch (error) {
       _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
           .copyWith(
@@ -193,6 +206,75 @@ class SeriesProvider extends ChangeNotifier {
     } finally {
       notifyListeners();
     }
+  }
+
+  Future<Map<String, String>> loadSavedFilters() async {
+    final prefs = _preferences;
+    if (prefs == null) {
+      _savedFilters = const <String, String>{};
+      return savedFilters;
+    }
+
+    final stored = prefs.seriesFiltersJson;
+    if (stored == null || stored.isEmpty) {
+      _savedFilters = const <String, String>{};
+      return savedFilters;
+    }
+
+    try {
+      final decoded = jsonDecode(stored);
+      if (decoded is Map) {
+        final normalized = <String, String>{};
+        decoded.forEach((key, value) {
+          if (key == null || value == null) return;
+          normalized[key.toString()] = value.toString();
+        });
+        _savedFilters = normalized;
+      } else {
+        _savedFilters = const <String, String>{};
+      }
+    } catch (_) {
+      _savedFilters = const <String, String>{};
+    }
+
+    return savedFilters;
+  }
+
+  Future<void> saveFilters(
+    Map<String, String> filters, {
+    bool notify = true,
+  }) async {
+    final normalized = Map<String, String>.from(filters);
+    final changed = !mapEquals(_savedFilters, normalized);
+    _savedFilters = normalized;
+
+    final prefs = _preferences;
+    if (prefs != null) {
+      if (_savedFilters.isEmpty) {
+        await prefs.setSeriesFiltersJson(null);
+      } else {
+        await prefs.setSeriesFiltersJson(jsonEncode(_savedFilters));
+      }
+    }
+
+    if (changed && notify) {
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearSavedFilters({bool notify = true}) async {
+    if (_savedFilters.isEmpty) {
+      final prefs = _preferences;
+      if (prefs != null && prefs.seriesFiltersJson != null) {
+        await prefs.setSeriesFiltersJson(null);
+        if (notify) {
+          notifyListeners();
+        }
+      }
+      return;
+    }
+
+    await saveFilters(const <String, String>{}, notify: notify);
   }
 
   Future<void> clearNetworkFilter() async {

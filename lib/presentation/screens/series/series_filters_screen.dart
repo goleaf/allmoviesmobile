@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
+import '../../../providers/series_provider.dart';
 
 class SeriesFiltersScreen extends StatefulWidget {
   static const routeName = '/series/filters';
@@ -23,16 +25,45 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   final Set<int> genres = <int>{};
   bool includeNullFirstAirDates = false;
   bool screenedTheatrically = false;
-  String timezone = '';
-  String watchProviders = '';
   final Set<String> monetization = <String>{'flatrate', 'rent', 'buy'};
   double voteMin = 5.0;
   double voteMax = 9.5;
   int runtimeMin = 20;
   int runtimeMax = 90;
   int voteCountMin = 50;
+  late final TextEditingController _timezoneController;
+  late final TextEditingController _watchProvidersController;
+  bool _restoredPreset = false;
 
-  void _reset() {
+  @override
+  void initState() {
+    super.initState();
+    _timezoneController = TextEditingController();
+    _watchProvidersController = TextEditingController();
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final provider =
+          Provider.maybeOf<SeriesProvider>(context, listen: false);
+      if (provider == null) return;
+      final saved = await provider.loadSavedFilters();
+      if (!mounted || saved.isEmpty) return;
+      _restoreFromSaved(saved);
+      if (!_restoredPreset && mounted) {
+        _restoredPreset = true;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Restored saved series filters')),
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timezoneController.dispose();
+    _watchProvidersController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _reset() async {
     setState(() {
       networks.clear();
       status = null;
@@ -44,8 +75,6 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       genres.clear();
       includeNullFirstAirDates = false;
       screenedTheatrically = false;
-      timezone = '';
-      watchProviders = '';
       monetization
         ..clear()
         ..addAll({'flatrate', 'rent', 'buy'});
@@ -55,9 +84,18 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       runtimeMax = 90;
       voteCountMin = 50;
     });
+    _timezoneController.clear();
+    _watchProvidersController.clear();
+    final provider = Provider.maybeOf<SeriesProvider>(context, listen: false);
+    if (provider != null) {
+      await provider.clearSavedFilters();
+    }
   }
 
-  void _apply() {
+  Future<void> _apply() async {
+    final timezone = _timezoneController.text.trim();
+    final watchProviders =
+        _watchProvidersController.text.replaceAll(' ', '');
     final filters = <String, String>{
       if (airFrom != null)
         'first_air_date.gte': airFrom!.toIso8601String().split('T').first,
@@ -74,14 +112,100 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       if (genres.isNotEmpty) 'with_genres': genres.join(','),
       if (status != null) 'with_status': status!,
       if (type != null) 'with_type': type!,
+      if (networks.isNotEmpty) 'with_networks': networks.join(','),
       'vote_average.gte': voteMin.toStringAsFixed(1),
       'vote_average.lte': voteMax.toStringAsFixed(1),
       'with_runtime.gte': '$runtimeMin',
       'with_runtime.lte': '$runtimeMax',
       'vote_count.gte': '$voteCountMin',
     };
-
+    final provider = Provider.maybeOf<SeriesProvider>(context, listen: false);
+    if (provider != null) {
+      await provider.saveFilters(filters);
+    }
+    if (!mounted) return;
     Navigator.pop(context, filters);
+  }
+
+  void _restoreFromSaved(Map<String, String> saved) {
+    final restoredNetworks = <int>{};
+    final networksRaw = saved['with_networks'];
+    if (networksRaw != null && networksRaw.isNotEmpty) {
+      restoredNetworks.addAll(
+        networksRaw
+            .split(',')
+            .map((value) => int.tryParse(value.trim()))
+            .whereType<int>(),
+      );
+    }
+
+    final restoredGenres = <int>{};
+    final genresRaw = saved['with_genres'];
+    if (genresRaw != null && genresRaw.isNotEmpty) {
+      restoredGenres.addAll(
+        genresRaw
+            .split(',')
+            .map((value) => int.tryParse(value.trim()))
+            .whereType<int>(),
+      );
+    }
+
+    final monetizationRaw = saved['with_watch_monetization_types'];
+    final monetizationValues = monetizationRaw == null
+        ? const <String>{}
+        : monetizationRaw
+            .split('|')
+            .map((value) => value.trim())
+            .where((value) => value.isNotEmpty)
+            .toSet();
+
+    final voteMinValue = double.tryParse(saved['vote_average.gte'] ?? '');
+    final voteMaxValue = double.tryParse(saved['vote_average.lte'] ?? '');
+    final runtimeMinValue = int.tryParse(saved['with_runtime.gte'] ?? '');
+    final runtimeMaxValue = int.tryParse(saved['with_runtime.lte'] ?? '');
+    final voteCountMinValue = int.tryParse(saved['vote_count.gte'] ?? '');
+
+    setState(() {
+      networks
+        ..clear()
+        ..addAll(restoredNetworks);
+      genres
+        ..clear()
+        ..addAll(restoredGenres);
+      status = saved['with_status'];
+      type = saved['with_type'];
+      language = saved['with_original_language'] ?? '';
+      firstAirYear = int.tryParse(saved['first_air_date_year'] ?? '');
+      airFrom = saved['first_air_date.gte'] != null
+          ? DateTime.tryParse(saved['first_air_date.gte']!)
+          : null;
+      airTo = saved['first_air_date.lte'] != null
+          ? DateTime.tryParse(saved['first_air_date.lte']!)
+          : null;
+      includeNullFirstAirDates =
+          saved['include_null_first_air_dates'] == 'true';
+      screenedTheatrically = saved['screened_theatrically'] == 'true';
+      monetization
+        ..clear()
+        ..addAll(monetizationValues.isEmpty
+            ? const {'flatrate', 'rent', 'buy'}
+            : monetizationValues);
+      voteMin = voteMinValue ?? 5.0;
+      voteMax = voteMaxValue ?? 9.5;
+      runtimeMin = runtimeMinValue ?? 20;
+      runtimeMax = runtimeMaxValue ?? 90;
+      voteCountMin = voteCountMinValue ?? 50;
+    });
+
+    final timezoneValue = saved['timezone'] ?? '';
+    final watchProvidersValue = saved['with_watch_providers'] ?? '';
+    if (timezoneValue.isNotEmpty || _timezoneController.text.isNotEmpty) {
+      _timezoneController.text = timezoneValue;
+    }
+    if (watchProvidersValue.isNotEmpty ||
+        _watchProvidersController.text.isNotEmpty) {
+      _watchProvidersController.text = watchProvidersValue;
+    }
   }
 
   @override
@@ -95,7 +219,12 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          TextButton(onPressed: _reset, child: Text(l.t('common.reset'))),
+          TextButton(
+            onPressed: () async {
+              await _reset();
+            },
+            child: Text(l.t('common.reset')),
+          ),
         ],
       ),
       body: ListView(
@@ -314,10 +443,11 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           Text('Timezone', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
           TextField(
+            key: const ValueKey('seriesFiltersTimezoneField'),
+            controller: _timezoneController,
             decoration: const InputDecoration(
               hintText: 'e.g., America/New_York',
             ),
-            onChanged: (v) => setState(() => timezone = v.trim()),
           ),
           const SizedBox(height: 16),
           Text(
@@ -326,11 +456,11 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           ),
           const SizedBox(height: 8),
           TextField(
+            key: const ValueKey('seriesFiltersWatchProvidersField'),
+            controller: _watchProvidersController,
             decoration: const InputDecoration(
               hintText: 'Comma-separated provider IDs',
             ),
-            onChanged: (v) =>
-                setState(() => watchProviders = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 8),
           Text(
@@ -426,7 +556,9 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             width: double.infinity,
             child: FilledButton.icon(
               key: const ValueKey('seriesApplyFilters'),
-              onPressed: _apply,
+              onPressed: () async {
+                await _apply();
+              },
               icon: const Icon(Icons.check),
               label: const Text(AppStrings.apply),
             ),

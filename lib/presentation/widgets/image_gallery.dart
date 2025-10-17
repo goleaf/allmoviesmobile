@@ -121,6 +121,12 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
+  /// Builds the blurred backdrop for the fullscreen viewer.
+  ///
+  /// The preview image is derived from the same TMDB image endpoints used to
+  /// populate the gallery (`/3/movie/{id}/images`, `/3/tv/{id}/images`). The
+  /// medium-sized assets are blurred to keep the background performant while
+  /// the main [ZoomableImage] renders the original resolution.
   Widget _buildBlurredBackdrop(String? url) {
     if (url == null) {
       return Container(color: Colors.black);
@@ -149,11 +155,15 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
+  /// Handles the closing logic, notifying the optional [onClose] callback
+  /// before popping the fullscreen dialog.
   void _handleClose() {
     widget.onClose?.call();
     Navigator.of(context).maybePop();
   }
 
+  /// Animates the [PageController] to the provided index when the user taps a
+  /// thumbnail preview.
   void _jumpToIndex(int index) {
     _pageController.animateToPage(
       index,
@@ -162,6 +172,8 @@ class _ImageGalleryState extends State<ImageGallery> {
     );
   }
 
+  /// Hides the top system chrome when the user starts interacting with the
+  /// zoomable image so the artwork can take the full focus.
   void _handleInteractionStart() {
     if (!_showChrome) {
       return;
@@ -169,6 +181,8 @@ class _ImageGalleryState extends State<ImageGallery> {
     setState(() => _showChrome = false);
   }
 
+  /// Restores the chrome visibility after interaction, revealing navigation
+  /// controls again.
   void _handleInteractionEnd() {
     if (_showChrome) {
       return;
@@ -177,8 +191,11 @@ class _ImageGalleryState extends State<ImageGallery> {
   }
 }
 
+/// Identifies the vertical edge where the gradient overlay should be placed.
 enum EdgeGradientPosition { top, bottom }
 
+/// Adds a subtle linear gradient on the top or bottom edge to guarantee that
+/// controls remain legible against bright artwork.
 class _EdgeGradientOverlay extends StatelessWidget {
   const _EdgeGradientOverlay({required this.position});
 
@@ -217,6 +234,8 @@ class _EdgeGradientOverlay extends StatelessWidget {
   }
 }
 
+/// Top toolbar that surfaces the close button and the position counter on top
+/// of the blurred background.
 class _GalleryTopBar extends StatelessWidget {
   const _GalleryTopBar({
     required this.isVisible,
@@ -241,22 +260,45 @@ class _GalleryTopBar extends StatelessWidget {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: onClose,
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.35),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.08),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    child: Row(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.close, color: Colors.white),
+                          onPressed: onClose,
+                          tooltip:
+                              MaterialLocalizations.of(context).closeButtonTooltip,
+                        ),
+                        const Spacer(),
+                        Text(
+                          '${currentIndex + 1} / $total',
+                          style:
+                              Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
-                const Spacer(),
-                Text(
-                  '${currentIndex + 1} / $total',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                ),
-              ],
+              ),
             ),
           ),
         ),
@@ -265,6 +307,8 @@ class _GalleryTopBar extends StatelessWidget {
   }
 }
 
+/// Row of selectable thumbnails that allows the viewer to jump between images
+/// rapidly without swiping through every page.
 class _ThumbnailStrip extends StatelessWidget {
   const _ThumbnailStrip({
     required this.images,
@@ -305,22 +349,48 @@ class _ThumbnailStrip extends StatelessWidget {
                   width: index == currentIndex ? 2 : 1,
                 ),
                 borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  if (index == currentIndex)
+                    BoxShadow(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.35),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                ],
               ),
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: AspectRatio(
-                  aspectRatio: image.aspectRatio > 0 ? image.aspectRatio : 1.5,
-                  child: CachedNetworkImage(
-                    imageUrl: url ?? '',
-                    fit: BoxFit.cover,
-                    memCacheHeight: 200,
-                    placeholder: (context, _) => Container(
-                      color: Colors.white12,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
+                      colors: [
+                        Color.fromRGBO(0, 0, 0, 0.35),
+                        Color.fromRGBO(0, 0, 0, 0.0),
+                      ],
                     ),
-                    errorWidget: (context, _, __) => Container(
-                      color: Colors.white12,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.broken_image, color: Colors.white54),
+                  ),
+                  position: DecorationPosition.foreground,
+                  child: AspectRatio(
+                    aspectRatio:
+                        image.aspectRatio > 0 ? image.aspectRatio : 1.5,
+                    child: CachedNetworkImage(
+                      imageUrl: url ?? '',
+                      fit: BoxFit.cover,
+                      memCacheHeight: 200,
+                      placeholder: (context, _) => Container(
+                        color: Colors.white12,
+                      ),
+                      errorWidget: (context, _, __) => Container(
+                        color: Colors.white12,
+                        alignment: Alignment.center,
+                        child:
+                            const Icon(Icons.broken_image, color: Colors.white54),
+                      ),
                     ),
                   ),
                 ),

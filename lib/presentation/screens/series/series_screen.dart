@@ -148,9 +148,37 @@ class _SeriesSectionView extends StatelessWidget {
           );
         }
 
-        return RefreshIndicator(
-          onRefresh: () => onRefreshAll(context),
-          child: _SeriesList(series: state.items),
+        return Column(
+          children: [
+            if (state.isLoading)
+              const LinearProgressIndicator(minHeight: 2),
+            Expanded(
+              child: RefreshIndicator(
+                onRefresh: () => onRefreshAll(context),
+                child: _SeriesList(series: state.items),
+              ),
+            ),
+            if (state.errorMessage != null && state.items.isNotEmpty)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    state.errorMessage!,
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Theme.of(context).colorScheme.error),
+                  ),
+                ),
+              ),
+            if (state.totalPages > 1)
+              _PaginationControls(
+                section: section,
+                state: state,
+              ),
+          ],
         );
       },
     );
@@ -193,6 +221,138 @@ class _SeriesList extends StatelessWidget {
         final show = series[index];
         return _SeriesCard(show: show);
       },
+    );
+  }
+}
+
+class _PaginationControls extends StatelessWidget {
+  const _PaginationControls({required this.section, required this.state});
+
+  final SeriesSection section;
+  final SeriesSectionState state;
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.read<SeriesProvider>();
+    final messenger = ScaffoldMessenger.of(context);
+    final textTheme = Theme.of(context).textTheme;
+
+    Future<void> handleAction(Future<void> Function() action) async {
+      final previousPage = provider.sectionState(section).currentPage;
+      await action();
+      final nextState = provider.sectionState(section);
+      if (nextState.errorMessage != null && nextState.currentPage == previousPage) {
+        messenger.showSnackBar(
+          SnackBar(content: Text(nextState.errorMessage!)),
+        );
+      }
+    }
+
+    Future<void> showJumpDialog() async {
+      final controller = TextEditingController(text: state.currentPage.toString());
+      final selected = await showDialog<int>(
+        context: context,
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text(AppStrings.jumpToPage),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: AppStrings.page,
+                helperText: AppStrings.enterPageNumber,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text(AppStrings.cancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final value = int.tryParse(controller.text.trim());
+                  if (value == null) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(AppStrings.enterPageNumber),
+                      ),
+                    );
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(value);
+                },
+                child: const Text(AppStrings.go),
+              ),
+            ],
+          );
+        },
+      );
+
+      if (selected != null) {
+        if (selected < 1 || selected > state.totalPages) {
+          messenger.showSnackBar(
+            SnackBar(
+              content: Text(
+                '${AppStrings.page} must be between 1 and ${state.totalPages}.',
+              ),
+            ),
+          );
+          return;
+        }
+        await handleAction(() => provider.loadSectionPage(section, selected));
+      }
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.chevron_left),
+            tooltip: 'Previous page',
+            onPressed: provider.canGoPrev(section) && !state.isLoading
+                ? () async {
+                    await handleAction(
+                      () => provider.loadPreviousPage(section),
+                    );
+                  }
+                : null,
+          ),
+          Expanded(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${AppStrings.page} ${state.currentPage} ${AppStrings.of} ${state.totalPages}',
+                  style: textTheme.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 4),
+                TextButton.icon(
+                  onPressed: state.isLoading
+                      ? null
+                      : () async {
+                          await showJumpDialog();
+                        },
+                  icon: const Icon(Icons.input),
+                  label: const Text(AppStrings.jump),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.chevron_right),
+            tooltip: 'Next page',
+            onPressed: provider.canGoNext(section) && !state.isLoading
+                ? () async {
+                    await handleAction(
+                      () => provider.loadNextPage(section),
+                    );
+                  }
+                : null,
+          ),
+        ],
+      ),
     );
   }
 }

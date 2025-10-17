@@ -496,34 +496,38 @@ class TmdbRepository {
     );
   }
 
-  Future<List<Movie>> fetchTrendingTv({
+  Future<PaginatedResponse<Movie>> fetchTrendingTv({
     String timeWindow = 'day',
+    int page = 1,
     bool forceRefresh = false,
   }) async {
-    final payload = await _getJson('/trending/tv/$timeWindow');
+    final payload = await _getJson(
+      '/trending/tv/$timeWindow',
+      query: {'page': '$page'},
+    );
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
-  Future<List<Movie>> fetchPopularTv({int page = 1}) async {
+  Future<PaginatedResponse<Movie>> fetchPopularTv({int page = 1}) async {
     final payload = await _getJson('/tv/popular', query: {'page': '$page'});
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
-  Future<List<Movie>> fetchTopRatedTv({int page = 1}) async {
+  Future<PaginatedResponse<Movie>> fetchTopRatedTv({int page = 1}) async {
     final payload = await _getJson('/tv/top_rated', query: {'page': '$page'});
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
-  Future<List<Movie>> fetchAiringTodayTv({int page = 1}) async {
+  Future<PaginatedResponse<Movie>> fetchAiringTodayTv({int page = 1}) async {
     final payload = await _getJson(
       '/tv/airing_today',
       query: {'page': '$page'},
@@ -531,15 +535,15 @@ class TmdbRepository {
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
-  Future<List<Movie>> fetchOnTheAirTv({int page = 1}) async {
+  Future<PaginatedResponse<Movie>> fetchOnTheAirTv({int page = 1}) async {
     final payload = await _getJson('/tv/on_the_air', query: {'page': '$page'});
     return _mapPaginated<Movie>(
       payload,
       (json) => Movie.fromJson(json, mediaType: 'tv'),
-    ).results;
+    );
   }
 
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) {
@@ -1429,9 +1433,9 @@ class TmdbRepository {
           }
         } else {
           final shows = await fetchTrendingTv(forceRefresh: forceRefresh);
-          if (shows.isNotEmpty) {
+          if (shows.results.isNotEmpty) {
             return fetchTvWatchProviders(
-              shows.first.id,
+              shows.results.first.id,
               forceRefresh: forceRefresh,
             );
           }

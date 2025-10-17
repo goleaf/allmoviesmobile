@@ -1,6 +1,6 @@
 # TODO
 
-- [ ] Add persistent theme selection and wire it to the Settings screen.
-- [ ] Implement localization support for the planned language picker.
-- [ ] Expand the mock catalog with richer metadata (runtime, rating, artwork).
-- [ ] Introduce detail screens for individual movies.
+- [x] Add persistent theme selection and wire it to the Settings screen.
+- [x] Implement localization support for the planned language picker.
+- [x] Expand the mock catalog with richer metadata (runtime, rating, artwork).
+- [x] Introduce detail screens for individual movies.

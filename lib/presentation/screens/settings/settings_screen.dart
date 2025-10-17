@@ -1,32 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../../providers/theme_provider.dart';
+import '../../../providers/locale_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
+  static const routeName = '/settings';
+
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings'),
+        title: Text(l10n.settings),
       ),
       body: ListView(
-        children: const [
-          _SettingsHeader(title: 'Appearance'),
-          _ComingSoonTile(
-            icon: Icons.dark_mode_outlined,
-            title: 'Theme',
-            message: 'Theme customization is planned for a future update.',
-          ),
-          _SettingsHeader(title: 'Localization'),
-          _ComingSoonTile(
-            icon: Icons.language,
-            title: 'Language',
-            message: 'Language selection is not available yet.',
-          ),
-          _SettingsHeader(title: 'About'),
+        children: [
+          _SettingsHeader(title: l10n.appearance),
+          const _ThemeTile(),
+          _SettingsHeader(title: l10n.localization),
+          const _LanguageTile(),
+          _SettingsHeader(title: l10n.about),
           _StaticInfoTile(
             icon: Icons.info_outline,
-            title: 'App Version',
+            title: l10n.appVersion,
             value: '1.0.0',
           ),
         ],
@@ -55,29 +55,6 @@ class _SettingsHeader extends StatelessWidget {
   }
 }
 
-class _ComingSoonTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String message;
-
-  const _ComingSoonTile({
-    required this.icon,
-    required this.title,
-    required this.message,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(message),
-      trailing: const Chip(
-        label: Text('Planned'),
-      ),
-    );
-  }
-}
 
 class _StaticInfoTile extends StatelessWidget {
   final IconData icon;
@@ -96,6 +73,122 @@ class _StaticInfoTile extends StatelessWidget {
       leading: Icon(icon),
       title: Text(title),
       subtitle: Text(value),
+    );
+  }
+}
+
+class _ThemeTile extends StatelessWidget {
+  const _ThemeTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final themeProvider = context.watch<ThemeProvider>();
+    
+    return ListTile(
+      leading: const Icon(Icons.palette_outlined),
+      title: Text(l10n.theme),
+      subtitle: Text(themeProvider.getThemeModeName(themeProvider.themeMode)),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => const _ThemeDialog(),
+        );
+      },
+    );
+  }
+}
+
+class _ThemeDialog extends StatelessWidget {
+  const _ThemeDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final themeProvider = context.watch<ThemeProvider>();
+    
+    return AlertDialog(
+      title: Text(l10n.chooseTheme),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: AppThemeMode.values.map((mode) {
+          return RadioListTile<AppThemeMode>(
+            title: Text(themeProvider.getThemeModeName(mode)),
+            value: mode,
+            groupValue: themeProvider.themeMode,
+            onChanged: (value) {
+              if (value != null) {
+                themeProvider.setThemeMode(value);
+                Navigator.pop(context);
+              }
+            },
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+      ],
+    );
+  }
+}
+
+class _LanguageTile extends StatelessWidget {
+  const _LanguageTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeProvider = context.watch<LocaleProvider>();
+    
+    return ListTile(
+      leading: const Icon(Icons.language),
+      title: Text(l10n.language),
+      subtitle: Text(localeProvider.getLanguageName(localeProvider.locale)),
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => const _LanguageDialog(),
+        );
+      },
+    );
+  }
+}
+
+class _LanguageDialog extends StatelessWidget {
+  const _LanguageDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final localeProvider = context.watch<LocaleProvider>();
+    
+    return AlertDialog(
+      title: Text(l10n.chooseLanguage),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: LocaleProvider.supportedLocales.map((locale) {
+          return RadioListTile<Locale>(
+            title: Text(localeProvider.getLanguageName(locale)),
+            value: locale,
+            groupValue: localeProvider.locale,
+            onChanged: (value) {
+              if (value != null) {
+                localeProvider.setLocale(value);
+                Navigator.pop(context);
+              }
+            },
+          );
+        }).toList(),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(l10n.cancel),
+        ),
+      ],
     );
   }
 }

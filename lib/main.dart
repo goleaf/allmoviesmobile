@@ -1,19 +1,22 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/constants/app_strings.dart';
+import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
-import 'providers/auth_provider.dart';
+import 'providers/locale_provider.dart';
+import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
-import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
+import 'presentation/screens/settings/settings_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
@@ -26,15 +29,20 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
 
-  runApp(AllMoviesApp(storageService: storageService));
+  runApp(AllMoviesApp(
+    storageService: storageService,
+    prefs: prefs,
+  ));
 }
 
 class AllMoviesApp extends StatelessWidget {
   final LocalStorageService storageService;
+  final SharedPreferences prefs;
 
   const AllMoviesApp({
     super.key,
     required this.storageService,
+    required this.prefs,
   });
 
   @override
@@ -43,7 +51,8 @@ class AllMoviesApp extends StatelessWidget {
 
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider(storageService)),
+        ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
@@ -52,23 +61,32 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => PeopleProvider()),
         ChangeNotifierProvider(create: (_) => CompaniesProvider()),
       ],
-      child: MaterialApp(
-        title: AppStrings.appName,
-        theme: AppTheme.darkTheme,
-        debugShowCheckedModeBanner: false,
-        initialRoute: HomeScreen.routeName,
-        routes: {
-          HomeScreen.routeName: (context) => Consumer<AuthProvider>(
-                builder: (context, authProvider, _) {
-                  return authProvider.isLoggedIn
-                      ? const HomeScreen()
-                      : const LoginScreen();
-                },
-              ),
-          MoviesScreen.routeName: (context) => const MoviesScreen(),
-          SeriesScreen.routeName: (context) => const SeriesScreen(),
-          PeopleScreen.routeName: (context) => const PeopleScreen(),
-          CompaniesScreen.routeName: (context) => const CompaniesScreen(),
+      child: Consumer2<LocaleProvider, ThemeProvider>(
+        builder: (context, localeProvider, themeProvider, _) {
+          return MaterialApp(
+            title: AppStrings.appName,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeProvider.materialThemeMode,
+            locale: localeProvider.locale,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: AppLocalizations.supportedLocales,
+            debugShowCheckedModeBanner: false,
+            initialRoute: HomeScreen.routeName,
+            routes: {
+              HomeScreen.routeName: (context) => const HomeScreen(),
+              MoviesScreen.routeName: (context) => const MoviesScreen(),
+              SeriesScreen.routeName: (context) => const SeriesScreen(),
+              PeopleScreen.routeName: (context) => const PeopleScreen(),
+              CompaniesScreen.routeName: (context) => const CompaniesScreen(),
+              SettingsScreen.routeName: (context) => const SettingsScreen(),
+            },
+          );
         },
       ),
     );

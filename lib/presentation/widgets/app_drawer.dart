@@ -8,6 +8,7 @@ import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
+import '../screens/settings/settings_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -78,6 +79,12 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
           ),
           const Divider(),
+          ListTile(
+            leading: const Icon(Icons.settings_outlined),
+            title: const Text('Settings'),
+            selected: currentRoute == SettingsScreen.routeName,
+            onTap: () => _navigateTo(context, SettingsScreen.routeName),
+          ),
           ListTile(
             leading: const Icon(Icons.info),
             title: const Text('About'),

@@ -25,7 +25,7 @@
 
 ## Home `/`
 
-**Blocks:** “of the moment” movies, “of the moment” series, carousels/rows
+**Blocks:** "of the moment" movies, "of the moment" series, carousels/rows
 
 **Happy path**
 
@@ -77,13 +77,13 @@
 
 **Interactions**
 
-* [ ] Changing filters doesn’t reset scroll unexpectedly.
+* [ ] Changing filters doesn't reset scroll unexpectedly.
 * [ ] Clearing filters returns to default results.
-* [ ] “Show more” or infinite scroll loads next batch exactly once per threshold.
+* [ ] "Show more" or infinite scroll loads next batch exactly once per threshold.
 
 **Edge cases**
 
-* [ ] No results for filter combo → clear empty state + “Reset filters”.
+* [ ] No results for filter combo → clear empty state + "Reset filters".
 * [ ] Invalid year input (future/past extremes) handled gracefully.
 * [ ] Items with missing poster/title still render accessible cards.
 
@@ -116,7 +116,7 @@
 
 * [ ] Typing a query shows suggestions (if present) within reasonable delay.
 * [ ] Submitting searches returns grouped results: movies, series, people, companies.
-* [ ] “View all” per group navigates to scoped lists (or extends the group).
+* [ ] "View all" per group navigates to scoped lists (or extends the group).
 
 **Edge cases**
 
@@ -126,7 +126,7 @@
 
 **Loading & errors**
 
-* [ ] Progress feedback while searching; results don’t flicker.
+* [ ] Progress feedback while searching; results don't flicker.
 * [ ] Network failure → preserved query, retry affordance.
 
 **A11y & Perf**
@@ -143,7 +143,7 @@
 **Happy path**
 
 * [ ] Hero shows poster/backdrop; title, release year, rating, runtime appear.
-* [ ] Overview visible and doesn’t exceed max lines on small screens.
+* [ ] Overview visible and doesn't exceed max lines on small screens.
 * [ ] Genres and countries rendered as chips/badges.
 * [ ] Cast carousel shows headshots and roles; clicking opens person page.
 * [ ] Crew highlights include director/writer when available.
@@ -168,7 +168,7 @@
 
 * [ ] Logical heading order; landmarks for main/content.
 * [ ] Carousels operable via keyboard.
-* [ ] Media thumbnails lazy-load; trailer click doesn’t block back navigation.
+* [ ] Media thumbnails lazy-load; trailer click doesn't block back navigation.
 
 ---
 
@@ -231,7 +231,7 @@
 
 **A11y & Perf**
 
-* [ ] Biography section labeled; “Show more/less” buttons accessible.
+* [ ] Biography section labeled; "Show more/less" buttons accessible.
 * [ ] Large credit lists paginate or virtualize to stay responsive.
 
 ---
@@ -326,7 +326,7 @@
 
 **Errors**
 
-* [ ] 404 unknown route → branded “not found” page with navigation back.
+* [ ] 404 unknown route → branded "not found" page with navigation back.
 * [ ] Entity missing (movie/person/company) → targeted not-found state.
 
 **Accessibility (core)**

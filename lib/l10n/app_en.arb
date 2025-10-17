@@ -1,0 +1,116 @@
+{
+  "@@locale": "en",
+  "appName": "AllMovies",
+  "@appName": {
+    "description": "The name of the application"
+  },
+  "welcome": "Welcome",
+  "@welcome": {
+    "description": "Welcome message"
+  },
+  "guestUser": "Guest",
+  "@guestUser": {
+    "description": "Guest user name"
+  },
+  "search": "Search movies...",
+  "@search": {
+    "description": "Search hint text"
+  },
+  "movies": "Movies",
+  "@movies": {
+    "description": "Movies section"
+  },
+  "series": "Series",
+  "@series": {
+    "description": "Series section"
+  },
+  "people": "People",
+  "@people": {
+    "description": "People section"
+  },
+  "companies": "Companies",
+  "@companies": {
+    "description": "Companies section"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings page title"
+  },
+  "about": "About",
+  "@about": {
+    "description": "About section"
+  },
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout button"
+  },
+  "login": "Login",
+  "@login": {
+    "description": "Login button"
+  },
+  "register": "Register",
+  "@register": {
+    "description": "Register button"
+  },
+  "email": "Email",
+  "@email": {
+    "description": "Email field"
+  },
+  "password": "Password",
+  "@password": {
+    "description": "Password field"
+  },
+  "fullName": "Full Name",
+  "@fullName": {
+    "description": "Full name field"
+  },
+  "theme": "Theme",
+  "@theme": {
+    "description": "Theme setting"
+  },
+  "language": "Language",
+  "@language": {
+    "description": "Language setting"
+  },
+  "appearance": "Appearance",
+  "@appearance": {
+    "description": "Appearance settings section"
+  },
+  "localization": "Localization",
+  "@localization": {
+    "description": "Localization settings section"
+  },
+  "appVersion": "App Version",
+  "@appVersion": {
+    "description": "App version label"
+  },
+  "chooseTheme": "Choose Theme",
+  "@chooseTheme": {
+    "description": "Choose theme dialog title"
+  },
+  "chooseLanguage": "Choose Language",
+  "@chooseLanguage": {
+    "description": "Choose language dialog title"
+  },
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button"
+  },
+  "home": "Home",
+  "@home": {
+    "description": "Home page"
+  },
+  "exploreCollections": "Explore the latest highlights from our catalog.",
+  "@exploreCollections": {
+    "description": "Subtitle on home screen"
+  },
+  "noMoviesFound": "No titles match your search yet.",
+  "@noMoviesFound": {
+    "description": "No movies found message"
+  },
+  "tryAgain": "Try again",
+  "@tryAgain": {
+    "description": "Try again button"
+  }
+}
+

@@ -141,10 +141,9 @@
 
 ---
 
-## 2. Laravel 12 Data Model Implementation (goleaf/omdbapibt.prus.dev)
-The implementation below assumes the existing Laravel 12 + MySQL stack from `goleaf/omdbapibt.prus.dev`. The migrations, models, seeders, and indexes are structured to minimise disruption—existing core user/auth tables remain intact while new recommendation-specific structures are additive.
+## 2. Database Schema Design
 
-### 2.1 Database Schema Design
+### 2.1 Core Entity Structure
 
 #### Films Table
 - Primary entity storing movie metadata
@@ -186,19 +185,19 @@ The implementation below assumes the existing Laravel 12 + MySQL stack from `gol
 - Includes score and rerank_reason (JSON) for explainability
 - TTL-based invalidation on user activity changes
 
-### 2.2 Model Relationships and Data Access Patterns
+### 2.2 Data Relationships and Access Patterns
 
-#### Film Model
+#### Film Entity
 - Relationships to genres, tags, ratings, interactions
-- JSON casting for complex fields (countries, languages, credits, providers, external_ids)
-- Scopes for filtering by visibility and content flags
+- JSON fields for complex data (countries, languages, credits, providers, external_ids)
+- Filtering by visibility and content flags
 
 #### User Extensions
 - Relationships to ratings, lists, follows, recommendations
 - Taste profile computation from rating history
 - Social graph navigation methods
 
-#### Rating and Interaction Models
+#### Rating and Interaction Entities
 - Efficient querying for recommendation algorithms
 - Aggregation methods for user and item statistics
 - Temporal filtering for recency-based features

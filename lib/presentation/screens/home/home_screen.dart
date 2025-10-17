@@ -7,6 +7,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/trending_titles_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../companies/companies_screen.dart';
+import '../movie_detail/movie_detail_screen.dart';
 import '../movies/movies_screen.dart';
 import '../people/people_screen.dart';
 import '../series/series_screen.dart';
@@ -204,14 +205,58 @@ class _MovieCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Column(
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => MovieDetailScreen(movie: movie),
+            ),
+          );
+        },
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
-            child: Container(
-              width: double.infinity,
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: _PosterImage(movie: movie),
+            child: Stack(
+              children: [
+                Container(
+                  width: double.infinity,
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  child: _PosterImage(movie: movie),
+                ),
+                if (movie.voteAverage != null && movie.voteAverage! > 0)
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.7),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.star,
+                            size: 14,
+                            color: Colors.amber,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            movie.voteAverage!.toStringAsFixed(1),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
           Padding(
@@ -221,20 +266,33 @@ class _MovieCard extends StatelessWidget {
               children: [
                 Text(
                   movie.title,
-                  style: Theme.of(context).textTheme.titleMedium,
-                  maxLines: 1,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
+                if (movie.genresText.isNotEmpty)
+                  Text(
+                    movie.genresText,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 Text(
                   _buildSubtitle(movie),
                   style: Theme.of(context).textTheme.bodySmall,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
         ],
+        ),
       ),
     );
   }
@@ -323,11 +381,6 @@ String _buildSubtitle(Movie movie) {
   final releaseYear = movie.releaseYear;
   if (releaseYear != null && releaseYear.isNotEmpty) {
     segments.add(releaseYear);
-  }
-
-  final vote = movie.voteAverage;
-  if (vote != null && vote > 0) {
-    segments.add('${vote.toStringAsFixed(1)} ★');
   }
 
   segments.add(movie.mediaLabel);

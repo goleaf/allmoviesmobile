@@ -136,6 +136,17 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchTvSeasonDetails(
+    int tvId,
+    int seasonNumber, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/tv/$tvId/season/$seasonNumber',
+      queryParameters: queryParameters,
+    );
+  }
+
   Future<Map<String, dynamic>> fetchPersonDetails(
     int personId, {
     Map<String, String>? queryParameters,

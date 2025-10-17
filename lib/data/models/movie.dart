@@ -19,8 +19,11 @@ class Movie {
     this.genreIds,
   });
 
-  factory Movie.fromJson(Map<String, dynamic> json) {
-    final mediaType = json['media_type'] as String?;
+  factory Movie.fromJson(
+    Map<String, dynamic> json, {
+    String? mediaType,
+  }) {
+    final resolvedMediaType = mediaType ?? json['media_type'] as String?;
     final title = ((json['title'] ?? json['name']) as String?)?.trim() ?? '';
     final overviewRaw = (json['overview'] as String?)?.trim();
     final overview = (overviewRaw == null || overviewRaw.isEmpty) ? null : overviewRaw;
@@ -36,7 +39,7 @@ class Movie {
       overview: overview,
       posterPath: json['poster_path'] as String?,
       backdropPath: json['backdrop_path'] as String?,
-      mediaType: mediaType,
+      mediaType: resolvedMediaType,
       releaseDate: (json['release_date'] ?? json['first_air_date']) as String?,
       voteAverage: (json['vote_average'] as num?)?.toDouble(),
       voteCount: json['vote_count'] as int?,

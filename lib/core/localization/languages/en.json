@@ -3,6 +3,9 @@
     "name": "All Movies",
     "tagline": "Your Ultimate Movie & TV Guide"
   },
+  "common": {
+    "retry": "Retry"
+  },
   "navigation": {
     "home": "Home",
     "movies": "Movies",
@@ -76,7 +79,10 @@
     "number_of_episodes": "Number of Episodes",
     "episode_runtime": "Episode Runtime",
     "networks": "Networks",
-    "similar": "Similar Shows"
+    "similar": "Similar Shows",
+    "air_date": "Air Date",
+    "no_episodes": "No episodes available for this season yet.",
+    "retry_loading_episodes": "Retry loading episodes"
   },
   "person": {
     "title": "Person",

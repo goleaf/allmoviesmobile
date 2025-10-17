@@ -9,6 +9,7 @@ import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
 import 'models/person_model.dart';
 import 'models/search_result_model.dart';
+import 'models/season_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
@@ -103,7 +104,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'movie'),
     );
 
     _cache.set(cacheKey, response);
@@ -132,7 +133,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
     );
 
     _cache.set(cacheKey, response);
@@ -164,7 +165,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'movie'),
     );
 
     _cache.set(cacheKey, response);
@@ -196,7 +197,7 @@ class TmdbRepository {
 
     final response = PaginatedResponse<Movie>.fromJson(
       payload,
-      Movie.fromJson,
+      (json) => Movie.fromJson(json, mediaType: 'tv'),
     );
 
     _cache.set(cacheKey, response);
@@ -251,6 +252,30 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
+  }
+
+  Future<Season> fetchTvSeason(
+    int tvId,
+    int seasonNumber, {
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'tv-season-$tvId-$seasonNumber';
+    if (forceRefresh) {
+      _cache.remove(cacheKey);
+    } else {
+      final cached = _cache.get<Season>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTvSeasonDetails(tvId, seasonNumber);
+    final normalized = _normalizeSeasonPayload(payload);
+    final season = Season.fromJson(normalized);
+    _cache.set(cacheKey, season, ttlSeconds: CacheService.movieDetailsTTL);
+    return season;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -779,6 +804,36 @@ class TmdbRepository {
 
     if (normalized['external_ids'] is! Map<String, dynamic>) {
       normalized['external_ids'] = const {};
+    }
+
+    return normalized;
+  }
+
+  Map<String, dynamic> _normalizeSeasonPayload(Map<String, dynamic> payload) {
+    final normalized = Map<String, dynamic>.from(payload);
+
+    final episodes = normalized['episodes'];
+    if (episodes is List) {
+      normalized['episodes'] = episodes
+          .whereType<Map<String, dynamic>>()
+          .map((episode) {
+        final episodeMap = Map<String, dynamic>.from(episode);
+
+        final guestStars = episodeMap['guest_stars'];
+        if (guestStars is List) {
+          episodeMap['cast'] =
+              guestStars.whereType<Map<String, dynamic>>().toList();
+        }
+
+        final crew = episodeMap['crew'];
+        if (crew is List) {
+          episodeMap['crew'] = crew.whereType<Map<String, dynamic>>().toList();
+        }
+
+        return episodeMap;
+      }).toList();
+    } else {
+      normalized['episodes'] = const <Map<String, dynamic>>[];
     }
 
     return normalized;

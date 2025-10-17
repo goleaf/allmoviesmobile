@@ -5,6 +5,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/models/movie.dart';
 import '../../../providers/series_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../tv_detail/tv_detail_screen.dart';
 
 class SeriesScreen extends StatelessWidget {
   static const routeName = '/series';
@@ -105,12 +106,21 @@ class _SeriesCard extends StatelessWidget {
 
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => TVDetailScreen(tvShow: show),
+            ),
+          );
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
@@ -153,7 +163,8 @@ class _SeriesCard extends StatelessWidget {
               show.overview ?? 'No overview available.',
               style: Theme.of(context).textTheme.bodyMedium,
             ),
-          ],
+            ],
+          ),
         ),
       ),
     );

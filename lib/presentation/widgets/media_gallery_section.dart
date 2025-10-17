@@ -1,13 +1,11 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/localization/app_localizations.dart';
 import '../../data/models/image_model.dart';
-import '../../data/services/api_config.dart';
-import '../../core/utils/media_image_helper.dart';
-import 'media_image.dart';
 import '../../providers/media_gallery_provider.dart';
+import 'image_gallery.dart';
+import 'zoomable_image.dart';
 
 class MediaGallerySection extends StatelessWidget {
   const MediaGallerySection({super.key});
@@ -62,219 +60,52 @@ class MediaGallerySection extends StatelessWidget {
               ),
               const SizedBox(height: 12),
               if (images.posters.isNotEmpty)
-                _GalleryRow(
+                ImageGallery(
                   title: loc.t('movie.posters'),
                   images: images.posters,
-                  type: _GalleryImageType.poster,
+                  type: GalleryImageType.poster,
+                  onImageTap: (context, image, index) => _openImage(
+                    context,
+                    image: image,
+                    type: GalleryImageType.poster,
+                    index: index,
+                  ),
+                  heroTagBuilder: (index, image) =>
+                      _heroTagFor(GalleryImageType.poster, image, index),
                 ),
               if (images.posters.isNotEmpty &&
                   (images.backdrops.isNotEmpty || images.stills.isNotEmpty))
                 const SizedBox(height: 16),
               if (images.backdrops.isNotEmpty)
-                _GalleryRow(
+                ImageGallery(
                   title: loc.t('movie.backdrops'),
                   images: images.backdrops,
-                  type: _GalleryImageType.backdrop,
+                  type: GalleryImageType.backdrop,
+                  onImageTap: (context, image, index) => _openImage(
+                    context,
+                    image: image,
+                    type: GalleryImageType.backdrop,
+                    index: index,
+                  ),
+                  heroTagBuilder: (index, image) =>
+                      _heroTagFor(GalleryImageType.backdrop, image, index),
                 ),
               if (images.backdrops.isNotEmpty && images.stills.isNotEmpty)
                 const SizedBox(height: 16),
               if (images.stills.isNotEmpty)
-                _GalleryRow(
+                ImageGallery(
                   title: loc.t('movie.stills'),
                   images: images.stills,
-                  type: _GalleryImageType.still,
-                ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _GalleryRow extends StatelessWidget {
-  const _GalleryRow({
-    required this.title,
-    required this.images,
-    required this.type,
-  });
-
-  final String title;
-  final List<ImageModel> images;
-  final _GalleryImageType type;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: Text(
-                title,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-            Text(
-              '${images.length}',
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.primary,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: _rowHeightForType(type),
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemBuilder: (context, index) {
-              final image = images[index];
-              final aspectRatio = image.aspectRatio > 0
-                  ? image.aspectRatio
-                  : _defaultAspectRatio(type);
-              return GestureDetector(
-                onTap: () => _openFullScreenImage(context, image, type),
-                child: AspectRatio(
-                  aspectRatio: aspectRatio,
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: MediaImage(
-                      path: image.filePath,
-                      type: switch (type) {
-                        _GalleryImageType.poster => MediaImageType.poster,
-                        _GalleryImageType.backdrop => MediaImageType.backdrop,
-                        _GalleryImageType.still => MediaImageType.still,
-                      },
-                      size: switch (type) {
-                        _GalleryImageType.poster => MediaImageSize.w342,
-                        _GalleryImageType.backdrop => MediaImageSize.w780,
-                        _GalleryImageType.still => MediaImageSize.w300,
-                      },
-                      fit: BoxFit.cover,
-                      placeholder: Container(color: Colors.grey[300]),
-                      errorWidget: Container(
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.broken_image),
-                      ),
-                    ),
+                  type: GalleryImageType.still,
+                  onImageTap: (context, image, index) => _openImage(
+                    context,
+                    image: image,
+                    type: GalleryImageType.still,
+                    index: index,
                   ),
+                  heroTagBuilder: (index, image) =>
+                      _heroTagFor(GalleryImageType.still, image, index),
                 ),
-              );
-            },
-            separatorBuilder: (_, __) => const SizedBox(width: 12),
-            itemCount: images.length,
-          ),
-        ),
-      ],
-    );
-  }
-
-  static double _rowHeightForType(_GalleryImageType type) {
-    switch (type) {
-      case _GalleryImageType.poster:
-        return 220;
-      case _GalleryImageType.backdrop:
-      case _GalleryImageType.still:
-        return 150;
-    }
-  }
-
-  static double _defaultAspectRatio(_GalleryImageType type) {
-    switch (type) {
-      case _GalleryImageType.poster:
-        return 0.67;
-      case _GalleryImageType.backdrop:
-      case _GalleryImageType.still:
-        return 16 / 9;
-    }
-  }
-
-  static String _thumbnailUrlFor(ImageModel image, _GalleryImageType type) {
-    switch (type) {
-      case _GalleryImageType.poster:
-        return ApiConfig.getPosterUrl(
-          image.filePath,
-          size: ApiConfig.posterSizeMedium,
-        );
-      case _GalleryImageType.backdrop:
-      case _GalleryImageType.still:
-        return ApiConfig.getBackdropUrl(
-          image.filePath,
-          size: ApiConfig.backdropSizeMedium,
-        );
-    }
-  }
-
-  static String _fullImageUrlFor(ImageModel image, _GalleryImageType type) {
-    switch (type) {
-      case _GalleryImageType.poster:
-        return ApiConfig.getPosterUrl(
-          image.filePath,
-          size: ApiConfig.posterSizeOriginal,
-        );
-      case _GalleryImageType.backdrop:
-      case _GalleryImageType.still:
-        return ApiConfig.getBackdropUrl(
-          image.filePath,
-          size: ApiConfig.backdropSizeOriginal,
-        );
-    }
-  }
-
-  static Future<void> _openFullScreenImage(
-    BuildContext context,
-    ImageModel image,
-    _GalleryImageType type,
-  ) async {
-    final imageUrl = image.filePath;
-
-    await showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (context) {
-        return Dialog(
-          backgroundColor: Colors.black,
-          insetPadding: EdgeInsets.zero,
-          child: Stack(
-            children: [
-              Positioned.fill(
-                child: InteractiveViewer(
-                  child: Center(
-                    child: MediaImage(
-                      path: imageUrl,
-                      type: switch (type) {
-                        _GalleryImageType.poster => MediaImageType.poster,
-                        _GalleryImageType.backdrop => MediaImageType.backdrop,
-                        _GalleryImageType.still => MediaImageType.still,
-                      },
-                      size: MediaImageSize.original,
-                      fit: BoxFit.contain,
-                      placeholder: const Center(
-                        child: CircularProgressIndicator(),
-                      ),
-                      errorWidget: const Icon(
-                        Icons.broken_image,
-                        color: Colors.white,
-                        size: 48,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              Positioned(
-                top: 16,
-                right: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: () => Navigator.of(context).pop(),
-                ),
-              ),
             ],
           ),
         );
@@ -340,4 +171,22 @@ class _GalleryErrorMessage extends StatelessWidget {
   }
 }
 
-enum _GalleryImageType { poster, backdrop, still }
+Future<void> _openImage(
+  BuildContext context, {
+  required ImageModel image,
+  required GalleryImageType type,
+  required int index,
+}) {
+  return ZoomableImage.show(
+    context,
+    image: image,
+    type: type,
+    heroTag: _heroTagFor(type, image, index),
+  );
+}
+
+String _heroTagFor(
+  GalleryImageType type,
+  ImageModel image,
+  int index,
+) => 'gallery-${type.name}-${image.filePath}-$index';

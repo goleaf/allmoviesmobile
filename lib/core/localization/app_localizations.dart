@@ -263,6 +263,7 @@ class AppLocalizations {
   Map<String, dynamic> get favorites => _localizedStrings['favorites'] ?? {};
   Map<String, dynamic> get watchlist => _localizedStrings['watchlist'] ?? {};
   Map<String, dynamic> get settings => _localizedStrings['settings'] ?? {};
+  Map<String, dynamic> get statistics => _localizedStrings['statistics'] ?? {};
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};
   Map<String, dynamic> get errors => _localizedStrings['errors'] ?? {};
   Map<String, dynamic> get genres => _localizedStrings['genres'] ?? {};

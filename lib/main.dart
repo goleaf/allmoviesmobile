@@ -63,6 +63,7 @@ import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/series/series_filters_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
+import 'presentation/screens/statistics/statistics_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
@@ -335,6 +336,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       SearchResultsListScreen.routeName: (context) =>
                           const SearchResultsListScreen(),
                       VideosScreen.routeName: (context) => const VideosScreen(),
+                      StatisticsScreen.routeName: (context) =>
+                          const StatisticsScreen(),
                       VideoPlayerScreen.routeName: (context) {
                         final args =
                             ModalRoute.of(context)?.settings.arguments;

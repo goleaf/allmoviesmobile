@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
@@ -198,7 +199,7 @@ class TVDetailScreen extends StatelessWidget {
   Widget _buildActions(BuildContext context, AppLocalizations loc) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
-    
+
     final isFavorite = favoritesProvider.isFavorite(tvShow.id);
     final isInWatchlist = watchlistProvider.isInWatchlist(tvShow.id);
 
@@ -259,9 +260,35 @@ class TVDetailScreen extends StatelessWidget {
               ),
             ),
           ),
+          const SizedBox(width: 8),
+          OutlinedButton.icon(
+            onPressed: () => _shareTVShow(loc),
+            icon: const Icon(Icons.share),
+            label: Text(loc.t('tv.share')),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _shareTVShow(AppLocalizations loc) async {
+    final shareLines = <String>[
+      tvShow.title,
+    ];
+
+    final releaseYear = tvShow.releaseYear;
+    if (releaseYear != null && releaseYear.isNotEmpty) {
+      shareLines.add('${loc.t('tv.first_aired')}: $releaseYear');
+    }
+
+    final overview = tvShow.overview;
+    if (overview != null && overview.isNotEmpty) {
+      shareLines.add(overview);
+    }
+
+    final shareContent = shareLines.join('\n\n');
+
+    await Share.share(shareContent);
   }
 
   Widget _buildOverview(BuildContext context, AppLocalizations loc) {

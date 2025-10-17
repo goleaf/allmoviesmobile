@@ -178,23 +178,22 @@ class _GalleryRow extends StatelessWidget {
                               alignment: Alignment.center,
                               child: const Icon(Icons.broken_image),
                             ),
-                          ),
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          left: 0,
-                          right: 0,
-                          child: Container(
-                            height: 72,
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [
-                                  Colors.black.withOpacity(0.55),
-                                  Colors.transparent,
-                                ],
-                              ),
+                            overlay: MediaImageOverlay(
+                              gradientResolvers: [
+                                (theme, _) {
+                                  final isDark = theme.brightness == Brightness.dark;
+                                  return LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      Colors.black.withOpacity(
+                                        isDark ? 0.55 : 0.7,
+                                      ),
+                                      Colors.black.withOpacity(0),
+                                    ],
+                                  );
+                                },
+                              ],
                             ),
                           ),
                         ),

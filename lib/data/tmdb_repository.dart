@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 
 import 'models/account_model.dart';
+import 'models/certification_model.dart';
 import 'models/company_model.dart';
+import 'models/configuration_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
@@ -9,26 +11,38 @@ import 'models/person_model.dart';
 import 'models/search_result_model.dart';
 import 'models/tmdb_list_model.dart';
 import 'models/tv_detailed_model.dart';
+import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
 import 'services/tmdb_api_service.dart';
 
 class TmdbRepository {
+  static const String _fallbackApiKey = '755c09802f113640bd146fb59ad22411';
+
   TmdbRepository({
     http.Client? client,
     CacheService? cacheService,
     TmdbApiService? apiService,
     String? apiKey,
-  })  : _apiKey = apiKey ?? const String.fromEnvironment('TMDB_API_KEY', defaultValue: ''),
+  })  : _apiKey = _resolveApiKey(apiKey),
         _cache = cacheService ?? CacheService(),
         _apiService = apiService ??
             TmdbApiService(
               client: client,
-              apiKey: apiKey ?? const String.fromEnvironment('TMDB_API_KEY', defaultValue: ''),
+              apiKey: _resolveApiKey(apiKey),
             );
 
   final String _apiKey;
   final CacheService _cache;
   final TmdbApiService _apiService;
+
+  static String _resolveApiKey(String? providedKey) {
+    final envKey = const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
+    final candidate = (providedKey ?? envKey).trim();
+    if (candidate.isNotEmpty) {
+      return candidate;
+    }
+    return _fallbackApiKey;
+  }
 
   void _checkApiKey() {
     if (_apiKey.isEmpty) {
@@ -114,6 +128,70 @@ class TmdbRepository {
     final payload = await _apiService.fetchTvCategory(
       category,
       page: page,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
+  }
+
+  Future<PaginatedResponse<Movie>> discoverMovies({
+    Map<String, String>? filters,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final sanitizedFilters = _sanitizeFilters(filters);
+    final normalizedFilters = _normalizeFilters(sanitizedFilters);
+    final cacheKey = 'discover-movies-$normalizedFilters-$page';
+    if (!forceRefresh) {
+      final cached =
+          _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.discoverMovie(
+      page: page,
+      queryParameters: sanitizedFilters,
+    );
+
+    final response = PaginatedResponse<Movie>.fromJson(
+      payload,
+      Movie.fromJson,
+    );
+
+    _cache.set(cacheKey, response);
+    return response;
+  }
+
+  Future<PaginatedResponse<Movie>> discoverTvSeries({
+    Map<String, String>? filters,
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final sanitizedFilters = _sanitizeFilters(filters);
+    final normalizedFilters = _normalizeFilters(sanitizedFilters);
+    final cacheKey = 'discover-tv-$normalizedFilters-$page';
+    if (!forceRefresh) {
+      final cached =
+          _cache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.discoverTv(
+      page: page,
+      queryParameters: sanitizedFilters,
     );
 
     final response = PaginatedResponse<Movie>.fromJson(
@@ -418,6 +496,233 @@ class TmdbRepository {
 
     _cache.set(cacheKey, response);
     return response;
+  }
+
+  Future<ApiConfiguration> fetchConfiguration({bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKey = 'configuration-core';
+    if (!forceRefresh) {
+      final cached = _cache.get<ApiConfiguration>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchConfiguration();
+    final configuration = ApiConfiguration.fromJson(payload);
+    _cache.set(cacheKey, configuration, ttlSeconds: CacheService.movieDetailsTTL);
+    return configuration;
+  }
+
+  Future<List<LanguageInfo>> fetchLanguages({bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKey = 'configuration-languages';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<LanguageInfo>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchConfigurationLanguages();
+    final languages = payload
+        .whereType<Map<String, dynamic>>()
+        .map(LanguageInfo.fromJson)
+        .toList()
+      ..sort((a, b) => a.englishName.compareTo(b.englishName));
+
+    _cache.set(cacheKey, languages, ttlSeconds: CacheService.movieDetailsTTL);
+    return languages;
+  }
+
+  Future<List<CountryInfo>> fetchCountries({bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKey = 'configuration-countries';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<CountryInfo>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchConfigurationCountries();
+    final countries = payload
+        .whereType<Map<String, dynamic>>()
+        .map(CountryInfo.fromJson)
+        .toList()
+      ..sort((a, b) => a.englishName.compareTo(b.englishName));
+
+    _cache.set(cacheKey, countries, ttlSeconds: CacheService.movieDetailsTTL);
+    return countries;
+  }
+
+  Future<List<Timezone>> fetchTimezones({bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKey = 'configuration-timezones';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<Timezone>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchConfigurationTimezones();
+    final timezones = payload
+        .whereType<Map<String, dynamic>>()
+        .map(Timezone.fromJson)
+        .toList()
+      ..sort((a, b) => a.countryCode.compareTo(b.countryCode));
+
+    _cache.set(cacheKey, timezones, ttlSeconds: CacheService.movieDetailsTTL);
+    return timezones;
+  }
+
+  Future<Map<String, List<Certification>>> fetchMovieCertifications({
+    bool forceRefresh = false,
+  }) {
+    return _fetchCertifications(
+      'movies',
+      cacheKey: 'certifications-movie',
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  Future<Map<String, List<Certification>>> fetchTvCertifications({
+    bool forceRefresh = false,
+  }) {
+    return _fetchCertifications(
+      'tv',
+      cacheKey: 'certifications-tv',
+      forceRefresh: forceRefresh,
+    );
+  }
+
+  Future<Map<String, List<Certification>>> _fetchCertifications(
+    String mediaType, {
+    required String cacheKey,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    if (!forceRefresh) {
+      final cached = _cache.get<Map<String, List<Certification>>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchCertifications(mediaType);
+    final results = payload['results'];
+    final parsed = <String, List<Certification>>{};
+
+    if (results is Map<String, dynamic>) {
+      for (final entry in results.entries) {
+        final value = entry.value;
+        if (value is List) {
+          final certifications = value
+              .whereType<Map<String, dynamic>>()
+              .map(Certification.fromJson)
+              .toList()
+            ..sort((a, b) => a.order.compareTo(b.order));
+          parsed[entry.key] = certifications;
+        }
+      }
+    }
+
+    _cache.set(cacheKey, parsed, ttlSeconds: CacheService.movieDetailsTTL);
+    return parsed;
+  }
+
+  Map<String, String>? _sanitizeFilters(Map<String, String>? filters) {
+    if (filters == null || filters.isEmpty) {
+      return null;
+    }
+
+    final sanitized = <String, String>{};
+    for (final entry in filters.entries) {
+      final key = entry.key.trim();
+      final value = entry.value.trim();
+      if (key.isEmpty || value.isEmpty) {
+        continue;
+      }
+      sanitized[key] = value;
+    }
+
+    if (sanitized.isEmpty) {
+      return null;
+    }
+
+    return sanitized;
+  }
+
+  String _normalizeFilters(Map<String, String>? filters) {
+    if (filters == null || filters.isEmpty) {
+      return 'none';
+    }
+
+    final entries = filters.entries.toList()
+      ..sort((a, b) => a.key.compareTo(b.key));
+    return entries.map((entry) => '${entry.key}=${entry.value}').join('&');
+  }
+
+  Future<Map<String, WatchProviderResults>> fetchWatchProviders({
+    String mediaType = 'movie',
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'watch-providers-$mediaType';
+    if (!forceRefresh) {
+      final cached =
+          _cache.get<Map<String, WatchProviderResults>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchWatchProviders(mediaType);
+    final results = payload['results'];
+    final parsed = <String, WatchProviderResults>{};
+
+    if (results is Map<String, dynamic>) {
+      for (final entry in results.entries) {
+        final value = entry.value;
+        if (value is Map<String, dynamic>) {
+          parsed[entry.key] = WatchProviderResults.fromJson(value);
+        }
+      }
+    }
+
+    _cache.set(cacheKey, parsed, ttlSeconds: CacheService.movieDetailsTTL);
+    return parsed;
+  }
+
+  Future<List<WatchProviderRegion>> fetchWatchProviderRegions({
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    const cacheKey = 'watch-provider-regions';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<WatchProviderRegion>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchWatchProviderRegions();
+    final regions = payload
+        .whereType<Map<String, dynamic>>()
+        .map(WatchProviderRegion.fromJson)
+        .toList()
+      ..sort((a, b) => a.englishName.compareTo(b.englishName));
+
+    _cache.set(cacheKey, regions, ttlSeconds: CacheService.movieDetailsTTL);
+    return regions;
   }
 
   Map<String, dynamic> _normalizeDetailPayload(Map<String, dynamic> payload) {

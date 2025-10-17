@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
@@ -7,7 +10,7 @@ import '../../../data/models/movie.dart';
 import '../../../providers/series_provider.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
-import '../../../providers/watch_region_provider.dart';
+import '../../../data/services/local_storage_service.dart';
 import '../series/series_filters_screen.dart';
 
 class SeriesScreen extends StatefulWidget {
@@ -19,10 +22,71 @@ class SeriesScreen extends StatefulWidget {
   State<SeriesScreen> createState() => _SeriesScreenState();
 }
 
-class _SeriesScreenState extends State<SeriesScreen> {
+class _SeriesScreenState extends State<SeriesScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController;
+  late final LocalStorageService _storageService;
+  late final Map<SeriesSection, ItemScrollController> _scrollControllers;
+  late final Map<SeriesSection, ItemPositionsListener> _positionsListeners;
+  late final Map<SeriesSection, VoidCallback> _positionCallbacks;
+  late final Map<SeriesSection, int?> _initialScrollIndexes;
+  late final Map<SeriesSection, int?> _lastPersistedIndexes;
+
   @override
   void initState() {
     super.initState();
+    _storageService = context.read<LocalStorageService>();
+    final sections = SeriesSection.values;
+    final initialTabIndex = _storageService.getSeriesTabIndex().clamp(
+      0,
+      sections.length - 1,
+    );
+    _tabController = TabController(
+      length: sections.length,
+      vsync: this,
+      initialIndex: initialTabIndex,
+    );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        return;
+      }
+      unawaited(_storageService.setSeriesTabIndex(_tabController.index));
+    });
+
+    _scrollControllers = {
+      for (final section in sections) section: ItemScrollController()
+    };
+    _positionsListeners = {
+      for (final section in sections) section: ItemPositionsListener.create()
+    };
+    _initialScrollIndexes = {
+      for (final section in sections)
+        section: _storageService.getSeriesScrollIndex(section.name)
+    };
+    _lastPersistedIndexes = Map<SeriesSection, int?>.from(_initialScrollIndexes);
+    _positionCallbacks = {
+      for (final section in sections)
+        section: () {
+          final positions =
+              _positionsListeners[section]!.itemPositions.value.toList();
+          if (positions.isEmpty) return;
+          positions.sort((a, b) => a.index.compareTo(b.index));
+          final firstVisible = positions.first.index;
+          if (_lastPersistedIndexes[section] == firstVisible) {
+            return;
+          }
+          _lastPersistedIndexes[section] = firstVisible;
+          unawaited(
+            _storageService.setSeriesScrollIndex(section.name, firstVisible),
+          );
+        }
+    };
+    for (final entry in _positionCallbacks.entries) {
+      _positionsListeners[entry.key]!
+          .itemPositions
+          .addListener(entry.value);
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SeriesProvider>().refresh();
     });
@@ -33,37 +97,53 @@ class _SeriesScreenState extends State<SeriesScreen> {
   }
 
   @override
+  void dispose() {
+    for (final entry in _positionCallbacks.entries) {
+      _positionsListeners[entry.key]!
+          .itemPositions
+          .removeListener(entry.value);
+    }
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final sections = SeriesSection.values;
 
     final l = AppLocalizations.of(context);
-    return DefaultTabController(
-      length: sections.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l.t('tv.series')),
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: [
-              for (final section in sections)
-                Tab(text: _labelForSection(section, l)),
-            ],
-          ),
-          actions: [
-            IconButton(
-              tooltip: 'Filter by Network',
-              icon: const Icon(Icons.hub_outlined),
-              onPressed: _openNetworkFilter,
-            ),
-          ],
-        ),
-        drawer: const AppDrawer(),
-        body: TabBarView(
-          children: [
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l.t('tv.series')),
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: [
             for (final section in sections)
-              _SeriesSectionView(section: section, onRefreshAll: _refreshAll),
+              Tab(text: _labelForSection(section, l)),
           ],
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Filter by Network',
+            icon: const Icon(Icons.hub_outlined),
+            onPressed: _openNetworkFilter,
+          ),
+        ],
+      ),
+      drawer: const AppDrawer(),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          for (final section in sections)
+            _SeriesSectionView(
+              section: section,
+              onRefreshAll: _refreshAll,
+              scrollController: _scrollControllers[section]!,
+              positionsListener: _positionsListeners[section]!,
+              initialScrollIndex: _initialScrollIndexes[section],
+            ),
+        ],
       ),
     );
   }
@@ -93,9 +173,9 @@ extension on _SeriesScreenState {
       if (result is Map<String, String>) {
         await context.read<SeriesProvider>().applyTvFilters(result);
         if (!mounted) return;
-        DefaultTabController.of(
-          context,
-        ).animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
+        _tabController.animateTo(
+          SeriesSection.values.indexOf(SeriesSection.popular),
+        );
       }
     });
   }
@@ -113,12 +193,11 @@ class _NetworkChip extends StatelessWidget {
       onPressed: () async {
         Navigator.pop(context);
         await context.read<SeriesProvider>().applyNetworkFilter(id);
-        final controller = DefaultTabController.of(context);
-        if (controller != null) {
-          controller.animateTo(
-            SeriesSection.values.indexOf(SeriesSection.popular),
-          );
-        }
+        final seriesState =
+            context.findAncestorStateOfType<_SeriesScreenState>();
+        seriesState?._tabController.animateTo(
+          SeriesSection.values.indexOf(SeriesSection.popular),
+        );
       },
       icon: const Icon(Icons.tv),
       label: Text(name),
@@ -126,17 +205,33 @@ class _NetworkChip extends StatelessWidget {
   }
 }
 
-class _SeriesSectionView extends StatelessWidget {
-  const _SeriesSectionView({required this.section, required this.onRefreshAll});
+class _SeriesSectionView extends StatefulWidget {
+  const _SeriesSectionView({
+    required this.section,
+    required this.onRefreshAll,
+    required this.scrollController,
+    required this.positionsListener,
+    this.initialScrollIndex,
+  });
 
   final SeriesSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
+  final ItemScrollController scrollController;
+  final ItemPositionsListener positionsListener;
+  final int? initialScrollIndex;
+
+  @override
+  State<_SeriesSectionView> createState() => _SeriesSectionViewState();
+}
+
+class _SeriesSectionViewState extends State<_SeriesSectionView> {
+  bool _restored = false;
 
   @override
   Widget build(BuildContext context) {
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
-        final state = provider.sectionState(section);
+        final state = provider.sectionState(widget.section);
         if (state.isLoading && state.items.isEmpty) {
           return const _SeriesListSkeleton();
         }
@@ -144,9 +239,11 @@ class _SeriesSectionView extends StatelessWidget {
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
-            onRetry: () => onRefreshAll(context),
+            onRetry: () => widget.onRefreshAll(context),
           );
         }
+
+        _maybeRestore(state.items.length);
 
         return Column(
           children: [
@@ -154,8 +251,14 @@ class _SeriesSectionView extends StatelessWidget {
               const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () => onRefreshAll(context),
-                child: _SeriesList(series: state.items),
+                onRefresh: () => widget.onRefreshAll(context),
+                child: _SeriesList(
+                  series: state.items,
+                  scrollController: widget.scrollController,
+                  positionsListener: widget.positionsListener,
+                  emptyMessage:
+                      AppLocalizations.of(context).t('search.no_results'),
+                ),
               ),
             ),
             if (state.errorMessage != null && state.items.isNotEmpty)
@@ -175,7 +278,7 @@ class _SeriesSectionView extends StatelessWidget {
               ),
             if (state.totalPages > 1)
               _PaginationControls(
-                section: section,
+                section: widget.section,
                 state: state,
               ),
           ],
@@ -183,16 +286,53 @@ class _SeriesSectionView extends StatelessWidget {
       },
     );
   }
+
+  void _maybeRestore(int itemCount) {
+    if (_restored) {
+      return;
+    }
+
+    final targetIndex = widget.initialScrollIndex;
+    if (targetIndex == null) {
+      _restored = true;
+      return;
+    }
+    if (itemCount <= targetIndex) {
+      return;
+    }
+    if (!widget.scrollController.isAttached) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _restored) return;
+        _maybeRestore(itemCount);
+      });
+      return;
+    }
+    widget.scrollController.jumpTo(index: targetIndex, alignment: 0);
+    _restored = true;
+  }
 }
 
-class _SeriesList extends StatelessWidget {
-  const _SeriesList({required this.series});
+class _SeriesList extends StatefulWidget {
+  const _SeriesList({
+    required this.series,
+    required this.emptyMessage,
+    this.scrollController,
+    this.positionsListener,
+  });
 
   final List<Movie> series;
+  final String emptyMessage;
+  final ItemScrollController? scrollController;
+  final ItemPositionsListener? positionsListener;
 
   @override
+  State<_SeriesList> createState() => _SeriesListState();
+}
+
+class _SeriesListState extends State<_SeriesList> {
+  @override
   Widget build(BuildContext context) {
-    if (series.isEmpty) {
+    if (widget.series.isEmpty) {
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
@@ -205,7 +345,7 @@ class _SeriesList extends StatelessWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              AppLocalizations.of(context).t('search.no_results'),
+              widget.emptyMessage,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -213,12 +353,15 @@ class _SeriesList extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
+    return ScrollablePositionedList.separated(
+      itemScrollController: widget.scrollController,
+      itemPositionsListener: widget.positionsListener,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: series.length,
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: widget.series.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final show = series[index];
+        final show = widget.series[index];
         return _SeriesCard(show: show);
       },
     );

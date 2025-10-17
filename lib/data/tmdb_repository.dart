@@ -61,6 +61,7 @@ class TmdbRepository {
     const Duration(milliseconds: 250),
   );
   final Map<String, RateLimiter> _endpointLimiters = {};
+  final Map<String, Future<void>> _pendingRevalidations = {};
 
   void _ensureApiKey() {
     if (_apiKey.isEmpty) {
@@ -120,8 +121,21 @@ class TmdbRepository {
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);
 
-  void _setCached<T>(String key, T value, {int ttlSeconds = 900}) {
-    _cache?.set<T>(key, value, ttlSeconds: ttlSeconds);
+  void _setCached<T>(
+    String key,
+    T value, {
+    int ttlSeconds = 900,
+    CachePolicy? policy,
+  }) {
+    final cache = _cache;
+    if (cache == null) {
+      return;
+    }
+    if (policy != null) {
+      cache.set<T>(key, value, policy: policy);
+    } else {
+      cache.set<T>(key, value, ttlSeconds: ttlSeconds);
+    }
   }
 
   Future<T> _cached<T>(
@@ -129,16 +143,53 @@ class TmdbRepository {
     Future<T> Function() loader, {
     bool forceRefresh = false,
     int ttlSeconds = 900,
+    CachePolicy? policy,
+    int? refreshAfterSeconds,
   }) async {
-    if (!forceRefresh) {
-      final cached = _getCached<T>(key);
-      if (cached != null) {
-        return cached;
+    final cache = _cache;
+    final computedRefreshAfter = refreshAfterSeconds ??
+        (ttlSeconds >= 120 ? ttlSeconds ~/ 2 : null);
+    final effectivePolicy = policy ?? CachePolicy(
+      ttl: Duration(seconds: ttlSeconds),
+      refreshAfter: computedRefreshAfter != null && computedRefreshAfter > 0
+          ? Duration(seconds: computedRefreshAfter)
+          : null,
+    );
+
+    if (!forceRefresh && cache != null) {
+      final lookup = cache.getWithMeta<T>(key);
+      if (lookup != null && lookup.hasValue) {
+        final cachedValue = lookup.value;
+        if (cachedValue == null) {
+          // Defensive guard; treat as miss if value vanished.
+          _cache?.remove(key);
+          return await _cached(
+            key,
+            loader,
+            forceRefresh: true,
+            ttlSeconds: ttlSeconds,
+            policy: policy,
+            refreshAfterSeconds: refreshAfterSeconds,
+          );
+        }
+        if (lookup.isStale) {
+          _scheduleRevalidation<T>(
+            key,
+            loader,
+            effectivePolicy,
+          );
+        }
+        return cachedValue as T;
       }
     }
 
     final value = await loader();
-    _setCached<T>(key, value, ttlSeconds: ttlSeconds);
+    _setCached<T>(
+      key,
+      value,
+      ttlSeconds: ttlSeconds,
+      policy: effectivePolicy,
+    );
     return value;
   }
 
@@ -179,6 +230,27 @@ class TmdbRepository {
       forceRefresh: forceRefresh,
       ttlSeconds: CacheService.trendingTTL,
     );
+  }
+
+  void _scheduleRevalidation<T>(
+    String key,
+    Future<T> Function() loader,
+    CachePolicy policy,
+  ) {
+    final cache = _cache;
+    if (cache == null || _pendingRevalidations.containsKey(key)) {
+      return;
+    }
+
+    final future = loader().then((value) {
+      cache.set<T>(key, value, policy: policy);
+    }).catchError((error) {
+      // Silently ignore refresh errors; the stale value was already returned.
+    }).whenComplete(() {
+      _pendingRevalidations.remove(key);
+    });
+
+    _pendingRevalidations[key] = future;
   }
 
   Future<List<Movie>> fetchTrendingMovies({

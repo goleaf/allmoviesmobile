@@ -132,6 +132,24 @@
     "external_links": "Зовнішні посилання",
     "translations": "Переклади"
   },
+  "people": {
+    "departments": {
+      "label": "Напрям",
+      "all": "Усі напрями",
+      "acting": "Акторська гра",
+      "directing": "Режисура",
+      "production": "Продюсування",
+      "writing": "Сценарій",
+      "editing": "Монтаж",
+      "camera": "Операторська робота",
+      "sound": "Звук",
+      "art": "Художній відділ",
+      "costume_and_make_up": "Костюми та грим",
+      "crew": "Знімальна група",
+      "lighting": "Освітлення",
+      "visual_effects": "Візуальні ефекти"
+    }
+  },
   "company": {
     "title": "Компанія",
     "companies": "Компанії",

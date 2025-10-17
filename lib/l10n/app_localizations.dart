@@ -449,6 +449,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get apply;
+
+  /// Label for the department filter on the people screen
+  ///
+  /// In en, this message translates to:
+  /// **'Department'**
+  String get peopleDepartmentsLabel;
+
+  /// Option to show all departments
+  ///
+  /// In en, this message translates to:
+  /// **'All departments'**
+  String get peopleDepartmentsAll;
+
+  /// In en, this message translates to:
+  /// **'Acting'**
+  String get peopleDepartmentsActing;
+
+  /// In en, this message translates to:
+  /// **'Directing'**
+  String get peopleDepartmentsDirecting;
+
+  /// In en, this message translates to:
+  /// **'Production'**
+  String get peopleDepartmentsProduction;
+
+  /// In en, this message translates to:
+  /// **'Writing'**
+  String get peopleDepartmentsWriting;
+
+  /// In en, this message translates to:
+  /// **'Editing'**
+  String get peopleDepartmentsEditing;
+
+  /// In en, this message translates to:
+  /// **'Camera'**
+  String get peopleDepartmentsCamera;
+
+  /// In en, this message translates to:
+  /// **'Sound'**
+  String get peopleDepartmentsSound;
+
+  /// In en, this message translates to:
+  /// **'Art'**
+  String get peopleDepartmentsArt;
+
+  /// In en, this message translates to:
+  /// **'Costume & Make-Up'**
+  String get peopleDepartmentsCostumeAndMakeUp;
+
+  /// In en, this message translates to:
+  /// **'Crew'**
+  String get peopleDepartmentsCrew;
+
+  /// In en, this message translates to:
+  /// **'Lighting'**
+  String get peopleDepartmentsLighting;
+
+  /// In en, this message translates to:
+  /// **'Visual Effects'**
+  String get peopleDepartmentsVisualEffects;
 }
 
 class _AppLocalizationsDelegate

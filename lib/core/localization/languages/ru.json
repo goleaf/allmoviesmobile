@@ -132,6 +132,24 @@
     "external_links": "Внешние ссылки",
     "translations": "Переводы"
   },
+  "people": {
+    "departments": {
+      "label": "Направление",
+      "all": "Все направления",
+      "acting": "Актёрская игра",
+      "directing": "Режиссура",
+      "production": "Продюсирование",
+      "writing": "Сценарий",
+      "editing": "Монтаж",
+      "camera": "Операторская работа",
+      "sound": "Звук",
+      "art": "Художественный отдел",
+      "costume_and_make_up": "Костюмы и грим",
+      "crew": "Съёмочная группа",
+      "lighting": "Освещение",
+      "visual_effects": "Визуальные эффекты"
+    }
+  },
   "company": {
     "title": "Компания",
     "companies": "Компании",

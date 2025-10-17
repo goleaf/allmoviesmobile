@@ -57,6 +57,20 @@
   "withCrewHint": "Con equipo (IDs de personas separados por comas)",
   "withCompaniesHint": "Con compañías (IDs separados por comas)",
   "withKeywordsHint": "Con palabras clave (IDs separados por comas)",
-  "apply": "Aplicar"
+  "apply": "Aplicar",
+  "peopleDepartmentsLabel": "Departamento",
+  "peopleDepartmentsAll": "Todos los departamentos",
+  "peopleDepartmentsActing": "Actuación",
+  "peopleDepartmentsDirecting": "Dirección",
+  "peopleDepartmentsProduction": "Producción",
+  "peopleDepartmentsWriting": "Guion",
+  "peopleDepartmentsEditing": "Edición",
+  "peopleDepartmentsCamera": "Cámara",
+  "peopleDepartmentsSound": "Sonido",
+  "peopleDepartmentsArt": "Dirección artística",
+  "peopleDepartmentsCostumeAndMakeUp": "Vestuario y maquillaje",
+  "peopleDepartmentsCrew": "Equipo técnico",
+  "peopleDepartmentsLighting": "Iluminación",
+  "peopleDepartmentsVisualEffects": "Efectos visuales"
 }
 

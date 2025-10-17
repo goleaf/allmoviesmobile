@@ -57,6 +57,20 @@
   "withCrewHint": "Avec équipe (IDs séparés par des virgules)",
   "withCompaniesHint": "Avec sociétés (IDs séparés par des virgules)",
   "withKeywordsHint": "Avec mots-clés (IDs séparés par des virgules)",
-  "apply": "Appliquer"
+  "apply": "Appliquer",
+  "peopleDepartmentsLabel": "Département",
+  "peopleDepartmentsAll": "Tous les départements",
+  "peopleDepartmentsActing": "Interprétation",
+  "peopleDepartmentsDirecting": "Réalisation",
+  "peopleDepartmentsProduction": "Production",
+  "peopleDepartmentsWriting": "Scénario",
+  "peopleDepartmentsEditing": "Montage",
+  "peopleDepartmentsCamera": "Caméra",
+  "peopleDepartmentsSound": "Son",
+  "peopleDepartmentsArt": "Direction artistique",
+  "peopleDepartmentsCostumeAndMakeUp": "Costumes et maquillage",
+  "peopleDepartmentsCrew": "Équipe technique",
+  "peopleDepartmentsLighting": "Éclairage",
+  "peopleDepartmentsVisualEffects": "Effets visuels"
 }
 

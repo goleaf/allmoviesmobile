@@ -5,11 +5,23 @@ import 'package:allmovies_mobile/providers/people_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 class FakeRepo extends TmdbRepository {
+  FakeRepo({
+    this.trending = const [
+      Person(id: 1, name: 'P', knownForDepartment: 'Acting'),
+    ],
+    this.popular = const [
+      Person(id: 2, name: 'Q', knownForDepartment: 'Directing'),
+    ],
+  });
+
+  final List<Person> trending;
+  final List<Person> popular;
+
   @override
   Future<List<Person>> fetchTrendingPeople({
     String timeWindow = 'day',
     bool forceRefresh = false,
-  }) async => [const Person(id: 1, name: 'P')];
+  }) async => trending;
   @override
   Future<PaginatedResponse<Person>> fetchPopularPeople({
     int page = 1,
@@ -17,8 +29,8 @@ class FakeRepo extends TmdbRepository {
   }) async => PaginatedResponse<Person>(
     page: 1,
     totalPages: 1,
-    totalResults: 1,
-    results: [const Person(id: 2, name: 'Q')],
+    totalResults: popular.length,
+    results: popular,
   );
 }
 
@@ -31,6 +43,55 @@ void main() {
     expect(provider.isInitialized, isTrue);
     expect(provider.sectionState(PeopleSection.trending).items, isNotEmpty);
     expect(provider.sectionState(PeopleSection.popular).items, isNotEmpty);
+  });
+
+  test('PeopleProvider filters by selected department', () async {
+    final provider = PeopleProvider(
+      FakeRepo(
+        trending: const [
+          Person(id: 1, name: 'Actor', knownForDepartment: 'Acting'),
+          Person(id: 2, name: 'Director', knownForDepartment: 'Directing'),
+        ],
+        popular: const [
+          Person(id: 3, name: 'Producer', knownForDepartment: 'Production'),
+        ],
+      ),
+    );
+
+    await provider.initialized;
+
+    expect(provider.availableDepartments,
+        equals(['Acting', 'Directing', 'Production']));
+    expect(
+      provider.sectionState(PeopleSection.trending).items.map((e) => e.name),
+      ['Actor', 'Director'],
+    );
+    expect(
+      provider.sectionState(PeopleSection.popular).items.map((e) => e.name),
+      ['Producer'],
+    );
+
+    provider.selectDepartment('Directing');
+
+    expect(
+      provider.sectionState(PeopleSection.trending).items.map((e) => e.name),
+      ['Director'],
+    );
+    expect(
+      provider.sectionState(PeopleSection.popular).items,
+      isEmpty,
+    );
+
+    provider.selectDepartment(null);
+
+    expect(
+      provider.sectionState(PeopleSection.trending).items.map((e) => e.name),
+      ['Actor', 'Director'],
+    );
+    expect(
+      provider.sectionState(PeopleSection.popular).items.map((e) => e.name),
+      ['Producer'],
+    );
   });
 
   test(

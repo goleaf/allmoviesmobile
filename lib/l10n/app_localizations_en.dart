@@ -183,4 +183,46 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apply => 'Apply';
+
+  @override
+  String get peopleDepartmentsLabel => 'Department';
+
+  @override
+  String get peopleDepartmentsAll => 'All departments';
+
+  @override
+  String get peopleDepartmentsActing => 'Acting';
+
+  @override
+  String get peopleDepartmentsDirecting => 'Directing';
+
+  @override
+  String get peopleDepartmentsProduction => 'Production';
+
+  @override
+  String get peopleDepartmentsWriting => 'Writing';
+
+  @override
+  String get peopleDepartmentsEditing => 'Editing';
+
+  @override
+  String get peopleDepartmentsCamera => 'Camera';
+
+  @override
+  String get peopleDepartmentsSound => 'Sound';
+
+  @override
+  String get peopleDepartmentsArt => 'Art';
+
+  @override
+  String get peopleDepartmentsCostumeAndMakeUp => 'Costume & Make-Up';
+
+  @override
+  String get peopleDepartmentsCrew => 'Crew';
+
+  @override
+  String get peopleDepartmentsLighting => 'Lighting';
+
+  @override
+  String get peopleDepartmentsVisualEffects => 'Visual Effects';
 }

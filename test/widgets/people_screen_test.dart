@@ -153,4 +153,63 @@ void main() {
     // Scrollable empty content should still render a friendly message.
     expect(find.text('No results found'), findsOneWidget);
   });
+
+  testWidgets('Selecting a department filters the people lists', (tester) async {
+    await pumpApp(
+      tester,
+      const PeopleScreen(),
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => PeopleProvider(
+            _FakeRepo(
+              trending: const [
+                Person(
+                  id: 10,
+                  name: 'Actor One',
+                  knownForDepartment: 'Acting',
+                ),
+                Person(
+                  id: 11,
+                  name: 'Director One',
+                  knownForDepartment: 'Directing',
+                ),
+              ],
+              popular: const [
+                Person(
+                  id: 12,
+                  name: 'Producer One',
+                  knownForDepartment: 'Production',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+      localizationsDelegates: delegates,
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.text('Actor One'), findsOneWidget);
+    expect(find.text('Director One'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('peopleDepartmentDropdown')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Directing').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Actor One'), findsNothing);
+    expect(find.text('Director One'), findsOneWidget);
+    expect(find.text('Producer One'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('peopleDepartmentDropdown')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('All departments').last);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Actor One'), findsOneWidget);
+    expect(find.text('Director One'), findsOneWidget);
+  });
 }

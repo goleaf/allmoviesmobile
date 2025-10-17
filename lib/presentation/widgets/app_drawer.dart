@@ -5,6 +5,7 @@ import '../../core/localization/app_localizations.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
 // HomeScreen import removed (not present); default to Movies as home
+import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
@@ -17,6 +18,8 @@ class AppDrawer extends StatelessWidget {
   void _navigateTo(BuildContext context, String routeName) {
     Navigator.pop(context);
     final currentRoute = ModalRoute.of(context)?.settings.name;
+    final normalizedRoute =
+        currentRoute == Navigator.defaultRouteName ? HomeScreen.routeName : currentRoute;
     if (currentRoute == routeName) {
       return;
     }
@@ -68,31 +71,31 @@ class AppDrawer extends StatelessWidget {
           ListTile(
             leading: const Icon(Icons.home),
             title: Text(AppLocalizations.of(context).t('navigation.home')),
-            selected: currentRoute == MoviesScreen.routeName,
-            onTap: () => _navigateTo(context, MoviesScreen.routeName),
+            selected: normalizedRoute == HomeScreen.routeName,
+            onTap: () => _navigateTo(context, HomeScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.movie_creation_outlined),
             title: Text(AppLocalizations.of(context).t('navigation.movies')),
-            selected: currentRoute == MoviesScreen.routeName,
+            selected: normalizedRoute == MoviesScreen.routeName,
             onTap: () => _navigateTo(context, MoviesScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.live_tv_outlined),
             title: Text(AppLocalizations.of(context).t('navigation.series')),
-            selected: currentRoute == SeriesScreen.routeName,
+            selected: normalizedRoute == SeriesScreen.routeName,
             onTap: () => _navigateTo(context, SeriesScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.people_alt_outlined),
             title: Text(AppLocalizations.of(context).t('navigation.people')),
-            selected: currentRoute == PeopleScreen.routeName,
+            selected: normalizedRoute == PeopleScreen.routeName,
             onTap: () => _navigateTo(context, PeopleScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.business_outlined),
             title: Text(AppLocalizations.of(context).t('navigation.companies')),
-            selected: currentRoute == CompaniesScreen.routeName,
+            selected: normalizedRoute == CompaniesScreen.routeName,
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
           ),
           ListTile(
@@ -100,20 +103,20 @@ class AppDrawer extends StatelessWidget {
             title: Text(
               AppLocalizations.of(context).t('search.popular_searches'),
             ),
-            selected: currentRoute == KeywordBrowserScreen.routeName,
+            selected: normalizedRoute == KeywordBrowserScreen.routeName,
             onTap: () => _navigateTo(context, KeywordBrowserScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.explore_outlined),
             title: Text(AppLocalizations.of(context).t('discover.title')),
-            selected: currentRoute == ApiExplorerScreen.routeName,
+            selected: normalizedRoute == ApiExplorerScreen.routeName,
             onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
           ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.settings_outlined),
             title: Text(AppLocalizations.of(context).t('navigation.settings')),
-            selected: currentRoute == SettingsScreen.routeName,
+            selected: normalizedRoute == SettingsScreen.routeName,
             onTap: () => _navigateTo(context, SettingsScreen.routeName),
           ),
           ListTile(

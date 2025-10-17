@@ -9,9 +9,11 @@ import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/tmdb_repository.dart';
+import 'providers/continue_watching_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
+import 'providers/home_highlights_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
@@ -24,7 +26,7 @@ import 'presentation/screens/splash_preload/boot_gate.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
-// HomeScreen removed - default to MoviesScreen as initial route
+import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
 import 'presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'presentation/screens/person_detail/person_detail_screen.dart';
@@ -101,6 +103,15 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => WatchlistProvider(storageService),
         ),
+        ChangeNotifierProvider(create: (_) => HomeHighlightsProvider(repo)),
+        ChangeNotifierProxyProvider<WatchlistProvider, ContinueWatchingProvider>(
+          create: (_) => ContinueWatchingProvider(),
+          update: (_, watchlist, provider) {
+            provider ??= ContinueWatchingProvider();
+            provider.attachWatchlist(watchlist);
+            return provider;
+          },
+        ),
         ChangeNotifierProvider(
           create: (_) => SearchProvider(repo, storageService),
         ),
@@ -158,6 +169,7 @@ class AllMoviesApp extends StatelessWidget {
                 debugShowCheckedModeBanner: false,
                 home: const AppNavigationShell(),
                 routes: {
+                  HomeScreen.routeName: (context) => const HomeScreen(),
                   MoviesScreen.routeName: (context) => const MoviesScreen(),
                   MoviesFiltersScreen.routeName: (context) =>
                       const MoviesFiltersScreen(),

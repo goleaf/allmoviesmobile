@@ -41,6 +41,8 @@
     "revenue": "Revenue",
     "status": "Status",
     "genres": "Genres",
+    "details": "Details",
+    "keywords": "Keywords",
     "production_companies": "Production Companies",
     "production_countries": "Production Countries",
     "spoken_languages": "Spoken Languages",

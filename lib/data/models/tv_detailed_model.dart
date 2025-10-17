@@ -5,6 +5,7 @@ import 'country_model.dart';
 import 'external_ids_model.dart';
 import 'genre_model.dart';
 import 'image_model.dart';
+import 'keyword_model.dart';
 import 'language_model.dart';
 import 'network_model.dart';
 import 'season_model.dart';
@@ -52,6 +53,7 @@ class TVDetailed with _$TVDetailed {
     @Default([]) List<ImageModel> images,
     @Default([]) List<TVRef> recommendations,
     @Default([]) List<TVRef> similar,
+    @Default([]) List<Keyword> keywords,
   }) = _TVDetailed;
 
   factory TVDetailed.fromJson(Map<String, dynamic> json) =>

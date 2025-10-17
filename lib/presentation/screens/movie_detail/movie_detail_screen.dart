@@ -4,10 +4,10 @@ import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
-import '../../../data/services/api_config.dart';
+import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../providers/movie_detail_provider.dart';
 import '../../../providers/watchlist_provider.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/rating_display.dart';
 
 class MovieDetailScreen extends StatelessWidget {
@@ -22,21 +22,44 @@ class MovieDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (context) => MovieDetailProvider(
+        context.read<TmdbRepository>(),
+        movie.id,
+      ),
+      child: _MovieDetailView(movie: movie),
+    );
+  }
+
+
+}
+
+class _MovieDetailView extends StatelessWidget {
+  const _MovieDetailView({required this.movie});
+
+  final Movie movie;
+
+  @override
+  Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
-    
+    final detailProvider = context.watch<MovieDetailProvider>();
+
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          _buildAppBar(context, loc),
+          _buildAppBar(context),
           SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(context, loc),
+                _buildHeader(context, loc, detailProvider),
                 _buildActions(context, loc),
-                _buildOverview(context, loc),
-                _buildMetadata(context, loc),
-                _buildGenres(context, loc),
+                if (detailProvider.isLoading)
+                  const LinearProgressIndicator(minHeight: 2),
+                _buildOverview(context, loc, detailProvider),
+                _buildMetadata(context, loc, detailProvider),
+                _buildGenres(context, loc, detailProvider),
+                _buildKeywords(context, loc, detailProvider),
                 const SizedBox(height: 24),
               ],
             ),
@@ -46,9 +69,9 @@ class MovieDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, AppLocalizations loc) {
+  SliverAppBar _buildAppBar(BuildContext context) {
     final backdropUrl = movie.backdropUrl;
-    
+
     return SliverAppBar(
       expandedHeight: 250,
       pinned: true,
@@ -91,15 +114,25 @@ class MovieDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, AppLocalizations loc) {
+  Widget _buildHeader(
+    BuildContext context,
+    AppLocalizations loc,
+    MovieDetailProvider detailProvider,
+  ) {
     final posterUrl = movie.posterUrl;
-    
+    final detailed = detailProvider.movie;
+    final releaseYear = detailed?.releaseDate?.isNotEmpty == true
+        ? detailed!.releaseDate!.split('-').first
+        : movie.releaseYear;
+    final tagline = detailed?.tagline;
+    final voteAverage = detailed?.voteAverage ?? movie.voteAverage;
+    final voteCount = detailed?.voteCount ?? movie.voteCount;
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Poster
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
             child: posterUrl != null && posterUrl.isNotEmpty
@@ -129,7 +162,6 @@ class MovieDetailScreen extends StatelessWidget {
                   ),
           ),
           const SizedBox(width: 16),
-          // Title and basic info
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,21 +172,33 @@ class MovieDetailScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                 ),
-                const SizedBox(height: 8),
-                if (movie.releaseYear != null && movie.releaseYear!.isNotEmpty)
+                if (tagline != null && tagline.isNotEmpty) ...[
+                  const SizedBox(height: 8),
                   Text(
-                    movie.releaseYear!,
+                    '“$tagline”',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontStyle: FontStyle.italic,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                  ),
+                ],
+                if (releaseYear != null && releaseYear.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    releaseYear,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Colors.grey[600],
                         ),
                   ),
-                const SizedBox(height: 8),
-                if (movie.voteAverage != null && movie.voteAverage! > 0)
+                ],
+                if (voteAverage != null && voteAverage > 0) ...[
+                  const SizedBox(height: 8),
                   RatingDisplay(
-                    rating: movie.voteAverage!,
-                    voteCount: movie.voteCount,
+                    rating: voteAverage,
+                    voteCount: voteCount,
                     size: 18,
                   ),
+                ],
               ],
             ),
           ),
@@ -166,7 +210,7 @@ class MovieDetailScreen extends StatelessWidget {
   Widget _buildActions(BuildContext context, AppLocalizations loc) {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final watchlistProvider = context.watch<WatchlistProvider>();
-    
+
     final isFavorite = favoritesProvider.isFavorite(movie.id);
     final isInWatchlist = watchlistProvider.isInWatchlist(movie.id);
 
@@ -232,8 +276,17 @@ class MovieDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildOverview(BuildContext context, AppLocalizations loc) {
-    if (movie.overview == null || movie.overview!.isEmpty) {
+  Widget _buildOverview(
+    BuildContext context,
+    AppLocalizations loc,
+    MovieDetailProvider detailProvider,
+  ) {
+    final overview =
+        detailProvider.movie?.overview?.trim().isNotEmpty == true
+            ? detailProvider.movie!.overview
+            : movie.overview;
+
+    if (overview == null || overview.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -250,7 +303,7 @@ class MovieDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            movie.overview!,
+            overview,
             style: Theme.of(context).textTheme.bodyLarge,
           ),
         ],
@@ -258,28 +311,32 @@ class MovieDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildMetadata(BuildContext context, AppLocalizations loc) {
+  Widget _buildMetadata(
+    BuildContext context,
+    AppLocalizations loc,
+    MovieDetailProvider detailProvider,
+  ) {
     final metadata = <MapEntry<String, String>>[];
+    final detailed = detailProvider.movie;
 
-    if (movie.releaseDate != null && movie.releaseDate!.isNotEmpty) {
-      metadata.add(MapEntry(
-        loc.t('movie.release_date'),
-        movie.releaseDate!,
-      ));
+    final releaseDate = detailed?.releaseDate?.isNotEmpty == true
+        ? detailed!.releaseDate!
+        : movie.releaseDate;
+    if (releaseDate != null && releaseDate.isNotEmpty) {
+      metadata.add(MapEntry(loc.t('movie.release_date'), releaseDate));
     }
 
-    if (movie.runtime != null && movie.runtime! > 0) {
+    final runtime = detailed?.runtime;
+    if (runtime != null && runtime > 0) {
       metadata.add(MapEntry(
         loc.t('movie.runtime'),
-        '${movie.runtime} ${loc.t('movie.minutes')}',
+        '$runtime ${loc.t('movie.minutes')}',
       ));
     }
 
-    if (movie.voteCount != null && movie.voteCount! > 0) {
-      metadata.add(MapEntry(
-        loc.t('movie.votes'),
-        movie.voteCount.toString(),
-      ));
+    final voteCount = detailed?.voteCount ?? movie.voteCount;
+    if (voteCount != null && voteCount > 0) {
+      metadata.add(MapEntry(loc.t('movie.votes'), '$voteCount'));
     }
 
     if (metadata.isEmpty) {
@@ -292,40 +349,60 @@ class MovieDetailScreen extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Details',
+            loc.t('movie.details'),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 12),
-          ...metadata.map((entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      child: Text(
-                        entry.key,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
-                        ),
+          ...metadata.map(
+            (entry) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 120,
+                    child: Text(
+                      entry.key,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: Colors.grey[700],
                       ),
                     ),
-                    Expanded(
-                      child: Text(entry.value),
-                    ),
-                  ],
-                ),
-              )),
+                  ),
+                  Expanded(
+                    child: Text(entry.value),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildGenres(BuildContext context, AppLocalizations loc) {
-    if (movie.genreIds.isEmpty) {
+  Widget _buildGenres(
+    BuildContext context,
+    AppLocalizations loc,
+    MovieDetailProvider detailProvider,
+  ) {
+    final detailedGenres = detailProvider.genres
+        .map((genre) => genre.name.trim())
+        .where((name) => name.isNotEmpty)
+        .toList();
+
+    final fallbackGenres = movie.genreIds
+        ?.map((genreId) => Movie.genreMap[genreId])
+        .whereType<String>()
+        .toList();
+
+    final genres = detailedGenres.isNotEmpty
+        ? detailedGenres
+        : fallbackGenres ?? const <String>[];
+
+    if (genres.isEmpty) {
       return const SizedBox.shrink();
     }
 
@@ -344,13 +421,119 @@ class MovieDetailScreen extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: movie.genreIds.map((genreId) {
-              // TODO: Get genre name from GenresProvider
-              return Chip(
-                label: Text('Genre $genreId'),
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-              );
-            }).toList(),
+            children: genres
+                .map(
+                  (genre) => Chip(
+                    label: Text(genre),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                )
+                .toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildKeywords(
+    BuildContext context,
+    AppLocalizations loc,
+    MovieDetailProvider detailProvider,
+  ) {
+    final keywords = detailProvider.keywords;
+
+    if (detailProvider.isLoading && keywords.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              loc.t('movie.keywords'),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(6, (index) {
+                return Container(
+                  width: 80,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .primaryContainer
+                        .withOpacity(0.4),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                );
+              }),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (keywords.isEmpty) {
+      if (detailProvider.errorMessage != null) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                loc.t('movie.keywords'),
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                detailProvider.errorMessage!,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Theme.of(context).colorScheme.error),
+              ),
+              TextButton(
+                onPressed: detailProvider.refresh,
+                child: Text(loc.t('common.retry')),
+              ),
+            ],
+          ),
+        );
+      }
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('movie.keywords'),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: keywords
+                .map(
+                  (keyword) => Chip(
+                    label: Text(keyword.name),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.secondaryContainer,
+                  ),
+                )
+                .toList(),
           ),
         ],
       ),

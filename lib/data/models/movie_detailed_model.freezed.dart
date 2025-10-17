@@ -56,6 +56,7 @@ mixin _$MovieDetailed {
   List<ImageModel> get images => throw _privateConstructorUsedError;
   List<MovieRef> get recommendations => throw _privateConstructorUsedError;
   List<MovieRef> get similar => throw _privateConstructorUsedError;
+  List<Keyword> get keywords => throw _privateConstructorUsedError;
 
   /// Serializes this MovieDetailed to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -100,6 +101,7 @@ abstract class $MovieDetailedCopyWith<$Res> {
     List<ImageModel> images,
     List<MovieRef> recommendations,
     List<MovieRef> similar,
+    List<Keyword> keywords,
   });
 
   $ExternalIdsCopyWith<$Res> get externalIds;
@@ -145,6 +147,7 @@ class _$MovieDetailedCopyWithImpl<$Res, $Val extends MovieDetailed>
     Object? images = null,
     Object? recommendations = null,
     Object? similar = null,
+    Object? keywords = null,
   }) {
     return _then(
       _value.copyWith(
@@ -248,6 +251,10 @@ class _$MovieDetailedCopyWithImpl<$Res, $Val extends MovieDetailed>
                 ? _value.similar
                 : similar // ignore: cast_nullable_to_non_nullable
                       as List<MovieRef>,
+            keywords: null == keywords
+                ? _value.keywords
+                : keywords // ignore: cast_nullable_to_non_nullable
+                      as List<Keyword>,
           )
           as $Val,
     );
@@ -299,6 +306,7 @@ abstract class _$$MovieDetailedImplCopyWith<$Res>
     List<ImageModel> images,
     List<MovieRef> recommendations,
     List<MovieRef> similar,
+    List<Keyword> keywords,
   });
 
   @override
@@ -344,6 +352,7 @@ class __$$MovieDetailedImplCopyWithImpl<$Res>
     Object? images = null,
     Object? recommendations = null,
     Object? similar = null,
+    Object? keywords = null,
   }) {
     return _then(
       _$MovieDetailedImpl(
@@ -447,6 +456,10 @@ class __$$MovieDetailedImplCopyWithImpl<$Res>
             ? _value._similar
             : similar // ignore: cast_nullable_to_non_nullable
                   as List<MovieRef>,
+        keywords: null == keywords
+            ? _value._keywords
+            : keywords // ignore: cast_nullable_to_non_nullable
+                  as List<Keyword>,
       ),
     );
   }
@@ -484,14 +497,16 @@ class _$MovieDetailedImpl implements _MovieDetailed {
     final List<ImageModel> images = const [],
     final List<MovieRef> recommendations = const [],
     final List<MovieRef> similar = const [],
-  }) : _genres = genres,
-       _productionCompanies = productionCompanies,
-       _productionCountries = productionCountries,
-       _spokenLanguages = spokenLanguages,
-       _videos = videos,
-       _images = images,
-       _recommendations = recommendations,
-       _similar = similar;
+    final List<Keyword> keywords = const [],
+  })  : _genres = genres,
+        _productionCompanies = productionCompanies,
+        _productionCountries = productionCountries,
+        _spokenLanguages = spokenLanguages,
+        _videos = videos,
+        _images = images,
+        _recommendations = recommendations,
+        _similar = similar,
+        _keywords = keywords;
 
   factory _$MovieDetailedImpl.fromJson(Map<String, dynamic> json) =>
       _$$MovieDetailedImplFromJson(json);
@@ -611,9 +626,18 @@ class _$MovieDetailedImpl implements _MovieDetailed {
     return EqualUnmodifiableListView(_similar);
   }
 
+  final List<Keyword> _keywords;
+  @override
+  @JsonKey()
+  List<Keyword> get keywords {
+    if (_keywords is EqualUnmodifiableListView) return _keywords;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_keywords);
+  }
+
   @override
   String toString() {
-    return 'MovieDetailed(id: $id, title: $title, originalTitle: $originalTitle, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, releaseDate: $releaseDate, runtime: $runtime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, budget: $budget, revenue: $revenue, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar)';
+    return 'MovieDetailed(id: $id, title: $title, originalTitle: $originalTitle, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, releaseDate: $releaseDate, runtime: $runtime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, budget: $budget, revenue: $revenue, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar, keywords: $keywords)';
   }
 
   @override
@@ -667,7 +691,8 @@ class _$MovieDetailedImpl implements _MovieDetailed {
               other._recommendations,
               _recommendations,
             ) &&
-            const DeepCollectionEquality().equals(other._similar, _similar));
+            const DeepCollectionEquality().equals(other._similar, _similar) &&
+            const DeepCollectionEquality().equals(other._keywords, _keywords));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -699,6 +724,7 @@ class _$MovieDetailedImpl implements _MovieDetailed {
     const DeepCollectionEquality().hash(_images),
     const DeepCollectionEquality().hash(_recommendations),
     const DeepCollectionEquality().hash(_similar),
+    const DeepCollectionEquality().hash(_keywords),
   ]);
 
   /// Create a copy of MovieDetailed
@@ -744,6 +770,7 @@ abstract class _MovieDetailed implements MovieDetailed {
     final List<ImageModel> images,
     final List<MovieRef> recommendations,
     final List<MovieRef> similar,
+    final List<Keyword> keywords,
   }) = _$MovieDetailedImpl;
 
   factory _MovieDetailed.fromJson(Map<String, dynamic> json) =
@@ -809,6 +836,8 @@ abstract class _MovieDetailed implements MovieDetailed {
   List<MovieRef> get recommendations;
   @override
   List<MovieRef> get similar;
+  @override
+  List<Keyword> get keywords;
 
   /// Create a copy of MovieDetailed
   /// with the given fields replaced by the non-null parameter values.

@@ -67,6 +67,11 @@ _$MovieDetailedImpl _$$MovieDetailedImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => MovieRef.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      keywords:
+          (json['keywords'] as List<dynamic>?)
+              ?.map((e) => Keyword.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$$MovieDetailedImplToJson(_$MovieDetailedImpl instance) =>
@@ -96,4 +101,5 @@ Map<String, dynamic> _$$MovieDetailedImplToJson(_$MovieDetailedImpl instance) =>
       'images': instance.images,
       'recommendations': instance.recommendations,
       'similar': instance.similar,
+      'keywords': instance.keywords,
     };

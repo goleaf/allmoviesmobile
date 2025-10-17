@@ -218,7 +218,7 @@ class TmdbRepository {
       movieId,
       queryParameters: const {
         'append_to_response':
-            'videos,images,credits,recommendations,similar,external_ids',
+            'videos,images,credits,recommendations,similar,external_ids,keywords',
       },
     );
 
@@ -243,7 +243,7 @@ class TmdbRepository {
       tvId,
       queryParameters: const {
         'append_to_response':
-            'videos,images,credits,recommendations,similar,external_ids',
+            'videos,images,credits,recommendations,similar,external_ids,keywords',
       },
     );
 
@@ -775,6 +775,20 @@ class TmdbRepository {
       final credits = normalized['credits'] as Map<String, dynamic>;
       normalized['cast'] = credits['cast'];
       normalized['crew'] = credits['crew'];
+    }
+
+    final keywords = normalized['keywords'];
+    if (keywords is Map<String, dynamic>) {
+      final movieKeywords = keywords['keywords'];
+      final tvKeywords = keywords['results'];
+      final keywordList =
+          movieKeywords is List ? movieKeywords : tvKeywords is List ? tvKeywords : null;
+      if (keywordList != null) {
+        normalized['keywords'] =
+            keywordList.whereType<Map<String, dynamic>>().toList();
+      } else {
+        normalized['keywords'] = const [];
+      }
     }
 
     if (normalized['external_ids'] is! Map<String, dynamic>) {

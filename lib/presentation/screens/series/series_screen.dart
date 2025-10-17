@@ -166,23 +166,28 @@ class _SeriesScreenState extends State<SeriesScreen>
 
 extension on _SeriesScreenState {
   void _openNetworkFilter() {
-    final provider = context.read<SeriesProvider>();
-    final savedPreset = provider.persistedTvFilters;
-    final initialFilters = savedPreset != null && savedPreset.isNotEmpty
-        ? Map<String, String>.from(savedPreset)
-        : provider.activeFilters != null
-            ? Map<String, String>.from(provider.activeFilters!)
-            : null;
-    final args = SeriesFiltersScreenArgs(
-      initialFilters: initialFilters,
-      presetSaved: savedPreset != null && savedPreset.isNotEmpty,
-    );
-
     Navigator.of(context)
-        .pushNamed(SeriesFiltersScreen.routeName, arguments: args)
-        .then((result) async {
+        .pushNamed(
+      SeriesFiltersScreen.routeName,
+      arguments: SeriesFiltersScreenArguments(
+        initialFilters: context.read<SeriesProvider>().activeFilters,
+        initialPresetName: context.read<SeriesProvider>().activePresetName,
+      ),
+    )
+        .then((
+      result,
+    ) async {
       if (!mounted) return;
-      if (result is Map<String, String>) {
+      if (result is SeriesFilterResult) {
+        await context.read<SeriesProvider>().applyTvFilters(
+              result.filters,
+              presetName: result.presetName,
+            );
+        if (!mounted) return;
+        DefaultTabController.of(
+          context,
+        ).animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
+      } else if (result is Map<String, String>) {
         await context.read<SeriesProvider>().applyTvFilters(result);
         if (!mounted) return;
         _tabController.animateTo(

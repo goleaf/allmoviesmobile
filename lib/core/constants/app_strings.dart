@@ -59,6 +59,8 @@ class AppStrings {
   static const filters = 'Filters';
   static const apply = 'Apply';
   static const reset = 'Reset';
+  static const save = 'Save';
+  static const delete = 'Delete';
   static const page = 'Page';
   static const of = 'of';
   static const jump = 'Jump';

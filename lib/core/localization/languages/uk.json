@@ -113,6 +113,8 @@
     "personal_info": "Особиста інформація",
     "known_for_department": "Основна сфера",
     "combined_credits": "Загальні кредити",
+    "combined_timeline": "Хронологія робіт",
+    "combined_timeline_empty": "Поки що немає даних для хронології.",
     "movie_credits": "Фільмографія",
     "tv_credits": "ТВ Роботи",
     "movie_actor_timeline": "Фільмографія (актор)",

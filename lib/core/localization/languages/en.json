@@ -129,6 +129,8 @@
     "personal_info": "Personal Information",
     "known_for_department": "Known For Department",
     "combined_credits": "Combined Credits",
+    "combined_timeline": "Combined credits timeline",
+    "combined_timeline_empty": "No timeline data available yet.",
     "movie_credits": "Movie Credits",
     "tv_credits": "TV Credits",
     "movie_actor_timeline": "Movie Credits Timeline (Actor)",

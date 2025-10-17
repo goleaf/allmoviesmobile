@@ -9,10 +9,11 @@ import '../../../data/models/person_detail_model.dart';
 import '../../../data/models/person_model.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/person_detail_provider.dart';
-import '../../widgets/media_image.dart';
-import '../../widgets/image_gallery.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../widgets/image_gallery.dart';
+import '../../widgets/media_image.dart';
+import '../../widgets/person_combined_timeline.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   static const routeName = '/person-detail';
@@ -243,11 +244,23 @@ class _PersonDetailBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final timelineEntries = context.select<PersonDetailProvider,
+        List<PersonCombinedTimelineEntry>>(
+      (provider) => provider.combinedCreditsTimeline,
+    );
     final sections = <Widget>[
       _SectionPadding(child: _BiographySection(detail: detail)),
       _SectionPadding(child: _PersonalInfoSection(detail: detail)),
       _SectionPadding(child: _KnownForSection(detail: detail)),
       _SectionPadding(child: _CombinedCreditsSection(detail: detail)),
+      _SectionPadding(
+        child: PersonCombinedTimeline(
+          title: loc.t('person.combined_timeline'),
+          emptyLabel: loc.t('person.combined_timeline_empty'),
+          entries: timelineEntries,
+        ),
+      ),
       _SectionPadding(
         child: _TimelineSection(
           titleKey: 'person.movie_actor_timeline',

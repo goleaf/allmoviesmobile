@@ -210,14 +210,13 @@ flutter run -d chrome  # or any device
 ### ✅ Extensible Architecture
 - Clean separation of concerns
 - Easy to add new features
-- Ready for API integration
+- Live TMDB integration for trending discovery
 - Modular component design
 
 ## 🔮 Ready for Extension
 
 The architecture is designed to easily add:
-- Movie API integration (TMDB, OMDB)
-- Search functionality
+- Additional catalog sources (e.g., OMDB) alongside TMDB
 - Favorites system
 - Movie details page
 - User preferences/settings
@@ -230,5 +229,5 @@ The architecture is designed to easily add:
 - Passwords are stored as plain text (for demo purposes)
 - In production, use proper encryption and secure storage
 - Ready to integrate with any movie API
-- Search bar is present but functionality pending API integration
+- Search bar filters the fetched TMDB titles locally
 

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'core/constants/app_strings.dart';
 import 'core/theme/app_theme.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/tmdb_repository.dart';
 import 'providers/auth_provider.dart';
+import 'providers/trending_titles_provider.dart';
 import 'presentation/screens/auth/login_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 
@@ -28,8 +31,15 @@ class AllMoviesApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => AuthProvider(storageService),
+    final tmdbRepository = TmdbRepository();
+
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider(storageService)),
+        ChangeNotifierProvider(
+          create: (_) => TrendingTitlesProvider(tmdbRepository),
+        ),
+      ],
       child: MaterialApp(
         title: AppStrings.appName,
         theme: AppTheme.darkTheme,

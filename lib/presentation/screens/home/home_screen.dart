@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../core/constants/app_strings.dart';
+import '../../../data/models/movie.dart';
 import '../../../providers/auth_provider.dart';
+import '../../../providers/trending_titles_provider.dart';
 import '../../widgets/app_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -13,23 +16,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final _searchController = TextEditingController();
-  static const int _movieCount = 10;
-  late final List<String> _movieTitles;
-  late final List<String> _normalizedMovieTitles;
-  late final List<int> _allMovieIndices;
-  late List<int> _visibleMovieIndices;
-
-  @override
-  void initState() {
-    super.initState();
-    _movieTitles = List<String>.generate(_movieCount, (index) => 'Movie ${index + 1}');
-    _normalizedMovieTitles = List<String>.generate(
-      _movieCount,
-      (index) => _movieTitles[index].toLowerCase(),
-    );
-    _allMovieIndices = List<int>.generate(_movieCount, (index) => index);
-    _visibleMovieIndices = _allMovieIndices;
-  }
+  String _searchQuery = '';
 
   @override
   void dispose() {
@@ -40,7 +27,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    
+    final trendingProvider = context.watch<TrendingTitlesProvider>();
+    final filteredTitles = _filterTitles(trendingProvider.titles);
+    final isLoading = trendingProvider.isLoading;
+    final errorMessage = trendingProvider.errorMessage;
+    final hasSearchQuery = _searchQuery.trim().isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -72,25 +64,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   isDense: true,
                 ),
                 onChanged: (value) {
-                  final query = value.trim().toLowerCase();
-                  if (query.isEmpty) {
-                    if (!identical(_visibleMovieIndices, _allMovieIndices)) {
-                      setState(() {
-                        _visibleMovieIndices = _allMovieIndices;
-                      });
-                    }
-                    return;
-                  }
-
-                  final matches = <int>[];
-                  for (var i = 0; i < _normalizedMovieTitles.length; i++) {
-                    if (_normalizedMovieTitles[i].contains(query)) {
-                      matches.add(i);
-                    }
-                  }
-
                   setState(() {
-                    _visibleMovieIndices = matches;
+                    _searchQuery = value.trim();
                   });
                 },
               ),
@@ -111,17 +86,49 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             const SizedBox(height: 24),
             Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  childAspectRatio: 0.7,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: _visibleMovieIndices.length,
-                itemBuilder: (context, index) {
-                  final movieIndex = _visibleMovieIndices[index];
-                  return _MovieCard(index: movieIndex);
+              child: Builder(
+                builder: (context) {
+                  if (isLoading) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  if (errorMessage != null) {
+                    return _ErrorView(
+                      message: errorMessage!,
+                      onRetry: trendingProvider.loadTrendingTitles,
+                    );
+                  }
+
+                  if (filteredTitles.isEmpty) {
+                    final message = hasSearchQuery
+                        ? 'No titles match your search yet.'
+                        : 'No titles found right now.';
+                    return Center(
+                      child: Text(
+                        message,
+                        style: Theme.of(context).textTheme.bodyLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }
+
+                  return RefreshIndicator(
+                    onRefresh: trendingProvider.loadTrendingTitles,
+                    child: GridView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        childAspectRatio: 0.7,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                      ),
+                      itemCount: filteredTitles.length,
+                      itemBuilder: (context, index) {
+                        final movie = filteredTitles[index];
+                        return _MovieCard(movie: movie);
+                      },
+                    ),
+                  );
                 },
               ),
             ),
@@ -130,12 +137,23 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  List<Movie> _filterTitles(List<Movie> titles) {
+    final query = _searchQuery.trim().toLowerCase();
+    if (query.isEmpty) {
+      return titles;
+    }
+
+    return titles
+        .where((movie) => movie.title.toLowerCase().contains(query))
+        .toList(growable: false);
+  }
 }
 
 class _MovieCard extends StatelessWidget {
-  final int index;
+  const _MovieCard({required this.movie});
 
-  const _MovieCard({required this.index});
+  final Movie movie;
 
   @override
   Widget build(BuildContext context) {
@@ -148,11 +166,7 @@ class _MovieCard extends StatelessWidget {
             child: Container(
               width: double.infinity,
               color: Theme.of(context).colorScheme.primaryContainer,
-              child: Icon(
-                Icons.movie_outlined,
-                size: 64,
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              child: _PosterImage(movie: movie),
             ),
           ),
           Padding(
@@ -161,15 +175,16 @@ class _MovieCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Movie ${index + 1}',
+                  movie.title,
                   style: Theme.of(context).textTheme.titleMedium,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '2024 • Action',
+                  _buildSubtitle(movie),
                   style: Theme.of(context).textTheme.bodySmall,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -178,4 +193,99 @@ class _MovieCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PosterImage extends StatelessWidget {
+  const _PosterImage({required this.movie});
+
+  final Movie movie;
+
+  @override
+  Widget build(BuildContext context) {
+    final posterUrl = movie.posterUrl;
+
+    if (posterUrl == null) {
+      return Icon(
+        Icons.movie_outlined,
+        size: 64,
+        color: Theme.of(context).colorScheme.primary,
+      );
+    }
+
+    return Image.network(
+      posterUrl,
+      fit: BoxFit.cover,
+      errorBuilder: (_, __, ___) {
+        return Icon(
+          Icons.broken_image_outlined,
+          size: 48,
+          color: Theme.of(context).colorScheme.primary,
+        );
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) {
+          return child;
+        }
+        return const Center(child: CircularProgressIndicator());
+      },
+    );
+  }
+}
+
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({required this.message, required this.onRetry});
+
+  final String message;
+  final Future<void> Function() onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.warning_amber_rounded,
+              size: 48,
+              color: Theme.of(context).colorScheme.error,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: () {
+                onRetry();
+              },
+              icon: const Icon(Icons.refresh),
+              label: const Text('Try again'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _buildSubtitle(Movie movie) {
+  final segments = <String>[];
+
+  final releaseYear = movie.releaseYear;
+  if (releaseYear != null && releaseYear.isNotEmpty) {
+    segments.add(releaseYear);
+  }
+
+  final vote = movie.voteAverage;
+  if (vote != null && vote > 0) {
+    segments.add('${vote.toStringAsFixed(1)} ★');
+  }
+
+  segments.add(movie.mediaLabel);
+
+  return segments.join(' • ');
 }

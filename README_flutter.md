@@ -1,16 +1,36 @@
-# flutter_app
+# AllMovies Flutter client
 
-A new Flutter project.
+The Flutter edition of AllMovies brings a lightweight discovery experience to mobile. The
+home screen signs the user in locally and then pulls the latest trending movies and TV
+shows directly from [TMDB](https://www.themoviedb.org/), rendering them in a responsive
+grid that supports search, pull-to-refresh, and inline error handling.
 
-## Getting Started
+## Prerequisites
 
-This project is a starting point for a Flutter application.
+- Flutter 3.19 or newer
+- A TMDB API key – the app expects it to be provided via a `TMDB_API_KEY` dart-define.
 
-A few resources to get you started if this is your first Flutter project:
+## Running the app
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+Launch the application with your TMDB key using `--dart-define`:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter run --dart-define=TMDB_API_KEY=YOUR_KEY_HERE
+```
+
+For release or profile builds, include the same dart-define when invoking
+`flutter build`.
+
+## Features
+
+- Local email/password authentication persisted with `SharedPreferences`.
+- Dynamic discovery grid backed by TMDB's trending feed.
+- Search-as-you-type filtering against the fetched titles.
+- Loading, empty, and error states with retry support.
+- Pull-to-refresh to request a fresh batch of trending titles.
+
+## Troubleshooting
+
+- **API key missing:** Ensure you passed `--dart-define=TMDB_API_KEY=<value>` to the run/build command.
+- **Network failures:** Check your connectivity; the grid falls back to an error state with a retry button.
+- **No results shown:** The trending feed can occasionally return mixed media without titles. Use the retry action to request a fresh list.

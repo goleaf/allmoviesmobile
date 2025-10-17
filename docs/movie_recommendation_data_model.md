@@ -1,5 +1,20 @@
 # Movie Recommendation Platform — Unified Specification and Data Model Blueprint
 
+This document couples the end-to-end product specification with an actionable data model blueprint. It is intended to be the single reference for product, engineering, and data stakeholders collaborating on the `allmoviesmobile` ecosystem as well as the companion Laravel service (`goleaf/omdbapibt.prus.dev`).
+
+## Table of Contents
+
+1. [Functional Specification (Translated Technical Brief)](#1-functional-specification-translated-technical-brief)
+2. [Laravel 12 Data Model Implementation](#2-laravel-12-data-model-implementation-goleafomdbapibtprusdev)
+   1. [Migrations](#21-migrations)
+   2. [Eloquent Models & Relationships](#22-eloquent-models--relationships)
+   3. [Seeders](#23-seeders)
+   4. [Indexing and Query Optimisation Notes](#24-indexing-and-query-optimisation-notes)
+   5. [Data Validation Rules](#25-data-validation-rules-laravel-form-requests)
+   6. [Horizon & Queue Touchpoints](#26-horizon--queue-touchpoints)
+   7. [Minimal Integration Steps](#27-minimal-integration-steps)
+
+
 ## 1. Functional Specification (Translated Technical Brief)
 
 ### 1.1 Goal and Scope
@@ -442,8 +457,13 @@ return new class extends Migration
 };
 ```
 
-### 2.2 Eloquent Models
-Each model keeps relationships tight while relying on casts for JSON fields.
+### 2.2 Eloquent Models & Relationships
+
+The PHP snippets below demonstrate how to encode the core relationships inside
+the Laravel service. They also act as canonical guidance for any adjacent
+services that need to query or mutate the same entities via REST or RPC
+boundaries. Each model keeps relationships tight while relying on casts for
+JSON-backed attributes.
 
 #### `app/Models/Film.php`
 ```php
@@ -603,7 +623,12 @@ class Rating extends Model
 ```
 
 #### Additional Models
-`Interaction`, `MovieList` (for `lists`), `ListItem`, `Follow`, and `Recommendation` follow the same pattern—fillable properties and relationships that connect to `Film` and `User`.
+`Interaction`, `MovieList` (for `lists`), `ListItem`, `Follow`, and
+`Recommendation` follow the same pattern—fillable properties and relationships
+that connect to `Film` and `User`. `MovieList` is intentionally named to avoid
+conflicts with PHP reserved words and keeps the Eloquent relation semantics
+(`$user->movieLists()` and `$movieList->items()`), while the underlying table
+names remain `lists` and `list_items`.
 
 ### 2.3 Seeders
 Provide deterministic bootstrap data for genres, tags, and a demo list.

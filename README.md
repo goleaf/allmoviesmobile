@@ -5,7 +5,7 @@ AllMovies Mobile is a Flutter application that showcases a local-first movie bro
 ## Project overview
 - Built with Flutter and Dart, targeting mobile, web, and desktop platforms supported by Flutter.
 - Uses the `provider` package for app-wide state management and `shared_preferences` for local persistence.
-- Ships with placeholder movie grid content so it can run without external APIs.
+- Integrates with [TMDB](https://www.themoviedb.org/) to populate the discovery grid; provide your API key via the `TMDB_API_KEY` dart-define when running builds.
 
 ## Authentication flow
 Authentication is entirely local and stored in SharedPreferences through `LocalStorageService`:
@@ -18,31 +18,36 @@ Authentication is entirely local and stored in SharedPreferences through `LocalS
 Because there is no backend, credentials never leave the device. Multiple accounts can be created for testing, and state persists across restarts thanks to SharedPreferences.
 
 ## Home screen expectations
-After authentication, users land on a placeholder home screen that demonstrates the final layout without calling a movie API:
+After authentication, users land on a TMDB-backed home screen that fetches the latest trending movies and TV shows:
 
-- Two-column grid of card-based movie tiles populated with sample data.
-- Search field and navigation drawer wired into the layout but not yet backed by network requests.
+- Two-column grid of card-based movie tiles populated by TMDB's trending feed.
+- Search field that filters the fetched titles locally as you type.
 - Drawer options (Favourites, Settings) are present as stubs for future work.
 
-This design provides a visual reference for the planned experience while keeping the project runnable offline.
+If the TMDB API key is missing or invalid, the grid falls back to an inline error state explaining that the key is not configured ("TMDB API key is not configured.") and offers a retry button. This is the expected behaviour until a valid `TMDB_API_KEY` dart-define is supplied.
 
 ## Running the app
 The repository includes a `macos_cursor_runner.sh` helper for launching Flutter builds from Cursor on macOS, but you can also run everything manually with the Flutter CLI.
 
 ### Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install) set up for your platform.
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) set up for your platform (Flutter 3.19 or newer recommended).
 - Device or emulator supported by Flutter (Chrome, macOS, iOS, Android, etc.).
+- TMDB API key available to pass via the `TMDB_API_KEY` dart-define.
 
 ### Using the runner script (macOS only)
 ```bash
 ./macos_cursor_runner.sh --device-id chrome   # or macos, ios, android
 ```
 
+> **Note:** Ensure the script's `flutter run` invocation passes `--dart-define=TMDB_API_KEY=YOUR_KEY_HERE` before using it, or fall back to the manual commands below.
+
 ### Manual commands
 ```bash
 flutter pub get
-flutter run -d <device_id>
+flutter run -d <device_id> --dart-define=TMDB_API_KEY=YOUR_KEY_HERE
 ```
+
+For release or profile builds, include the same dart-define when invoking `flutter build`.
 
 ## Additional resources
 - [`FEATURES.md`](FEATURES.md) – Detailed feature list, architecture overview, and usage tips.

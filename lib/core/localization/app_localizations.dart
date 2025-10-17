@@ -54,6 +54,8 @@ class AppLocalizations {
         'overview': 'Overview',
         'season': 'Season',
         'episodes': 'Episodes',
+        'no_images': 'No images available for this season',
+        'season_images_title': 'Season {seasonNumber} images',
       },
       'movie': {
         'overview': 'Overview',

@@ -7,14 +7,15 @@ import '../../../data/models/episode_model.dart';
 import '../../../data/models/season_model.dart';
 import '../../../presentation/widgets/media_image.dart';
 import '../../../data/models/media_images.dart';
+import '../../../data/models/image_model.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../presentation/widgets/error_widget.dart';
 import '../../../presentation/widgets/loading_indicator.dart';
 import '../../../presentation/widgets/fullscreen_modal_scaffold.dart';
+import '../../widgets/image_gallery.dart';
 import '../../navigation/season_detail_args.dart';
 import '../episode_detail/episode_detail_screen.dart';
 import '../../../providers/season_detail_provider.dart';
-// duplicate import removed
 
 class SeasonDetailScreen extends StatelessWidget {
   static const routeName = '/season';
@@ -376,11 +377,44 @@ class _SeasonDetailView extends StatelessWidget {
             ),
           );
         }
-        if (!snapshot.hasData || !snapshot.data!.hasAny)
-          return const SizedBox.shrink();
+        if (!snapshot.hasData || !snapshot.data!.hasAny) {
+          return Text(
+            AppLocalizations.of(context).t('tv.no_images'),
+            style: Theme.of(context).textTheme.bodyMedium,
+          );
+        }
+
         final images = snapshot.data!;
         final posters = images.posters.take(10).toList();
         final backdrops = images.backdrops.take(10).toList();
+
+        void openGallery(
+          List<ImageModel> items,
+          int initialIndex,
+          MediaImageType type,
+        ) {
+          showGeneralDialog<void>(
+            context: context,
+            barrierDismissible: true,
+            barrierLabel:
+                MaterialLocalizations.of(context).modalBarrierDismissLabel,
+            barrierColor: Colors.black.withOpacity(0.9),
+            transitionDuration: const Duration(milliseconds: 220),
+            pageBuilder: (context, animation, secondaryAnimation) {
+              return FadeTransition(
+                opacity: animation,
+                child: ImageGallery(
+                  images: items,
+                  mediaType: type,
+                  initialIndex: initialIndex,
+                  heroTagBuilder: (index, image) =>
+                      'season-${args.seasonNumber}-${type.name}-$index',
+                ),
+              );
+            },
+          );
+        }
+
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           child: Column(
@@ -401,16 +435,28 @@ class _SeasonDetailView extends StatelessWidget {
                     itemCount: posters.length,
                     itemBuilder: (context, index) {
                       final img = posters[index];
+                      final heroTag =
+                          'season-${args.seasonNumber}-poster-$index';
                       return Container(
                         width: 140,
                         margin: const EdgeInsets.only(right: 12),
-                        child: MediaImage(
-                          path: img.filePath,
-                          type: MediaImageType.poster,
-                          size: MediaImageSize.w342,
-                          width: 140,
-                          height: 200,
-                          fit: BoxFit.cover,
+                        child: GestureDetector(
+                          onTap: () => openGallery(
+                            posters,
+                            index,
+                            MediaImageType.poster,
+                          ),
+                          child: Hero(
+                            tag: heroTag,
+                            child: MediaImage(
+                              path: img.filePath,
+                              type: MediaImageType.poster,
+                              size: MediaImageSize.w342,
+                              width: 140,
+                              height: 200,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       );
                     },
@@ -426,16 +472,28 @@ class _SeasonDetailView extends StatelessWidget {
                     itemCount: backdrops.length,
                     itemBuilder: (context, index) {
                       final img = backdrops[index];
+                      final heroTag =
+                          'season-${args.seasonNumber}-backdrop-$index';
                       return Container(
                         width: 240,
                         margin: const EdgeInsets.only(right: 12),
-                        child: MediaImage(
-                          path: img.filePath,
-                          type: MediaImageType.backdrop,
-                          size: MediaImageSize.w780,
-                          width: 240,
-                          height: 140,
-                          fit: BoxFit.cover,
+                        child: GestureDetector(
+                          onTap: () => openGallery(
+                            backdrops,
+                            index,
+                            MediaImageType.backdrop,
+                          ),
+                          child: Hero(
+                            tag: heroTag,
+                            child: MediaImage(
+                              path: img.filePath,
+                              type: MediaImageType.backdrop,
+                              size: MediaImageSize.w780,
+                              width: 240,
+                              height: 140,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
                         ),
                       );
                     },

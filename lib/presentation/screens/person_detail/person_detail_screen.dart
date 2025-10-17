@@ -4,12 +4,13 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/localization/app_localizations.dart';
-// removed unused image_model import
+import '../../../data/models/image_model.dart';
 import '../../../data/models/person_detail_model.dart';
 import '../../../data/models/person_model.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/person_detail_provider.dart';
 import '../../widgets/media_image.dart';
+import '../../widgets/image_gallery.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 
@@ -846,22 +847,54 @@ class _ImageGallerySection extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
             final image = images[index];
-            final imageUrl = image.filePath;
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(12),
-              child: AspectRatio(
-                aspectRatio: image.aspectRatio,
-                child: MediaImage(
-                  path: imageUrl,
-                  type: MediaImageType.profile,
-                  size: MediaImageSize.w300,
-                  fit: BoxFit.cover,
+            final heroTag = 'person-profile-${detail.id}-$index';
+            return GestureDetector(
+              onTap: () => _openGallery(context, images, index),
+              child: Hero(
+                tag: heroTag,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: AspectRatio(
+                    aspectRatio: image.aspectRatio,
+                    child: MediaImage(
+                      path: image.filePath,
+                      type: MediaImageType.profile,
+                      size: MediaImageSize.w300,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 ),
               ),
             );
           },
         ),
       ),
+    );
+  }
+
+  void _openGallery(
+    BuildContext context,
+    List<ImageModel> images,
+    int initialIndex,
+  ) {
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.9),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ImageGallery(
+            images: images,
+            mediaType: MediaImageType.profile,
+            initialIndex: initialIndex,
+            heroTagBuilder: (index, image) =>
+                'person-profile-${detail.id}-$index',
+          ),
+        );
+      },
     );
   }
 }
@@ -889,22 +922,28 @@ class _TaggedImagesSection extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
             final image = tagged[index];
-            final imageUrl = image.filePath;
             final mediaTitle = image.media?.titleOrName;
+            final heroTag = 'person-tagged-${detail.id}-$index';
             return SizedBox(
               width: 200,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: AspectRatio(
-                      aspectRatio: image.aspectRatio,
-                      child: MediaImage(
-                        path: imageUrl,
-                        type: MediaImageType.profile,
-                        size: MediaImageSize.w300,
-                        fit: BoxFit.cover,
+                  GestureDetector(
+                    onTap: () => _openTaggedGallery(context, tagged, index),
+                    child: Hero(
+                      tag: heroTag,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: AspectRatio(
+                          aspectRatio: image.aspectRatio,
+                          child: MediaImage(
+                            path: image.filePath,
+                            type: MediaImageType.profile,
+                            size: MediaImageSize.w300,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -920,8 +959,8 @@ class _TaggedImagesSection extends StatelessWidget {
                     Text(
                       image.media!.character!,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.grey.shade600,
-                      ),
+                            color: Colors.grey.shade600,
+                          ),
                     ),
                 ],
               ),
@@ -929,6 +968,45 @@ class _TaggedImagesSection extends StatelessWidget {
           },
         ),
       ),
+    );
+  }
+
+  void _openTaggedGallery(
+    BuildContext context,
+    List<PersonTaggedImage> images,
+    int initialIndex,
+  ) {
+    final converted = images
+        .map(
+          (img) => ImageModel(
+            filePath: img.filePath,
+            width: img.width,
+            height: img.height,
+            aspectRatio: img.aspectRatio,
+            voteAverage: img.voteAverage,
+            voteCount: img.voteCount,
+          ),
+        )
+        .toList();
+
+    showGeneralDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+      barrierColor: Colors.black.withOpacity(0.9),
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return FadeTransition(
+          opacity: animation,
+          child: ImageGallery(
+            images: converted,
+            mediaType: MediaImageType.profile,
+            initialIndex: initialIndex,
+            heroTagBuilder: (index, image) =>
+                'person-tagged-${detail.id}-$index',
+          ),
+        );
+      },
     );
   }
 }

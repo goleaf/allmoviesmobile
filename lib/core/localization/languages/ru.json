@@ -81,7 +81,9 @@
     "episode_runtime": "Продолжительность Эпизода",
     "networks": "Сети",
     "alternative_titles": "Альтернативные Названия",
-    "similar": "Похожие Шоу"
+    "similar": "Похожие Шоу",
+    "no_images": "Нет доступных изображений для этого сезона",
+    "season_images_title": "Изображения сезона {seasonNumber}"
   },
   "person": {
     "title": "Персона",

@@ -97,7 +97,9 @@
     "episode_runtime": "Episode Runtime",
     "networks": "Networks",
     "alternative_titles": "Alternative Titles",
-    "similar": "Similar Shows"
+    "similar": "Similar Shows",
+    "no_images": "No images available for this season",
+    "season_images_title": "Season {seasonNumber} images"
   },
   "person": {
     "title": "Person",

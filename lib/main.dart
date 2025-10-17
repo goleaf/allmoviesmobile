@@ -1,31 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/constants/app_strings.dart';
+import 'core/theme/app_theme.dart';
+import 'data/services/local_storage_service.dart';
+import 'providers/auth_provider.dart';
+import 'presentation/screens/auth/login_screen.dart';
+import 'presentation/screens/home/home_screen.dart';
 
-void main() {
-  runApp(const AllMoviesApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize SharedPreferences
+  final prefs = await SharedPreferences.getInstance();
+  final storageService = LocalStorageService(prefs);
+  
+  runApp(AllMoviesApp(storageService: storageService));
 }
 
 class AllMoviesApp extends StatelessWidget {
-  const AllMoviesApp({super.key});
+  final LocalStorageService storageService;
+
+  const AllMoviesApp({
+    super.key,
+    required this.storageService,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'AllMovies',
-      theme: ThemeData(colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo)),
-      home: const _PlaceholderScreen(),
-      debugShowCheckedModeBanner: false,
-    );
-  }
-}
-
-class _PlaceholderScreen extends StatelessWidget {
-  const _PlaceholderScreen();
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('AllMovies')),
-      body: const Center(child: Text('Coming soon')),
+    return ChangeNotifierProvider(
+      create: (_) => AuthProvider(storageService),
+      child: MaterialApp(
+        title: AppStrings.appName,
+        theme: AppTheme.darkTheme,
+        debugShowCheckedModeBanner: false,
+        home: Consumer<AuthProvider>(
+          builder: (context, authProvider, _) {
+            return authProvider.isLoggedIn
+                ? const HomeScreen()
+                : const LoginScreen();
+          },
+        ),
+      ),
     );
   }
 }

@@ -68,7 +68,7 @@ class AppTheme {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         labelStyle: const TextStyle(color: AppColors.onSurface),
-        hintStyle: TextStyle(color: AppColors.onSurface.withOpacity(0.6)),
+        hintStyle: TextStyle(color: AppColors.onSurface.withValues(alpha: 0.6)),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
@@ -94,7 +94,7 @@ class AppTheme {
           ),
         ),
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: AppColors.movieCardBackground,
         elevation: 2,
         shape: RoundedRectangleBorder(

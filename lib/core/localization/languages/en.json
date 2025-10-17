@@ -10,7 +10,6 @@
     "series": "Series",
     "people": "People",
     "companies": "Companies",
-    "networks": "Networks",
     "search": "Search",
     "discover": "Discover",
     "favorites": "Favorites",
@@ -67,7 +66,6 @@
     "title": "TV Show",
     "tv_shows": "TV Shows",
     "series": "Series",
-    "overview": "Overview",
     "seasons": "Seasons",
     "episodes": "Episodes",
     "season": "Season",
@@ -77,19 +75,9 @@
     "number_of_seasons": "Number of Seasons",
     "number_of_episodes": "Number of Episodes",
     "episode_runtime": "Episode Runtime",
-    "details": "Details",
-    "status": "Status",
-    "original_language": "Original Language",
-    "original_name": "Original Name",
-    "production_countries": "Production Countries",
-    "spoken_languages": "Spoken Languages",
-    "add_to_favorites": "Add to Favorites",
-    "remove_from_favorites": "Remove from Favorites",
-    "add_to_watchlist": "Add to Watchlist",
-    "remove_from_watchlist": "Remove from Watchlist",
     "networks": "Networks",
-    "share": "Share",
-    "similar": "Similar Shows"
+    "similar": "Similar Shows",
+    "guest_stars": "Guest Stars"
   },
   "person": {
     "title": "Person",
@@ -115,16 +103,6 @@
     "produced_movies": "Produced Movies",
     "produced_series": "Produced Series"
   },
-  "network": {
-    "title": "Networks",
-    "search_placeholder": "Search networks",
-    "search_hint": "e.g. Netflix",
-    "popular": "Popular networks",
-    "by_country": "Networks by country",
-    "search_results": "Search results",
-    "empty": "No networks found. Try another search.",
-    "error_loading": "Unable to load networks. Please try again."
-  },
   "search": {
     "title": "Search",
     "search_placeholder": "Search movies, TV shows, people...",
@@ -137,16 +115,6 @@
     "clear_history": "Clear History",
     "no_results": "No results found",
     "try_different_keywords": "Try different keywords"
-  },
-  "keywords": {
-    "title": "Keywords",
-    "search_hint": "Search keywords",
-    "trending_title": "Trending keywords",
-    "trending_subtitle": "Popular topics from trending movies and TV shows.",
-    "empty_trending": "Trending keywords are unavailable right now.",
-    "search_results_title": "Search results",
-    "search_prompt": "Search to discover movie and TV keywords.",
-    "empty_results": "No keywords found"
   },
   "discover": {
     "title": "Discover",

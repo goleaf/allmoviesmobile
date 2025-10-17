@@ -10,7 +10,6 @@
     "series": "Сериалы",
     "people": "Люди",
     "companies": "Компании",
-    "networks": "Телеканалы",
     "search": "Поиск",
     "discover": "Обзор",
     "favorites": "Избранное",
@@ -67,7 +66,6 @@
     "title": "ТВ Шоу",
     "tv_shows": "ТВ Шоу",
     "series": "Сериалы",
-    "overview": "Обзор",
     "seasons": "Сезоны",
     "episodes": "Эпизоды",
     "season": "Сезон",
@@ -77,19 +75,9 @@
     "number_of_seasons": "Количество Сезонов",
     "number_of_episodes": "Количество Эпизодов",
     "episode_runtime": "Продолжительность Эпизода",
-    "details": "Детали",
-    "status": "Статус",
-    "original_language": "Оригинальный Язык",
-    "original_name": "Оригинальное Название",
-    "production_countries": "Страны Производства",
-    "spoken_languages": "Языки",
-    "add_to_favorites": "Добавить в Избранное",
-    "remove_from_favorites": "Убрать из Избранного",
-    "add_to_watchlist": "Добавить в Список Просмотра",
-    "remove_from_watchlist": "Убрать из Списка Просмотра",
     "networks": "Сети",
-    "share": "Поделиться",
-    "similar": "Похожие Шоу"
+    "similar": "Похожие Шоу",
+    "guest_stars": "Приглашённые звёзды"
   },
   "person": {
     "title": "Персона",
@@ -115,16 +103,6 @@
     "produced_movies": "Произведенные Фильмы",
     "produced_series": "Произведенные Сериалы"
   },
-  "network": {
-    "title": "Телеканалы",
-    "search_placeholder": "Поиск телеканалов",
-    "search_hint": "например, Netflix",
-    "popular": "Популярные сети",
-    "by_country": "Сети по странам",
-    "search_results": "Результаты поиска",
-    "empty": "Сети не найдены. Попробуйте другой запрос.",
-    "error_loading": "Не удалось загрузить сети. Попробуйте ещё раз."
-  },
   "search": {
     "title": "Поиск",
     "search_placeholder": "Искать фильмы, сериалы, людей...",
@@ -137,16 +115,6 @@
     "clear_history": "Очистить Историю",
     "no_results": "Результаты не найдены",
     "try_different_keywords": "Попробуйте другие ключевые слова"
-  },
-  "keywords": {
-    "title": "Ключевые слова",
-    "search_hint": "Искать ключевые слова",
-    "trending_title": "Популярные ключевые слова",
-    "trending_subtitle": "Темы из трендовых фильмов и сериалов.",
-    "empty_trending": "Список популярных ключевых слов недоступен.",
-    "search_results_title": "Результаты поиска",
-    "search_prompt": "Введите запрос, чтобы найти ключевые слова.",
-    "empty_results": "Ключевые слова не найдены"
   },
   "discover": {
     "title": "Обзор",

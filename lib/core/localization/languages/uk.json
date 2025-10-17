@@ -10,7 +10,6 @@
     "series": "Серіали",
     "people": "Люди",
     "companies": "Компанії",
-    "networks": "Мережі",
     "search": "Пошук",
     "discover": "Огляд",
     "favorites": "Обране",
@@ -67,7 +66,6 @@
     "title": "ТВ Шоу",
     "tv_shows": "ТВ Шоу",
     "series": "Серіали",
-    "overview": "Огляд",
     "seasons": "Сезони",
     "episodes": "Епізоди",
     "season": "Сезон",
@@ -77,19 +75,9 @@
     "number_of_seasons": "Кількість Сезонів",
     "number_of_episodes": "Кількість Епізодів",
     "episode_runtime": "Тривалість Епізоду",
-    "details": "Деталі",
-    "status": "Статус",
-    "original_language": "Оригінальна Мова",
-    "original_name": "Оригінальна Назва",
-    "production_countries": "Країни Виробництва",
-    "spoken_languages": "Мови",
-    "add_to_favorites": "Додати до Обраного",
-    "remove_from_favorites": "Прибрати з Обраного",
-    "add_to_watchlist": "Додати до Списку Перегляду",
-    "remove_from_watchlist": "Прибрати зі Списку Перегляду",
     "networks": "Мережі",
-    "share": "Поділитися",
-    "similar": "Схожі Шоу"
+    "similar": "Схожі Шоу",
+    "guest_stars": "Запрошені зірки"
   },
   "person": {
     "title": "Персона",
@@ -115,16 +103,6 @@
     "produced_movies": "Вироблені Фільми",
     "produced_series": "Вироблені Серіали"
   },
-  "network": {
-    "title": "Мережі",
-    "search_placeholder": "Пошук мереж",
-    "search_hint": "наприклад, Netflix",
-    "popular": "Популярні мережі",
-    "by_country": "Мережі за країнами",
-    "search_results": "Результати пошуку",
-    "empty": "Мережі не знайдені. Спробуйте інший запит.",
-    "error_loading": "Не вдалося завантажити мережі. Повторіть спробу."
-  },
   "search": {
     "title": "Пошук",
     "search_placeholder": "Шукати фільми, серіали, людей...",
@@ -137,16 +115,6 @@
     "clear_history": "Очистити Історію",
     "no_results": "Результати не знайдені",
     "try_different_keywords": "Спробуйте інші ключові слова"
-  },
-  "keywords": {
-    "title": "Ключові слова",
-    "search_hint": "Пошук ключових слів",
-    "trending_title": "Популярні ключові слова",
-    "trending_subtitle": "Популярні теми з трендових фільмів та серіалів.",
-    "empty_trending": "Немає доступних популярних ключових слів.",
-    "search_results_title": "Результати пошуку",
-    "search_prompt": "Введіть запит, щоб знайти ключові слова.",
-    "empty_results": "Ключові слова не знайдено"
   },
   "discover": {
     "title": "Огляд",

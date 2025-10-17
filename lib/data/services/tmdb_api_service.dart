@@ -160,6 +160,15 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchLatestPerson({
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/person/latest',
+      queryParameters: queryParameters,
+    );
+  }
+
   Future<Map<String, dynamic>> fetchCompanyDetails(
     int companyId, {
     Map<String, String>? queryParameters,

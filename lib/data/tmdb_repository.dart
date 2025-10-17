@@ -281,6 +281,94 @@ class TmdbRepository {
     return response;
   }
 
+  Future<PaginatedResponse<Person>> fetchTrendingPeople({
+    String timeWindow = 'day',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final normalizedWindow = (timeWindow == 'week') ? 'week' : 'day';
+    final cacheKey = 'people-trending-$normalizedWindow-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Person>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTrending(
+      mediaType: 'person',
+      timeWindow: normalizedWindow,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Person>.fromJson(
+      payload,
+      Person.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.trendingTTL);
+    return response;
+  }
+
+  Future<Person> fetchLatestPerson({bool forceRefresh = false}) async {
+    _checkApiKey();
+
+    const cacheKey = 'people-latest';
+    if (!forceRefresh) {
+      final cached = _cache.get<Person>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchLatestPerson();
+    final person = Person.fromJson(payload);
+    _cache.set(cacheKey, person);
+    return person;
+  }
+
+  Future<PaginatedResponse<Person>> searchPeople(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Person>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Person>[],
+      );
+    }
+
+    final cacheKey = 'people-search-${trimmed.toLowerCase()}-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Person>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search(
+      'person',
+      trimmed,
+      page: page,
+    );
+
+    final response = PaginatedResponse<Person>.fromJson(
+      payload,
+      Person.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
   Future<Person> fetchPersonDetails(int personId, {bool forceRefresh = false}) async {
     _checkApiKey();
 

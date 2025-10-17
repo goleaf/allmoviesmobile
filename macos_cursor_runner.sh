@@ -3,36 +3,34 @@ set -euo pipefail
 
 # macos_cursor_runner.sh
 # -----------------------
-# Helper script intended for macOS developers working in Cursor to build, test,
-# and deploy the AllMovies Android application to a command-line Android
-# emulator. The script keeps the steps deterministic and documents the
-# prerequisites so you can run the project without installing the full Android
-# Studio IDE.
+# Helper script to run the AllMovies Flutter app locally on macOS without
+# Android Studio. Supports running on:
+#   - iOS Simulator (Xcode tools)
+#   - Android emulator (Android SDK tools)
+#
+# Defaults to iOS Simulator on macOS if Xcode tools are available; otherwise
+# falls back to Android if ANDROID_SDK_ROOT is configured.
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-GRADLEW="$PROJECT_ROOT/gradlew"
 ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$HOME/Library/Android/sdk}"
 AVD_NAME="${AVD_NAME:-allmovies_pixel_5_api_34}"
-APK_PATH="$PROJECT_ROOT/app/build/outputs/apk/debug/app-debug.apk"
-PACKAGE_NAME="dev.tutushkin.allmovies"
+IOS_DEVICE_NAME="${IOS_DEVICE_NAME:-iPhone 15}"
+PLATFORM="auto"   # auto|ios|android (can be overridden via --platform)
+DEVICE_ID=""      # optional explicit device id for flutter run
 EMULATOR_SERIAL=""
 LOCAL_PROPERTIES="$PROJECT_ROOT/local.properties"
-
-GRADLE_TASKS=(
-  clean
-  lint
-  testDebugUnitTest
-  assembleDebug
-)
 
 usage() {
   cat <<USAGE
 Usage: $0 [--skip-build] [--skip-emulator] [--avd-name <name>]
 
 Options:
-  --skip-build       Skip Gradle tasks (useful if you only want to deploy).
-  --skip-emulator    Do not start or interact with the Android emulator.
-  --avd-name <name>  Override the Android Virtual Device name to boot.
+  --platform <p>     Target platform: ios | android | auto
+  --device-id <id>   Explicit Flutter device id to target (from `flutter devices`).
+  --avd-name <name>  Android emulator AVD name to boot (android only).
+  --ios-device <nm>  iOS Simulator device name to prefer (best-effort).
+  --skip-build       Skip `flutter pub get` (useful if deps are already fetched).
+  --skip-emulator    Do not start or interact with simulator/emulator.
 
 Environment variables:
   ANDROID_SDK_ROOT   Location of the Android SDK. Defaults to
@@ -59,13 +57,16 @@ require_command() {
   fi
 }
 
-run_gradle_tasks() {
-  require_file "$GRADLEW"
-  chmod +x "$GRADLEW"
-  for task in "${GRADLE_TASKS[@]}"; do
-    log "Running ./gradlew $task"
-    (cd "$PROJECT_ROOT" && "$GRADLEW" "$task")
-  done
+require_flutter() {
+  if ! command -v flutter >/dev/null 2>&1; then
+    log "Flutter is not installed or not in PATH. Install from https://flutter.dev and ensure 'flutter' is on PATH."
+    exit 1
+  fi
+}
+
+flutter_pub_get() {
+  log "Running: flutter pub get"
+  (cd "$PROJECT_ROOT" && flutter pub get)
 }
 
 adb_path() {
@@ -79,6 +80,19 @@ emulator_path() {
 ensure_android_tools() {
   require_file "$(adb_path)"
   require_file "$(emulator_path)"
+}
+
+ensure_ios_tools() {
+  if ! command -v xcrun >/dev/null 2>&1; then
+    return 1
+  fi
+  if ! xcrun simctl help >/dev/null 2>&1; then
+    return 1
+  fi
+  if [[ ! -e "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" ]] && ! open -Ra Simulator >/dev/null 2>&1; then
+    return 1
+  fi
+  return 0
 }
 
 # Ensure Gradle knows where the Android SDK is.
@@ -177,27 +191,59 @@ wait_for_emulator() {
   log "Emulator booted"
 }
 
+boot_ios_simulator() {
+  # Best-effort: prefer a named device if present, otherwise just open Simulator
+  if command -v xcrun >/dev/null 2>&1; then
+    if xcrun simctl list devices available | grep -q "$IOS_DEVICE_NAME"; then
+      local udid
+      udid="$(xcrun simctl list devices available | awk -v n="$IOS_DEVICE_NAME" '$0 ~ n " (.*) \(.*\) \(.*\)" {print $NF}' | tr -d '()' | head -n1)"
+      if [[ -n "$udid" ]]; then
+        log "Booting iOS Simulator: $IOS_DEVICE_NAME ($udid)"
+        xcrun simctl boot "$udid" >/dev/null 2>&1 || true
+      fi
+    fi
+  fi
+  if ! open -a Simulator >/dev/null 2>&1; then
+    # Fallback to absolute path if needed
+    if [[ -e "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" ]]; then
+      open -a "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" || true
+    fi
+  fi
+}
+
 install_and_run() {
-  local adb target_args
-  adb="$(adb_path)"
-  if [[ -n "$EMULATOR_SERIAL" ]]; then
-    target_args=("-s" "$EMULATOR_SERIAL")
+  local target
+  if [[ -n "$DEVICE_ID" ]]; then
+    target="$DEVICE_ID"
   else
-    target_args=()
+    if [[ "$PLATFORM" == "ios" ]]; then
+      target="iOS"
+    else
+      # Default to first emulator serial if known; otherwise let Flutter pick
+      target="${EMULATOR_SERIAL:-}"
+    fi
   fi
 
-  if [[ ! -f "$APK_PATH" ]]; then
-    log "APK not found at $APK_PATH"
-    log "Did you run the Gradle build tasks?"
-    exit 1
+  # If targeting macOS desktop but Xcode tools are unavailable, fall back to Chrome or web-server.
+  if [[ "$target" == "macos" ]]; then
+    if ! command -v xcrun >/dev/null 2>&1 || ! xcrun -f xcodebuild >/dev/null 2>&1; then
+      if open -Ra "Google Chrome" >/dev/null 2>&1; then
+        log "Xcode tools missing; falling back to Chrome device"
+        target="chrome"
+      else
+        log "Xcode tools and Chrome unavailable; falling back to web-server device"
+        target="web-server"
+      fi
+    fi
   fi
 
-  log "Installing APK"
-  "$adb" "${target_args[@]}" install -r "$APK_PATH"
-
-  log "Launching $PACKAGE_NAME"
-  "$adb" "${target_args[@]}" shell monkey -p "$PACKAGE_NAME" -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1
-  log "Application launch command dispatched"
+  if [[ -n "$target" ]]; then
+    log "Starting Flutter app on device: $target"
+    (cd "$PROJECT_ROOT" && flutter run -d "$target")
+  else
+    log "Starting Flutter app (no explicit device, letting Flutter choose)"
+    (cd "$PROJECT_ROOT" && flutter run)
+  fi
 }
 
 main() {
@@ -206,6 +252,22 @@ main() {
 
   while [[ $# -gt 0 ]]; do
     case "$1" in
+      --platform)
+        if [[ -z "${2:-}" ]]; then
+          log "--platform requires a value: ios | android | auto"
+          exit 1
+        fi
+        PLATFORM="$2"
+        shift 2
+        ;;
+      --device-id)
+        if [[ -z "${2:-}" ]]; then
+          log "--device-id requires a value (see 'flutter devices')"
+          exit 1
+        fi
+        DEVICE_ID="$2"
+        shift 2
+        ;;
       --skip-build)
         skip_build=true
         shift
@@ -222,6 +284,14 @@ main() {
         AVD_NAME="$2"
         shift 2
         ;;
+      --ios-device)
+        if [[ -z "${2:-}" ]]; then
+          log "--ios-device requires a value (e.g. 'iPhone 15')"
+          exit 1
+        fi
+        IOS_DEVICE_NAME="$2"
+        shift 2
+        ;;
       --help|-h)
         usage
         exit 0
@@ -234,21 +304,51 @@ main() {
     esac
   done
 
+  require_flutter
+
+  # If a desktop/web device is explicitly targeted, skip simulator/emulator.
+  if [[ -n "$DEVICE_ID" ]]; then
+    case "$DEVICE_ID" in
+      macos|linux|windows|chrome|edge|safari|web-server)
+        skip_emulator=true
+        ;;
+    esac
+  fi
+
+  # Decide platform if auto
+  if [[ "$PLATFORM" == "auto" && "$skip_emulator" != true ]]; then
+    if command -v xcrun >/dev/null 2>&1; then
+      PLATFORM="ios"
+    elif [[ -d "$ANDROID_SDK_ROOT" ]]; then
+      PLATFORM="android"
+    else
+      log "Unable to auto-detect platform. Provide --platform ios|android and ensure required tools are installed, or pass --device-id <desktop/web>."
+      exit 1
+    fi
+  fi
+
   if [[ "$skip_build" != true ]]; then
-    ensure_android_sdk_config
-    ensure_java_home
-    run_gradle_tasks
+    flutter_pub_get
   else
-    log "Skipping Gradle tasks by request"
+    log "Skipping flutter pub get by request"
   fi
 
   if [[ "$skip_emulator" == true ]]; then
-    log "Emulator steps skipped"
-    exit 0
+    log "Simulator/emulator steps skipped"
+  else
+    if [[ "$PLATFORM" == "ios" ]]; then
+      if ! ensure_ios_tools; then
+        log "iOS tools not available; skipping iOS simulator boot"
+      else
+        boot_ios_simulator
+      fi
+    else
+      ensure_android_sdk_config
+      ensure_android_tools
+      boot_emulator
+    fi
   fi
 
-  ensure_android_tools
-  boot_emulator
   install_and_run
 }
 

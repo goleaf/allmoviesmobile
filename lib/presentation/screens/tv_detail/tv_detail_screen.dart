@@ -5,7 +5,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
-import '../../../data/services/api_config.dart';
+import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../widgets/loading_indicator.dart';
@@ -38,6 +38,7 @@ class TVDetailScreen extends StatelessWidget {
                 _buildOverview(context, loc),
                 _buildMetadata(context, loc),
                 _buildGenres(context, loc),
+                _buildSimilarShows(context, loc),
                 const SizedBox(height: 24),
               ],
             ),
@@ -411,6 +412,163 @@ class TVDetailScreen extends StatelessWidget {
                 backgroundColor: Theme.of(context).colorScheme.primaryContainer,
               );
             }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSimilarShows(BuildContext context, AppLocalizations loc) {
+    final repository = context.read<TmdbRepository>();
+
+    return FutureBuilder<List<Movie>>(
+      future: repository.fetchSimilarTvShows(tvShow.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 24),
+            child: SizedBox(
+              height: 160,
+              child: LoadingIndicator(),
+            ),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.redAccent),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    loc.t('errors.load_failed'),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final shows = (snapshot.data ?? <Movie>[])
+            .where((show) => show.id != tvShow.id)
+            .take(12)
+            .toList();
+
+        if (shows.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  loc.t('tv.similar'),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 240,
+                child: ListView.separated(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemBuilder: (context, index) {
+                    final show = shows[index];
+                    return _SimilarShowCard(show: show);
+                  },
+                  separatorBuilder: (_, __) => const SizedBox(width: 12),
+                  itemCount: shows.length,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SimilarShowCard extends StatelessWidget {
+  const _SimilarShowCard({required this.show});
+
+  final Movie show;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final posterUrl = show.posterUrl;
+
+    return SizedBox(
+      width: 140,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: AspectRatio(
+              aspectRatio: 2 / 3,
+              child: posterUrl != null && posterUrl.isNotEmpty
+                  ? CachedNetworkImage(
+                      imageUrl: posterUrl,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) => Container(
+                        color: theme.colorScheme.surfaceVariant,
+                        child: const Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      ),
+                      errorWidget: (context, url, error) => Container(
+                        color: theme.colorScheme.surfaceVariant,
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    )
+                  : Container(
+                      color: theme.colorScheme.surfaceVariant,
+                      child: Icon(
+                        Icons.tv_outlined,
+                        size: 40,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            show.title,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: theme.textTheme.titleSmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Icon(Icons.star, color: Colors.amber[600], size: 16),
+              const SizedBox(width: 4),
+              Text(
+                show.formattedRating,
+                style: theme.textTheme.bodySmall,
+              ),
+              const Spacer(),
+              if (show.releaseYear != null && show.releaseYear!.isNotEmpty)
+                Text(
+                  show.releaseYear!,
+                  style: theme.textTheme.bodySmall,
+                ),
+            ],
           ),
         ],
       ),

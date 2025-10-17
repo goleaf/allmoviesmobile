@@ -239,6 +239,38 @@ class TmdbRepository {
     return movie;
   }
 
+  Future<List<Movie>> fetchSimilarMovies(
+    int movieId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'movie-similar-$movieId-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchMovieSimilar(
+      movieId,
+      page: page,
+    );
+
+    final results = payload['results'];
+    final movies = results is List
+        ? results
+            .whereType<Map<String, dynamic>>()
+            .map(Movie.fromJson)
+            .toList(growable: false)
+        : <Movie>[];
+
+    _cache.set(cacheKey, movies, ttlSeconds: CacheService.defaultTTL);
+    return movies;
+  }
+
   Future<TVDetailed> fetchTvDetails(int tvId, {bool forceRefresh = false}) async {
     _checkApiKey();
 
@@ -262,6 +294,38 @@ class TmdbRepository {
     final tv = TVDetailed.fromJson(normalized);
     _cache.set(cacheKey, tv, ttlSeconds: CacheService.movieDetailsTTL);
     return tv;
+  }
+
+  Future<List<Movie>> fetchSimilarTvShows(
+    int tvId, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'tv-similar-$tvId-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<List<Movie>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchTvSimilar(
+      tvId,
+      page: page,
+    );
+
+    final results = payload['results'];
+    final shows = results is List
+        ? results
+            .whereType<Map<String, dynamic>>()
+            .map(Movie.fromJson)
+            .toList(growable: false)
+        : <Movie>[];
+
+    _cache.set(cacheKey, shows, ttlSeconds: CacheService.defaultTTL);
+    return shows;
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({

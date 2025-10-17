@@ -417,5 +417,10 @@ String _buildSubtitle(Movie movie) {
 
   segments.add(movie.mediaLabel);
 
+  final showing = movie.showingLabel;
+  if (showing != null && showing.isNotEmpty) {
+    segments.add(showing);
+  }
+
   return segments.join(' • ');
 }

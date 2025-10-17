@@ -12,6 +12,7 @@ class MovieCard extends StatelessWidget {
   final String? posterPath;
   final double? voteAverage;
   final String? releaseDate;
+  final String? showingLabel;
   final VoidCallback? onTap;
 
   const MovieCard({
@@ -21,6 +22,7 @@ class MovieCard extends StatelessWidget {
     this.posterPath,
     this.voteAverage,
     this.releaseDate,
+    this.showingLabel,
     this.onTap,
   });
 
@@ -88,6 +90,17 @@ class MovieCard extends StatelessWidget {
                             ),
                         ],
                       ),
+                      if (showingLabel != null && showingLabel!.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          showingLabel!,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),

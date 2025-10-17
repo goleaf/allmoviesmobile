@@ -103,6 +103,10 @@ class _MovieCard extends StatelessWidget {
     if (mediaLabel.isNotEmpty) {
       subtitleParts.add(mediaLabel);
     }
+    final showing = movie.showingLabel;
+    if (showing != null && showing.isNotEmpty) {
+      subtitleParts.add(showing);
+    }
 
     return Card(
       clipBehavior: Clip.antiAlias,

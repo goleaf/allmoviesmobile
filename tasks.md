@@ -259,6 +259,7 @@
 - [x] Basic discover with sort
 - [x] Genre filter (multi-select)
 - [ ] Release date range picker
+- [x] Release date range picker
 - [ ] Certification selector
 - [x] Certification selector
 - [ ] Original language selector
@@ -266,9 +267,13 @@
 - [ ] Region/country selector
 - [x] Region/country selector
 - [ ] With cast (specific actors)
+- [x] With cast (specific actors)
 - [ ] With crew (specific directors/writers)
+- [x] With crew (specific directors/writers)
 - [ ] With companies
+- [x] With companies
 - [ ] With keywords
+- [x] With keywords
 - [ ] Runtime range slider (min/max)
 - [x] Runtime range slider (min/max)
 - [ ] Vote average range slider

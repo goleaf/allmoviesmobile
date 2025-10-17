@@ -260,46 +260,65 @@ extension on _MoviesScreenState {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Text('Original Language', style: Theme.of(context).textTheme.titleMedium),
+                Text('Release Date Range', style: Theme.of(context).textTheme.titleMedium),
                 const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    for (final lang in ['en', 'es', 'fr', 'de', 'it', 'ja', 'ko'])
-                      OutlinedButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await moviesProvider.applyFilters(
-                            const DiscoverFilters().copyWith(withOriginalLanguage: lang),
-                          );
-                          if (mounted) {
-                            DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
-                          }
-                        },
-                        child: Text(lang.toUpperCase()),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Text('Origin Country', style: Theme.of(context).textTheme.titleMedium),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: [
-                    for (final country in ['US', 'GB', 'CA', 'DE', 'FR', 'IT', 'IN'])
-                      OutlinedButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          await moviesProvider.applyFilters(
-                            const DiscoverFilters().copyWith(withOriginCountry: country),
-                          );
-                          if (mounted) {
-                            DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
-                          }
-                        },
-                        child: Text(country),
-                      ),
-                  ],
+                StatefulBuilder(
+                  builder: (context, setStateDates) {
+                    DateTime? fromDate;
+                    DateTime? toDate;
+                    Future<void> applyDates() async {
+                      Navigator.pop(context);
+                      await moviesProvider.applyFilters(
+                        const DiscoverFilters().copyWith(
+                          releaseDateGte: fromDate != null ? fromDate!.toIso8601String().split('T').first : null,
+                          releaseDateLte: toDate != null ? toDate!.toIso8601String().split('T').first : null,
+                        ),
+                      );
+                      if (mounted) {
+                        DefaultTabController.of(context).animateTo(MovieSection.values.indexOf(MovieSection.discover));
+                      }
+                    }
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.date_range),
+                            label: Text(fromDate == null ? 'From' : fromDate!.toIso8601String().split('T').first),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now().subtract(const Duration(days: 3650)),
+                                firstDate: DateTime(1950),
+                                lastDate: DateTime.now(),
+                              );
+                              if (picked != null) setStateDates(() => fromDate = picked);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            icon: const Icon(Icons.event),
+                            label: Text(toDate == null ? 'To' : toDate!.toIso8601String().split('T').first),
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: DateTime.now(),
+                                firstDate: DateTime(1950),
+                                lastDate: DateTime.now().add(const Duration(days: 365)),
+                              );
+                              if (picked != null) setStateDates(() => toDate = picked);
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: applyDates,
+                          child: const Text('Apply'),
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 16),
                 StatefulBuilder(
@@ -313,6 +332,10 @@ extension on _MoviesScreenState {
                     final monetization = <String>{'flatrate', 'rent', 'buy'};
                     String watchProviders = '';
                     int? releaseType; // 1=Premiere,2=Theatrical (limited),3=Theatrical,4=Digital,5=Physical,6=TV
+                    String withCast = '';
+                    String withCrew = '';
+                    String withCompanies = '';
+                    String withKeywords = '';
                     void applyCurrent() async {
                       Navigator.pop(context);
                       await moviesProvider.applyFilters(
@@ -326,6 +349,10 @@ extension on _MoviesScreenState {
                           includeAdult: includeAdult,
                           withWatchProviders: watchProviders.isNotEmpty ? watchProviders : null,
                           withReleaseType: releaseType != null ? '$releaseType' : null,
+                          withCast: withCast.isNotEmpty ? withCast : null,
+                          withCrew: withCrew.isNotEmpty ? withCrew : null,
+                          withCompanies: withCompanies.isNotEmpty ? withCompanies : null,
+                          withKeywords: withKeywords.isNotEmpty ? withKeywords : null,
                         ),
                       );
                       if (mounted) {
@@ -336,6 +363,29 @@ extension on _MoviesScreenState {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        const SizedBox(height: 8),
+                        Text('People & Companies & Keywords', style: Theme.of(context).textTheme.titleMedium),
+                        const SizedBox(height: 8),
+                        TextField(
+                          decoration: const InputDecoration(hintText: 'With Cast (comma-separated person IDs)'),
+                          onChanged: (v) => setStateSB(() => withCast = v.replaceAll(' ', '')),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          decoration: const InputDecoration(hintText: 'With Crew (comma-separated person IDs)'),
+                          onChanged: (v) => setStateSB(() => withCrew = v.replaceAll(' ', '')),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          decoration: const InputDecoration(hintText: 'With Companies (comma-separated company IDs)'),
+                          onChanged: (v) => setStateSB(() => withCompanies = v.replaceAll(' ', '')),
+                        ),
+                        const SizedBox(height: 8),
+                        TextField(
+                          decoration: const InputDecoration(hintText: 'With Keywords (comma-separated keyword IDs)'),
+                          onChanged: (v) => setStateSB(() => withKeywords = v.replaceAll(' ', '')),
+                        ),
+                        const SizedBox(height: 12),
                         Text('Vote Average', style: Theme.of(context).textTheme.titleMedium),
                         RangeSlider(
                           values: RangeValues(voteMin, voteMax),

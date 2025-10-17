@@ -59,5 +59,6 @@ class AppStrings {
   static const companies = 'Companies';
   static const apiExplorer = 'TMDB Explorer';
   static const exploreCollections = 'Explore the latest highlights from our catalog.';
+  static const createdBy = 'Created by the AllMovies Mobile team';
 }
 

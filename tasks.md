@@ -895,12 +895,12 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Placeholder images
 - [x] Error state images
 - [x] Custom image sizes selection (image quality preference)
-- [ ] Backdrop blur effects
-- [ ] Gradient overlays
+- [x] Backdrop blur effects
+- [x] Gradient overlays
 
 **Files to Create**:
-- `lib/presentation/widgets/image_gallery.dart`
-- `lib/presentation/widgets/zoomable_image.dart`
+- [x] `lib/presentation/widgets/image_gallery.dart`
+- [x] `lib/presentation/widgets/zoomable_image.dart`
 
 ---
 

@@ -1,4 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import 'credit_model.dart';
 import 'episode_model.dart';
 import 'video_model.dart';
 
@@ -15,6 +17,8 @@ class Season with _$Season {
     @JsonKey(name: 'air_date') String? airDate,
     @JsonKey(name: 'poster_path') String? posterPath,
     @JsonKey(name: 'episode_count') int? episodeCount,
+    @Default([]) List<Cast> cast,
+    @Default([]) List<Crew> crew,
     @Default([]) List<Episode> episodes,
     @Default([]) List<Video> videos,
   }) = _Season;

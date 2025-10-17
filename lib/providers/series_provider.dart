@@ -8,6 +8,8 @@ import 'preferences_provider.dart';
 
 enum SeriesSection { trending, popular, topRated, airingToday, onTheAir }
 
+enum TvFilterPersistenceAction { keep, save, clear }
+
 class SeriesSectionState {
   const SeriesSectionState({
     this.items = const <Movie>[],
@@ -78,6 +80,8 @@ class SeriesProvider extends ChangeNotifier {
   String? get globalError => _globalError;
   int? get activeNetworkId => _activeNetworkId;
   Map<String, String>? get activeFilters => _activeFilters;
+  Map<String, String>? get persistedTvFilters =>
+      _preferences?.tvDiscoverFilterPreset;
 
   Future<void> get initialized => _initializedCompleter.future;
 
@@ -94,7 +98,16 @@ class SeriesProvider extends ChangeNotifier {
   }
 
   Future<void> _init() async {
+    _restorePersistedFilters();
     await refresh(force: true);
+  }
+
+  void _restorePersistedFilters() {
+    final saved = _preferences?.tvDiscoverFilterPreset;
+    if (saved != null && saved.isNotEmpty) {
+      _activeFilters = Map<String, String>.from(saved);
+      _activeNetworkId = null;
+    }
   }
 
   Future<void> refresh({bool force = false}) async {
@@ -276,9 +289,29 @@ class SeriesProvider extends ChangeNotifier {
     }
   }
 
-  Future<void> applyTvFilters(Map<String, String> filters) async {
+  Future<void> applyTvFilters(
+    Map<String, String> filters, {
+    TvFilterPersistenceAction persistenceAction =
+        TvFilterPersistenceAction.keep,
+  }) async {
     _activeFilters = Map<String, String>.from(filters);
     _activeNetworkId = null;
+    switch (persistenceAction) {
+      case TvFilterPersistenceAction.save:
+        final prefs = _preferences;
+        if (prefs != null) {
+          await prefs.setTvDiscoverFilterPreset(filters);
+        }
+        break;
+      case TvFilterPersistenceAction.clear:
+        final prefs = _preferences;
+        if (prefs != null) {
+          await prefs.setTvDiscoverFilterPreset(null);
+        }
+        break;
+      case TvFilterPersistenceAction.keep:
+        break;
+    }
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
         .copyWith(isLoading: true, errorMessage: null, items: const <Movie>[]);
     notifyListeners();
@@ -298,6 +331,43 @@ class SeriesProvider extends ChangeNotifier {
             currentPage: 1,
             totalPages: 1,
           );
+    } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> clearTvFilters() async {
+    _activeFilters = null;
+    _activeNetworkId = null;
+    final prefs = _preferences;
+    if (prefs != null) {
+      await prefs.setTvDiscoverFilterPreset(null);
+    }
+    final currentState = _sections[SeriesSection.popular]!;
+    _sections[SeriesSection.popular] = currentState.copyWith(
+      isLoading: true,
+      errorMessage: null,
+      items: const <Movie>[],
+      currentPage: 1,
+      totalPages: 1,
+    );
+    notifyListeners();
+
+    try {
+      final response = await _repository.fetchPopularTv(page: 1);
+      _sections[SeriesSection.popular] = SeriesSectionState(
+        items: response.results,
+        currentPage: response.page,
+        totalPages: response.totalPages,
+      );
+    } catch (error) {
+      _sections[SeriesSection.popular] = currentState.copyWith(
+        isLoading: false,
+        errorMessage: '$error',
+        items: const <Movie>[],
+        currentPage: 1,
+        totalPages: 1,
+      );
     } finally {
       notifyListeners();
     }

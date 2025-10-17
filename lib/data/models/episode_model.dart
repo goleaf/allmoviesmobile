@@ -18,6 +18,7 @@ class Episode with _$Episode {
     @JsonKey(name: 'vote_count') int? voteCount,
     int? runtime,
     @Default([]) List<Cast> cast,
+    @JsonKey(name: 'guest_stars') @Default([]) List<Cast> guestStars,
     @Default([]) List<Crew> crew,
   }) = _Episode;
 

@@ -6,5 +6,19 @@
   "runtime": 53,
   "still_path": "/e7.jpg",
   "vote_average": 8.3,
-  "vote_count": 3200
+  "vote_count": 3200,
+  "guest_stars": [
+    {
+      "id": 1223786,
+      "name": "Jason Momoa",
+      "character": "Khal Drogo",
+      "profile_path": "/3s.png"
+    },
+    {
+      "id": 17419,
+      "name": "Harry Lloyd",
+      "character": "Viserys Targaryen",
+      "profile_path": "/8d.png"
+    }
+  ]
 }

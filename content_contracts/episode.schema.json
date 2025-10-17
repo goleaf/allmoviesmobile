@@ -12,7 +12,22 @@
     "runtime": { "type": ["integer", "null"], "minimum": 0 },
     "still_path": { "type": ["string", "null"] },
     "vote_average": { "type": ["number", "null"], "minimum": 0, "maximum": 10 },
-    "vote_count": { "type": ["integer", "null"], "minimum": 0 }
+    "vote_count": { "type": ["integer", "null"], "minimum": 0 },
+    "guest_stars": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "name"],
+        "properties": {
+          "id": { "type": "integer", "minimum": 0 },
+          "name": { "type": "string" },
+          "character": { "type": ["string", "null"] },
+          "profile_path": { "type": ["string", "null"] }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    }
   },
   "additionalProperties": false
 }

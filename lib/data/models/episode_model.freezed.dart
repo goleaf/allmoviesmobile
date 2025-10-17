@@ -38,6 +38,7 @@ mixin _$Episode {
   int? get voteCount => throw _privateConstructorUsedError;
   int? get runtime => throw _privateConstructorUsedError;
   List<Cast> get cast => throw _privateConstructorUsedError;
+  List<Cast> get guestStars => throw _privateConstructorUsedError;
   List<Crew> get crew => throw _privateConstructorUsedError;
 
   /// Serializes this Episode to a JSON map.
@@ -66,6 +67,7 @@ abstract class $EpisodeCopyWith<$Res> {
     @JsonKey(name: 'vote_count') int? voteCount,
     int? runtime,
     List<Cast> cast,
+    List<Cast> guestStars,
     List<Crew> crew,
   });
 }
@@ -96,6 +98,7 @@ class _$EpisodeCopyWithImpl<$Res, $Val extends Episode>
     Object? voteCount = freezed,
     Object? runtime = freezed,
     Object? cast = null,
+    Object? guestStars = null,
     Object? crew = null,
   }) {
     return _then(
@@ -143,11 +146,15 @@ class _$EpisodeCopyWithImpl<$Res, $Val extends Episode>
             cast: null == cast
                 ? _value.cast
                 : cast // ignore: cast_nullable_to_non_nullable
-                      as List<Cast>,
+                    as List<Cast>,
+            guestStars: null == guestStars
+                ? _value.guestStars
+                : guestStars // ignore: cast_nullable_to_non_nullable
+                    as List<Cast>,
             crew: null == crew
                 ? _value.crew
                 : crew // ignore: cast_nullable_to_non_nullable
-                      as List<Crew>,
+                    as List<Crew>,
           )
           as $Val,
     );
@@ -174,6 +181,7 @@ abstract class _$$EpisodeImplCopyWith<$Res> implements $EpisodeCopyWith<$Res> {
     @JsonKey(name: 'vote_count') int? voteCount,
     int? runtime,
     List<Cast> cast,
+    List<Cast> guestStars,
     List<Crew> crew,
   });
 }
@@ -203,6 +211,7 @@ class __$$EpisodeImplCopyWithImpl<$Res>
     Object? voteCount = freezed,
     Object? runtime = freezed,
     Object? cast = null,
+    Object? guestStars = null,
     Object? crew = null,
   }) {
     return _then(
@@ -250,11 +259,15 @@ class __$$EpisodeImplCopyWithImpl<$Res>
         cast: null == cast
             ? _value._cast
             : cast // ignore: cast_nullable_to_non_nullable
-                  as List<Cast>,
+                as List<Cast>,
+        guestStars: null == guestStars
+            ? _value._guestStars
+            : guestStars // ignore: cast_nullable_to_non_nullable
+                as List<Cast>,
         crew: null == crew
             ? _value._crew
             : crew // ignore: cast_nullable_to_non_nullable
-                  as List<Crew>,
+                as List<Crew>,
       ),
     );
   }
@@ -275,9 +288,11 @@ class _$EpisodeImpl implements _Episode {
     @JsonKey(name: 'vote_count') this.voteCount,
     this.runtime,
     final List<Cast> cast = const [],
+    @JsonKey(name: 'guest_stars') final List<Cast> guestStars = const [],
     final List<Crew> crew = const [],
-  }) : _cast = cast,
-       _crew = crew;
+  })  : _cast = cast,
+        _guestStars = guestStars,
+        _crew = crew;
 
   factory _$EpisodeImpl.fromJson(Map<String, dynamic> json) =>
       _$$EpisodeImplFromJson(json);
@@ -317,6 +332,15 @@ class _$EpisodeImpl implements _Episode {
     return EqualUnmodifiableListView(_cast);
   }
 
+  final List<Cast> _guestStars;
+  @override
+  @JsonKey(name: 'guest_stars')
+  List<Cast> get guestStars {
+    if (_guestStars is EqualUnmodifiableListView) return _guestStars;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_guestStars);
+  }
+
   final List<Crew> _crew;
   @override
   @JsonKey()
@@ -328,7 +352,7 @@ class _$EpisodeImpl implements _Episode {
 
   @override
   String toString() {
-    return 'Episode(id: $id, name: $name, episodeNumber: $episodeNumber, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, stillPath: $stillPath, voteAverage: $voteAverage, voteCount: $voteCount, runtime: $runtime, cast: $cast, crew: $crew)';
+    return 'Episode(id: $id, name: $name, episodeNumber: $episodeNumber, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, stillPath: $stillPath, voteAverage: $voteAverage, voteCount: $voteCount, runtime: $runtime, cast: $cast, guestStars: $guestStars, crew: $crew)';
   }
 
   @override
@@ -353,26 +377,29 @@ class _$EpisodeImpl implements _Episode {
                 other.voteCount == voteCount) &&
             (identical(other.runtime, runtime) || other.runtime == runtime) &&
             const DeepCollectionEquality().equals(other._cast, _cast) &&
+            const DeepCollectionEquality()
+                .equals(other._guestStars, _guestStars) &&
             const DeepCollectionEquality().equals(other._crew, _crew));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    name,
-    episodeNumber,
-    seasonNumber,
-    overview,
-    airDate,
-    stillPath,
-    voteAverage,
-    voteCount,
-    runtime,
-    const DeepCollectionEquality().hash(_cast),
-    const DeepCollectionEquality().hash(_crew),
-  );
+        runtimeType,
+        id,
+        name,
+        episodeNumber,
+        seasonNumber,
+        overview,
+        airDate,
+        stillPath,
+        voteAverage,
+        voteCount,
+        runtime,
+        const DeepCollectionEquality().hash(_cast),
+        const DeepCollectionEquality().hash(_guestStars),
+        const DeepCollectionEquality().hash(_crew),
+      );
 
   /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.
@@ -401,6 +428,7 @@ abstract class _Episode implements Episode {
     @JsonKey(name: 'vote_count') final int? voteCount,
     final int? runtime,
     final List<Cast> cast,
+    @JsonKey(name: 'guest_stars') final List<Cast> guestStars,
     final List<Crew> crew,
   }) = _$EpisodeImpl;
 
@@ -434,6 +462,9 @@ abstract class _Episode implements Episode {
   int? get runtime;
   @override
   List<Cast> get cast;
+  @override
+  @JsonKey(name: 'guest_stars')
+  List<Cast> get guestStars;
   @override
   List<Crew> get crew;
 

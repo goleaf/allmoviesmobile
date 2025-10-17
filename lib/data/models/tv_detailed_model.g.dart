@@ -57,6 +57,10 @@ _$TVDetailedImpl _$$TVDetailedImplFromJson(Map<String, dynamic> json) =>
       externalIds: json['external_ids'] == null
           ? const ExternalIds()
           : ExternalIds.fromJson(json['external_ids'] as Map<String, dynamic>),
+      cast: (json['cast'] as List<dynamic>?)
+              ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       seasons:
           (json['seasons'] as List<dynamic>?)
               ?.map((e) => Season.fromJson(e as Map<String, dynamic>))
@@ -109,6 +113,7 @@ Map<String, dynamic> _$$TVDetailedImplToJson(_$TVDetailedImpl instance) =>
       'status': instance.status,
       'homepage': instance.homepage,
       'external_ids': instance.externalIds,
+      'cast': instance.cast,
       'seasons': instance.seasons,
       'videos': instance.videos,
       'images': instance.images,

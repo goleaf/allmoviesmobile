@@ -1,15 +1,19 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../data/models/company_model.dart';
+import '../data/models/movie.dart';
 import '../data/models/paginated_response.dart';
+import '../data/models/person_model.dart';
 import '../data/models/search_result_model.dart';
 import '../data/services/local_storage_service.dart';
 import '../data/tmdb_repository.dart';
 
 class SearchProvider with ChangeNotifier {
   SearchProvider(this._repository, this._storage) {
+    _initializePagingControllers();
     _loadSearchHistory();
     _loadTrendingSearches();
   }
@@ -42,6 +46,12 @@ class SearchProvider with ChangeNotifier {
   Timer? _suggestionsDebounce;
   Timer? _searchDebounce;
 
+  late final Map<MediaType, PagingController<int, SearchResult>>
+      _mediaPagingControllers;
+  late final PagingController<int, Company> _companyPagingController;
+  final Set<MediaType> _pendingForceRefreshMedia = <MediaType>{};
+  bool _pendingForceRefreshCompanies = false;
+
   String get query => _query;
   String get inputQuery => _inputQuery;
   List<SearchResult> get results => _response.results;
@@ -61,6 +71,34 @@ class SearchProvider with ChangeNotifier {
   bool get hasCompanyResults => _companyResults.isNotEmpty;
   bool get canLoadMore => _currentPage < _totalPages;
   bool get canLoadMoreCompanies => _companyCurrentPage < _companyTotalPages;
+  PagingController<int, SearchResult> mediaPagingController(MediaType type) =>
+      _mediaPagingControllers[type]!;
+  PagingController<int, Company> get companyPagingController =>
+      _companyPagingController;
+
+  void _initializePagingControllers() {
+    _mediaPagingControllers = {
+      for (final type in MediaType.values)
+        type: PagingController<int, SearchResult>(firstPageKey: 1),
+    };
+    for (final entry in _mediaPagingControllers.entries) {
+      entry.value.addPageRequestListener(
+        (pageKey) => unawaited(_fetchPagedMedia(entry.key, pageKey)),
+      );
+    }
+
+    _companyPagingController = PagingController<int, Company>(firstPageKey: 1)
+      ..addPageRequestListener(
+        (pageKey) => unawaited(_fetchCompanyPage(pageKey)),
+      );
+  }
+
+  void _refreshPagedControllers() {
+    for (final controller in _mediaPagingControllers.values) {
+      controller.refresh();
+    }
+    _companyPagingController.refresh();
+  }
 
   void _loadSearchHistory() {
     _searchHistory = _storage.getSearchHistory();
@@ -172,7 +210,134 @@ class SearchProvider with ChangeNotifier {
     }
   }
 
-  Future<void> search(String searchQuery) async {
+  Future<void> _fetchPagedMedia(MediaType type, int pageKey) async {
+    final controller = _mediaPagingControllers[type]!;
+    final trimmed = _query.trim();
+
+    if (trimmed.isEmpty) {
+      controller.appendLastPage(const []);
+      return;
+    }
+
+    final shouldForceRefresh = _pendingForceRefreshMedia.remove(type);
+
+    try {
+      switch (type) {
+        case MediaType.movie:
+          final response = await _repository.searchMovies(
+            trimmed,
+            page: pageKey,
+            forceRefresh: shouldForceRefresh,
+          );
+          final items = response.results
+              .map((movie) => _mapMovieToSearchResult(movie, MediaType.movie))
+              .toList(growable: false);
+          final isLastPage = pageKey >= response.totalPages;
+          if (isLastPage) {
+            controller.appendLastPage(items);
+          } else {
+            controller.appendPage(items, pageKey + 1);
+          }
+          break;
+        case MediaType.tv:
+          final response = await _repository.searchTvSeries(
+            trimmed,
+            page: pageKey,
+            forceRefresh: shouldForceRefresh,
+          );
+          final items = response.results
+              .map((tv) => _mapMovieToSearchResult(tv, MediaType.tv))
+              .toList(growable: false);
+          final isLastPage = pageKey >= response.totalPages;
+          if (isLastPage) {
+            controller.appendLastPage(items);
+          } else {
+            controller.appendPage(items, pageKey + 1);
+          }
+          break;
+        case MediaType.person:
+          final response = await _repository.searchPeople(
+            trimmed,
+            page: pageKey,
+            forceRefresh: shouldForceRefresh,
+          );
+          final items = response.results
+              .map(_mapPersonToSearchResult)
+              .toList(growable: false);
+          final isLastPage = pageKey >= response.totalPages;
+          if (isLastPage) {
+            controller.appendLastPage(items);
+          } else {
+            controller.appendPage(items, pageKey + 1);
+          }
+          break;
+      }
+    } catch (error) {
+      controller.error = error;
+    }
+  }
+
+  Future<void> _fetchCompanyPage(int pageKey) async {
+    final trimmed = _query.trim();
+
+    if (trimmed.isEmpty) {
+      _companyPagingController.appendLastPage(const []);
+      return;
+    }
+
+    final shouldForceRefresh = _pendingForceRefreshCompanies;
+    if (shouldForceRefresh) {
+      _pendingForceRefreshCompanies = false;
+    }
+
+    try {
+      final response = await _repository.fetchCompanies(
+        query: trimmed,
+        page: pageKey,
+        forceRefresh: shouldForceRefresh,
+      );
+      final isLastPage = pageKey >= response.totalPages;
+      if (isLastPage) {
+        _companyPagingController.appendLastPage(response.results);
+      } else {
+        _companyPagingController.appendPage(response.results, pageKey + 1);
+      }
+    } catch (error) {
+      _companyPagingController.error = error;
+    }
+  }
+
+  SearchResult _mapMovieToSearchResult(Movie movie, MediaType type) {
+    return SearchResult(
+      id: movie.id,
+      mediaType: type,
+      title: type == MediaType.movie ? movie.title : movie.originalTitle,
+      name: type == MediaType.tv ? movie.title : movie.originalTitle,
+      overview: movie.overview,
+      posterPath: movie.posterPath,
+      backdropPath: movie.backdropPath,
+      voteAverage: movie.voteAverage,
+      voteCount: movie.voteCount,
+      popularity: movie.popularity,
+      releaseDate: type == MediaType.movie ? movie.releaseDate : null,
+      firstAirDate: type == MediaType.tv ? movie.releaseDate : null,
+      originalTitle: movie.originalTitle,
+      originalName: movie.originalTitle,
+    );
+  }
+
+  SearchResult _mapPersonToSearchResult(Person person) {
+    return SearchResult(
+      id: person.id,
+      mediaType: MediaType.person,
+      name: person.name,
+      overview: person.biography,
+      profilePath: person.profilePath,
+      popularity: person.popularity,
+    );
+  }
+
+  Future<void> search(String searchQuery, {bool forceRefresh = true}) async {
     final trimmed = searchQuery.trim();
     if (trimmed.isEmpty) {
       clearResults();
@@ -187,10 +352,26 @@ class SearchProvider with ChangeNotifier {
     _suggestions = [];
     notifyListeners();
 
+    _pendingForceRefreshMedia.clear();
+    _pendingForceRefreshCompanies = false;
+    if (forceRefresh) {
+      _pendingForceRefreshMedia.addAll(MediaType.values);
+      _pendingForceRefreshCompanies = true;
+    }
+    _refreshPagedControllers();
+
     try {
       final results = await Future.wait([
-        _repository.searchMulti(trimmed, page: 1, forceRefresh: true),
-        _repository.fetchCompanies(query: trimmed, page: 1, forceRefresh: true),
+        _repository.searchMulti(
+          trimmed,
+          page: 1,
+          forceRefresh: forceRefresh,
+        ),
+        _repository.fetchCompanies(
+          query: trimmed,
+          page: 1,
+          forceRefresh: forceRefresh,
+        ),
       ]);
 
       final response = results[0] as SearchResponse;
@@ -281,7 +462,15 @@ class SearchProvider with ChangeNotifier {
   }
 
   Future<void> searchFromHistory(String query) async {
-    await search(query);
+    await search(query, forceRefresh: true);
+  }
+
+  Future<void> reexecuteLastSearch({bool forceRefresh = false}) async {
+    final trimmed = _query.trim();
+    if (trimmed.isEmpty) {
+      return;
+    }
+    await search(trimmed, forceRefresh: forceRefresh);
   }
 
   Future<void> recordQuery(String searchQuery) async {
@@ -321,6 +510,9 @@ class SearchProvider with ChangeNotifier {
     _errorMessage = null;
     _currentPage = 0;
     _totalPages = 1;
+    _pendingForceRefreshMedia.clear();
+    _pendingForceRefreshCompanies = false;
+    _refreshPagedControllers();
     notifyListeners();
   }
 
@@ -350,6 +542,10 @@ class SearchProvider with ChangeNotifier {
   void dispose() {
     _suggestionsDebounce?.cancel();
     _searchDebounce?.cancel();
+    for (final controller in _mediaPagingControllers.values) {
+      controller.dispose();
+    }
+    _companyPagingController.dispose();
     super.dispose();
   }
 }

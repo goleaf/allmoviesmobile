@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/models/search_result_model.dart';
@@ -91,35 +92,44 @@ class _MediaResultsBody extends StatelessWidget {
           ); // Should not happen normally.
         }
 
-        final itemCount = results.length + (provider.isLoadingMore ? 1 : 0);
+        final controller = provider.mediaPagingController(mediaType);
 
-        return NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            final metrics = notification.metrics;
-            final shouldLoadMore =
-                metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                provider.canLoadMore &&
-                !provider.isLoadingMore;
-
-            if (shouldLoadMore) {
-              provider.loadMore();
-            }
-
-            return false;
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= results.length) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              return SearchResultListTile(result: results[index]);
-            },
+        return PagedListView<int, SearchResult>(
+          pagingController: controller,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          builderDelegate: PagedChildBuilderDelegate<SearchResult>(
+            itemBuilder: (context, item, index) =>
+                SearchResultListTile(result: item),
+            firstPageProgressIndicatorBuilder: (_) =>
+                const Center(child: CircularProgressIndicator()),
+            newPageProgressIndicatorBuilder: (_) => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            noItemsFoundIndicatorBuilder: (_) => Center(
+              child: Text(
+                AppLocalizations.of(context).search['no_results'] ??
+                    'No results found',
+              ),
+            ),
+            firstPageErrorIndicatorBuilder: (_) => Center(
+              child: Text(
+                provider.errorMessage ??
+                    (AppLocalizations.of(context).search['no_results'] ??
+                        'No results found'),
+              ),
+            ),
+            newPageErrorIndicatorBuilder: (_) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  provider.errorMessage ??
+                      (AppLocalizations.of(context)
+                              .search['no_results'] ??
+                          'No results found'),
+                ),
+              ),
+            ),
           ),
         );
       },
@@ -150,36 +160,44 @@ class _CompanyResultsBody extends StatelessWidget {
           );
         }
 
-        final itemCount =
-            results.length + (provider.isLoadingMoreCompanies ? 1 : 0);
+        final controller = provider.companyPagingController;
 
-        return NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            final metrics = notification.metrics;
-            final shouldLoadMore =
-                metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                provider.canLoadMoreCompanies &&
-                !provider.isLoadingMoreCompanies;
-
-            if (shouldLoadMore) {
-              provider.loadMoreCompanies();
-            }
-
-            return false;
-          },
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= results.length) {
-                return const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Center(child: CircularProgressIndicator()),
-                );
-              }
-
-              return CompanyResultTile(company: results[index]);
-            },
+        return PagedListView<int, Company>(
+          pagingController: controller,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          builderDelegate: PagedChildBuilderDelegate<Company>(
+            itemBuilder: (context, item, index) =>
+                CompanyResultTile(company: item),
+            firstPageProgressIndicatorBuilder: (_) =>
+                const Center(child: CircularProgressIndicator()),
+            newPageProgressIndicatorBuilder: (_) => const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            noItemsFoundIndicatorBuilder: (_) => Center(
+              child: Text(
+                AppLocalizations.of(context).search['no_results'] ??
+                    'No results found',
+              ),
+            ),
+            firstPageErrorIndicatorBuilder: (_) => Center(
+              child: Text(
+                provider.errorMessage ??
+                    (AppLocalizations.of(context).search['no_results'] ??
+                        'No results found'),
+              ),
+            ),
+            newPageErrorIndicatorBuilder: (_) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Center(
+                child: Text(
+                  provider.errorMessage ??
+                      (AppLocalizations.of(context)
+                              .search['no_results'] ??
+                          'No results found'),
+                ),
+              ),
+            ),
           ),
         );
       },

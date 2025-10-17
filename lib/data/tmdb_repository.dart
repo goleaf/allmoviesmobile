@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
@@ -33,6 +32,7 @@ import 'models/tv_ref_model.dart';
 import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
 import 'services/network_quality_service.dart';
+import 'services/request_throttler.dart';
 
 class TmdbRepository {
   TmdbRepository({
@@ -41,13 +41,12 @@ class TmdbRepository {
     NetworkQualityNotifier? networkQualityNotifier,
     String? apiKey,
     String? language,
-    NetworkQualityNotifier? networkQuality,
-  }) : _client = client ?? http.Client(),
-       _cache = cacheService,
-       _networkQualityNotifier = networkQualityNotifier,
-       _language = language ?? AppConfig.defaultLanguage,
-       _networkQuality = networkQuality,
-       _apiKey = (() {
+    NetworkQualityNotifier? networkQualityNotifier,
+  })  : _client = client ?? http.Client(),
+        _cache = cacheService,
+        _language = language ?? AppConfig.defaultLanguage,
+        _networkQualityNotifier = networkQualityNotifier,
+        _apiKey = (() {
          final provided =
              apiKey ??
              const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
@@ -68,16 +67,22 @@ class TmdbRepository {
   final NetworkQualityNotifier? _networkQualityNotifier;
   final String _apiKey;
   final String _language;
-  final NetworkQualityNotifier? _networkQuality;
-  final RateLimiter _globalRateLimiter = RateLimiter(
-    const Duration(milliseconds: 200),
-  );
-  final Map<String, RateLimiter> _endpointLimiters = {};
-  Duration _networkAwareDelay = Duration.zero;
+  final NetworkQualityNotifier? _networkQualityNotifier;
+  late final RequestThrottler _throttler = () {
+    final throttler = RequestThrottler();
+    final quality = _networkQualityNotifier?.quality;
+    if (quality != null) {
+      throttler.applyNetworkQuality(quality);
+    }
+    _networkQualityNotifier?.addListener(_handleNetworkQualityChanged);
+    return throttler;
+  }();
 
-  void initialize() {
-    _networkQualityNotifier?.addListener(_handleNetworkQualityChange);
-    _handleNetworkQualityChange();
+  void _handleNetworkQualityChanged() {
+    final quality = _networkQualityNotifier?.quality;
+    if (quality != null) {
+      _throttler.applyNetworkQuality(quality);
+    }
   }
 
   void _ensureApiKey() {
@@ -142,14 +147,7 @@ class TmdbRepository {
       }
     }
 
-    final limiter = _endpointLimiters.putIfAbsent(
-      endpoint,
-      () => RateLimiter(const Duration(milliseconds: 250)),
-    );
-
-    return _globalRateLimiter.schedule(
-      () => limiter.schedule(request),
-    );
+    return _throttler.schedule(request);
   }
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);

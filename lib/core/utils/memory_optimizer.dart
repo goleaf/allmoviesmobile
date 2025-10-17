@@ -30,6 +30,16 @@ class MemoryOptimizer with WidgetsBindingObserver {
     cache.clearLiveImages();
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.inactive) {
+      final cache = PaintingBinding.instance.imageCache;
+      cache.clear();
+      cache.clearLiveImages();
+    }
+  }
+
   void dispose() {
     if (!_initialized) return;
     WidgetsBinding.instance.removeObserver(this);

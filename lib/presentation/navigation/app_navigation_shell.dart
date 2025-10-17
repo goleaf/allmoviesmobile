@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 
+import 'package:provider/provider.dart';
+
 import '../../core/localization/app_localizations.dart';
+import '../../providers/app_state_provider.dart';
 import '../screens/home/home_screen.dart';
+import '../screens/movies/movies_filters_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/search/search_screen.dart';
-import '../screens/series/series_screen.dart';
-import '../screens/movies/movies_filters_screen.dart';
 import '../screens/series/series_filters_screen.dart';
-
-enum AppDestination { home, movies, tv, search }
+import '../screens/series/series_screen.dart';
+import 'app_destination.dart';
 
 class AppNavigationShell extends StatefulWidget {
   const AppNavigationShell({super.key});
@@ -24,6 +26,23 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   };
 
   AppDestination _currentDestination = AppDestination.home;
+  bool _restoredInitialDestination = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_restoredInitialDestination) {
+      _restoredInitialDestination = true;
+      final restored = context.read<AppStateProvider>().currentDestination;
+      if (restored != _currentDestination) {
+        setState(() {
+          _currentDestination = restored;
+        });
+      } else {
+        _currentDestination = restored;
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,6 +75,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       setState(() {
         _currentDestination = AppDestination.home;
       });
+      context.read<AppStateProvider>().updateDestination(AppDestination.home);
       return false;
     }
 
@@ -79,6 +99,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
         setState(() {
           _currentDestination = selected;
         });
+        context.read<AppStateProvider>().updateDestination(selected);
       },
       destinations: [
         NavigationDestination(
@@ -187,6 +208,59 @@ class _DestinationNavigator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Navigator(key: navigatorKey, onGenerateRoute: _onGenerateRoute);
+    final appState = context.read<AppStateProvider>();
+    final initialRoute =
+        appState.lastRouteFor(destination) ?? Navigator.defaultRouteName;
+
+    return Navigator(
+      key: navigatorKey,
+      onGenerateRoute: _onGenerateRoute,
+      initialRoute: initialRoute,
+      observers: [
+        _AppStateNavigatorObserver(
+          context: context,
+          destination: destination,
+        ),
+      ],
+    );
+  }
+}
+
+class _AppStateNavigatorObserver extends NavigatorObserver {
+  _AppStateNavigatorObserver({
+    required this.context,
+    required this.destination,
+  });
+
+  final BuildContext context;
+  final AppDestination destination;
+
+  void _persist(Route<dynamic>? route) {
+    final name = route?.settings.name;
+    if (name == null || name.isEmpty) {
+      return;
+    }
+    context.read<AppStateProvider>().persistLastRoute(
+          destination: destination,
+          route: name,
+        );
+  }
+
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+    _persist(route);
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPop(route, previousRoute);
+    _persist(previousRoute);
+  }
+
+  @override
+  void didReplace({Route<dynamic>? newRoute, Route<dynamic>? oldRoute}) {
+    super.didReplace(newRoute: newRoute, oldRoute: oldRoute);
+    _persist(newRoute);
   }
 }

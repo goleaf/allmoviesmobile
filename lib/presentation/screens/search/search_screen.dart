@@ -11,7 +11,7 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/rating_display.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../widgets/app_scaffold.dart';
-import '../../widgets/loading_indicator.dart';
+import '../../../providers/app_state_provider.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -35,11 +35,16 @@ class _SearchScreenState extends State<SearchScreen> {
       _searchController.text = widget.initialQuery!;
     }
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      final appState = context.read<AppStateProvider>();
+      final savedQuery = appState.persistedSearchQuery;
       if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
         _performSearch(
           context.read<SearchProvider>(),
           query: widget.initialQuery!,
         );
+      } else if (savedQuery.isNotEmpty) {
+        _searchController.text = savedQuery;
+        _performSearch(context.read<SearchProvider>(), query: savedQuery);
       } else {
         _focusNode.requestFocus();
       }
@@ -62,7 +67,8 @@ class _SearchScreenState extends State<SearchScreen> {
           selection: TextSelection.collapsed(offset: queryText.length),
         );
       }
-      provider.search(queryText);
+      context.read<AppStateProvider>().saveSearchQuery(queryText);
+      provider.search(queryText, forceRefresh: true);
     }
   }
 
@@ -97,6 +103,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     _searchController.clear();
                     searchProvider.clearResults();
                     searchProvider.clearSuggestions();
+                    context.read<AppStateProvider>().clearSearchQuery();
                   },
                 )
               : null,

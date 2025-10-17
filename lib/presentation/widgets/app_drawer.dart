@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
+import '../screens/explorer/tmdb_v4_reference_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
@@ -98,6 +99,12 @@ class AppDrawer extends StatelessWidget {
             title: const Text(AppStrings.apiExplorer),
             selected: currentRoute == ApiExplorerScreen.routeName,
             onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.api_rounded),
+            title: const Text(AppStrings.tmdbV4Reference),
+            selected: currentRoute == TmdbV4ReferenceScreen.routeName,
+            onTap: () => _navigateTo(context, TmdbV4ReferenceScreen.routeName),
           ),
           const Divider(),
           ListTile(

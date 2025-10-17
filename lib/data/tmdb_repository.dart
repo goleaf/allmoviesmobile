@@ -14,10 +14,9 @@ import 'models/tv_detailed_model.dart';
 import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
 import 'services/tmdb_api_service.dart';
+import 'utils/api_key_resolver.dart';
 
 class TmdbRepository {
-  static const String _fallbackApiKey = '755c09802f113640bd146fb59ad22411';
-
   TmdbRepository({
     http.Client? client,
     CacheService? cacheService,
@@ -36,12 +35,7 @@ class TmdbRepository {
   final TmdbApiService _apiService;
 
   static String _resolveApiKey(String? providedKey) {
-    final envKey = const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
-    final candidate = (providedKey ?? envKey).trim();
-    if (candidate.isNotEmpty) {
-      return candidate;
-    }
-    return _fallbackApiKey;
+    return ApiKeyResolver.resolve(providedKey);
   }
 
   void _checkApiKey() {

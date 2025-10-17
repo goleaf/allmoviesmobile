@@ -41,6 +41,7 @@
     "revenue": "Сборы",
     "status": "Статус",
     "genres": "Жанры",
+    "alternative_titles": "Альтернативные Названия",
     "production_companies": "Производственные Компании",
     "production_countries": "Страны Производства",
     "spoken_languages": "Языки",
@@ -79,6 +80,7 @@
     "number_of_episodes": "Количество Эпизодов",
     "episode_runtime": "Продолжительность Эпизода",
     "networks": "Сети",
+    "alternative_titles": "Альтернативные Названия",
     "similar": "Похожие Шоу"
   },
   "person": {

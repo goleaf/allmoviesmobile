@@ -5,12 +5,10 @@ import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/services/api_config.dart';
-import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
-import '../../../providers/media_gallery_provider.dart';
 import '../../../providers/watchlist_provider.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/rating_display.dart';
-import '../../widgets/media_gallery_section.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -24,36 +22,27 @@ class TVDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final repository = context.read<TmdbRepository>();
-
-    return ChangeNotifierProvider(
-      create: (_) => MediaGalleryProvider(repository)..loadTvImages(tvShow.id),
-      child: Builder(
-        builder: (context) {
-          final loc = AppLocalizations.of(context);
-
-          return Scaffold(
-            body: CustomScrollView(
-              slivers: [
-                _buildAppBar(context, loc),
-                SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildHeader(context, loc),
-                      _buildActions(context, loc),
-                      _buildOverview(context, loc),
-                      _buildMetadata(context, loc),
-                      _buildGenres(context, loc),
-                      const MediaGallerySection(),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
+    final loc = AppLocalizations.of(context);
+    
+    return Scaffold(
+      body: CustomScrollView(
+        slivers: [
+          _buildAppBar(context, loc),
+          SliverToBoxAdapter(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, loc),
+                _buildActions(context, loc),
+                _buildOverview(context, loc),
+                _buildMetadata(context, loc),
+                _buildAlternativeTitles(context, loc),
+                _buildGenres(context, loc),
+                const SizedBox(height: 24),
               ],
             ),
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -397,6 +386,48 @@ class TVDetailScreen extends StatelessWidget {
               );
             }).toList(),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlternativeTitles(BuildContext context, AppLocalizations loc) {
+    final titles = tvShow.alternativeTitles;
+    if (titles.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('tv.alternative_titles'),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: titles
+                .map(
+                  (title) => Chip(
+                    label: Text(title),
+                    backgroundColor: colorScheme.secondaryContainer,
+                    labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );

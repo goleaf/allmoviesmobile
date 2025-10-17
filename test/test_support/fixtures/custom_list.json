@@ -1,0 +1,23 @@
+{
+  "id": "list1",
+  "name": "Weekend Watch",
+  "description": "Movies to watch this weekend",
+  "accent_color": "#00FFAA",
+  "created_at": "2024-01-05T00:00:00Z",
+  "updated_at": "2024-01-06T00:00:00Z",
+  "is_public": true,
+  "items": [
+    {
+      "id": 603,
+      "type": "movie",
+      "title": "The Matrix",
+      "posterPath": "/matrix.jpg",
+      "releaseDate": "1999-03-31",
+      "voteAverage": 8.7,
+      "genreIds": [28, 878],
+      "addedAt": "2024-01-05T12:00:00Z",
+      "updatedAt": "2024-01-05T12:00:00Z",
+      "watched": false
+    }
+  ]
+}

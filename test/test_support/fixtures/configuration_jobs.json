@@ -1,0 +1,10 @@
+[
+  {
+    "department": "Directing",
+    "jobs": ["Director", "Co-Director"]
+  },
+  {
+    "department": "Writing",
+    "jobs": ["Screenplay"]
+  }
+]

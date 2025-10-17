@@ -1,0 +1,20 @@
+{
+  "posters": [
+    {
+      "file_path": "/matrix-collection.jpg",
+      "width": 1000,
+      "height": 1500,
+      "vote_average": 5.0,
+      "vote_count": 10
+    }
+  ],
+  "backdrops": [
+    {
+      "file_path": "/matrix-backdrop.jpg",
+      "width": 1920,
+      "height": 1080,
+      "vote_average": 4.5,
+      "vote_count": 8
+    }
+  ]
+}

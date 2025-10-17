@@ -1,0 +1,12 @@
+{
+  "avatar": {
+    "gravatar": { "hash": "123abc" },
+    "tmdb": { "avatar_path": "/path/to/avatar.jpg" }
+  },
+  "id": 12345,
+  "iso_639_1": "en",
+  "iso_3166_1": "US",
+  "name": "Jane Doe",
+  "include_adult": true,
+  "username": "janedoe"
+}

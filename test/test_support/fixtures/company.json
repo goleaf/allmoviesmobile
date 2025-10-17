@@ -1,0 +1,30 @@
+{
+  "id": 79,
+  "name": "Village Roadshow Pictures",
+  "logo_path": "/vrp.png",
+  "origin_country": "US",
+  "description": "A production company involved in feature films.",
+  "headquarters": "Burbank, California",
+  "homepage": "https://www.vreg.com",
+  "parent_company": {
+    "id": 174,
+    "name": "Warner Bros. Pictures",
+    "logo_path": "/wb.png",
+    "origin_country": "US"
+  },
+  "alternative_names": ["Village Roadshow", "VRP"],
+  "logo_gallery": [
+    {
+      "file_path": "/vrp-alt.png",
+      "width": 800,
+      "height": 400,
+      "aspect_ratio": 2.0,
+      "vote_average": 5.0,
+      "vote_count": 10
+    }
+  ],
+  "produced_movies": [
+    { "id": 603, "title": "The Matrix" }
+  ],
+  "produced_series": []
+}

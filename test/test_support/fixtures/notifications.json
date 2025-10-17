@@ -1,0 +1,12 @@
+[
+  {
+    "id": "notif1",
+    "title": "New follower",
+    "message": "User X followed your list",
+    "category": "social",
+    "action_route": "/lists/abc123",
+    "metadata": { "listId": "abc123" },
+    "created_at": "2024-01-07T10:00:00Z",
+    "is_read": false
+  }
+]

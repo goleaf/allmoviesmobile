@@ -1,0 +1,11 @@
+{
+  "id": 2344,
+  "name": "The Matrix Collection",
+  "overview": "A trilogy following Neo.",
+  "poster_path": "/matrix-collection.jpg",
+  "backdrop_path": "/matrix-collection-bg.jpg",
+  "parts": [
+    { "id": 603, "title": "The Matrix", "poster_path": "/matrix.jpg" },
+    { "id": 604, "title": "The Matrix Reloaded", "poster_path": "/matrix2.jpg" }
+  ]
+}

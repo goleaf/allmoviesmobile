@@ -1,0 +1,38 @@
+{
+  "id": "5f4eabc12345",
+  "name": "Original Broadcast",
+  "description": "Episodes arranged by original HBO air dates.",
+  "type": 1,
+  "episode_count": 73,
+  "group_count": 8,
+  "network": {
+    "id": 49,
+    "name": "HBO",
+    "logo_path": "/hbo.png",
+    "origin_country": "US"
+  },
+  "groups": [
+    {
+      "id": "5f4eabc12345-se1",
+      "name": "Season 1",
+      "order": 1,
+      "lock_order": 1,
+      "overview": "Original broadcast order for season 1.",
+      "episodes": [
+        {
+          "id": 63056,
+          "name": "Winter Is Coming",
+          "episode_number": 1,
+          "season_number": 1,
+          "air_date": "2011-04-17",
+          "overview": "The Starks of Winterfell are introduced.",
+          "production_code": "101",
+          "still_path": "/winter.jpg",
+          "vote_average": 8.6,
+          "vote_count": 4500,
+          "order": 1
+        }
+      ]
+    }
+  ]
+}

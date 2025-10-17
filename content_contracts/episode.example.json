@@ -6,5 +6,15 @@
   "runtime": 53,
   "still_path": "/e7.jpg",
   "vote_average": 8.3,
-  "vote_count": 3200
+  "vote_count": 3200,
+  "videos": [
+    {
+      "key": "abc123",
+      "site": "YouTube",
+      "type": "Trailer",
+      "name": "Episode 7 Promo",
+      "official": true,
+      "published_at": "2011-05-06T12:00:00Z"
+    }
+  ]
 }

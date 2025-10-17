@@ -12,7 +12,12 @@
     "runtime": { "type": ["integer", "null"], "minimum": 0 },
     "still_path": { "type": ["string", "null"] },
     "vote_average": { "type": ["number", "null"], "minimum": 0, "maximum": 10 },
-    "vote_count": { "type": ["integer", "null"], "minimum": 0 }
+    "vote_count": { "type": ["integer", "null"], "minimum": 0 },
+    "videos": {
+      "type": "array",
+      "items": { "$ref": "video.schema.json" },
+      "default": []
+    }
   },
   "additionalProperties": false
 }

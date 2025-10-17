@@ -14,7 +14,7 @@ void main() {
 
     test('should convert timeout errors to friendly message', () {
       final message = ErrorHandler.getUserFriendlyMessage(
-        Exception('Connection timeout'),
+        Exception('Request timeout'),
       );
 
       expect(message, contains('timed out'));

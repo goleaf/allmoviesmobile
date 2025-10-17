@@ -39,8 +39,8 @@ void main() {
     test('should throw after max attempts', () async {
       var attempts = 0;
 
-      expect(
-        () => RetryHelper.retry(
+      await expectLater(
+        RetryHelper.retry(
           maxAttempts: 3,
           initialDelay: Duration(milliseconds: 10),
           operation: () async {

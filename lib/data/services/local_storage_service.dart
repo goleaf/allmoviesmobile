@@ -22,6 +22,9 @@ class LocalStorageService {
   // Movies browsing persistence
   static const String _discoverFiltersKey = 'allmovies_discover_filters';
   static const String _trendingWindowKey = 'allmovies_trending_window';
+  static const String _moviesTabIndexKey = 'allmovies_movies_tab_index';
+  static const String _moviesScrollPositionsKey =
+      'allmovies_movies_scroll_positions';
 
   static const String _favoritesSyncEnabledKey =
       'allmovies_favorites_sync_enabled';
@@ -199,6 +202,58 @@ class LocalStorageService {
     return _prefs.setString(
       _favoritesLastSyncedKey,
       timestamp.toIso8601String(),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Movies screen UI state
+  // ---------------------------------------------------------------------------
+
+  int getMoviesTabIndex() => _prefs.getInt(_moviesTabIndexKey) ?? 0;
+
+  Future<bool> setMoviesTabIndex(int index) {
+    return _prefs.setInt(_moviesTabIndexKey, index);
+  }
+
+  int? getMoviesScrollIndex(String sectionKey) {
+    final raw = _prefs.getString(_moviesScrollPositionsKey);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final value = decoded[sectionKey];
+      if (value is int) {
+        return value;
+      }
+      if (value is num) {
+        return value.toInt();
+      }
+    } catch (_) {
+      return null;
+    }
+
+    return null;
+  }
+
+  Future<bool> setMoviesScrollIndex(String sectionKey, int index) async {
+    final raw = _prefs.getString(_moviesScrollPositionsKey);
+    final map = <String, dynamic>{};
+
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        map.addAll(jsonDecode(raw) as Map<String, dynamic>);
+      } catch (_) {
+        // Corrupted payload; overwrite below
+      }
+    }
+
+    map[sectionKey] = index;
+
+    return _prefs.setString(
+      _moviesScrollPositionsKey,
+      jsonEncode(map),
     );
   }
 

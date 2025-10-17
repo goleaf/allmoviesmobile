@@ -4,7 +4,34 @@ import 'dart:convert';
 import 'package:logger/logger.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Simple in-memory cache with TTL support
+/// Defines how long entries remain valid and when they should be refreshed.
+class CachePolicy {
+  const CachePolicy({
+    required this.ttl,
+    this.refreshAfter,
+  }) : assert(!ttl.isNegative, 'TTL must be positive');
+
+  factory CachePolicy.fromSeconds(int seconds) => CachePolicy(
+        ttl: Duration(seconds: seconds),
+      );
+
+  factory CachePolicy.fromJson(Map<String, dynamic> json) => CachePolicy(
+        ttl: Duration(seconds: json['ttl'] as int? ?? CacheService.defaultTTL),
+        refreshAfter: json['refreshAfter'] == null
+            ? null
+            : Duration(seconds: json['refreshAfter'] as int),
+      );
+
+  final Duration ttl;
+  final Duration? refreshAfter;
+
+  Map<String, dynamic> toJson() => {
+        'ttl': ttl.inSeconds,
+        if (refreshAfter != null) 'refreshAfter': refreshAfter!.inSeconds,
+      };
+}
+
+/// Simple in-memory cache with TTL support and stale-entry detection.
 class CacheService {
   CacheService({SharedPreferences? prefs}) : _prefs = prefs;
 
@@ -29,8 +56,8 @@ class CacheService {
       return null;
     }
 
-    if (entry.isExpired) {
-      _logger.d('Cache expired: $key');
+    if (entry.isExpired || entry.isStale) {
+      _logger.d('Cache ${entry.isExpired ? 'expired' : 'stale'}: $key');
       _cache.remove(key);
       return null;
     }
@@ -40,13 +67,24 @@ class CacheService {
   }
 
   /// Set a value in cache with optional TTL
-  void set<T>(String key, T value, {int? ttlSeconds}) {
-    final ttl = ttlSeconds ?? defaultTTL;
-    final expiresAt = DateTime.now().add(Duration(seconds: ttl));
+  void set<T>(
+    String key,
+    T value, {
+    int? ttlSeconds,
+    CachePolicy? policy,
+  }) {
+    final effectivePolicy = policy ??
+        (ttlSeconds != null
+            ? CachePolicy.fromSeconds(ttlSeconds)
+            : const CachePolicy(ttl: Duration(seconds: defaultTTL)));
 
-    _cache[key] = _CacheEntry(value: value, expiresAt: expiresAt);
+    _cache[key] = _CacheEntry(
+      value: value,
+      createdAt: DateTime.now(),
+      policy: effectivePolicy,
+    );
 
-    _logger.d('Cache set: $key (TTL: ${ttl}s)');
+    _logger.d('Cache set: $key (TTL: ${effectivePolicy.ttl.inSeconds}s)');
   }
 
   /// Remove a specific key from cache
@@ -78,7 +116,7 @@ class CacheService {
   /// Clean up expired entries
   void cleanExpired() {
     final expiredKeys = _cache.entries
-        .where((entry) => entry.value.isExpired)
+        .where((entry) => entry.value.isExpired || entry.value.isStale)
         .map((entry) => entry.key)
         .toList();
 
@@ -96,7 +134,6 @@ class CacheService {
       return 0;
     }
 
-    final now = DateTime.now().millisecondsSinceEpoch;
     final keys = prefs.getKeys().where(
       (key) => key.startsWith(_persistentPrefix),
     );
@@ -109,7 +146,11 @@ class CacheService {
       try {
         final decoded = jsonDecode(raw) as Map<String, dynamic>;
         final expiresAt = decoded['expiresAt'] as int?;
-        if (expiresAt != null && expiresAt <= now) {
+        final refreshAfter = decoded['refreshAfter'] as int?;
+        final now = DateTime.now().millisecondsSinceEpoch;
+        final expired = expiresAt != null && expiresAt <= now;
+        final stale = refreshAfter != null && refreshAfter <= now;
+        if (expired || stale) {
           await prefs.remove(key);
           removed++;
         }
@@ -132,12 +173,15 @@ class CacheService {
     final now = DateTime.now();
     var validCount = 0;
     var expiredCount = 0;
+    var staleCount = 0;
 
     for (final entry in _cache.values) {
-      if (entry.expiresAt.isAfter(now)) {
-        validCount++;
-      } else {
+      if (entry.isExpired) {
         expiredCount++;
+      } else if (entry.isStale) {
+        staleCount++;
+      } else {
+        validCount++;
       }
     }
 
@@ -145,6 +189,7 @@ class CacheService {
       totalEntries: _cache.length,
       validEntries: validCount,
       expiredEntries: expiredCount,
+      staleEntries: staleCount,
     );
   }
 
@@ -164,7 +209,12 @@ class CacheService {
   }
 
   /// Store value in persistent cache (JSON serializable or primitive/string)
-  Future<void> setPersistent<T>(String key, T value, {int? ttlSeconds}) async {
+  Future<void> setPersistent<T>(
+    String key,
+    T value, {
+    int? ttlSeconds,
+    CachePolicy? policy,
+  }) async {
     final prefs = _prefs;
     if (prefs == null) {
       _logger.w(
@@ -173,10 +223,15 @@ class CacheService {
       return;
     }
 
-    final ttl = ttlSeconds ?? defaultTTL;
-    final expiresAt = DateTime.now()
-        .add(Duration(seconds: ttl))
-        .millisecondsSinceEpoch;
+    final effectivePolicy = policy ??
+        (ttlSeconds != null
+            ? CachePolicy.fromSeconds(ttlSeconds)
+            : const CachePolicy(ttl: Duration(seconds: defaultTTL)));
+    final now = DateTime.now();
+    final expiresAt = now.add(effectivePolicy.ttl).millisecondsSinceEpoch;
+    final refreshAfter = effectivePolicy.refreshAfter == null
+        ? null
+        : now.add(effectivePolicy.refreshAfter!).millisecondsSinceEpoch;
     final isString = value is String;
     final serialized = isString ? value as String : jsonEncode(value);
 
@@ -184,10 +239,13 @@ class CacheService {
       'expiresAt': expiresAt,
       'isString': isString,
       'value': serialized,
+      'refreshAfter': refreshAfter,
     });
 
     await prefs.setString(_persistentKey(key), payload);
-    _logger.d('Persistent cache set: $key (TTL: ${ttl}s)');
+    _logger.d(
+      'Persistent cache set: $key (TTL: ${effectivePolicy.ttl.inSeconds}s)',
+    );
   }
 
   /// Retrieve value from persistent cache
@@ -212,10 +270,17 @@ class CacheService {
       final isString = decoded['isString'] == true;
       final serialized = decoded['value'] as String?;
 
-      if (expiresAt != null &&
-          DateTime.now().millisecondsSinceEpoch > expiresAt) {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (expiresAt != null && now > expiresAt) {
         await prefs.remove(_persistentKey(key));
         _logger.d('Persistent cache expired: $key');
+        return null;
+      }
+
+      final refreshAfter = decoded['refreshAfter'] as int?;
+      if (refreshAfter != null && now > refreshAfter) {
+        await prefs.remove(_persistentKey(key));
+        _logger.d('Persistent cache stale: $key');
         return null;
       }
 
@@ -267,26 +332,43 @@ class CacheService {
 
 class _CacheEntry {
   final dynamic value;
-  final DateTime expiresAt;
+  final DateTime createdAt;
+  final CachePolicy policy;
 
-  _CacheEntry({required this.value, required this.expiresAt});
+  _CacheEntry({
+    required this.value,
+    required this.createdAt,
+    required this.policy,
+  });
+
+  DateTime get expiresAt => createdAt.add(policy.ttl);
 
   bool get isExpired => DateTime.now().isAfter(expiresAt);
+
+  bool get isStale {
+    final refreshAfter = policy.refreshAfter;
+    if (refreshAfter == null) {
+      return false;
+    }
+    return DateTime.now().isAfter(createdAt.add(refreshAfter));
+  }
 }
 
 class CacheStats {
   final int totalEntries;
   final int validEntries;
   final int expiredEntries;
+  final int staleEntries;
 
   CacheStats({
     required this.totalEntries,
     required this.validEntries,
     required this.expiredEntries,
+    required this.staleEntries,
   });
 
   @override
   String toString() {
-    return 'CacheStats(total: $totalEntries, valid: $validEntries, expired: $expiredEntries)';
+    return 'CacheStats(total: $totalEntries, valid: $validEntries, expired: $expiredEntries, stale: $staleEntries)';
   }
 }

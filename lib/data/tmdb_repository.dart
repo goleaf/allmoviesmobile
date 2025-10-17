@@ -1,7 +1,8 @@
-import 'dart:convert';
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:async/async.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
@@ -56,6 +57,10 @@ class TmdbRepository {
   final CacheService? _cache;
   final String _apiKey;
   final String _language;
+  final RateLimiter _globalRateLimiter = RateLimiter(
+    const Duration(milliseconds: 250),
+  );
+  final Map<String, RateLimiter> _endpointLimiters = {};
 
   void _ensureApiKey() {
     if (_apiKey.isEmpty) {
@@ -78,27 +83,39 @@ class TmdbRepository {
   }) async {
     _ensureApiKey();
     final uri = _buildUri(endpoint, query);
-    try {
-      final response = await _client
-          .get(uri, headers: {'Accept': 'application/json'})
-          .timeout(AppConfig.requestTimeout);
 
-      if (response.statusCode != 200) {
-        final body = response.body;
-        final snippet = body.length > 200 ? body.substring(0, 200) : body;
-        throw TmdbException(
-          'HTTP ${response.statusCode} at ${uri.path}: $snippet',
-        );
+    Future<Map<String, dynamic>> request() async {
+      try {
+        final response = await _client
+            .get(uri, headers: {'Accept': 'application/json'})
+            .timeout(AppConfig.requestTimeout);
+
+        if (response.statusCode != 200) {
+          final body = response.body;
+          final snippet = body.length > 200 ? body.substring(0, 200) : body;
+          throw TmdbException(
+            'HTTP ${response.statusCode} at ${uri.path}: $snippet',
+          );
+        }
+
+        return jsonDecode(response.body) as Map<String, dynamic>;
+      } on TimeoutException {
+        throw const TmdbException('Network timeout while contacting TMDB');
+      } on SocketException catch (e) {
+        throw TmdbException('Network error: ${e.message}');
+      } on FormatException {
+        throw const TmdbException('Invalid JSON received from TMDB');
       }
-
-      return jsonDecode(response.body) as Map<String, dynamic>;
-    } on TimeoutException {
-      throw const TmdbException('Network timeout while contacting TMDB');
-    } on SocketException catch (e) {
-      throw TmdbException('Network error: ${e.message}');
-    } on FormatException {
-      throw const TmdbException('Invalid JSON received from TMDB');
     }
+
+    final limiter = _endpointLimiters.putIfAbsent(
+      endpoint,
+      () => RateLimiter(const Duration(milliseconds: 250)),
+    );
+
+    return _globalRateLimiter.schedule(
+      () => limiter.schedule(request),
+    );
   }
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);

@@ -52,10 +52,12 @@ dependencies:
     
   # Network images with caching
   cached_network_image: ^3.4.1
+  flutter_image_compress: ^2.3.0
 
   # HTTP client
   http: ^1.2.2
   dio: ^5.7.0
+  async: ^2.11.0
   
   # Connectivity monitoring
   connectivity_plus: ^7.0.0
@@ -112,10 +114,11 @@ dependencies:
   
   # Skeleton loading states
   shimmer: ^3.0.0
-  
+
   # Media viewing
   photo_view: ^0.15.0
-  
+  scrollable_positioned_list: ^0.3.8
+
   # Video playback
   video_player: ^2.8.6
   
@@ -124,12 +127,15 @@ dependencies:
   
   # Navigation
   go_router: ^16.2.5
-  
+
   # Carousel
   carousel_slider: ^5.0.0
-  
+
   # Pull to refresh
   pull_to_refresh_flutter3: ^2.0.2
+
+  # Background work
+  workmanager: ^0.5.2
   
   # YouTube player
   youtube_player_flutter: ^9.0.3

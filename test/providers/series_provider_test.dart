@@ -8,6 +8,8 @@ import 'package:allmovies_mobile/providers/series_provider.dart';
 class _FakeRepo extends TmdbRepository {
   _FakeRepo();
 
+  Map<String, String>? lastDiscoverFilters;
+
   @override
   Future<List<Movie>> fetchTrendingTv({
     String timeWindow = 'day',
@@ -52,6 +54,23 @@ class _FakeRepo extends TmdbRepository {
       results: [Movie(id: 99, title: 'By Network')],
     );
   }
+
+  @override
+  Future<PaginatedResponse<Movie>> discoverTvSeries({
+    int page = 1,
+    Map<String, String>? filters,
+    bool forceRefresh = false,
+  }) async {
+    lastDiscoverFilters = filters == null
+        ? null
+        : Map<String, String>.from(filters);
+    return PaginatedResponse<Movie>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 1,
+      results: [Movie(id: 77, title: 'Discovered Shows')],
+    );
+  }
 }
 
 void main() {
@@ -79,5 +98,20 @@ void main() {
         );
       },
     );
+
+    test('applyTvFilters triggers discover call and updates popular section',
+        () async {
+      final repo = _FakeRepo();
+      final provider = SeriesProvider(repo);
+      await provider.initialized;
+
+      await provider.applyTvFilters({'with_genres': '18'});
+
+      expect(repo.lastDiscoverFilters, {'with_genres': '18'});
+      expect(
+        provider.sectionState(SeriesSection.popular).items.first.title,
+        'Discovered Shows',
+      );
+    });
   });
 }

@@ -1,5 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../core/constants/preferences_keys.dart';
 
 class PreferencesProvider extends ChangeNotifier {
@@ -103,6 +106,71 @@ class PreferencesProvider extends ChangeNotifier {
     if (normalized.isEmpty) return;
     if (normalized == imageQuality) return;
     await _prefs.setString(PreferenceKeys.imageQuality, normalized);
+    notifyListeners();
+  }
+
+  Future<Map<String, Map<String, String>>> loadTvFilterPresets() async {
+    final raw = _prefs.getString(PreferenceKeys.tvFilterPresets);
+    if (raw == null || raw.isEmpty) {
+      return <String, Map<String, String>>{};
+    }
+
+    try {
+      final decoded = jsonDecode(raw);
+      if (decoded is! Map<String, dynamic>) {
+        return <String, Map<String, String>>{};
+      }
+
+      return decoded.map((key, value) {
+        if (value is Map) {
+          final mapped = <String, String>{};
+          value.forEach((innerKey, innerValue) {
+            mapped['$innerKey'] = '${innerValue ?? ''}';
+          });
+          return MapEntry(key, mapped);
+        }
+        return MapEntry(key, <String, String>{});
+      });
+    } catch (_) {
+      return <String, Map<String, String>>{};
+    }
+  }
+
+  Future<Map<String, String>?> getTvFilterPreset(String name) async {
+    final presets = await loadTvFilterPresets();
+    return presets[name];
+  }
+
+  Future<void> saveTvFilterPreset(
+    String name,
+    Map<String, String> filters,
+  ) async {
+    final normalizedName = name.trim();
+    if (normalizedName.isEmpty) return;
+
+    final presets = await loadTvFilterPresets();
+    presets[normalizedName] = Map<String, String>.from(filters);
+    final encoded = jsonEncode(presets);
+    await _prefs.setString(PreferenceKeys.tvFilterPresets, encoded);
+    notifyListeners();
+  }
+
+  Future<void> deleteTvFilterPreset(String name) async {
+    final normalizedName = name.trim();
+    if (normalizedName.isEmpty) return;
+
+    final presets = await loadTvFilterPresets();
+    if (!presets.containsKey(normalizedName)) return;
+
+    presets.remove(normalizedName);
+    if (presets.isEmpty) {
+      await _prefs.remove(PreferenceKeys.tvFilterPresets);
+    } else {
+      await _prefs.setString(
+        PreferenceKeys.tvFilterPresets,
+        jsonEncode(presets),
+      );
+    }
     notifyListeners();
   }
 }

@@ -25,4 +25,7 @@ class PreferenceKeys {
       'settings.notifications.recommendations';
   static const String notificationsMarketing =
       'settings.notifications.marketing';
+
+  // Saved filter presets
+  static const String tvFilterPresets = 'settings.tv_filter_presets';
 }

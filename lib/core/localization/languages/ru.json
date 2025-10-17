@@ -3,9 +3,6 @@
     "name": "Все Фильмы",
     "tagline": "Ваш Главный Гид по Фильмам и Сериалам"
   },
-  "common": {
-    "retry": "Повторить"
-  },
   "navigation": {
     "home": "Главная",
     "movies": "Фильмы",
@@ -43,10 +40,7 @@
     "budget": "Бюджет",
     "revenue": "Сборы",
     "status": "Статус",
-    "details": "Подробности",
     "genres": "Жанры",
-    "details": "Детали",
-    "keywords": "Ключевые слова",
     "production_companies": "Производственные Компании",
     "production_countries": "Страны Производства",
     "spoken_languages": "Языки",
@@ -66,11 +60,7 @@
     "remove_from_favorites": "Убрать из Избранного",
     "add_to_watchlist": "Добавить в Список Просмотра",
     "remove_from_watchlist": "Убрать из Списка Просмотра",
-    "share": "Поделиться",
-    "user_reviews": "Отзывы пользователей",
-    "user_reviews_empty": "Отзывов пока нет. Будьте первым!",
-    "user_reviews_error": "Не удалось загрузить отзывы. Попробуйте позже.",
-    "user_reviews_more_available": "Больше отзывов доступно на TMDB."
+    "share": "Поделиться"
   },
   "tv": {
     "title": "ТВ Шоу",
@@ -80,17 +70,14 @@
     "episodes": "Эпизоды",
     "season": "Сезон",
     "episode": "Эпизод",
-    "guest_stars": "Приглашённые звёзды",
     "first_air_date": "Дата Первого Выхода",
     "last_air_date": "Дата Последнего Выхода",
     "number_of_seasons": "Количество Сезонов",
     "number_of_episodes": "Количество Эпизодов",
     "episode_runtime": "Продолжительность Эпизода",
     "networks": "Сети",
-    "similar": "Похожие Шоу",
-    "air_date": "Дата выхода",
-    "no_episodes": "Для этого сезона нет эпизодов.",
-    "retry_loading_episodes": "Повторить загрузку эпизодов"
+    "share": "Поделиться",
+    "similar": "Похожие Шоу"
   },
   "person": {
     "title": "Персона",
@@ -113,20 +100,8 @@
     "headquarters": "Штаб-квартира",
     "homepage": "Веб-сайт",
     "origin_country": "Страна Происхождения",
-    "parent_company": "Материнская компания",
-    "alternative_names": "Альтернативные названия",
-    "logo_gallery": "Галерея логотипов",
     "produced_movies": "Произведенные Фильмы",
-    "produced_series": "Произведенные Сериалы",
-    "no_description": "Описание недоступно.",
-    "no_alternative_names": "Альтернативные названия отсутствуют.",
-    "no_logo_gallery": "Логотипы отсутствуют.",
-    "no_produced_movies": "Нет фильмов, произведённых этой компанией.",
-    "no_produced_series": "Нет сериалов, произведённых этой компанией.",
-    "filter_placeholder": "Фильтр по названию...",
-    "sort_title": "Название",
-    "sort_release_date": "Дата релиза",
-    "sort_rating": "Рейтинг"
+    "produced_series": "Произведенные Сериалы"
   },
   "search": {
     "title": "Поиск",
@@ -181,23 +156,6 @@
     "added": "Добавлено в список",
     "removed": "Удалено из списка"
   },
-  "collection": {
-    "title": "Коллекция",
-    "overview": "Описание",
-    "parts": "Фильмы",
-    "release_timeline": "Хронология релизов",
-    "images": "Галерея",
-    "total_revenue": "Общие сборы",
-    "translations": "Переводы",
-    "no_overview": "Описание коллекции недоступно.",
-    "revenue_label": "Сборы",
-    "no_timeline_data": "Данные о хронологии отсутствуют.",
-    "unknown_release_date": "Неизвестная дата релиза",
-    "no_translation_title": "Нет локализованного названия",
-    "translation_overview": "Описание",
-    "no_translation_overview": "Описание для этого перевода недоступно.",
-    "translation_homepage": "Домашняя страница"
-  },
   "settings": {
     "title": "Настройки",
     "appearance": "Внешний Вид",
@@ -242,16 +200,7 @@
     "show_more": "Показать Больше",
     "show_less": "Показать Меньше",
     "unknown": "Неизвестно",
-    "not_available": "Н/Д",
-    "external_links": {
-      "title": "Внешние ссылки",
-      "imdb": "IMDb",
-      "homepage": "Веб-сайт",
-      "facebook": "Facebook",
-      "twitter": "Twitter",
-      "tvdb": "TVDB",
-      "tvrage": "TVRage"
-    }
+    "not_available": "Н/Д"
   },
   "errors": {
     "network_error": "Ошибка сети. Проверьте подключение.",

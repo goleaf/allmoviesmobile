@@ -3,9 +3,6 @@
     "name": "Всі Фільми",
     "tagline": "Ваш Головний Гід по Фільмах та Серіалах"
   },
-  "common": {
-    "retry": "Повторити"
-  },
   "navigation": {
     "home": "Головна",
     "movies": "Фільми",
@@ -43,10 +40,7 @@
     "budget": "Бюджет",
     "revenue": "Збори",
     "status": "Статус",
-    "details": "Деталі",
     "genres": "Жанри",
-    "details": "Деталі",
-    "keywords": "Ключові слова",
     "production_companies": "Виробничі Компанії",
     "production_countries": "Країни Виробництва",
     "spoken_languages": "Мови",
@@ -66,11 +60,7 @@
     "remove_from_favorites": "Прибрати з Обраного",
     "add_to_watchlist": "Додати до Списку Перегляду",
     "remove_from_watchlist": "Прибрати зі Списку Перегляду",
-    "share": "Поділитися",
-    "user_reviews": "Відгуки користувачів",
-    "user_reviews_empty": "Ще немає відгуків. Будьте першим!",
-    "user_reviews_error": "Не вдалося завантажити відгуки. Спробуйте пізніше.",
-    "user_reviews_more_available": "Більше відгуків доступно на TMDB."
+    "share": "Поділитися"
   },
   "tv": {
     "title": "ТВ Шоу",
@@ -80,17 +70,14 @@
     "episodes": "Епізоди",
     "season": "Сезон",
     "episode": "Епізод",
-    "guest_stars": "Запрошені зірки",
     "first_air_date": "Дата Першого Виходу",
     "last_air_date": "Дата Останнього Виходу",
     "number_of_seasons": "Кількість Сезонів",
     "number_of_episodes": "Кількість Епізодів",
     "episode_runtime": "Тривалість Епізоду",
     "networks": "Мережі",
-    "similar": "Схожі Шоу",
-    "air_date": "Дата виходу",
-    "no_episodes": "Для цього сезону немає епізодів.",
-    "retry_loading_episodes": "Повторити завантаження епізодів"
+    "share": "Поділитися",
+    "similar": "Схожі Шоу"
   },
   "person": {
     "title": "Персона",
@@ -113,20 +100,8 @@
     "headquarters": "Штаб-квартира",
     "homepage": "Веб-сайт",
     "origin_country": "Країна Походження",
-    "parent_company": "Материнська компанія",
-    "alternative_names": "Альтернативні назви",
-    "logo_gallery": "Галерея логотипів",
     "produced_movies": "Вироблені Фільми",
-    "produced_series": "Вироблені Серіали",
-    "no_description": "Опис відсутній.",
-    "no_alternative_names": "Альтернативні назви відсутні.",
-    "no_logo_gallery": "Логотипи відсутні.",
-    "no_produced_movies": "Немає фільмів, створених цією компанією.",
-    "no_produced_series": "Немає серіалів, створених цією компанією.",
-    "filter_placeholder": "Фільтрувати за назвою...",
-    "sort_title": "Назва",
-    "sort_release_date": "Дата релізу",
-    "sort_rating": "Рейтинг"
+    "produced_series": "Вироблені Серіали"
   },
   "search": {
     "title": "Пошук",
@@ -181,23 +156,6 @@
     "added": "Додано до списку",
     "removed": "Видалено зі списку"
   },
-  "collection": {
-    "title": "Колекція",
-    "overview": "Опис",
-    "parts": "Фільми",
-    "release_timeline": "Хронологія релізів",
-    "images": "Галерея",
-    "total_revenue": "Загальні збори",
-    "translations": "Переклади",
-    "no_overview": "Опис колекції недоступний.",
-    "revenue_label": "Касові збори",
-    "no_timeline_data": "Дані хронології відсутні.",
-    "unknown_release_date": "Невідома дата релізу",
-    "no_translation_title": "Немає локалізованої назви",
-    "translation_overview": "Опис",
-    "no_translation_overview": "Опис для цього перекладу недоступний.",
-    "translation_homepage": "Домашня сторінка"
-  },
   "settings": {
     "title": "Налаштування",
     "appearance": "Зовнішній Вигляд",
@@ -242,16 +200,7 @@
     "show_more": "Показати Більше",
     "show_less": "Показати Менше",
     "unknown": "Невідомо",
-    "not_available": "Н/Д",
-    "external_links": {
-      "title": "Зовнішні посилання",
-      "imdb": "IMDb",
-      "homepage": "Веб-сайт",
-      "facebook": "Facebook",
-      "twitter": "Twitter",
-      "tvdb": "TVDB",
-      "tvrage": "TVRage"
-    }
+    "not_available": "Н/Д"
   },
   "errors": {
     "network_error": "Помилка мережі. Перевірте підключення.",

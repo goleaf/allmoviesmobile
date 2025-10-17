@@ -9,7 +9,7 @@ void main() {
     late LocalStorageService storage;
 
     setUp(() async {
-      SharedPreferences.setMockInitialValues({});
+      SharedPreferences.setMockInitialValues(<String, Object>{});
       final prefs = await SharedPreferences.getInstance();
       storage = LocalStorageService(prefs);
       provider = FavoritesProvider(storage);

@@ -23,7 +23,7 @@ void main() {
       final should = await service.needsRefresh(isar, const [Locale('en')]);
       expect(should, isTrue);
     } catch (_) {
-      // Skip on environments without native Isar
+      // Skip on environments without native Isar (CI without isar native libs)
       expect(true, isTrue);
     }
   });

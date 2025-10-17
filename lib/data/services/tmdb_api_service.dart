@@ -170,6 +170,16 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchCollection(
+    int collectionId, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/collection/$collectionId',
+      queryParameters: queryParameters,
+    );
+  }
+
   Future<Map<String, dynamic>> fetchList(
     String listId, {
     int page = 1,

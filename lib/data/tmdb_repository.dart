@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
+import 'models/collection_model.dart';
 import 'models/configuration_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
@@ -353,6 +354,61 @@ class TmdbRepository {
     final company = Company.fromJson(payload);
     _cache.set(cacheKey, company);
     return company;
+  }
+
+  Future<PaginatedResponse<Collection>> searchCollections(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final trimmed = query.trim();
+    if (trimmed.isEmpty) {
+      return const PaginatedResponse<Collection>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 0,
+        results: <Collection>[],
+      );
+    }
+
+    final cacheKey = 'collection-search-$trimmed-$page';
+    if (!forceRefresh) {
+      final cached = _cache.get<PaginatedResponse<Collection>>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.search('collection', trimmed, page: page);
+    final response = PaginatedResponse<Collection>.fromJson(
+      payload,
+      Collection.fromJson,
+    );
+
+    _cache.set(cacheKey, response, ttlSeconds: CacheService.searchTTL);
+    return response;
+  }
+
+  Future<CollectionDetails> fetchCollectionDetails(
+    int collectionId, {
+    bool forceRefresh = false,
+  }) async {
+    _checkApiKey();
+
+    final cacheKey = 'collection-details-$collectionId';
+    if (!forceRefresh) {
+      final cached = _cache.get<CollectionDetails>(cacheKey);
+      if (cached != null) {
+        return cached;
+      }
+    }
+
+    final payload = await _apiService.fetchCollection(collectionId);
+    final details = CollectionDetails.fromJson(payload);
+    _cache.set(cacheKey, details, ttlSeconds: CacheService.movieDetailsTTL);
+    return details;
   }
 
   Future<SearchResponse> searchMulti(String query, {int page = 1, bool forceRefresh = false}) async {

@@ -58,6 +58,16 @@ class AppStrings {
   static const people = 'People';
   static const companies = 'Companies';
   static const apiExplorer = 'TMDB Explorer';
+  static const collections = 'Collections';
+  static const browseCollections = 'Browse Collections';
+  static const searchCollections = 'Search movie collections';
+  static const popularCollections = 'Popular collections';
+  static const collectionsByGenre = 'Collections by genre';
+  static const collectionsUnavailable = 'We were unable to load collections right now.';
+  static const noCollectionsFound = 'No collections match your search yet.';
+  static const clearSearch = 'Clear search';
+  static const includedTitles = 'Included titles';
+  static const noOverviewAvailable = 'No overview available.';
   static const exploreCollections = 'Explore the latest highlights from our catalog.';
 }
 

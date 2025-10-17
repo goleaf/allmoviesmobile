@@ -5,4 +5,5 @@ class AppRoutes {
   static const String series = '/series';
   static const String people = '/people';
   static const String companies = '/companies';
+  static const String collections = '/collections';
 }

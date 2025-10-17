@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:allmovies_mobile/data/models/movie.dart';
 import 'package:allmovies_mobile/data/models/paginated_response.dart';
+import 'package:allmovies_mobile/data/tv_filter_presets_repository.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 import 'package:allmovies_mobile/providers/series_provider.dart';
 
@@ -104,9 +106,20 @@ class _CountingRepo extends _FakeRepo {
 
 void main() {
   group('SeriesProvider', () {
+    late TvFilterPresetsRepository presetsRepository;
+
+    setUp(() async {
+      SharedPreferences.setMockInitialValues(<String, Object>{});
+      final prefs = await SharedPreferences.getInstance();
+      presetsRepository = TvFilterPresetsRepository(prefs);
+    });
+
     test('initial refresh populates series sections with pagination metadata',
         () async {
-      final provider = SeriesProvider(_FakeRepo());
+      final provider = SeriesProvider(
+        _FakeRepo(),
+        filterPresetsRepository: presetsRepository,
+      );
       await provider.initialized;
 
       expect(provider.isInitialized, isTrue);
@@ -120,7 +133,10 @@ void main() {
     test(
       'applyNetworkFilter loads network shows into popular section',
       () async {
-        final provider = SeriesProvider(_FakeRepo());
+        final provider = SeriesProvider(
+          _FakeRepo(),
+          filterPresetsRepository: presetsRepository,
+        );
         await provider.initialized;
 
         await provider.applyNetworkFilter(213); // Netflix
@@ -133,7 +149,10 @@ void main() {
     );
 
     test('loadNextPage advances pagination state', () async {
-      final provider = SeriesProvider(_FakeRepo());
+      final provider = SeriesProvider(
+        _FakeRepo(),
+        filterPresetsRepository: presetsRepository,
+      );
       await provider.initialized;
 
       expect(provider.sectionState(SeriesSection.popular).currentPage, 1);
@@ -149,7 +168,10 @@ void main() {
     });
 
     test('loadSectionPage handles out of range requests gracefully', () async {
-      final provider = SeriesProvider(_FakeRepo());
+      final provider = SeriesProvider(
+        _FakeRepo(),
+        filterPresetsRepository: presetsRepository,
+      );
       await provider.initialized;
 
       await provider.loadSectionPage(SeriesSection.popular, 99);
@@ -160,7 +182,10 @@ void main() {
     });
 
     test('loadSectionPage surfaces repository errors', () async {
-      final provider = SeriesProvider(_ErroringRepo(2));
+      final provider = SeriesProvider(
+        _ErroringRepo(2),
+        filterPresetsRepository: presetsRepository,
+      );
       await provider.initialized;
 
       await provider.loadSectionPage(SeriesSection.popular, 2);
@@ -170,9 +195,43 @@ void main() {
       expect(state.errorMessage, 'Boom');
     });
 
+    test('jumpToPage loads the requested page when within bounds', () async {
+      final provider = SeriesProvider(
+        _FakeRepo(),
+        filterPresetsRepository: presetsRepository,
+      );
+      await provider.initialized;
+
+      final success = await provider.jumpToPage(SeriesSection.popular, 3);
+
+      expect(success, isTrue);
+      final state = provider.sectionState(SeriesSection.popular);
+      expect(state.currentPage, 3);
+      expect(state.items.first.title, 'P3');
+    });
+
+    test('jumpToPage rejects page numbers outside the available range',
+        () async {
+      final provider = SeriesProvider(
+        _FakeRepo(),
+        filterPresetsRepository: presetsRepository,
+      );
+      await provider.initialized;
+
+      final success = await provider.jumpToPage(SeriesSection.popular, 0);
+
+      expect(success, isFalse);
+      final state = provider.sectionState(SeriesSection.popular);
+      expect(state.currentPage, 1);
+      expect(state.errorMessage, contains('out of range'));
+    });
+
     test('applyTvFilters resets to first page and supports pagination',
         () async {
-      final provider = SeriesProvider(_FakeRepo());
+      final provider = SeriesProvider(
+        _FakeRepo(),
+        filterPresetsRepository: presetsRepository,
+      );
       await provider.initialized;
 
       await provider.applyTvFilters({'sort_by': 'vote_average.desc'});
@@ -186,10 +245,39 @@ void main() {
           'Filtered 2');
     });
 
+    test('applyTvFilters persists the active preset selection', () async {
+      final provider = SeriesProvider(
+        _FakeRepo(),
+        filterPresetsRepository: presetsRepository,
+      );
+      await provider.initialized;
+
+      await provider.applyTvFilters(
+        {'sort_by': 'vote_average.desc'},
+        presetName: 'Critics',
+      );
+
+      final selection = await presetsRepository.loadActiveSelection();
+      expect(selection.presetName, 'Critics');
+      expect(selection.filters, {'sort_by': 'vote_average.desc'});
+      expect(provider.activePresetName, 'Critics');
+      expect(provider.activeFilters, {'sort_by': 'vote_average.desc'});
+
+      await provider.clearTvFilters();
+      final cleared = await presetsRepository.loadActiveSelection();
+      expect(cleared.filters, isNull);
+      expect(cleared.presetName, isNull);
+      expect(provider.activeFilters, isNull);
+      expect(provider.activePresetName, isNull);
+    });
+
     test('loadSectionPage reuses cached data for previously fetched pages',
         () async {
       final repo = _CountingRepo();
-      final provider = SeriesProvider(repo);
+      final provider = SeriesProvider(
+        repo,
+        filterPresetsRepository: presetsRepository,
+      );
       await provider.initialized;
 
       expect(repo.popularCalls, 1);
@@ -208,7 +296,10 @@ void main() {
     test('refreshSection reloads the current page while preserving caches',
         () async {
       final repo = _CountingRepo();
-      final provider = SeriesProvider(repo);
+      final provider = SeriesProvider(
+        repo,
+        filterPresetsRepository: presetsRepository,
+      );
       await provider.initialized;
 
       await provider.loadNextPage(SeriesSection.popular);

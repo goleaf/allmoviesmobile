@@ -438,18 +438,17 @@ class _PaginationControls extends StatelessWidget {
       );
 
       if (selected != null) {
-        if (selected < 1 || selected > state.totalPages) {
+        final success = await provider.jumpToPage(section, selected);
+        if (!success) {
+          final message =
+              provider.sectionState(section).errorMessage ??
+                  'Unable to load page $selected.';
           messenger.showSnackBar(
-            SnackBar(
-              content: Text(
-                '${AppStrings.page} must be between 1 and ${state.totalPages}.',
-              ),
-            ),
+            SnackBar(content: Text(message)),
           );
-          return;
         }
-        await handleAction(() => provider.loadSectionPage(section, selected));
       }
+      controller.dispose();
     }
 
     return Padding(

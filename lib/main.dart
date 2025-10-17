@@ -18,6 +18,7 @@ import 'data/services/background_sync_service.dart';
 import 'data/services/network_quality_service.dart';
 import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
+import 'data/tv_filter_presets_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -233,20 +234,22 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
             return movies;
           },
         ),
-        ChangeNotifierProxyProvider2<PreferencesProvider, OfflineService,
+        Provider<TvFilterPresetsRepository>(
+          create: (_) => TvFilterPresetsRepository(widget.prefs),
+        ),
+        ChangeNotifierProxyProvider2<OfflineService, TvFilterPresetsRepository,
             SeriesProvider>(
-          create: (_) => SeriesProvider(
+          create: (context) => SeriesProvider(
             repo,
-            preferencesProvider: null,
+            filterPresetsRepository: context.read<TvFilterPresetsRepository>(),
             offlineService: offlineService,
           ),
-          update: (_, prefsProvider, offline, series) {
+          update: (_, offline, presetsRepo, series) {
             series ??= SeriesProvider(
               repo,
-              preferencesProvider: prefsProvider,
+              filterPresetsRepository: presetsRepo,
               offlineService: offline,
             );
-            series.bindPreferencesProvider(prefsProvider);
             return series;
           },
         ),

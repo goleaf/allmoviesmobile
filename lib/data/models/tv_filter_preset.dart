@@ -9,8 +9,8 @@ import 'package:flutter/foundation.dart';
 /// dedicated model makes it easy to evolve the structure while maintaining
 /// backwards compatibility with previously stored values.
 @immutable
-class SeriesFilterPreset {
-  const SeriesFilterPreset({
+class TvFilterPreset {
+  const TvFilterPreset({
     required this.name,
     required this.filters,
   });
@@ -22,7 +22,7 @@ class SeriesFilterPreset {
   final Map<String, String> filters;
 
   /// Deserialize a preset from a JSON map as stored in preferences.
-  factory SeriesFilterPreset.fromJson(Map<String, dynamic> json) {
+  factory TvFilterPreset.fromJson(Map<String, dynamic> json) {
     final filters = <String, String>{};
     final rawFilters = json['filters'];
     if (rawFilters is Map) {
@@ -32,7 +32,7 @@ class SeriesFilterPreset {
         }
       });
     }
-    return SeriesFilterPreset(
+    return TvFilterPreset(
       name: json['name'] as String? ?? 'Preset',
       filters: filters,
     );
@@ -48,11 +48,11 @@ class SeriesFilterPreset {
   String toJsonString() => jsonEncode(toJson());
 
   /// Decode a preset from a JSON string. Returns `null` when decoding fails.
-  static SeriesFilterPreset? fromJsonString(String raw) {
+  static TvFilterPreset? fromJsonString(String raw) {
     try {
       final decoded = jsonDecode(raw);
       if (decoded is Map<String, dynamic>) {
-        return SeriesFilterPreset.fromJson(decoded);
+        return TvFilterPreset.fromJson(decoded);
       }
     } catch (_) {
       // Ignore malformed entries so that corrupted presets do not crash the
@@ -62,11 +62,11 @@ class SeriesFilterPreset {
   }
 
   /// Create a copy with updated values.
-  SeriesFilterPreset copyWith({
+  TvFilterPreset copyWith({
     String? name,
     Map<String, String>? filters,
   }) {
-    return SeriesFilterPreset(
+    return TvFilterPreset(
       name: name ?? this.name,
       filters: filters ?? this.filters,
     );

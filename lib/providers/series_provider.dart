@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
 
 import '../data/models/movie.dart';
 import '../data/models/paginated_response.dart';
@@ -7,11 +8,9 @@ import '../data/models/tv_ref_model.dart';
 import '../data/services/offline_service.dart';
 import '../data/tmdb_repository.dart';
 import '../core/constants/app_strings.dart';
-import 'preferences_provider.dart';
+import '../data/tv_filter_presets_repository.dart';
 
 enum SeriesSection { trending, popular, topRated, airingToday, onTheAir }
-
-enum TvFilterPersistenceAction { keep, save, clear }
 
 class SeriesSectionState {
   const SeriesSectionState({
@@ -56,18 +55,18 @@ class SeriesSectionState {
 class SeriesProvider extends ChangeNotifier {
   SeriesProvider(
     this._repository, {
-    PreferencesProvider? preferencesProvider,
+    required TvFilterPresetsRepository filterPresetsRepository,
     OfflineService? offlineService,
     bool autoInitialize = true,
-  }) : _offlineService = offlineService {
-    _preferences = preferencesProvider;
+  })  : _filterPresetsRepository = filterPresetsRepository,
+        _offlineService = offlineService {
     if (autoInitialize) {
       _init();
     }
   }
 
   final TmdbRepository _repository;
-  PreferencesProvider? _preferences;
+  final TvFilterPresetsRepository _filterPresetsRepository;
   final OfflineService? _offlineService;
 
   final Map<SeriesSection, SeriesSectionState> _sections = {
@@ -92,10 +91,6 @@ class SeriesProvider extends ChangeNotifier {
   Map<String, String>? get activeFilters => _activeFilters;
   String? get activePresetName => _activePresetName;
 
-  void bindPreferencesProvider(PreferencesProvider? provider) {
-    _preferences = provider;
-  }
-
   Future<void> get initialized => _initializedCompleter.future;
 
   SeriesSectionState sectionState(SeriesSection section) => _sections[section]!;
@@ -111,16 +106,21 @@ class SeriesProvider extends ChangeNotifier {
   }
 
   Future<void> _init() async {
-    _restorePersistedFilters();
+    await _restorePersistedFilters();
     await refresh(force: true);
   }
 
-  void _restorePersistedFilters() {
-    final saved = _preferences?.tvDiscoverFilterPreset;
-    if (saved != null && saved.isNotEmpty) {
-      _activeFilters = Map<String, String>.from(saved);
+  Future<void> _restorePersistedFilters() async {
+    final selection = await _filterPresetsRepository.loadActiveSelection();
+    final filters = selection.filters;
+    final presetName = selection.presetName;
+    if (filters != null && filters.isNotEmpty) {
+      _activeFilters = Map<String, String>.from(filters);
       _activeNetworkId = null;
+    } else {
+      _activeFilters = null;
     }
+    _activePresetName = presetName;
   }
 
   Future<void> refresh({bool force = false}) async {
@@ -250,6 +250,24 @@ class SeriesProvider extends ChangeNotifier {
   Future<void> loadPreviousPage(SeriesSection section) {
     final previousPage = sectionState(section).currentPage - 1;
     return loadSectionPage(section, previousPage);
+  }
+
+  Future<bool> jumpToPage(SeriesSection section, int page) async {
+    final currentState = sectionState(section);
+    if (page == currentState.currentPage) {
+      return true;
+    }
+    if (page < 1 || page > currentState.totalPages) {
+      _sections[section] = currentState.copyWith(
+        errorMessage: 'Requested page $page is out of range.',
+      );
+      notifyListeners();
+      return false;
+    }
+
+    await loadSectionPage(section, page);
+    final updated = sectionState(section);
+    return updated.currentPage == page && updated.errorMessage == null;
   }
 
   Future<void> refreshSection(SeriesSection section) {
@@ -397,6 +415,8 @@ class SeriesProvider extends ChangeNotifier {
   Future<void> applyNetworkFilter(int networkId) async {
     _activeNetworkId = networkId;
     _activeFilters = null;
+    _activePresetName = null;
+    await _filterPresetsRepository.clearActiveSelection();
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
       isLoading: true,
       errorMessage: null,
@@ -437,8 +457,13 @@ class SeriesProvider extends ChangeNotifier {
     Map<String, String> filters, {
     String? presetName,
   }) async {
-    _activeFilters = Map<String, String>.from(filters);
+    final normalizedFilters = Map<String, String>.from(filters);
+    final normalizedPresetName = presetName?.trim().isEmpty ?? true
+        ? null
+        : presetName!.trim();
+    _activeFilters = normalizedFilters;
     _activeNetworkId = null;
+    _activePresetName = normalizedPresetName;
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
       isLoading: true,
       errorMessage: null,
@@ -456,6 +481,10 @@ class SeriesProvider extends ChangeNotifier {
         pageResults: Map<int, List<Movie>>.unmodifiable({
           response.page: pageItems,
         }),
+      );
+      await _filterPresetsRepository.persistActiveSelection(
+        filters: normalizedFilters,
+        presetName: _activePresetName,
       );
     } catch (error) {
       _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
@@ -475,10 +504,8 @@ class SeriesProvider extends ChangeNotifier {
   Future<void> clearTvFilters() async {
     _activeFilters = null;
     _activeNetworkId = null;
-    final prefs = _preferences;
-    if (prefs != null) {
-      await prefs.setTvDiscoverFilterPreset(null);
-    }
+    _activePresetName = null;
+    await _filterPresetsRepository.clearActiveSelection();
     final currentState = _sections[SeriesSection.popular]!;
     _sections[SeriesSection.popular] = currentState.copyWith(
       isLoading: true,
@@ -514,6 +541,7 @@ class SeriesProvider extends ChangeNotifier {
     _activeNetworkId = null;
     _activeFilters = null;
     _activePresetName = null;
+    await _filterPresetsRepository.clearActiveSelection();
     await refresh(force: true);
   }
 }

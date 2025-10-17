@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/models/movie.dart';
+import '../../../data/services/offline_service.dart';
 import '../../../data/tmdb_repository.dart';
+import '../../../data/tv_filter_presets_repository.dart';
 import '../../../providers/series_provider.dart';
 
 class SeriesCategoryScreen extends StatelessWidget {
@@ -15,7 +17,11 @@ class SeriesCategoryScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<SeriesProvider>(
-      create: (_) => SeriesProvider(context.read<TmdbRepository>()),
+      create: (context) => SeriesProvider(
+        context.read<TmdbRepository>(),
+        filterPresetsRepository: context.read<TvFilterPresetsRepository>(),
+        offlineService: context.read<OfflineService?>(),
+      ),
       child: _SeriesCategoryView(arguments: arguments),
     );
   }

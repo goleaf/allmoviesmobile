@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../../data/models/series_filter_preset.dart';
-import '../../../providers/preferences_provider.dart';
+import '../../../data/models/tv_filter_preset.dart';
+import '../../../data/tv_filter_presets_repository.dart';
 
 /// Arguments passed when navigating to [SeriesFiltersScreen].
 class SeriesFiltersScreenArguments {
@@ -258,9 +258,9 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       return;
     }
 
-    final prefs = context.read<PreferencesProvider>();
-    await prefs.saveSeriesFilterPreset(
-      SeriesFilterPreset(name: trimmed, filters: filters),
+    final repository = context.read<TvFilterPresetsRepository>();
+    await repository.savePreset(
+      TvFilterPreset(name: trimmed, filters: filters),
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -274,8 +274,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }
 
   Future<String?> _promptPresetName() async {
-    final prefs = context.read<PreferencesProvider>();
-    final existing = prefs.seriesFilterPresets;
+    final repository = context.read<TvFilterPresetsRepository>();
+    final existing = await repository.loadPresets();
     final defaultName = _currentPresetName ??
         'Preset ${existing.length + 1}';
     final controller = TextEditingController(text: defaultName);
@@ -313,8 +313,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }
 
   Future<void> _showPresetsSheet() async {
-    final prefs = context.read<PreferencesProvider>();
-    final presets = prefs.seriesFilterPresets;
+    final repository = context.read<TvFilterPresetsRepository>();
+    final presets = await repository.loadPresets();
     if (presets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No saved presets yet.')),
@@ -402,8 +402,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }
 
   Future<void> _deletePreset(String name) async {
-    final prefs = context.read<PreferencesProvider>();
-    await prefs.deleteSeriesFilterPreset(name);
+    final repository = context.read<TvFilterPresetsRepository>();
+    await repository.deletePreset(name);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Deleted preset "$name".')),

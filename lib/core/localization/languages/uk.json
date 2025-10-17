@@ -10,6 +10,7 @@
     "series": "Серіали",
     "people": "Люди",
     "companies": "Компанії",
+    "networks": "Мережі",
     "search": "Пошук",
     "discover": "Огляд",
     "favorites": "Обране",
@@ -113,6 +114,16 @@
     "origin_country": "Країна Походження",
     "produced_movies": "Вироблені Фільми",
     "produced_series": "Вироблені Серіали"
+  },
+  "network": {
+    "title": "Мережі",
+    "search_placeholder": "Пошук мереж",
+    "search_hint": "наприклад, Netflix",
+    "popular": "Популярні мережі",
+    "by_country": "Мережі за країнами",
+    "search_results": "Результати пошуку",
+    "empty": "Мережі не знайдені. Спробуйте інший запит.",
+    "error_loading": "Не вдалося завантажити мережі. Повторіть спробу."
   },
   "search": {
     "title": "Пошук",

@@ -3,13 +3,12 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
-import '../screens/explorer/tmdb_v4_reference_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
-import '../screens/videos/videos_screen.dart';
+import '../screens/networks/networks_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -78,12 +77,6 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, MoviesScreen.routeName),
           ),
           ListTile(
-            leading: const Icon(Icons.play_circle_outline),
-            title: const Text(AppStrings.videos),
-            selected: currentRoute == VideosScreen.routeName,
-            onTap: () => _navigateTo(context, VideosScreen.routeName),
-          ),
-          ListTile(
             leading: const Icon(Icons.live_tv_outlined),
             title: const Text(AppStrings.series),
             selected: currentRoute == SeriesScreen.routeName,
@@ -102,16 +95,16 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
           ),
           ListTile(
+            leading: const Icon(Icons.account_tree_outlined),
+            title: const Text(AppStrings.networks),
+            selected: currentRoute == NetworksScreen.routeName,
+            onTap: () => _navigateTo(context, NetworksScreen.routeName),
+          ),
+          ListTile(
             leading: const Icon(Icons.explore_outlined),
             title: const Text(AppStrings.apiExplorer),
             selected: currentRoute == ApiExplorerScreen.routeName,
             onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
-          ),
-          ListTile(
-            leading: const Icon(Icons.api_rounded),
-            title: const Text(AppStrings.tmdbV4Reference),
-            selected: currentRoute == TmdbV4ReferenceScreen.routeName,
-            onTap: () => _navigateTo(context, TmdbV4ReferenceScreen.routeName),
           ),
           const Divider(),
           ListTile(
@@ -130,10 +123,6 @@ class AppDrawer extends StatelessWidget {
                 applicationName: AppStrings.appName,
                 applicationVersion: '1.0.0',
                 applicationIcon: const Icon(Icons.movie_outlined, size: 48),
-                children: const [
-                  SizedBox(height: 16),
-                  Text(AppStrings.createdBy),
-                ],
               );
             },
           ),

@@ -10,6 +10,7 @@
     "series": "Series",
     "people": "People",
     "companies": "Companies",
+    "networks": "Networks",
     "search": "Search",
     "discover": "Discover",
     "favorites": "Favorites",
@@ -113,6 +114,16 @@
     "origin_country": "Origin Country",
     "produced_movies": "Produced Movies",
     "produced_series": "Produced Series"
+  },
+  "network": {
+    "title": "Networks",
+    "search_placeholder": "Search networks",
+    "search_hint": "e.g. Netflix",
+    "popular": "Popular networks",
+    "by_country": "Networks by country",
+    "search_results": "Search results",
+    "empty": "No networks found. Try another search.",
+    "error_loading": "Unable to load networks. Please try again."
   },
   "search": {
     "title": "Search",

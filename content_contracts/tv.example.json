@@ -36,7 +36,13 @@
   "vote_count": 21000,
   "popularity": 300.2,
   "homepage": "https://www.hbo.com/game-of-thrones",
-  "external_ids": { "imdb_id": "tt0944947" },
+  "external_ids": {
+    "imdb_id": "tt0944947",
+    "facebook_id": "GameOfThrones",
+    "twitter_id": "GameOfThrones",
+    "tvdb_id": "121361",
+    "tvrage_id": "24493"
+  },
   "seasons": [
     {
       "season_number": 1,

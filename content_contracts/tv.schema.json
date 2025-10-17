@@ -47,7 +47,13 @@
     "homepage": { "type": ["string", "null"], "format": "uri" },
     "external_ids": {
       "type": "object",
-      "properties": { "imdb_id": { "type": ["string", "null"] } },
+      "properties": {
+        "imdb_id": { "type": ["string", "null"] },
+        "facebook_id": { "type": ["string", "null"] },
+        "twitter_id": { "type": ["string", "null"] },
+        "tvdb_id": { "type": ["string", "null"] },
+        "tvrage_id": { "type": ["string", "null"] }
+      },
       "additionalProperties": false,
       "default": {}
     },

@@ -199,7 +199,16 @@
     "show_more": "Show More",
     "show_less": "Show Less",
     "unknown": "Unknown",
-    "not_available": "N/A"
+    "not_available": "N/A",
+    "external_links": {
+      "title": "External Links",
+      "imdb": "IMDb",
+      "homepage": "Homepage",
+      "facebook": "Facebook",
+      "twitter": "Twitter",
+      "tvdb": "TVDB",
+      "tvrage": "TVRage"
+    }
   },
   "errors": {
     "network_error": "Network error. Please check your connection.",

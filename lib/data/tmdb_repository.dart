@@ -27,7 +27,7 @@ import 'models/person_detail_model.dart';
 import 'models/search_filters.dart';
 import 'models/search_result_model.dart';
 import 'models/season_model.dart';
-import 'models/episode_model.dart';
+import 'models/episode_group_model.dart';
 import 'models/tv_detailed_model.dart';
 import 'models/tv_ref_model.dart';
 import 'models/watch_provider_model.dart';
@@ -816,25 +816,40 @@ class TmdbRepository {
     );
   }
 
-  /// Returns alternative episode orderings (episode groups) for a TV show.
-  ///
-  /// Source endpoint: `GET /3/tv/{tv_id}/episode_groups`.
-  /// The TMDB response places the data under the `results` array, which is
-  /// mapped here into strongly typed [EpisodeGroup] instances.
   Future<List<EpisodeGroup>> fetchTvEpisodeGroups(
     int tvId, {
     bool forceRefresh = false,
   }) async {
-    final payload = await _getJson('/tv/$tvId/episode_groups');
-    final results = payload['results'];
-    if (results is! List) {
-      return const [];
-    }
+    final cacheKey = 'tv_episode_groups::$tvId';
+    return _cached<List<EpisodeGroup>>(
+      cacheKey,
+      () async {
+        final payload = await _getJson('/tv/$tvId/episode_groups');
+        final results = payload['results'];
+        if (results is! List) {
+          return const <EpisodeGroup>[];
+        }
 
-    return results
-        .whereType<Map<String, dynamic>>()
-        .map(EpisodeGroup.fromJson)
-        .toList(growable: false);
+        final groups = <EpisodeGroup>[];
+        for (final item in results.whereType<Map<String, dynamic>>()) {
+          final groupId = item['id'];
+          if (groupId is! String || groupId.isEmpty) {
+            continue;
+          }
+
+          final detail = await _getJson('/tv/episode_group/$groupId');
+          final merged = <String, dynamic>{
+            ...item,
+            ...detail,
+          };
+          groups.add(EpisodeGroup.fromJson(merged));
+        }
+
+        return groups;
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.movieDetailsTTL,
+    );
   }
 
   Future<Map<String, String>> fetchTvContentRatings(

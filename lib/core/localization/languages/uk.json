@@ -96,13 +96,10 @@
     "similar": "Схожі Шоу",
     "no_images": "Немає доступних зображень для цього сезону",
     "season_images_title": "Зображення сезону {seasonNumber}",
+    "no_episodes": "Немає доступних епізодів",
     "episode_groups": "Групи епізодів",
-    "episode_groups_hint": "Альтернативні порядки серій, наприклад DVD-випуски чи сюжетні арки.",
-    "episode_groups_empty": "Альтернативні порядки серій недоступні.",
-    "episode_group_fallback": "Група {index}",
-    "episode_group_node_fallback": "Набір {order}",
-    "episode_group_no_nodes": "Для цього порядку ще немає згрупованих епізодів.",
-    "episode_group_no_episodes": "У цій групі немає епізодів."
+    "episode_group_no_episodes": "У цій групі немає епізодів",
+    "episode_group_order": "Порядок {order}"
   },
   "person": {
     "title": "Персона",

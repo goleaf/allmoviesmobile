@@ -103,8 +103,20 @@
     "headquarters": "Штаб-квартира",
     "homepage": "Веб-сайт",
     "origin_country": "Страна Происхождения",
+    "parent_company": "Материнская компания",
+    "alternative_names": "Альтернативные названия",
+    "logo_gallery": "Галерея логотипов",
     "produced_movies": "Произведенные Фильмы",
-    "produced_series": "Произведенные Сериалы"
+    "produced_series": "Произведенные Сериалы",
+    "no_description": "Описание недоступно.",
+    "no_alternative_names": "Альтернативные названия отсутствуют.",
+    "no_logo_gallery": "Логотипы отсутствуют.",
+    "no_produced_movies": "Нет фильмов, произведённых этой компанией.",
+    "no_produced_series": "Нет сериалов, произведённых этой компанией.",
+    "filter_placeholder": "Фильтр по названию...",
+    "sort_title": "Название",
+    "sort_release_date": "Дата релиза",
+    "sort_rating": "Рейтинг"
   },
   "search": {
     "title": "Поиск",

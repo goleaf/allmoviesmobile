@@ -196,6 +196,26 @@ class TmdbApiService {
     );
   }
 
+  Future<Map<String, dynamic>> fetchCompanyAlternativeNames(
+    int companyId, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/company/$companyId/alternative_names',
+      queryParameters: queryParameters,
+    );
+  }
+
+  Future<Map<String, dynamic>> fetchCompanyImages(
+    int companyId, {
+    Map<String, String>? queryParameters,
+  }) {
+    return _getJson(
+      '/$_apiVersion/company/$companyId/images',
+      queryParameters: queryParameters,
+    );
+  }
+
   Future<Map<String, dynamic>> fetchList(
     String listId, {
     int page = 1,

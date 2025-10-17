@@ -416,7 +416,51 @@ class TmdbRepository {
     }
 
     final payload = await _apiService.fetchCompanyDetails(companyId);
-    final company = Company.fromJson(payload);
+
+    List<String> alternativeNames = const [];
+    try {
+      final altPayload = await _apiService.fetchCompanyAlternativeNames(companyId);
+      final results = altPayload['results'];
+      if (results is List) {
+        alternativeNames = results
+            .whereType<Map<String, dynamic>>()
+            .map((item) => item['name'])
+            .whereType<String>()
+            .map((name) => name.trim())
+            .where((name) => name.isNotEmpty)
+            .toList(growable: false);
+      }
+    } catch (_) {
+      alternativeNames = const [];
+    }
+
+    List<Map<String, dynamic>> logos = const [];
+    try {
+      final imagesPayload = await _apiService.fetchCompanyImages(companyId);
+      final logosPayload = imagesPayload['logos'];
+      if (logosPayload is List) {
+        logos = logosPayload
+            .whereType<Map<String, dynamic>>()
+            .map((logo) => {
+                  'file_path': logo['file_path'],
+                  'width': logo['width'],
+                  'height': logo['height'],
+                  'aspect_ratio': logo['aspect_ratio'],
+                  'vote_average': logo['vote_average'],
+                  'vote_count': logo['vote_count'],
+                })
+            .where((logo) => logo['file_path'] != null)
+            .toList(growable: false);
+      }
+    } catch (_) {
+      logos = const [];
+    }
+
+    final enrichedPayload = Map<String, dynamic>.from(payload)
+      ..['alternative_names'] = alternativeNames
+      ..['logo_gallery'] = logos;
+
+    final company = Company.fromJson(enrichedPayload);
     _cache.set(cacheKey, company);
     return company;
   }

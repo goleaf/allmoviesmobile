@@ -103,8 +103,20 @@
     "headquarters": "Штаб-квартира",
     "homepage": "Веб-сайт",
     "origin_country": "Країна Походження",
+    "parent_company": "Материнська компанія",
+    "alternative_names": "Альтернативні назви",
+    "logo_gallery": "Галерея логотипів",
     "produced_movies": "Вироблені Фільми",
-    "produced_series": "Вироблені Серіали"
+    "produced_series": "Вироблені Серіали",
+    "no_description": "Опис відсутній.",
+    "no_alternative_names": "Альтернативні назви відсутні.",
+    "no_logo_gallery": "Логотипи відсутні.",
+    "no_produced_movies": "Немає фільмів, створених цією компанією.",
+    "no_produced_series": "Немає серіалів, створених цією компанією.",
+    "filter_placeholder": "Фільтрувати за назвою...",
+    "sort_title": "Назва",
+    "sort_release_date": "Дата релізу",
+    "sort_rating": "Рейтинг"
   },
   "search": {
     "title": "Пошук",

@@ -103,8 +103,20 @@
     "headquarters": "Headquarters",
     "homepage": "Homepage",
     "origin_country": "Origin Country",
+    "parent_company": "Parent Company",
+    "alternative_names": "Alternative Names",
+    "logo_gallery": "Logo Gallery",
     "produced_movies": "Produced Movies",
-    "produced_series": "Produced Series"
+    "produced_series": "Produced Series",
+    "no_description": "No description available.",
+    "no_alternative_names": "No alternative names available.",
+    "no_logo_gallery": "No logos available.",
+    "no_produced_movies": "No produced movies available.",
+    "no_produced_series": "No produced TV shows available.",
+    "filter_placeholder": "Filter titles...",
+    "sort_title": "Title",
+    "sort_release_date": "Release Date",
+    "sort_rating": "Rating"
   },
   "search": {
     "title": "Search",

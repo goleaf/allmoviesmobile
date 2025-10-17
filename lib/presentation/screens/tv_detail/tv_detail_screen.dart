@@ -7,12 +7,14 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/credit_model.dart';
 import '../../../data/models/episode_model.dart';
+import '../../../data/models/image_model.dart';
 import '../../../data/models/keyword_model.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/models/network_model.dart';
 import '../../../data/models/season_model.dart';
 import '../../../data/models/tv_detailed_model.dart';
 import '../../../data/models/video_model.dart';
+import '../../../data/models/media_images.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/tv_detail_provider.dart';
@@ -636,6 +638,9 @@ class _TVDetailView extends StatelessWidget {
     final season = provider.seasonForNumber(seasonNumber);
     final isLoading = provider.isSeasonLoading(seasonNumber);
     final error = provider.seasonError(seasonNumber);
+    final images = provider.seasonImagesForNumber(seasonNumber);
+    final imagesLoading = provider.isSeasonImagesLoading(seasonNumber);
+    final imagesError = provider.seasonImagesError(seasonNumber);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -652,6 +657,14 @@ class _TVDetailView extends StatelessWidget {
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
+              _SeasonImageGallery(
+                provider: provider,
+                seasonNumber: seasonNumber,
+                images: images,
+                isLoading: imagesLoading,
+                error: imagesError,
+              ),
+              const SizedBox(height: 16),
               if (isLoading)
                 const Center(child: CircularProgressIndicator())
               else if (error != null)
@@ -662,10 +675,10 @@ class _TVDetailView extends StatelessWidget {
               else if (season != null && season.episodes.isNotEmpty)
                 ...season.episodes.map(
                   (episode) => _EpisodeCard(
-                    episode: episode,
-                    tvId: details.id,
-                    seasonNumber: seasonNumber,
-                  ),
+                        episode: episode,
+                        tvId: details.id,
+                        seasonNumber: seasonNumber,
+                      ),
                 )
               else
                 const Center(child: Text('No episodes available')),
@@ -1246,6 +1259,137 @@ class _SeasonCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SeasonImageGallery extends StatelessWidget {
+  const _SeasonImageGallery({
+    required this.provider,
+    required this.seasonNumber,
+    required this.images,
+    required this.isLoading,
+    required this.error,
+  });
+
+  final TvDetailProvider provider;
+  final int seasonNumber;
+  final MediaImages? images;
+  final bool isLoading;
+  final String? error;
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const SizedBox(
+        height: 150,
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (error != null) {
+      return ErrorDisplay(
+        message: error!,
+        onRetry: () => provider.retrySeasonImages(seasonNumber),
+      );
+    }
+
+    if (images == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (!images!.hasAny) {
+      return const Text('No images available for this season');
+    }
+
+    final theme = Theme.of(context);
+    final sections = <Widget>[
+      Text(
+        'Season images',
+        style: theme.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ),
+      const SizedBox(height: 12),
+    ];
+
+    void addSection(
+      String title,
+      List<ImageModel> items,
+      MediaImageType type,
+      MediaImageSize size,
+      double height, {
+      double? width,
+    }) {
+      if (items.isEmpty) {
+        return;
+      }
+      sections.add(Text(
+        title,
+        style: theme.textTheme.titleSmall?.copyWith(
+          fontWeight: FontWeight.w600,
+        ),
+      ));
+      sections.add(const SizedBox(height: 8));
+      sections.add(
+        SizedBox(
+          height: height,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemBuilder: (context, index) {
+              final image = items[index];
+              return ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: MediaImage(
+                  path: image.filePath,
+                  type: type,
+                  size: size,
+                  width: width,
+                  height: height,
+                  fit: BoxFit.cover,
+                ),
+              );
+            },
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemCount: items.length,
+          ),
+        ),
+      );
+      sections.add(const SizedBox(height: 16));
+    }
+
+    addSection(
+      'Posters',
+      images!.posters,
+      MediaImageType.poster,
+      MediaImageSize.w342,
+      200,
+      width: 140,
+    );
+    addSection(
+      'Backdrops',
+      images!.backdrops,
+      MediaImageType.backdrop,
+      MediaImageSize.w780,
+      140,
+      width: 240,
+    );
+    addSection(
+      'Stills',
+      images!.stills,
+      MediaImageType.still,
+      MediaImageSize.w300,
+      120,
+      width: 200,
+    );
+
+    if (sections.isNotEmpty && sections.last is SizedBox) {
+      sections.removeLast();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: sections,
     );
   }
 }

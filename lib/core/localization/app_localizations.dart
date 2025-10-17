@@ -54,6 +54,9 @@ class AppLocalizations {
         'overview': 'Overview',
         'season': 'Season',
         'episodes': 'Episodes',
+        'episode_groups': 'Episode Groups',
+        'no_episode_groups': 'No alternative episode groups available.',
+        'no_episodes_in_group': 'No episodes in this group.',
       },
       'movie': {
         'overview': 'Overview',

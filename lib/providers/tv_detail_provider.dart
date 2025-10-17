@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 
+import '../data/models/episode_group_model.dart';
 import '../data/models/episode_model.dart';
 import '../data/models/season_model.dart';
 import '../data/models/tv_detailed_model.dart';
@@ -20,6 +21,10 @@ class TvDetailProvider extends ChangeNotifier {
   final Map<int, Season> _seasonDetails = <int, Season>{};
   final Set<int> _loadingSeasons = <int>{};
   final Map<int, String> _seasonErrors = <int, String>{};
+  List<EpisodeGroup> _episodeGroups = const <EpisodeGroup>[];
+  bool _episodeGroupsLoading = false;
+  String? _episodeGroupsError;
+  String? _selectedEpisodeGroupId;
 
   TVDetailed? get details => _details;
   bool get isLoading => _isLoading;
@@ -27,6 +32,29 @@ class TvDetailProvider extends ChangeNotifier {
   int? get selectedSeasonNumber => _selectedSeasonNumber;
 
   List<Season> get seasons => _details?.seasons ?? const [];
+
+  List<EpisodeGroup> get episodeGroups => _episodeGroups;
+  bool get areEpisodeGroupsLoading => _episodeGroupsLoading;
+  String? get episodeGroupsError => _episodeGroupsError;
+  String? get selectedEpisodeGroupId => _selectedEpisodeGroupId;
+
+  EpisodeGroup? get selectedEpisodeGroup {
+    if (_episodeGroups.isEmpty) {
+      return null;
+    }
+    if (_selectedEpisodeGroupId == null) {
+      return _episodeGroups.first;
+    }
+    for (final group in _episodeGroups) {
+      if (group.id == _selectedEpisodeGroupId) {
+        return group;
+      }
+    }
+    return _episodeGroups.first;
+  }
+
+  List<EpisodeGroupNode> get selectedEpisodeGroupNodes =>
+      selectedEpisodeGroup?.groups ?? const <EpisodeGroupNode>[];
 
   Season? seasonForNumber(int? seasonNumber) {
     if (seasonNumber == null) {
@@ -59,6 +87,9 @@ class TvDetailProvider extends ChangeNotifier {
     }
     notifyListeners();
 
+    final episodeGroupsFuture =
+        _loadEpisodeGroups(forceRefresh: forceRefresh);
+
     try {
       final details = await _repository.fetchTvDetails(
         tvId,
@@ -84,6 +115,8 @@ class TvDetailProvider extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+
+    await episodeGroupsFuture;
   }
 
   Future<void> refresh() => load(forceRefresh: true);
@@ -99,6 +132,20 @@ class TvDetailProvider extends ChangeNotifier {
 
   Future<void> retrySeason(int seasonNumber) =>
       _ensureSeasonLoaded(seasonNumber, forceRefresh: true);
+
+  Future<void> retryEpisodeGroups() =>
+      _loadEpisodeGroups(forceRefresh: true);
+
+  void selectEpisodeGroup(String groupId) {
+    if (_selectedEpisodeGroupId == groupId) {
+      return;
+    }
+    if (!_episodeGroups.any((group) => group.id == groupId)) {
+      return;
+    }
+    _selectedEpisodeGroupId = groupId;
+    notifyListeners();
+  }
 
   Future<void> _ensureSeasonLoaded(
     int seasonNumber, {
@@ -131,6 +178,62 @@ class TvDetailProvider extends ChangeNotifier {
       _loadingSeasons.remove(seasonNumber);
       notifyListeners();
     }
+  }
+
+  Future<void> _loadEpisodeGroups({bool forceRefresh = false}) async {
+    if (_episodeGroupsLoading && !forceRefresh) {
+      return;
+    }
+
+    if (forceRefresh) {
+      _episodeGroups = const <EpisodeGroup>[];
+      _selectedEpisodeGroupId = null;
+      _episodeGroupsError = null;
+    }
+
+    _episodeGroupsLoading = true;
+    notifyListeners();
+
+    try {
+      final groups = await _repository.fetchTvEpisodeGroups(
+        tvId,
+        forceRefresh: forceRefresh,
+      );
+      _episodeGroups = groups;
+      _episodeGroupsError = null;
+      _selectedEpisodeGroupId =
+          _resolveEpisodeGroupSelection(_selectedEpisodeGroupId, groups);
+    } catch (error) {
+      _episodeGroupsError = _mapError(error);
+      if (_episodeGroups.isEmpty) {
+        _selectedEpisodeGroupId = null;
+      } else {
+        _selectedEpisodeGroupId = _resolveEpisodeGroupSelection(
+          _selectedEpisodeGroupId,
+          _episodeGroups,
+        );
+      }
+    } finally {
+      _episodeGroupsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  String? _resolveEpisodeGroupSelection(
+    String? currentSelection,
+    List<EpisodeGroup> groups,
+  ) {
+    if (groups.isEmpty) {
+      return null;
+    }
+    if (currentSelection != null) {
+      for (final group in groups) {
+        if (group.id == currentSelection) {
+          return group.id;
+        }
+      }
+    }
+    return groups.first.id;
   }
 
   void _mergeSeasonIntoDetails(Season season) {

@@ -2,10 +2,10 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../core/utils/media_image_helper.dart';
-
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/media_image_helper.dart';
 import '../../../data/models/credit_model.dart';
+import '../../../data/models/episode_group_model.dart';
 import '../../../data/models/episode_model.dart';
 import '../../../data/models/keyword_model.dart';
 import '../../../data/models/movie.dart';
@@ -24,8 +24,6 @@ import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';
-import '../../../core/utils/media_image_helper.dart';
-// duplicate import removed
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../navigation/season_detail_args.dart';
 import '../season_detail/season_detail_screen.dart';
@@ -99,6 +97,7 @@ class _TVDetailView extends StatelessWidget {
                 // Content ratings not available on TVDetailed model currently
                 _buildGenres(context, details, loc),
                 _buildNetworks(context, details, loc),
+                const EpisodeGroupsSection(),
                 _buildSeasons(context, details, loc, provider),
                 _buildCast(context, details, loc),
                 _buildVideos(context, details, loc),
@@ -1197,6 +1196,290 @@ class _NetworkLogo extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
             ),
+    );
+  }
+}
+
+class EpisodeGroupsSection extends StatelessWidget {
+  const EpisodeGroupsSection({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<TvDetailProvider>();
+    final loc = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final groups = provider.episodeGroups;
+    final isLoading = provider.areEpisodeGroupsLoading;
+    final error = provider.episodeGroupsError;
+    final selectedGroup = provider.selectedEpisodeGroup;
+    final currentSelection =
+        provider.selectedEpisodeGroupId ?? selectedGroup?.id;
+
+    final shouldDisplay = isLoading || error != null || groups.isNotEmpty;
+    if (!shouldDisplay) {
+      return const SizedBox.shrink();
+    }
+
+    final content = <Widget>[
+      Text(
+        loc.t('tv.episode_groups'),
+        style:
+            theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+      ),
+      const SizedBox(height: 8),
+    ];
+
+    if (groups.isNotEmpty) {
+      content.add(
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: [
+              for (final group in groups)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text(
+                      group.name.isNotEmpty
+                          ? group.name
+                          : loc.t('tv.episodes'),
+                    ),
+                    selected: currentSelection == group.id,
+                    onSelected: (selected) {
+                      if (selected) {
+                        provider.selectEpisodeGroup(group.id);
+                      }
+                    },
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+      content.add(const SizedBox(height: 12));
+    }
+
+    if (isLoading && groups.isEmpty) {
+      content.add(
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(child: LoadingIndicator()),
+        ),
+      );
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: content,
+        ),
+      );
+    }
+
+    if (error != null) {
+      content.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: ErrorDisplay(
+            message: error,
+            onRetry: provider.retryEpisodeGroups,
+          ),
+        ),
+      );
+    }
+
+    if (groups.isEmpty) {
+      content.add(
+        Text(
+          loc.t('tv.no_episode_groups'),
+          style: theme.textTheme.bodyMedium,
+        ),
+      );
+    } else if (selectedGroup != null) {
+      if (isLoading) {
+        content.add(
+          const Padding(
+            padding: EdgeInsets.only(bottom: 12),
+            child: LinearProgressIndicator(minHeight: 3),
+          ),
+        );
+      }
+      content.add(_EpisodeGroupNodesList(group: selectedGroup));
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: content,
+      ),
+    );
+  }
+}
+
+class _EpisodeGroupNodesList extends StatelessWidget {
+  const _EpisodeGroupNodesList({required this.group});
+
+  final EpisodeGroup group;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final nodes = group.groups;
+    if (nodes.isEmpty) {
+      return Text(
+        loc.t('tv.no_episodes_in_group'),
+        style: Theme.of(context).textTheme.bodyMedium,
+      );
+    }
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: nodes.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        return _EpisodeGroupNodeTile(node: nodes[index]);
+      },
+    );
+  }
+}
+
+class _EpisodeGroupNodeTile extends StatelessWidget {
+  const _EpisodeGroupNodeTile({required this.node});
+
+  final EpisodeGroupNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final title =
+        node.name.isNotEmpty ? node.name : loc.t('tv.episodes');
+
+    final children = <Widget>[];
+    if (node.episodes.isEmpty) {
+      children.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Text(
+            loc.t('tv.no_episodes_in_group'),
+            style: theme.textTheme.bodyMedium,
+          ),
+        ),
+      );
+    } else {
+      for (var i = 0; i < node.episodes.length; i++) {
+        if (i > 0) {
+          children.add(const Divider(height: 1));
+        }
+        children.add(_EpisodeGroupEpisodeTile(episode: node.episodes[i]));
+      }
+    }
+
+    return Card(
+      elevation: 0,
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        title: Text(
+          title,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        subtitle: node.overview?.isNotEmpty == true
+            ? Text(
+                node.overview!,
+                style: theme.textTheme.bodySmall,
+              )
+            : null,
+        children: children,
+      ),
+    );
+  }
+}
+
+class _EpisodeGroupEpisodeTile extends StatelessWidget {
+  const _EpisodeGroupEpisodeTile({required this.episode});
+
+  final EpisodeGroupEpisode episode;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final code = _formatEpisodeCode(episode);
+    final title = episode.name.isNotEmpty ? '$code • ${episode.name}' : code;
+    final subtitleColor =
+        theme.textTheme.bodySmall?.color?.withOpacity(0.7);
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _EpisodeStillImage(path: episode.stillPath),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                if (episode.airDate != null && episode.airDate!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      episode.airDate!,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: subtitleColor,
+                      ),
+                    ),
+                  ),
+                if (episode.overview != null && episode.overview!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Text(
+                      episode.overview!,
+                      style: theme.textTheme.bodyMedium,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _formatEpisodeCode(EpisodeGroupEpisode episode) {
+    String formatNumber(int number) => number.toString().padLeft(2, '0');
+    return 'S${formatNumber(episode.seasonNumber)}E${formatNumber(episode.episodeNumber)}';
+  }
+}
+
+class _EpisodeStillImage extends StatelessWidget {
+  const _EpisodeStillImage({this.path});
+
+  final String? path;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 104,
+      height: 58,
+      child: MediaImage(
+        path: path,
+        type: MediaImageType.still,
+        width: 104,
+        height: 58,
+        fit: BoxFit.cover,
+        borderRadius: BorderRadius.circular(8),
+      ),
     );
   }
 }

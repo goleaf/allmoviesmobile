@@ -911,14 +911,14 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Embedded YouTube player screen
 - [x] Full-screen mode
 - [x] Play/pause controls
-- [ ] Quality selection
-- [ ] Multiple video types support
+- [x] Quality selection
+- [x] Multiple video types support
 - [x] Video thumbnails (in detail screen)
 - [x] Auto-play toggle
 
 **Files to Create**:
-- `lib/presentation/screens/video_player/video_player_screen.dart`
-- Add `youtube_player_flutter` package
+- [x] `lib/presentation/screens/video_player/video_player_screen.dart`
+- [x] Add `youtube_player_flutter` package
 
 ---
 

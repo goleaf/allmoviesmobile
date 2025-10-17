@@ -7,14 +7,18 @@
   "still_path": "/e7.jpg",
   "vote_average": 8.3,
   "vote_count": 3200,
-  "videos": [
+  "guest_stars": [
     {
-      "key": "abc123",
-      "site": "YouTube",
-      "type": "Trailer",
-      "name": "Episode 7 Promo",
-      "official": true,
-      "published_at": "2011-05-06T12:00:00Z"
+      "id": 1223786,
+      "name": "Jason Momoa",
+      "character": "Khal Drogo",
+      "profile_path": "/3s.png"
+    },
+    {
+      "id": 17419,
+      "name": "Harry Lloyd",
+      "character": "Viserys Targaryen",
+      "profile_path": "/8d.png"
     }
   ]
 }

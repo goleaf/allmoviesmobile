@@ -58,8 +58,7 @@ mixin _$TVDetailed {
   String? get homepage => throw _privateConstructorUsedError;
   @JsonKey(name: 'external_ids')
   ExternalIds get externalIds => throw _privateConstructorUsedError;
-  @JsonKey(name: 'episode_groups')
-  List<EpisodeGroup> get episodeGroups => throw _privateConstructorUsedError;
+  List<Cast> get cast => throw _privateConstructorUsedError;
   List<Season> get seasons => throw _privateConstructorUsedError;
   List<Video> get videos => throw _privateConstructorUsedError;
   List<ImageModel> get images => throw _privateConstructorUsedError;
@@ -107,7 +106,7 @@ abstract class $TVDetailedCopyWith<$Res> {
     String? status,
     String? homepage,
     @JsonKey(name: 'external_ids') ExternalIds externalIds,
-    @JsonKey(name: 'episode_groups') List<EpisodeGroup> episodeGroups,
+    List<Cast> cast,
     List<Season> seasons,
     List<Video> videos,
     List<ImageModel> images,
@@ -156,7 +155,7 @@ class _$TVDetailedCopyWithImpl<$Res, $Val extends TVDetailed>
     Object? status = freezed,
     Object? homepage = freezed,
     Object? externalIds = null,
-    Object? episodeGroups = null,
+    Object? cast = null,
     Object? seasons = null,
     Object? videos = null,
     Object? images = null,
@@ -249,22 +248,22 @@ class _$TVDetailedCopyWithImpl<$Res, $Val extends TVDetailed>
                 ? _value.status
                 : status // ignore: cast_nullable_to_non_nullable
                       as String?,
-            homepage: freezed == homepage
-                ? _value.homepage
-                : homepage // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            externalIds: null == externalIds
-                ? _value.externalIds
-                : externalIds // ignore: cast_nullable_to_non_nullable
-                      as ExternalIds,
-            episodeGroups: null == episodeGroups
-                ? _value.episodeGroups
-                : episodeGroups // ignore: cast_nullable_to_non_nullable
-                      as List<EpisodeGroup>,
-            seasons: null == seasons
-                ? _value.seasons
-                : seasons // ignore: cast_nullable_to_non_nullable
-                      as List<Season>,
+        homepage: freezed == homepage
+            ? _value.homepage
+            : homepage // ignore: cast_nullable_to_non_nullable
+                as String?,
+        externalIds: null == externalIds
+            ? _value.externalIds
+            : externalIds // ignore: cast_nullable_to_non_nullable
+                as ExternalIds,
+        cast: null == cast
+            ? _value._cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                as List<Cast>,
+        seasons: null == seasons
+            ? _value.seasons
+            : seasons // ignore: cast_nullable_to_non_nullable
+                as List<Season>,
             videos: null == videos
                 ? _value.videos
                 : videos // ignore: cast_nullable_to_non_nullable
@@ -330,7 +329,7 @@ abstract class _$$TVDetailedImplCopyWith<$Res>
     String? status,
     String? homepage,
     @JsonKey(name: 'external_ids') ExternalIds externalIds,
-    @JsonKey(name: 'episode_groups') List<EpisodeGroup> episodeGroups,
+    List<Cast> cast,
     List<Season> seasons,
     List<Video> videos,
     List<ImageModel> images,
@@ -379,7 +378,7 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
     Object? status = freezed,
     Object? homepage = freezed,
     Object? externalIds = null,
-    Object? episodeGroups = null,
+    Object? cast = null,
     Object? seasons = null,
     Object? videos = null,
     Object? images = null,
@@ -479,11 +478,11 @@ class __$$TVDetailedImplCopyWithImpl<$Res>
         externalIds: null == externalIds
             ? _value.externalIds
             : externalIds // ignore: cast_nullable_to_non_nullable
-                  as ExternalIds,
-        episodeGroups: null == episodeGroups
-            ? _value._episodeGroups
-            : episodeGroups // ignore: cast_nullable_to_non_nullable
-                  as List<EpisodeGroup>,
+                as ExternalIds,
+        cast: null == cast
+            ? _value._cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                as List<Cast>,
         seasons: null == seasons
             ? _value._seasons
             : seasons // ignore: cast_nullable_to_non_nullable
@@ -540,20 +539,19 @@ class _$TVDetailedImpl implements _TVDetailed {
     this.status,
     this.homepage,
     @JsonKey(name: 'external_ids') this.externalIds = const ExternalIds(),
-    @JsonKey(name: 'episode_groups')
-    final List<EpisodeGroup> episodeGroups = const [],
+    final List<Cast> cast = const [],
     final List<Season> seasons = const [],
     final List<Video> videos = const [],
     final List<ImageModel> images = const [],
     final List<TVRef> recommendations = const [],
     final List<TVRef> similar = const [],
-  })  : _episodeRunTime = episodeRunTime,
+  }) : _episodeRunTime = episodeRunTime,
        _genres = genres,
        _productionCompanies = productionCompanies,
        _productionCountries = productionCountries,
        _spokenLanguages = spokenLanguages,
        _networks = networks,
-       _episodeGroups = episodeGroups,
+       _cast = cast,
        _seasons = seasons,
        _videos = videos,
        _images = images,
@@ -648,6 +646,15 @@ class _$TVDetailedImpl implements _TVDetailed {
     return EqualUnmodifiableListView(_networks);
   }
 
+  final List<Cast> _cast;
+  @override
+  @JsonKey()
+  List<Cast> get cast {
+    if (_cast is EqualUnmodifiableListView) return _cast;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_cast);
+  }
+
   @override
   @JsonKey(name: 'poster_path')
   final String? posterPath;
@@ -663,14 +670,6 @@ class _$TVDetailedImpl implements _TVDetailed {
   @override
   @JsonKey(name: 'external_ids')
   final ExternalIds externalIds;
-  final List<EpisodeGroup> _episodeGroups;
-  @override
-  @JsonKey(name: 'episode_groups')
-  List<EpisodeGroup> get episodeGroups {
-    if (_episodeGroups is EqualUnmodifiableListView) return _episodeGroups;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_episodeGroups);
-  }
   final List<Season> _seasons;
   @override
   @JsonKey()
@@ -718,7 +717,7 @@ class _$TVDetailedImpl implements _TVDetailed {
 
   @override
   String toString() {
-    return 'TVDetailed(id: $id, name: $name, originalName: $originalName, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, firstAirDate: $firstAirDate, lastAirDate: $lastAirDate, numberOfSeasons: $numberOfSeasons, numberOfEpisodes: $numberOfEpisodes, episodeRunTime: $episodeRunTime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, networks: $networks, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, episodeGroups: $episodeGroups, seasons: $seasons, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar)';
+    return 'TVDetailed(id: $id, name: $name, originalName: $originalName, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, firstAirDate: $firstAirDate, lastAirDate: $lastAirDate, numberOfSeasons: $numberOfSeasons, numberOfEpisodes: $numberOfEpisodes, episodeRunTime: $episodeRunTime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, networks: $networks, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, cast: $cast, seasons: $seasons, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar)';
   }
 
   @override
@@ -763,6 +762,7 @@ class _$TVDetailedImpl implements _TVDetailed {
               _spokenLanguages,
             ) &&
             const DeepCollectionEquality().equals(other._networks, _networks) &&
+            const DeepCollectionEquality().equals(other._cast, _cast) &&
             (identical(other.posterPath, posterPath) ||
                 other.posterPath == posterPath) &&
             (identical(other.backdropPath, backdropPath) ||
@@ -774,10 +774,6 @@ class _$TVDetailedImpl implements _TVDetailed {
                 other.homepage == homepage) &&
             (identical(other.externalIds, externalIds) ||
                 other.externalIds == externalIds) &&
-            const DeepCollectionEquality().equals(
-              other._episodeGroups,
-              _episodeGroups,
-            ) &&
             const DeepCollectionEquality().equals(other._seasons, _seasons) &&
             const DeepCollectionEquality().equals(other._videos, _videos) &&
             const DeepCollectionEquality().equals(other._images, _images) &&
@@ -809,13 +805,13 @@ class _$TVDetailedImpl implements _TVDetailed {
     const DeepCollectionEquality().hash(_productionCountries),
     const DeepCollectionEquality().hash(_spokenLanguages),
     const DeepCollectionEquality().hash(_networks),
+    const DeepCollectionEquality().hash(_cast),
     posterPath,
     backdropPath,
     popularity,
     status,
     homepage,
     externalIds,
-    const DeepCollectionEquality().hash(_episodeGroups),
     const DeepCollectionEquality().hash(_seasons),
     const DeepCollectionEquality().hash(_videos),
     const DeepCollectionEquality().hash(_images),
@@ -864,7 +860,7 @@ abstract class _TVDetailed implements TVDetailed {
     final String? status,
     final String? homepage,
     @JsonKey(name: 'external_ids') final ExternalIds externalIds,
-    @JsonKey(name: 'episode_groups') final List<EpisodeGroup> episodeGroups,
+    final List<Cast> cast,
     final List<Season> seasons,
     final List<Video> videos,
     final List<ImageModel> images,
@@ -936,8 +932,7 @@ abstract class _TVDetailed implements TVDetailed {
   @JsonKey(name: 'external_ids')
   ExternalIds get externalIds;
   @override
-  @JsonKey(name: 'episode_groups')
-  List<EpisodeGroup> get episodeGroups;
+  List<Cast> get cast;
   @override
   List<Season> get seasons;
   @override

@@ -23,6 +23,11 @@ _$EpisodeImpl _$$EpisodeImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      guestStars:
+          (json['guest_stars'] as List<dynamic>?)
+              ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       crew:
           (json['crew'] as List<dynamic>?)
               ?.map((e) => Crew.fromJson(e as Map<String, dynamic>))
@@ -48,6 +53,7 @@ Map<String, dynamic> _$$EpisodeImplToJson(_$EpisodeImpl instance) =>
       'vote_count': instance.voteCount,
       'runtime': instance.runtime,
       'cast': instance.cast,
+      'guest_stars': instance.guestStars,
       'crew': instance.crew,
       'videos': instance.videos,
     };

@@ -57,9 +57,8 @@ _$TVDetailedImpl _$$TVDetailedImplFromJson(Map<String, dynamic> json) =>
       externalIds: json['external_ids'] == null
           ? const ExternalIds()
           : ExternalIds.fromJson(json['external_ids'] as Map<String, dynamic>),
-      episodeGroups:
-          (json['episode_groups'] as List<dynamic>?)
-              ?.map((e) => EpisodeGroup.fromJson(e as Map<String, dynamic>))
+      cast: (json['cast'] as List<dynamic>?)
+              ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       seasons:
@@ -85,14 +84,6 @@ _$TVDetailedImpl _$$TVDetailedImplFromJson(Map<String, dynamic> json) =>
       similar:
           (json['similar'] as List<dynamic>?)
               ?.map((e) => TVRef.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      cast: (json['cast'] as List<dynamic>?)
-              ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          const [],
-      crew: (json['crew'] as List<dynamic>?)
-              ?.map((e) => Crew.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
     );
@@ -122,12 +113,10 @@ Map<String, dynamic> _$$TVDetailedImplToJson(_$TVDetailedImpl instance) =>
       'status': instance.status,
       'homepage': instance.homepage,
       'external_ids': instance.externalIds,
-      'episode_groups': instance.episodeGroups,
+      'cast': instance.cast,
       'seasons': instance.seasons,
       'videos': instance.videos,
       'images': instance.images,
       'recommendations': instance.recommendations,
       'similar': instance.similar,
-      'cast': instance.cast,
-      'crew': instance.crew,
     };

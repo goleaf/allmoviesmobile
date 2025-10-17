@@ -38,8 +38,8 @@ mixin _$Episode {
   int? get voteCount => throw _privateConstructorUsedError;
   int? get runtime => throw _privateConstructorUsedError;
   List<Cast> get cast => throw _privateConstructorUsedError;
+  List<Cast> get guestStars => throw _privateConstructorUsedError;
   List<Crew> get crew => throw _privateConstructorUsedError;
-  List<Video> get videos => throw _privateConstructorUsedError;
 
   /// Serializes this Episode to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -67,8 +67,8 @@ abstract class $EpisodeCopyWith<$Res> {
     @JsonKey(name: 'vote_count') int? voteCount,
     int? runtime,
     List<Cast> cast,
+    List<Cast> guestStars,
     List<Crew> crew,
-    List<Video> videos,
   });
 }
 
@@ -98,8 +98,8 @@ class _$EpisodeCopyWithImpl<$Res, $Val extends Episode>
     Object? voteCount = freezed,
     Object? runtime = freezed,
     Object? cast = null,
+    Object? guestStars = null,
     Object? crew = null,
-    Object? videos = null,
   }) {
     return _then(
       _value.copyWith(
@@ -146,15 +146,15 @@ class _$EpisodeCopyWithImpl<$Res, $Val extends Episode>
             cast: null == cast
                 ? _value.cast
                 : cast // ignore: cast_nullable_to_non_nullable
-                      as List<Cast>,
+                    as List<Cast>,
+            guestStars: null == guestStars
+                ? _value.guestStars
+                : guestStars // ignore: cast_nullable_to_non_nullable
+                    as List<Cast>,
             crew: null == crew
                 ? _value.crew
                 : crew // ignore: cast_nullable_to_non_nullable
-                      as List<Crew>,
-            videos: null == videos
-                ? _value.videos
-                : videos // ignore: cast_nullable_to_non_nullable
-                      as List<Video>,
+                    as List<Crew>,
           )
           as $Val,
     );
@@ -181,8 +181,8 @@ abstract class _$$EpisodeImplCopyWith<$Res> implements $EpisodeCopyWith<$Res> {
     @JsonKey(name: 'vote_count') int? voteCount,
     int? runtime,
     List<Cast> cast,
+    List<Cast> guestStars,
     List<Crew> crew,
-    List<Video> videos,
   });
 }
 
@@ -211,8 +211,8 @@ class __$$EpisodeImplCopyWithImpl<$Res>
     Object? voteCount = freezed,
     Object? runtime = freezed,
     Object? cast = null,
+    Object? guestStars = null,
     Object? crew = null,
-    Object? videos = null,
   }) {
     return _then(
       _$EpisodeImpl(
@@ -259,15 +259,15 @@ class __$$EpisodeImplCopyWithImpl<$Res>
         cast: null == cast
             ? _value._cast
             : cast // ignore: cast_nullable_to_non_nullable
-                  as List<Cast>,
+                as List<Cast>,
+        guestStars: null == guestStars
+            ? _value._guestStars
+            : guestStars // ignore: cast_nullable_to_non_nullable
+                as List<Cast>,
         crew: null == crew
             ? _value._crew
             : crew // ignore: cast_nullable_to_non_nullable
-                  as List<Crew>,
-        videos: null == videos
-            ? _value._videos
-            : videos // ignore: cast_nullable_to_non_nullable
-                  as List<Video>,
+                as List<Crew>,
       ),
     );
   }
@@ -288,11 +288,11 @@ class _$EpisodeImpl implements _Episode {
     @JsonKey(name: 'vote_count') this.voteCount,
     this.runtime,
     final List<Cast> cast = const [],
+    @JsonKey(name: 'guest_stars') final List<Cast> guestStars = const [],
     final List<Crew> crew = const [],
-    final List<Video> videos = const [],
   })  : _cast = cast,
-        _crew = crew,
-        _videos = videos;
+        _guestStars = guestStars,
+        _crew = crew;
 
   factory _$EpisodeImpl.fromJson(Map<String, dynamic> json) =>
       _$$EpisodeImplFromJson(json);
@@ -332,6 +332,15 @@ class _$EpisodeImpl implements _Episode {
     return EqualUnmodifiableListView(_cast);
   }
 
+  final List<Cast> _guestStars;
+  @override
+  @JsonKey(name: 'guest_stars')
+  List<Cast> get guestStars {
+    if (_guestStars is EqualUnmodifiableListView) return _guestStars;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_guestStars);
+  }
+
   final List<Crew> _crew;
   @override
   @JsonKey()
@@ -341,18 +350,9 @@ class _$EpisodeImpl implements _Episode {
     return EqualUnmodifiableListView(_crew);
   }
 
-  final List<Video> _videos;
-  @override
-  @JsonKey()
-  List<Video> get videos {
-    if (_videos is EqualUnmodifiableListView) return _videos;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_videos);
-  }
-
   @override
   String toString() {
-    return 'Episode(id: $id, name: $name, episodeNumber: $episodeNumber, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, stillPath: $stillPath, voteAverage: $voteAverage, voteCount: $voteCount, runtime: $runtime, cast: $cast, crew: $crew, videos: $videos)';
+    return 'Episode(id: $id, name: $name, episodeNumber: $episodeNumber, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, stillPath: $stillPath, voteAverage: $voteAverage, voteCount: $voteCount, runtime: $runtime, cast: $cast, guestStars: $guestStars, crew: $crew)';
   }
 
   @override
@@ -377,28 +377,29 @@ class _$EpisodeImpl implements _Episode {
                 other.voteCount == voteCount) &&
             (identical(other.runtime, runtime) || other.runtime == runtime) &&
             const DeepCollectionEquality().equals(other._cast, _cast) &&
-            const DeepCollectionEquality().equals(other._crew, _crew) &&
-            const DeepCollectionEquality().equals(other._videos, _videos));
+            const DeepCollectionEquality()
+                .equals(other._guestStars, _guestStars) &&
+            const DeepCollectionEquality().equals(other._crew, _crew));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-    runtimeType,
-    id,
-    name,
-    episodeNumber,
-    seasonNumber,
-    overview,
-    airDate,
-    stillPath,
-    voteAverage,
-    voteCount,
-    runtime,
-    const DeepCollectionEquality().hash(_cast),
-    const DeepCollectionEquality().hash(_crew),
-    const DeepCollectionEquality().hash(_videos),
-  );
+        runtimeType,
+        id,
+        name,
+        episodeNumber,
+        seasonNumber,
+        overview,
+        airDate,
+        stillPath,
+        voteAverage,
+        voteCount,
+        runtime,
+        const DeepCollectionEquality().hash(_cast),
+        const DeepCollectionEquality().hash(_guestStars),
+        const DeepCollectionEquality().hash(_crew),
+      );
 
   /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.
@@ -427,8 +428,8 @@ abstract class _Episode implements Episode {
     @JsonKey(name: 'vote_count') final int? voteCount,
     final int? runtime,
     final List<Cast> cast,
+    @JsonKey(name: 'guest_stars') final List<Cast> guestStars,
     final List<Crew> crew,
-    final List<Video> videos,
   }) = _$EpisodeImpl;
 
   factory _Episode.fromJson(Map<String, dynamic> json) = _$EpisodeImpl.fromJson;
@@ -462,9 +463,10 @@ abstract class _Episode implements Episode {
   @override
   List<Cast> get cast;
   @override
-  List<Crew> get crew;
+  @JsonKey(name: 'guest_stars')
+  List<Cast> get guestStars;
   @override
-  List<Video> get videos;
+  List<Crew> get crew;
 
   /// Create a copy of Episode
   /// with the given fields replaced by the non-null parameter values.

@@ -21,6 +21,7 @@ import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
 import 'presentation/screens/movies/movies_screen.dart';
 import 'presentation/screens/people/people_screen.dart';
+import 'presentation/screens/person_detail/person_detail_screen.dart';
 import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';

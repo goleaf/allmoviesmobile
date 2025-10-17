@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:async/async.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
@@ -30,6 +29,8 @@ import 'models/tv_detailed_model.dart';
 import 'models/tv_ref_model.dart';
 import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
+import 'services/network_quality_service.dart';
+import 'services/request_throttler.dart';
 
 class TmdbRepository {
   TmdbRepository({
@@ -37,10 +38,12 @@ class TmdbRepository {
     CacheService? cacheService,
     String? apiKey,
     String? language,
-  }) : _client = client ?? http.Client(),
-       _cache = cacheService,
-       _language = language ?? AppConfig.defaultLanguage,
-       _apiKey = (() {
+    NetworkQualityNotifier? networkQualityNotifier,
+  })  : _client = client ?? http.Client(),
+        _cache = cacheService,
+        _language = language ?? AppConfig.defaultLanguage,
+        _networkQualityNotifier = networkQualityNotifier,
+        _apiKey = (() {
          final provided =
              apiKey ??
              const String.fromEnvironment('TMDB_API_KEY', defaultValue: '');
@@ -57,10 +60,23 @@ class TmdbRepository {
   final CacheService? _cache;
   final String _apiKey;
   final String _language;
-  final RateLimiter _globalRateLimiter = RateLimiter(
-    const Duration(milliseconds: 250),
-  );
-  final Map<String, RateLimiter> _endpointLimiters = {};
+  final NetworkQualityNotifier? _networkQualityNotifier;
+  late final RequestThrottler _throttler = () {
+    final throttler = RequestThrottler();
+    final quality = _networkQualityNotifier?.quality;
+    if (quality != null) {
+      throttler.applyNetworkQuality(quality);
+    }
+    _networkQualityNotifier?.addListener(_handleNetworkQualityChanged);
+    return throttler;
+  }();
+
+  void _handleNetworkQualityChanged() {
+    final quality = _networkQualityNotifier?.quality;
+    if (quality != null) {
+      _throttler.applyNetworkQuality(quality);
+    }
+  }
 
   void _ensureApiKey() {
     if (_apiKey.isEmpty) {
@@ -108,14 +124,7 @@ class TmdbRepository {
       }
     }
 
-    final limiter = _endpointLimiters.putIfAbsent(
-      endpoint,
-      () => RateLimiter(const Duration(milliseconds: 250)),
-    );
-
-    return _globalRateLimiter.schedule(
-      () => limiter.schedule(request),
-    );
+    return _throttler.schedule(request);
   }
 
   T? _getCached<T>(String key) => _cache?.get<T>(key);

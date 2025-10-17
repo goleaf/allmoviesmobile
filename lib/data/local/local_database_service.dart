@@ -14,6 +14,7 @@ class LocalDatabaseService {
 
   static const String _moviesBoxName = 'movies';
   static const String _collectionsBoxName = 'movieCollections';
+  static const String _collectionsMetaBoxName = 'movieCollectionsMeta';
   static const String _favoritesBoxName = 'favorites';
   static const String _watchlistBoxName = 'watchlist';
   static const String _recentlyViewedBoxName = 'recentlyViewed';
@@ -24,6 +25,7 @@ class LocalDatabaseService {
 
   Box<MovieEntity>? _moviesBox;
   Box<List<dynamic>>? _collectionsBox;
+  Box<int>? _collectionsMetadataBox;
   Box<bool>? _favoritesBox;
   Box<bool>? _watchlistBox;
   Box<List<dynamic>>? _recentlyViewedBox;
@@ -38,6 +40,9 @@ class LocalDatabaseService {
       _moviesBox ??= await Hive.openBox<MovieEntity>(_moviesBoxName);
       _collectionsBox ??= await Hive.openBox<List<dynamic>>(
         _collectionsBoxName,
+      );
+      _collectionsMetadataBox ??= await Hive.openBox<int>(
+        _collectionsMetaBoxName,
       );
       _favoritesBox ??= await Hive.openBox<bool>(_favoritesBoxName);
       _watchlistBox ??= await Hive.openBox<bool>(_watchlistBoxName);
@@ -69,6 +74,8 @@ class LocalDatabaseService {
         movieIds.add(movie.id);
       }
       await _collectionsBox!.put(cacheKey, movieIds);
+      await _collectionsMetadataBox!
+          .put(cacheKey, DateTime.now().millisecondsSinceEpoch);
       _logger.debug('Cached ${movieIds.length} movies for $cacheKey');
     } catch (error, stackTrace) {
       throw _errorMapper.map(
@@ -79,10 +86,26 @@ class LocalDatabaseService {
     }
   }
 
-  Future<List<Movie>> getCachedMovies(String cacheKey) async {
+  Future<List<Movie>> getCachedMovies(
+    String cacheKey, {
+    Duration? maxAge,
+  }) async {
     await _ensureInitialized();
 
     try {
+      final timestamp = _collectionsMetadataBox!.get(cacheKey);
+      if (maxAge != null && timestamp != null) {
+        final isExpired =
+            DateTime.now().millisecondsSinceEpoch - timestamp >
+                maxAge.inMilliseconds;
+        if (isExpired) {
+          await _collectionsBox!.delete(cacheKey);
+          await _collectionsMetadataBox!.delete(cacheKey);
+          _logger.debug('Pruned expired cache entry for $cacheKey');
+          return const [];
+        }
+      }
+
       final ids = _collectionsBox!.get(cacheKey)?.cast<int>() ?? <int>[];
       return ids
           .map((id) => _moviesBox!.get(id))
@@ -191,12 +214,42 @@ class LocalDatabaseService {
     await Future.wait([
       _moviesBox!.clear(),
       _collectionsBox!.clear(),
+      _collectionsMetadataBox!.clear(),
       _favoritesBox!.clear(),
       _watchlistBox!.clear(),
       _recentlyViewedBox!.clear(),
       _searchHistoryBox!.clear(),
     ]);
     _logger.warning('Cleared all local database data');
+  }
+
+  Future<int> purgeExpiredCollections({
+    Duration maxAge = const Duration(hours: 12),
+  }) async {
+    await _ensureInitialized();
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final threshold = now - maxAge.inMilliseconds;
+    final keysToRemove = <String>[];
+
+    for (final entry in _collectionsMetadataBox!.toMap().entries) {
+      final key = entry.key;
+      final timestamp = entry.value;
+      if (timestamp == null || timestamp < threshold) {
+        keysToRemove.add(key);
+      }
+    }
+
+    for (final key in keysToRemove) {
+      await _collectionsBox!.delete(key);
+      await _collectionsMetadataBox!.delete(key);
+    }
+
+    if (keysToRemove.isNotEmpty) {
+      _logger.debug('Purged ${keysToRemove.length} expired collections');
+    }
+
+    return keysToRemove.length;
   }
 
   Future<void> dispose() async {

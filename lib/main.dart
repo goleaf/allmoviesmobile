@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
+import 'core/utils/foreground_refresh_observer.dart';
 import 'core/utils/memory_optimizer.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/background_sync_service.dart';
@@ -21,7 +22,6 @@ import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
-import 'presentation/screens/splash_preload/boot_gate.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
@@ -64,6 +64,7 @@ import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/app_state_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -89,13 +90,8 @@ void main() async {
   );
 }
 
-class AllMoviesApp extends StatelessWidget {
-  final LocalStorageService storageService;
-  final SharedPreferences prefs;
-  final TmdbRepository? tmdbRepository;
-  final NetworkQualityNotifier networkQualityNotifier;
-  // Removed unused StaticCatalogService stub (no longer present)
 
+class AllMoviesApp extends StatefulWidget {
   const AllMoviesApp({
     super.key,
     required this.storageService,
@@ -104,271 +100,321 @@ class AllMoviesApp extends StatelessWidget {
     required this.networkQualityNotifier,
   });
 
+  final LocalStorageService storageService;
+  final SharedPreferences prefs;
+  final TmdbRepository? tmdbRepository;
+  final NetworkQualityNotifier networkQualityNotifier;
+
+  @override
+  State<AllMoviesApp> createState() => _AllMoviesAppState();
+}
+
+class _AllMoviesAppState extends State<AllMoviesApp> {
+  late final TmdbRepository _repository;
+  late final ForegroundRefreshObserver _foregroundObserver;
+  bool _registeredRefreshCallbacks = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.tmdbRepository ??
+        TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
+    _foregroundObserver = ForegroundRefreshObserver();
+    _foregroundObserver.attach();
+  }
+
+  @override
+  void dispose() {
+    _foregroundObserver.detach();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    final repo = tmdbRepository ?? TmdbRepository();
-
     return MultiProvider(
       providers: [
-        Provider<TmdbRepository>.value(value: repo),
-        Provider<LocalStorageService>.value(value: storageService),
-        Provider<SharedPreferences>.value(value: prefs),
+        Provider<TmdbRepository>.value(value: _repository),
+        Provider<LocalStorageService>.value(value: widget.storageService),
+        Provider<SharedPreferences>.value(value: widget.prefs),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
-          value: networkQualityNotifier,
+          value: widget.networkQualityNotifier,
         ),
-        ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
-        ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
         ChangeNotifierProvider(
-          create: (_) => FavoritesProvider(storageService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => WatchlistProvider(storageService),
+          create: (_) => FavoritesProvider(widget.storageService),
         ),
         ChangeNotifierProvider(
-          create: (_) => SearchProvider(repo, storageService),
+          create: (_) => WatchlistProvider(widget.storageService),
         ),
         ChangeNotifierProvider(
-          create: (_) => RecommendationsProvider(repo, storageService),
+          create: (_) => SearchProvider(_repository, widget.storageService),
         ),
-        ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(repo)),
-        ChangeNotifierProvider(create: (_) => GenresProvider(repo)),
-        ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
+        ChangeNotifierProvider(
+          create: (_) =>
+              RecommendationsProvider(_repository, widget.storageService),
+        ),
+        ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => GenresProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => WatchRegionProvider(widget.prefs)),
         ChangeNotifierProxyProvider2<
           WatchRegionProvider,
           PreferencesProvider,
           MoviesProvider
         >(
-          create: (_) => MoviesProvider(repo, storageService: storageService),
+          create: (_) => MoviesProvider(
+            _repository,
+            storageService: widget.storageService,
+          ),
           update: (_, watchRegion, preferences, movies) {
-            movies ??= MoviesProvider(repo, storageService: storageService);
+            movies ??= MoviesProvider(
+              _repository,
+              storageService: widget.storageService,
+            );
             movies.bindRegionProvider(watchRegion);
             movies.bindPreferencesProvider(preferences);
             return movies;
           },
         ),
         ChangeNotifierProxyProvider<PreferencesProvider, SeriesProvider>(
-          create: (_) => SeriesProvider(repo),
+          create: (_) => SeriesProvider(_repository),
           update: (_, prefsProvider, series) {
-            series ??= SeriesProvider(repo);
-            // We can't bind later; re-create with prefs when needed
-            return SeriesProvider(repo, preferencesProvider: prefsProvider);
+            series ??= SeriesProvider(_repository);
+            return SeriesProvider(
+              _repository,
+              preferencesProvider: prefsProvider,
+            );
           },
         ),
-        ChangeNotifierProvider(create: (_) => PeopleProvider(repo)),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider(repo)),
-        ChangeNotifierProvider(create: (_) => NetworksProvider(repo)),
-        ChangeNotifierProvider(create: (_) => CollectionsProvider(repo)),
-        ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
-        ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => PeopleProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
+        ChangeNotifierProvider(
+          create: (_) => ListsProvider(widget.storageService),
+        ),
+        ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
+        ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
+        Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
-      child: Consumer2<LocaleProvider, ThemeProvider>(
-        builder: (context, localeProvider, themeProvider, _) {
-          return DynamicColorBuilder(
-            builder: (lightDynamic, darkDynamic) {
-              final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-              final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+      child: Builder(
+        builder: (context) {
+          if (!_registeredRefreshCallbacks) {
+            _registeredRefreshCallbacks = true;
+            final observer = context.read<ForegroundRefreshObserver>();
+            observer
+              ..registerCallback(() async {
+                await context.read<MoviesProvider>().refresh(force: true);
+              })
+              ..registerCallback(() async {
+                await context.read<TrendingTitlesProvider>().refreshAll();
+              })
+              ..registerCallback(() async {
+                await context
+                    .read<SearchProvider>()
+                    .reexecuteLastSearch(forceRefresh: true);
+              });
+          }
 
-              return MaterialApp(
-                title: AppLocalizations.of(context).t('app.name'),
-                theme: lightTheme,
-                darkTheme: darkTheme,
-                themeMode: themeProvider.materialThemeMode,
-                locale: localeProvider.locale,
-                localizationsDelegates: const [
-                  AppLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
-                supportedLocales: AppLocalizations.supportedLocales,
-                debugShowCheckedModeBanner: false,
-                home: const AppNavigationShell(),
-                routes: {
-                  HomeScreen.routeName: (context) => const HomeScreen(),
-                  MoviesScreen.routeName: (context) => const MoviesScreen(),
-                  MoviesFiltersScreen.routeName: (context) =>
-                      const MoviesFiltersScreen(),
-                  SearchScreen.routeName: (context) => const SearchScreen(),
-                  SeriesScreen.routeName: (context) => const SeriesScreen(),
-                  SeriesFiltersScreen.routeName: (context) =>
-                      const SeriesFiltersScreen(),
-                  PeopleScreen.routeName: (context) => const PeopleScreen(),
-                  CompaniesScreen.routeName: (context) =>
-                      const CompaniesScreen(),
-                  FavoritesScreen.routeName: (context) =>
-                      const FavoritesScreen(),
-                  WatchlistScreen.routeName: (context) =>
-                      const WatchlistScreen(),
-                  SettingsScreen.routeName: (context) => const SettingsScreen(),
-                  ApiExplorerScreen.routeName: (context) =>
-                      const ApiExplorerScreen(),
-                  KeywordBrowserScreen.routeName: (context) =>
-                      const KeywordBrowserScreen(),
-                  NetworksScreen.routeName: (context) => const NetworksScreen(),
-                  CollectionsBrowserScreen.routeName: (context) =>
-                      const CollectionsBrowserScreen(),
-                  SearchResultsListScreen.routeName: (context) =>
-                      const SearchResultsListScreen(),
-                  VideosScreen.routeName: (context) => const VideosScreen(),
-                  VideoPlayerScreen.routeName: (context) {
-                    final args =
-                        ModalRoute.of(context)?.settings.arguments;
-                    return VideoPlayerScreen(
-                      args: args is VideoPlayerScreenArgs ? args : null,
-                    );
-                  },
-                  ListsScreen.routeName: (context) => const ListsScreen(),
-                },
-                onGenerateRoute: (settings) {
-                  switch (settings.name) {
-                    case SeasonDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is SeasonDetailArgs) {
-                        return MaterialPageRoute(
-                          builder: (_) => SeasonDetailScreen(args: args),
-                          settings: settings,
-                          fullscreenDialog: true,
+          return Consumer2<LocaleProvider, ThemeProvider>(
+            builder: (context, localeProvider, themeProvider, _) {
+              return DynamicColorBuilder(
+                builder: (lightDynamic, darkDynamic) {
+                  final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
+                  final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+
+                  return MaterialApp(
+                    title: AppLocalizations.of(context).t('app.name'),
+                    theme: lightTheme,
+                    darkTheme: darkTheme,
+                    themeMode: themeProvider.materialThemeMode,
+                    locale: localeProvider.locale,
+                    localizationsDelegates: const [
+                      AppLocalizations.delegate,
+                      GlobalMaterialLocalizations.delegate,
+                      GlobalWidgetsLocalizations.delegate,
+                      GlobalCupertinoLocalizations.delegate,
+                    ],
+                    supportedLocales: AppLocalizations.supportedLocales,
+                    debugShowCheckedModeBanner: false,
+                    home: const AppNavigationShell(),
+                    routes: {
+                      HomeScreen.routeName: (context) => const HomeScreen(),
+                      MoviesScreen.routeName: (context) => const MoviesScreen(),
+                      MoviesFiltersScreen.routeName: (context) =>
+                          const MoviesFiltersScreen(),
+                      SearchScreen.routeName: (context) => const SearchScreen(),
+                      SeriesScreen.routeName: (context) => const SeriesScreen(),
+                      SeriesFiltersScreen.routeName: (context) =>
+                          const SeriesFiltersScreen(),
+                      PeopleScreen.routeName: (context) => const PeopleScreen(),
+                      CompaniesScreen.routeName: (context) =>
+                          const CompaniesScreen(),
+                      FavoritesScreen.routeName: (context) =>
+                          const FavoritesScreen(),
+                      WatchlistScreen.routeName: (context) =>
+                          const WatchlistScreen(),
+                      SettingsScreen.routeName: (context) => const SettingsScreen(),
+                      ApiExplorerScreen.routeName: (context) =>
+                          const ApiExplorerScreen(),
+                      KeywordBrowserScreen.routeName: (context) =>
+                          const KeywordBrowserScreen(),
+                      NetworksScreen.routeName: (context) =>
+                          const NetworksScreen(),
+                      CollectionsBrowserScreen.routeName: (context) =>
+                          const CollectionsBrowserScreen(),
+                      SearchResultsListScreen.routeName: (context) =>
+                          const SearchResultsListScreen(),
+                      VideosScreen.routeName: (context) => const VideosScreen(),
+                      VideoPlayerScreen.routeName: (context) {
+                        final args =
+                            ModalRoute.of(context)?.settings.arguments;
+                        return VideoPlayerScreen(
+                          args: args is VideoPlayerScreenArgs ? args : null,
                         );
-                      }
-                      return null;
-                    case '/tv':
-                      settings = RouteSettings(
-                        name: TVDetailScreen.routeName,
-                        arguments: settings.arguments,
-                      );
-                    // fall through
-                    case MovieDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is Movie) {
-                        return MaterialPageRoute(
-                          builder: (_) => MovieDetailScreen(movie: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      if (args is int) {
-                        return MaterialPageRoute(
-                          builder: (_) => MovieDetailScreen(
-                            movie: Movie(id: args, title: ''),
-                          ),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      return null;
-                    case KeywordDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is int) {
-                        return MaterialPageRoute(
-                          builder: (_) => KeywordDetailScreen(keywordId: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      if (args is Map) {
-                        final id = args['id'];
-                        final name = args['name'];
-                        if (id is int) {
-                          return MaterialPageRoute(
-                            builder: (_) => KeywordDetailScreen(
-                              keywordId: id,
-                              keywordName: name is String ? name : null,
-                            ),
-                            settings: settings,
-                            fullscreenDialog: true,
+                      },
+                      ListsScreen.routeName: (context) => const ListsScreen(),
+                    },
+                    onGenerateRoute: (settings) {
+                      switch (settings.name) {
+                        case SeasonDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is SeasonDetailArgs) {
+                            return MaterialPageRoute(
+                              builder: (_) => SeasonDetailScreen(args: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
+                        case '/tv':
+                          settings = RouteSettings(
+                            name: TVDetailScreen.routeName,
+                            arguments: settings.arguments,
                           );
-                        }
+                        case MovieDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is Movie) {
+                            return MaterialPageRoute(
+                              builder: (_) => MovieDetailScreen(movie: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          if (args is int) {
+                            return MaterialPageRoute(
+                              builder: (_) => MovieDetailScreen(
+                                movie: Movie(id: args, title: ''),
+                              ),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
+                        case KeywordDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is int) {
+                            return MaterialPageRoute(
+                              builder: (_) => KeywordDetailScreen(keywordId: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          if (args is Map) {
+                            final id = args['id'];
+                            final name = args['name'];
+                            if (id is int) {
+                              return MaterialPageRoute(
+                                builder: (_) => KeywordDetailScreen(
+                                  keywordId: id,
+                                  keywordName: name is String ? name : null,
+                                ),
+                                settings: settings,
+                                fullscreenDialog: true,
+                              );
+                            }
+                          }
+                          return null;
+                        case TVDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is Movie) {
+                            return MaterialPageRoute(
+                              builder: (_) => TVDetailScreen(tvShow: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          if (args is int) {
+                            return MaterialPageRoute(
+                              builder: (_) => TVDetailScreen(
+                                tvShow: Movie(id: args, title: ''),
+                              ),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
+                        case '/person':
+                          settings = RouteSettings(
+                            name: PersonDetailScreen.routeName,
+                            arguments: settings.arguments,
+                          );
+                        case PersonDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is int) {
+                            return MaterialPageRoute(
+                              builder: (_) => PersonDetailScreen(personId: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          if (args is Person) {
+                            return MaterialPageRoute(
+                              builder: (_) => PersonDetailScreen(
+                                personId: args.id,
+                                initialPerson: args,
+                              ),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
+                        case CompanyDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is Company) {
+                            return MaterialPageRoute(
+                              builder: (_) =>
+                                  CompanyDetailScreen(initialCompany: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
+                        case NetworkDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is int) {
+                            return MaterialPageRoute(
+                              builder: (_) => NetworkDetailScreen(networkId: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
+                        case EpisodeDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is Episode) {
+                            return MaterialPageRoute(
+                              builder: (_) => EpisodeDetailScreen(episode: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
+                        default:
+                          return null;
                       }
-                      return null;
-                    case TVDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is Movie) {
-                        return MaterialPageRoute(
-                          builder: (_) => TVDetailScreen(tvShow: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      if (args is int) {
-                        return MaterialPageRoute(
-                          builder: (_) => TVDetailScreen(
-                            tvShow: Movie(id: args, title: ''),
-                          ),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      return null;
-                    case '/person':
-                      settings = RouteSettings(
-                        name: PersonDetailScreen.routeName,
-                        arguments: settings.arguments,
-                      );
-                    // fall through
-                    case PersonDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is int) {
-                        return MaterialPageRoute(
-                          builder: (_) => PersonDetailScreen(personId: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      if (args is Person) {
-                        return MaterialPageRoute(
-                          builder: (_) => PersonDetailScreen(
-                            personId: args.id,
-                            initialPerson: args,
-                          ),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      return null;
-                    case CompanyDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is Company) {
-                        return MaterialPageRoute(
-                          builder: (_) =>
-                              CompanyDetailScreen(initialCompany: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      return null;
-                    case NetworkDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is int) {
-                        return MaterialPageRoute(
-                          builder: (_) => NetworkDetailScreen(networkId: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      return null;
-                    case EpisodeDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is Episode) {
-                        return MaterialPageRoute(
-                          builder: (_) => EpisodeDetailScreen(episode: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      return null;
-                    case CollectionDetailScreen.routeName:
-                      final args = settings.arguments;
-                      if (args is int) {
-                        return MaterialPageRoute(
-                          builder: (_) =>
-                              CollectionDetailScreen(collectionId: args),
-                          settings: settings,
-                          fullscreenDialog: true,
-                        );
-                      }
-                      return null;
-                  }
-                  return null;
+                    },
+                  );
                 },
               );
             },

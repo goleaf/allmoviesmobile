@@ -142,589 +142,128 @@
 ---
 
 ## 2. Laravel 12 Data Model Implementation (goleaf/omdbapibt.prus.dev)
-The snippets below assume the existing Laravel 12 + MySQL stack from `goleaf/omdbapibt.prus.dev`. The migrations, models, seeders, and indexes are structured to minimise disruption—existing core user/auth tables remain intact while new recommendation-specific structures are additive.
-
-### 2.1 Migrations
-#### `database/migrations/2024_05_15_000100_create_films_table.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('films', function (Blueprint $table) {
-            $table->id();
-            $table->string('title');
-            $table->string('original_title')->nullable();
-            $table->unsignedSmallInteger('year')->nullable()->index();
-            $table->json('countries')->nullable();
-            $table->json('languages')->nullable();
-            $table->unsignedSmallInteger('runtime')->nullable();
-            $table->text('synopsis')->nullable();
-            $table->string('poster_url')->nullable();
-            $table->string('trailer_url')->nullable();
-            $table->date('release_date')->nullable()->index();
-            $table->json('credits')->nullable();
-            $table->json('providers')->nullable();
-            $table->json('external_ids')->nullable();
-            $table->boolean('hidden')->default(false);
-            $table->string('flag_reason')->nullable();
-            $table->foreignId('updated_by')->nullable()->constrained('users');
-            $table->timestamps();
-
-            $table->fullText(['title', 'original_title', 'synopsis'], 'films_ft_title_synopsis');
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('films');
-    }
-};
-```
-
-#### `database/migrations/2024_05_15_000200_create_genres_and_pivot.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('genres', function (Blueprint $table) {
-            $table->id();
-            $table->string('slug')->unique();
-            $table->json('name_i18n')->nullable();
-            $table->timestamps();
-        });
-
-        Schema::create('film_genre', function (Blueprint $table) {
-            $table->foreignId('film_id')->constrained('films')->cascadeOnDelete();
-            $table->foreignId('genre_id')->constrained('genres')->cascadeOnDelete();
-            $table->primary(['film_id', 'genre_id']);
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('film_genre');
-        Schema::dropIfExists('genres');
-    }
-};
-```
-
-#### `database/migrations/2024_05_15_000300_create_tags_and_pivot.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('tags', function (Blueprint $table) {
-            $table->id();
-            $table->string('slug')->unique();
-            $table->json('name_i18n')->nullable();
-            $table->enum('type', ['user', 'system'])->default('system');
-            $table->boolean('hidden')->default(false);
-            $table->string('flag_reason')->nullable();
-            $table->foreignId('updated_by')->nullable()->constrained('users');
-            $table->timestamps();
-        });
-
-        Schema::create('film_tag', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('film_id')->constrained('films')->cascadeOnDelete();
-            $table->foreignId('tag_id')->constrained('tags')->cascadeOnDelete();
-            $table->foreignId('user_id')->nullable()->constrained('users')->nullOnDelete();
-            $table->float('weight')->default(1.0);
-            $table->timestamps();
-
-            $table->unique(['film_id', 'tag_id', 'user_id'], 'film_tag_unique_assignment');
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('film_tag');
-        Schema::dropIfExists('tags');
-    }
-};
-```
-
-#### `database/migrations/2024_05_15_000400_create_ratings_table.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('ratings', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('film_id')->constrained('films')->cascadeOnDelete();
-            $table->unsignedTinyInteger('rating')->nullable();
-            $table->boolean('liked')->nullable();
-            $table->timestamp('rated_at')->useCurrent();
-            $table->timestamps();
-
-            $table->unique(['user_id', 'film_id']);
-            $table->index(['film_id', 'rated_at']);
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('ratings');
-    }
-};
-```
-
-#### `database/migrations/2024_05_15_000500_create_interactions_table.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('interactions', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('film_id')->constrained('films')->cascadeOnDelete();
-            $table->enum('event', ['view', 'click', 'wishlist']);
-            $table->float('value')->default(1.0);
-            $table->timestamp('occurred_at')->useCurrent();
-            $table->timestamps();
-
-            $table->index(['user_id', 'occurred_at']);
-            $table->index(['film_id', 'event']);
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('interactions');
-    }
-};
-```
-
-#### `database/migrations/2024_05_15_000600_create_lists_tables.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('lists', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('title');
-            $table->boolean('public')->default(true);
-            $table->text('description')->nullable();
-            $table->string('cover_url')->nullable();
-            $table->boolean('hidden')->default(false);
-            $table->string('flag_reason')->nullable();
-            $table->foreignId('updated_by')->nullable()->constrained('users');
-            $table->timestamps();
-
-            $table->index(['user_id', 'public']);
-        });
-
-        Schema::create('list_items', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('list_id')->constrained('lists')->cascadeOnDelete();
-            $table->foreignId('film_id')->constrained('films')->cascadeOnDelete();
-            $table->unsignedInteger('position')->default(0);
-            $table->timestamps();
-
-            $table->unique(['list_id', 'film_id']);
-            $table->index(['list_id', 'position']);
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('list_items');
-        Schema::dropIfExists('lists');
-    }
-};
-```
-
-#### `database/migrations/2024_05_15_000700_create_follows_table.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('follows', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('follower_id')->constrained('users')->cascadeOnDelete();
-            $table->foreignId('followee_id')->constrained('users')->cascadeOnDelete();
-            $table->timestamp('created_at')->useCurrent();
-
-            $table->unique(['follower_id', 'followee_id']);
-            $table->index('followee_id');
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('follows');
-    }
-};
-```
-
-#### `database/migrations/2024_05_15_000800_create_recommendations_table.php`
-```php
-<?php
-
-use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
-
-return new class extends Migration
-{
-    public function up(): void
-    {
-        Schema::create('recommendations', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
-            $table->string('algo');
-            $table->foreignId('film_id')->constrained('films')->cascadeOnDelete();
-            $table->float('score');
-            $table->json('rerank_reason')->nullable();
-            $table->timestamp('generated_at')->useCurrent();
-            $table->timestamps();
-
-            $table->unique(['user_id', 'algo', 'film_id'], 'recommendations_unique_triplet');
-            $table->index(['user_id', 'algo', 'generated_at'], 'recommendations_user_algo_generated');
-        });
-    }
-
-    public function down(): void
-    {
-        Schema::dropIfExists('recommendations');
-    }
-};
-```
-
-### 2.2 Eloquent Models
-Each model keeps relationships tight while relying on casts for JSON fields.
-
-#### `app/Models/Film.php`
-```php
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Film extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-        'title',
-        'original_title',
-        'year',
-        'countries',
-        'languages',
-        'runtime',
-        'synopsis',
-        'poster_url',
-        'trailer_url',
-        'release_date',
-        'credits',
-        'providers',
-        'external_ids',
-        'hidden',
-        'flag_reason',
-        'updated_by',
-    ];
-
-    protected $casts = [
-        'countries' => 'array',
-        'languages' => 'array',
-        'credits' => 'array',
-        'providers' => 'array',
-        'external_ids' => 'array',
-        'hidden' => 'boolean',
-        'release_date' => 'date',
-    ];
-
-    public function genres()
-    {
-        return $this->belongsToMany(Genre::class);
-    }
-
-    public function tags()
-    {
-        return $this->belongsToMany(Tag::class)->withPivot(['user_id', 'weight'])->withTimestamps();
-    }
-
-    public function ratings()
-    {
-        return $this->hasMany(Rating::class);
-    }
-}
-```
-
-#### `app/Models/Genre.php`
-```php
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Genre extends Model
-{
-    use HasFactory;
-
-    protected $fillable = ['slug', 'name_i18n'];
-
-    protected $casts = [
-        'name_i18n' => 'array',
-    ];
-
-    public function films()
-    {
-        return $this->belongsToMany(Film::class);
-    }
-}
-```
-
-#### `app/Models/Tag.php`
-```php
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Tag extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-        'slug',
-        'name_i18n',
-        'type',
-        'hidden',
-        'flag_reason',
-        'updated_by',
-    ];
-
-    protected $casts = [
-        'name_i18n' => 'array',
-        'hidden' => 'boolean',
-    ];
-
-    public function films()
-    {
-        return $this->belongsToMany(Film::class)->withPivot(['user_id', 'weight'])->withTimestamps();
-    }
-}
-```
-
-#### `app/Models/Rating.php`
-```php
-<?php
-
-namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
-class Rating extends Model
-{
-    use HasFactory;
-
-    protected $fillable = [
-        'user_id',
-        'film_id',
-        'rating',
-        'liked',
-        'rated_at',
-    ];
-
-    protected $casts = [
-        'liked' => 'boolean',
-        'rated_at' => 'datetime',
-    ];
-
-    public function film()
-    {
-        return $this->belongsTo(Film::class);
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
-}
-```
-
-#### Additional Models
-`Interaction`, `MovieList` (for `lists`), `ListItem`, `Follow`, and `Recommendation` follow the same pattern—fillable properties and relationships that connect to `Film` and `User`.
-
-### 2.3 Seeders
-Provide deterministic bootstrap data for genres, tags, and a demo list.
-
-#### `database/seeders/GenreSeeder.php`
-```php
-<?php
-
-namespace Database\Seeders;
-
-use App\Models\Genre;
-use Illuminate\Database\Seeder;
-
-class GenreSeeder extends Seeder
-{
-    public function run(): void
-    {
-        $genres = [
-            ['slug' => 'action', 'name_i18n' => ['en' => 'Action', 'ru' => 'Боевик']],
-            ['slug' => 'drama', 'name_i18n' => ['en' => 'Drama', 'ru' => 'Драма']],
-            ['slug' => 'sci-fi', 'name_i18n' => ['en' => 'Science Fiction', 'ru' => 'Научная фантастика']],
-        ];
-
-        foreach ($genres as $genre) {
-            Genre::updateOrCreate(['slug' => $genre['slug']], $genre);
-        }
-    }
-}
-```
-
-#### `database/seeders/TagSeeder.php`
-```php
-<?php
-
-namespace Database\Seeders;
-
-use App\Models\Tag;
-use Illuminate\Database\Seeder;
-
-class TagSeeder extends Seeder
-{
-    public function run(): void
-    {
-        $tags = [
-            ['slug' => 'must-watch', 'name_i18n' => ['en' => 'Must Watch', 'ru' => 'Обязательно к просмотру'], 'type' => 'system'],
-            ['slug' => 'family', 'name_i18n' => ['en' => 'Family', 'ru' => 'Семейный'], 'type' => 'system'],
-        ];
-
-        foreach ($tags as $tag) {
-            Tag::updateOrCreate(['slug' => $tag['slug']], $tag);
-        }
-    }
-}
-```
-
-#### `database/seeders/RecommendationDemoSeeder.php`
-```php
-<?php
-
-namespace Database\Seeders;
-
-use App\Models\Film;
-use App\Models\Recommendation;
-use App\Models\User;
-use Illuminate\Database\Seeder;
-
-class RecommendationDemoSeeder extends Seeder
-{
-    public function run(): void
-    {
-        $user = User::first();
-        $film = Film::first();
-
-        if ($user && $film) {
-            Recommendation::updateOrCreate(
-                ['user_id' => $user->id, 'algo' => 'hybrid', 'film_id' => $film->id],
-                ['score' => 0.95, 'rerank_reason' => ['novelty' => 0.1]]
-            );
-        }
-    }
-}
-```
-
-Update the project `DatabaseSeeder` to call the new seeders:
-```php
-public function run(): void
-{
-    $this->call([
-        GenreSeeder::class,
-        TagSeeder::class,
-        RecommendationDemoSeeder::class,
-    ]);
-}
-```
-
-### 2.4 Indexing and Query Optimisation Notes
-- `films` full-text index (`films_ft_title_synopsis`) powers BM25-style search.
-- Composite indices for `ratings`, `list_items`, `recommendations` enforce uniqueness and speed up dashboard queries.
-- Faceted filtering uses `year`, `release_date`, JSON path queries (`countries`, `languages`) with generated columns if needed.
-- Consider MySQL 8.0 virtual columns such as `generated column \\`primary_country\\`` for frequent facets; add after initial rollout to keep migration minimal.
-
-### 2.5 Data Validation Rules (Laravel Form Requests)
-```php
-'rating' => ['nullable', 'integer', 'between:1,10'],
-'liked' => ['nullable', 'boolean'],
-'year' => ['nullable', 'integer', 'between:1888,' . (now()->year + 1)],
-'runtime' => ['nullable', 'integer', 'between:1,600'],
-'countries' => ['nullable', 'array'],
-'countries.*' => ['string', 'size:2'],
-'languages' => ['nullable', 'array'],
-'languages.*' => ['string', 'size:2'],
-```
-
-### 2.6 Horizon & Queue Touchpoints
-- Rating/list/tag mutations dispatch jobs to update hybrid recommendation caches stored in `recommendations`.
-- Queue workers refresh user embeddings and item similarities; results hydrate the `score` and `rerank_reason` payloads.
-
-### 2.7 Minimal Integration Steps
-1. Drop the snippets into the Laravel project (migrations, models, seeders).
-2. Run `php artisan migrate` then `php artisan db:seed`.
-3. Point the recommendation engine jobs to read/write against the defined tables.
-4. Add Nova/Filament/Horizon dashboards for moderation toggles using the `hidden` & `flag_reason` audit fields.
-
-This single document now couples the end-to-end product specification with a concrete Laravel data model ready to be merged into `goleaf/omdbapibt.prus.dev`.
+The implementation below assumes the existing Laravel 12 + MySQL stack from `goleaf/omdbapibt.prus.dev`. The migrations, models, seeders, and indexes are structured to minimise disruption—existing core user/auth tables remain intact while new recommendation-specific structures are additive.
+
+### 2.1 Database Schema Design
+
+#### Films Table
+- Primary entity storing movie metadata
+- Fields: id, title, original_title, year, countries (JSON), languages (JSON), runtime, synopsis, poster_url, trailer_url, release_date, credits (JSON), providers (JSON), external_ids (JSON)
+- Audit fields: hidden, flag_reason, updated_by
+- Full-text index on title, original_title, synopsis for search functionality
+
+#### Genres and Film-Genre Relationship
+- Genres table: id, slug, name_i18n (JSON for multilingual support)
+- Many-to-many relationship via film_genre pivot table
+- Enables faceted filtering and genre-based recommendations
+
+#### Tags and Film-Tag Relationship
+- Tags table: id, slug, name_i18n (JSON), type (user/system), audit fields
+- Film-tag pivot with user_id (nullable) and weight for user-generated vs system tags
+- Supports collaborative tagging and content-based filtering
+
+#### Ratings Table
+- User-film ratings with 1-10 scale and boolean like/dislike
+- Unique constraint on (user_id, film_id)
+- Indexed for efficient recommendation algorithm queries
+
+#### Interactions Table
+- Tracks implicit feedback: views, clicks, wishlist additions
+- Event type enum with configurable value weights
+- Time-series data for temporal recommendation patterns
+
+#### Lists and List Items
+- User-created movie lists with public/private visibility
+- Ordered list items with position field
+- Supports social discovery and curation features
+
+#### Social Features
+- Follows table for user-to-user relationships
+- Enables taste matching and social recommendations
+
+#### Recommendations Cache
+- Pre-computed recommendations per user and algorithm
+- Includes score and rerank_reason (JSON) for explainability
+- TTL-based invalidation on user activity changes
+
+### 2.2 Model Relationships and Data Access Patterns
+
+#### Film Model
+- Relationships to genres, tags, ratings, interactions
+- JSON casting for complex fields (countries, languages, credits, providers, external_ids)
+- Scopes for filtering by visibility and content flags
+
+#### User Extensions
+- Relationships to ratings, lists, follows, recommendations
+- Taste profile computation from rating history
+- Social graph navigation methods
+
+#### Rating and Interaction Models
+- Efficient querying for recommendation algorithms
+- Aggregation methods for user and item statistics
+- Temporal filtering for recency-based features
+
+### 2.3 Indexing Strategy
+
+#### Search Optimization
+- Full-text indexes on film titles and synopsis
+- Composite indexes for faceted filtering (year, genre, country)
+- JSON path indexes for complex field queries
+
+#### Recommendation Performance
+- User-film composite indexes for rating lookups
+- Film-genre indexes for content-based filtering
+- Temporal indexes on interactions for trend analysis
+
+#### Social Features
+- Follow relationship indexes for graph traversal
+- List membership indexes for discovery features
+
+### 2.4 Data Validation and Constraints
+
+#### Content Validation
+- Year range validation (1888 to current+1)
+- Runtime constraints (1-600 minutes)
+- ISO country and language code validation
+- Rating scale enforcement (1-10)
+
+#### Data Quality
+- Duplicate detection via external IDs and fuzzy matching
+- Content moderation flags and audit trails
+- User-generated content validation and filtering
+
+### 2.5 Caching and Performance Considerations
+
+#### Recommendation Caching
+- Pre-computed recommendations with configurable TTL
+- Incremental updates on user activity
+- Batch processing for inactive users
+
+#### Search Performance
+- Query result caching with facet-aware keys
+- Popular query suggestion caching
+- Search result pagination optimization
+
+#### Content Delivery
+- Film metadata caching with CDN integration
+- Image and trailer URL optimization
+- Localized content serving
+
+### 2.6 Integration Points
+
+#### External Data Sources
+- TMDb/OMDb API integration for film metadata
+- Streaming provider availability updates
+- Person and crew information normalization
+
+#### Queue Processing
+- Asynchronous recommendation updates
+- Batch import processing
+- User activity event processing
+
+#### Monitoring and Analytics
+- Recommendation quality metrics tracking
+- User engagement analytics
+- Content performance monitoring
+
+This data model provides a solid foundation for the movie recommendation platform while maintaining flexibility for future enhancements and optimizations.

@@ -23,6 +23,7 @@ class AppLocalizations {
         'series': 'Series',
         'people': 'People',
         'companies': 'Companies',
+        'certifications': 'Content ratings',
       },
       'company': {
         'title': 'Company',
@@ -46,6 +47,7 @@ class AppLocalizations {
         'cancel': 'Cancel',
         'retry': 'Retry',
         'refresh': 'Refresh',
+        'clear': 'Clear',
         'from': 'From',
         'to': 'To',
         'page': 'Page',
@@ -59,6 +61,23 @@ class AppLocalizations {
         'profileLabelPrefix': 'Profile image of',
         'addToFavorites': 'Add to favorites',
         'removeFromFavorites': 'Remove from favorites',
+      },
+      'certifications': {
+        'title': 'Content ratings',
+        'movies_tab': 'Movies',
+        'tv_tab': 'TV',
+        'search_hint': 'Search by country or rating',
+        'filter_all': 'All ratings',
+        'filter_label_movies': 'Movie rating',
+        'filter_label_tv': 'TV rating',
+        'info_message':
+            'Browse official ratings, explanations, and age guidance for each region.',
+        'empty_message':
+            'No certifications match your filters yet. Try selecting a different rating.',
+        'warning_mature': '⚠️ Mature audiences only',
+        'warning_parental': '🔶 Parental guidance strongly advised',
+        'warning_unrated': 'ℹ️ Not formally rated',
+        'warning_general': '✅ Suitable for general audiences',
       },
       'settings': {
         'title': 'Settings',

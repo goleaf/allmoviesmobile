@@ -10,6 +10,7 @@ import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/keywords/keyword_browser_screen.dart';
+import '../screens/certifications/certifications_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -101,6 +102,13 @@ class AppDrawer extends StatelessWidget {
             title: Text(AppLocalizations.of(context).t('navigation.companies')),
             selected: currentRoute == CompaniesScreen.routeName,
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.verified_user_outlined),
+            title:
+                Text(AppLocalizations.of(context).t('navigation.certifications')),
+            selected: currentRoute == CertificationsScreen.routeName,
+            onTap: () => _navigateTo(context, CertificationsScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.sell_outlined),

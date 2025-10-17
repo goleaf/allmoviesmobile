@@ -20,6 +20,7 @@ import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
+import 'providers/certifications_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/offline_provider.dart';
 import 'providers/search_provider.dart';
@@ -31,6 +32,7 @@ import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
+import 'presentation/screens/certifications/certifications_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
@@ -211,6 +213,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(_repository)),
         ChangeNotifierProvider(create: (_) => GenresProvider(_repository)),
+        ChangeNotifierProvider(
+          create: (_) => CertificationsProvider(_repository),
+        ),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(widget.prefs)),
         ChangeNotifierProxyProvider2<
           WatchRegionProvider,
@@ -314,6 +319,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       PeopleScreen.routeName: (context) => const PeopleScreen(),
                       CompaniesScreen.routeName: (context) =>
                           const CompaniesScreen(),
+                      CertificationsScreen.routeName: (context) =>
+                          const CertificationsScreen(),
                       FavoritesScreen.routeName: (context) =>
                           const FavoritesScreen(),
                       WatchlistScreen.routeName: (context) =>

@@ -24,6 +24,11 @@ import '../explorer/api_explorer_screen.dart';
 import '../search/search_screen.dart';
 import '../collections/collection_detail_screen.dart';
 
+/// HomeScreen is the main landing experience for the application and exposes
+/// shortcuts, curated carousels, and personalized recommendations.
+///
+/// The screen is intentionally stateful so we can pre-load the different
+/// providers that back the carousels as soon as the widget is created.
 class HomeScreen extends StatefulWidget {
   static const routeName = '/home';
 
@@ -33,6 +38,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
+/// Holds the imperative logic for [HomeScreen], including eager pre-loading of
+/// remote data and handling refresh/search interactions.
 class _HomeScreenState extends State<HomeScreen> {
   late final TextEditingController _searchController;
 
@@ -51,6 +58,21 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  /// Pre-loads every provider required by the home experience so the carousels
+  /// have data ready when the user scrolls.
+  ///
+  /// # TMDB endpoints consumed via providers
+  /// - MoviesProvider.refresh ->
+  ///   `GET /3/trending/movie/{time_window}` returning JSON `{ "results": [ { "id": 634649, "title": "Spider-Man", "poster_path": "/path.jpg", "vote_average": 7.9, "release_date": "2023-06-02" } ] }`
+  /// - SeriesProvider.refresh ->
+  ///   `GET /3/trending/tv/{time_window}` returning JSON `{ "results": [ { "id": 12971, "name": "Loki", "poster_path": "/poster.jpg", "vote_average": 8.0, "first_air_date": "2023-10-06" } ] }`
+  /// - PeopleProvider.refresh ->
+  ///   `GET /3/person/popular` returning JSON `{ "results": [ { "id": 287, "name": "Brad Pitt", "profile_path": "/profile.jpg", "known_for_department": "Acting" } ] }`
+  /// - CollectionsProvider.ensureInitialized ->
+  ///   `GET /3/collection/{collection_id}` returning JSON `{ "id": 10, "name": "Star Wars Collection", "poster_path": "/poster.jpg", "overview": "Epic space saga" }`
+  /// - RecommendationsProvider.fetchPersonalizedRecommendations ->
+  ///   internally aggregates `GET /3/movie/{id}/recommendations` JSON payloads
+  ///   shaped as `{ "results": [ { "id": 508947, "title": "Turning Red", "poster_path": "/poster.jpg" } ] }`
   Future<void> _preloadContent() async {
     final moviesProvider = context.read<MoviesProvider>();
     final seriesProvider = context.read<SeriesProvider>();
@@ -70,6 +92,10 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  /// Allows the pull-to-refresh gesture to re-fetch all the sections at once.
+  ///
+  /// Each provider re-issues the same TMDB REST calls described in
+  /// [_preloadContent] to guarantee fresh JSON payloads for the UI widgets.
   Future<void> _refreshAll() async {
     final moviesProvider = context.read<MoviesProvider>();
     final seriesProvider = context.read<SeriesProvider>();
@@ -86,6 +112,11 @@ class _HomeScreenState extends State<HomeScreen> {
     ]);
   }
 
+  /// Navigates to the global search screen when the user submits a keyword.
+  ///
+  /// The search feature eventually calls
+  /// `GET /3/search/multi?query=<keyword>` and expects JSON shaped as
+  /// `{ "results": [ { "media_type": "movie", "id": 603692, "title": "John Wick", "poster_path": "/poster.jpg" } ] }`.
   void _openSearch(BuildContext context, String query) {
     final trimmed = query.trim();
     if (trimmed.isEmpty) {
@@ -97,6 +128,12 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+  @override
+  /// Builds the scrollable home layout.
+  ///
+  /// The layout stitches together quick access shortcuts, multiple media
+  /// carousels, and personalized blocks while keeping a persistent search bar
+  /// within the app bar.
   @override
   Widget build(BuildContext context) {
     final loc = AppLocalizations.of(context);
@@ -198,6 +235,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
+/// Renders the persistent search text field that sits inside the home app bar.
+/// The field simply proxies submissions to the callback injected by the parent.
 class _HomeSearchField extends StatelessWidget {
   const _HomeSearchField({
     required this.controller,
@@ -211,6 +250,8 @@ class _HomeSearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Styling is aligned with the current Material color scheme so the field
+    // blends with the themed app bar background.
     final colorScheme = Theme.of(context).colorScheme;
     return TextField(
       controller: controller,
@@ -235,6 +276,8 @@ class _HomeSearchField extends StatelessWidget {
   }
 }
 
+/// Displays a single row of quick access cards that deep-link into other parts
+/// of the app (API explorer, trending, genres, etc.).
 class _QuickAccessSection extends StatelessWidget {
   const _QuickAccessSection({
     required this.title,
@@ -273,6 +316,7 @@ class _QuickAccessSection extends StatelessWidget {
   }
 }
 
+/// Configuration object for a quick access card.
 class _QuickAccessItem {
   const _QuickAccessItem({
     required this.icon,
@@ -285,6 +329,7 @@ class _QuickAccessItem {
   final VoidCallback onTap;
 }
 
+/// Lightweight material card that renders a [_QuickAccessItem].
 class _QuickAccessCard extends StatelessWidget {
   const _QuickAccessCard({required this.item});
 
@@ -322,6 +367,8 @@ class _QuickAccessCard extends StatelessWidget {
   }
 }
 
+/// Horizontal carousel for movies. The [section] determines which TMDB
+/// endpoint is used by [MoviesProvider].
 class _MoviesCarousel extends StatelessWidget {
   const _MoviesCarousel({
     required this.title,
@@ -336,6 +383,10 @@ class _MoviesCarousel extends StatelessWidget {
     return Consumer<MoviesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
+        // The provider already fetched JSON payloads such as
+        // `{ "results": [ { "id": 634649, "title": "Spider-Man", "poster_path": "/path.jpg" } ] }`
+        // from endpoints like `/3/trending/movie/{time_window}` or
+        // `/3/movie/now_playing`.
         return _HorizontalMediaSection(
           title: title,
           isLoading: state.isLoading,
@@ -364,6 +415,7 @@ class _MoviesCarousel extends StatelessWidget {
   }
 }
 
+/// Horizontal carousel for TV series leveraging [SeriesProvider].
 class _SeriesCarousel extends StatelessWidget {
   const _SeriesCarousel({
     required this.title,
@@ -378,6 +430,9 @@ class _SeriesCarousel extends StatelessWidget {
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
+        // The provider obtains JSON resembling
+        // `{ "results": [ { "id": 84958, "name": "Loki", "poster_path": "/poster.jpg" } ] }`
+        // from endpoints like `/3/trending/tv/{time_window}`.
         return _HorizontalMediaSection(
           title: title,
           isLoading: state.isLoading,
@@ -406,6 +461,7 @@ class _SeriesCarousel extends StatelessWidget {
   }
 }
 
+/// Renders the popular people carousel using [PeopleProvider].
 class _PeopleCarousel extends StatelessWidget {
   const _PeopleCarousel({required this.title});
 
@@ -416,6 +472,8 @@ class _PeopleCarousel extends StatelessWidget {
     return Consumer<PeopleProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(PeopleSection.popular);
+        // Backed by the `/3/person/popular` endpoint that returns JSON like
+        // `{ "results": [ { "id": 287, "name": "Brad Pitt", "profile_path": "/profile.jpg" } ] }`.
         return _HorizontalMediaSection(
           title: title,
           isLoading: state.isLoading,
@@ -442,6 +500,7 @@ class _PeopleCarousel extends StatelessWidget {
   }
 }
 
+/// Displays featured collections curated in [CollectionsProvider].
 class _CollectionsCarousel extends StatelessWidget {
   const _CollectionsCarousel({required this.title});
 
@@ -454,6 +513,8 @@ class _CollectionsCarousel extends StatelessWidget {
         final collections = provider.popularCollections;
         final isLoading = provider.isPopularLoading && collections.isEmpty;
         final error = provider.popularError;
+        // Each collection card maps to `/3/collection/{collection_id}` JSON
+        // payloads (name, poster_path, overview, parts, etc.).
         return _HorizontalMediaSection(
           title: title,
           isLoading: isLoading,
@@ -479,6 +540,7 @@ class _CollectionsCarousel extends StatelessWidget {
   }
 }
 
+/// Shows unfinished watchlist entries sourced from [WatchlistProvider].
 class _ContinueWatchingSection extends StatelessWidget {
   const _ContinueWatchingSection({required this.title});
 
@@ -495,6 +557,8 @@ class _ContinueWatchingSection extends StatelessWidget {
         if (items.isEmpty) {
           return const SizedBox.shrink();
         }
+        // The watchlist lives in the local persistence layer so we only show a
+        // section when unfinished entries exist.
         return _HorizontalMediaSection(
           title: title,
           isLoading: false,
@@ -508,6 +572,7 @@ class _ContinueWatchingSection extends StatelessWidget {
   }
 }
 
+/// Personalized recommendations aggregated in [RecommendationsProvider].
 class _RecommendationsSection extends StatelessWidget {
   const _RecommendationsSection({required this.title});
 
@@ -523,6 +588,8 @@ class _RecommendationsSection extends StatelessWidget {
         if (!isLoading && movies.isEmpty && error == null) {
           return const SizedBox.shrink();
         }
+        // The provider consolidates responses from `/3/movie/{id}/recommendations`
+        // JSON payloads so we can render them as plain movie cards.
         return _HorizontalMediaSection(
           title: title,
           isLoading: isLoading,
@@ -550,6 +617,8 @@ class _RecommendationsSection extends StatelessWidget {
   }
 }
 
+/// Reusable widget that renders a titled horizontal list of cards handling
+/// loading and error states consistently across sections.
 class _HorizontalMediaSection extends StatelessWidget {
   const _HorizontalMediaSection({
     required this.title,
@@ -617,6 +686,7 @@ class _HorizontalMediaSection extends StatelessWidget {
   }
 }
 
+/// Card widget tailored for TMDB people entries.
 class _PersonCard extends StatelessWidget {
   const _PersonCard({
     required this.name,
@@ -690,6 +760,7 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
+/// Card widget for featured collections including poster and overview excerpt.
 class _CollectionCard extends StatelessWidget {
   const _CollectionCard({
     required this.name,
@@ -763,6 +834,8 @@ class _CollectionCard extends StatelessWidget {
   }
 }
 
+/// Card widget for entries persisted in the watchlist so the user can resume
+/// watching quickly.
 class _WatchlistCard extends StatelessWidget {
   const _WatchlistCard({required this.item});
 

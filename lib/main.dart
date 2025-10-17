@@ -69,6 +69,7 @@ class AllMoviesApp extends StatelessWidget {
           create: (_) => TrendingTitlesProvider(tmdbRepository),
         ),
         ChangeNotifierProvider(create: (_) => GenresProvider(tmdbRepository)),
+        ChangeNotifierProvider(create: (_) => RecommendationsProvider(tmdbRepository, storageService)),
         ChangeNotifierProvider(create: (_) => MoviesProvider()),
         ChangeNotifierProvider(create: (_) => SeriesProvider()),
         ChangeNotifierProvider(create: (_) => PeopleProvider()),

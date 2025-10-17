@@ -105,7 +105,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             children: [
               const Icon(Icons.hub_outlined),
               const SizedBox(width: 8),
-              Text(AppLocalizations.of(context).t('tv.series'), style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                AppLocalizations.of(context).t('tv.series'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
             ],
           ),
           const SizedBox(height: 12),

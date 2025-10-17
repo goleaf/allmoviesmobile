@@ -84,7 +84,9 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(AppLocalizations.of(context).t('collection.title'))),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).t('collection.title')),
+      ),
       drawer: const AppDrawer(),
       body: RefreshIndicator(
         onRefresh: provider.refreshAll,
@@ -123,7 +125,9 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: _SectionError(
-              message: provider.searchError ?? AppLocalizations.of(context).t('collection.no_overview'),
+              message:
+                  provider.searchError ??
+                  AppLocalizations.of(context).t('collection.no_overview'),
               onRetry: () => provider.searchCollections(provider.searchQuery),
             ),
           ),
@@ -156,7 +160,10 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
       SliverToBoxAdapter(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Text(AppLocalizations.of(context).t('keywords.search_results_title'), style: theme.textTheme.titleMedium),
+          child: Text(
+            'Search results',
+            style: theme.textTheme.titleMedium,
+          ),
         ),
       ),
       SliverList(
@@ -198,13 +205,26 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: _SectionError(
-              message: provider.popularError ?? AppLocalizations.of(context).t('collection.no_overview'),
+              message:
+                  provider.popularError ??
+                  AppLocalizations.of(context).t('collection.no_overview'),
               onRetry: provider.loadPopularCollections,
             ),
           ),
         ),
       );
     } else if (provider.popularCollections.isNotEmpty) {
+      slivers.add(
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+            child: Text(
+              'Popular collections',
+              style: theme.textTheme.titleMedium,
+            ),
+          ),
+        ),
+      );
       slivers.add(
         SliverToBoxAdapter(
           child: SizedBox(
@@ -232,7 +252,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 32, 16, 0),
           child: Text(
-            AppLocalizations.of(context).t('genres.title'),
+            'Collections by genre',
             style: theme.textTheme.titleMedium,
           ),
         ),
@@ -248,7 +268,9 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: _SectionError(
-              message: provider.genresError ?? AppLocalizations.of(context).t('collection.no_overview'),
+              message:
+                  provider.genresError ??
+                  AppLocalizations.of(context).t('collection.no_overview'),
               onRetry: provider.loadCollectionsByGenre,
             ),
           ),
@@ -450,8 +472,8 @@ class _CollectionShowcaseCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AspectRatio(
-                aspectRatio: 2 / 3,
+              Expanded(
+                flex: 2,
                 child: posterUrl.isNotEmpty
                     ? MediaImage(
                         path: details.posterPath,
@@ -462,27 +484,35 @@ class _CollectionShowcaseCard extends StatelessWidget {
                       )
                     : _PosterFallbackIcon(theme: theme),
               ),
-              Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      details.name,
-                      style: theme.textTheme.titleMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      (details.overview ?? '').isNotEmpty
-                          ? details.overview!
-                          : AppLocalizations.of(context).t('collection.no_overview'),
-                      style: theme.textTheme.bodySmall,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+              Expanded(
+                flex: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        details.name,
+                        style: theme.textTheme.titleMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Expanded(
+                        child: Text(
+                          (details.overview ?? '').isNotEmpty
+                              ? details.overview!
+                              : AppLocalizations.of(
+                                  context,
+                                ).t('collection.no_overview'),
+                          style: theme.textTheme.bodySmall,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

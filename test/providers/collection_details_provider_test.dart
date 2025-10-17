@@ -40,7 +40,7 @@ class _FakeService extends TmdbComprehensiveService {
           'height': 750,
           'vote_average': 5.0,
           'vote_count': 10,
-        }
+        },
       ],
       'backdrops': [
         {
@@ -49,13 +49,15 @@ class _FakeService extends TmdbComprehensiveService {
           'height': 720,
           'vote_average': 5.0,
           'vote_count': 10,
-        }
+        },
       ],
     };
   }
 
   @override
-  Future<Map<String, dynamic>> getCollectionTranslations(int collectionId) async {
+  Future<Map<String, dynamic>> getCollectionTranslations(
+    int collectionId,
+  ) async {
     return {
       'translations': [
         {
@@ -64,37 +66,39 @@ class _FakeService extends TmdbComprehensiveService {
           'name': 'English',
           'english_name': 'English',
           'data': {'title': 'Test Collection', 'overview': 'Overview'},
-        }
+        },
       ],
     };
   }
 
   @override
-  Future<Map<String, dynamic>> getMovieDetails(int movieId, {String? appendToResponse}) async {
+  Future<Map<String, dynamic>> getMovieDetails(
+    int movieId, {
+    String? appendToResponse,
+  }) async {
     // Return distinct revenue for each id
     final revenue = movieId == 1 ? 100 : 300;
-    return {
-      'id': movieId,
-      'title': 'Movie $movieId',
-      'revenue': revenue,
-    };
+    return {'id': movieId, 'title': 'Movie $movieId', 'revenue': revenue};
   }
 }
 
 void main() {
-  test('CollectionDetailsProvider aggregates part revenues and enriches parts', () async {
-    final provider = CollectionDetailsProvider(comprehensiveService: _FakeService());
-    await provider.loadCollection(42);
+  test(
+    'CollectionDetailsProvider aggregates part revenues and enriches parts',
+    () async {
+      final provider = CollectionDetailsProvider(
+        comprehensiveService: _FakeService(),
+      );
+      await provider.loadCollection(42);
 
-    expect(provider.errorMessage, isNull);
-    final data = provider.collection!;
-    expect(data.name, 'Test Collection');
-    // 100 + 300
-    expect(data.totalRevenue, 400);
-    expect(data.parts.length, 2);
-    expect(data.parts[0].revenue, isNotNull);
-    expect(data.parts[1].revenue, isNotNull);
-  });
+      expect(provider.errorMessage, isNull);
+      final data = provider.collection!;
+      expect(data.name, 'Test Collection');
+      // 100 + 300
+      expect(data.totalRevenue, 400);
+      expect(data.parts.length, 2);
+      expect(data.parts[0].revenue, isNotNull);
+      expect(data.parts[1].revenue, isNotNull);
+    },
+  );
 }
-
-

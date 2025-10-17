@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+// Video player screen not available in this build; open external instead
 import 'package:url_launcher/url_launcher.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -15,6 +17,7 @@ import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../../providers/movie_detail_provider.dart';
 import '../../../providers/watchlist_provider.dart';
+import '../../../providers/review_list_provider.dart';
 import '../../../providers/watch_region_provider.dart';
 import '../../widgets/error_widget.dart';
 import '../../widgets/loading_indicator.dart';
@@ -709,24 +712,25 @@ class _MovieDetailView extends StatelessWidget {
     MovieDetailed details,
     AppLocalizations loc,
   ) {
-    if (details.reviews.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Text(
-            'Reviews',
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+    // Reviews section temporarily stubbed until implementation exists
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('movie.reviews'),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
           ),
-        ),
-        ...details.reviews.take(3).map((review) => _ReviewCard(review: review)),
-      ],
+          const SizedBox(height: 8),
+          Text(
+            loc.t('common.comingSoon'),
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+        ],
+      ),
     );
   }
 
@@ -1257,7 +1261,29 @@ class _VideoCard extends StatelessWidget {
       width: 240,
       margin: const EdgeInsets.only(right: 12),
       child: InkWell(
-        onTap: () => _launchVideo(video),
+        onTap: () {
+          if (video.site == 'YouTube' && (video.key?.isNotEmpty ?? false)) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (_) => Scaffold(
+                  appBar: AppBar(title: Text(video.name)),
+                  body: Center(
+                    child: TextButton.icon(
+                      onPressed: () {
+                        _launchVideo(video);
+                      },
+                      icon: const Icon(Icons.open_in_new),
+                      label: const Text('Open on YouTube'),
+                    ),
+                  ),
+                ),
+                fullscreenDialog: true,
+              ),
+            );
+          } else {
+            _launchVideo(video);
+          }
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -1318,6 +1344,162 @@ class _VideoCard extends StatelessWidget {
   }
 }
 
+class _MovieReviewsSection extends StatefulWidget {
+  const _MovieReviewsSection();
+
+  @override
+  State<_MovieReviewsSection> createState() => _MovieReviewsSectionState();
+}
+
+class _MovieReviewsSectionState extends State<_MovieReviewsSection> {
+  @override
+  void initState() {
+    super.initState();
+    final provider = context.read<ReviewListProvider>();
+    if (!provider.hasLoadedInitial && !provider.isLoading) {
+      // Fire and forget
+      provider.loadInitial();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = context.watch<ReviewListProvider>();
+    final reviews = provider.visibleReviews;
+
+    if (provider.isLoading && !provider.hasLoadedInitial) {
+      return const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (provider.errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(provider.errorMessage!),
+      );
+    }
+
+    if (reviews.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Reviews',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.bold),
+                  ),
+                ),
+                _SortMenu(
+                  current: provider.sortOption,
+                  onSelected: provider.setSortOption,
+                ),
+                const SizedBox(width: 8),
+                _RatingFilterMenu(
+                  current: provider.ratingFilter,
+                  onSelected: provider.setRatingFilter,
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
+          ),
+          ...reviews.take(5).map((r) => _ReviewCard(review: r)),
+          if (provider.canLoadMore)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextButton.icon(
+                onPressed: provider.isLoadingMore ? null : provider.loadMore,
+                icon: const Icon(Icons.expand_more),
+                label: provider.isLoadingMore
+                    ? const Text('Loading...')
+                    : const Text('Load more'),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SortMenu extends StatelessWidget {
+  const _SortMenu({required this.current, required this.onSelected});
+
+  final ReviewSortOption current;
+  final void Function(ReviewSortOption) onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<ReviewSortOption>(
+      tooltip: 'Sort reviews',
+      initialValue: current,
+      onSelected: onSelected,
+      itemBuilder: (context) => const [
+        PopupMenuItem(
+          value: ReviewSortOption.newest,
+          child: Text('Newest'),
+        ),
+        PopupMenuItem(
+          value: ReviewSortOption.highestRated,
+          child: Text('Highest rated'),
+        ),
+      ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.sort),
+          SizedBox(width: 4),
+          Text('Sort'),
+        ],
+      ),
+    );
+  }
+}
+
+class _RatingFilterMenu extends StatelessWidget {
+  const _RatingFilterMenu({required this.current, required this.onSelected});
+
+  final ReviewRatingFilter current;
+  final void Function(ReviewRatingFilter) onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<ReviewRatingFilter>(
+      tooltip: 'Filter by rating',
+      initialValue: current,
+      onSelected: onSelected,
+      itemBuilder: (context) => ReviewRatingFilter.values
+          .map(
+            (f) => PopupMenuItem(
+              value: f,
+              child: Text(f.label),
+            ),
+          )
+          .toList(growable: false),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: const [
+          Icon(Icons.filter_alt_outlined),
+          SizedBox(width: 4),
+          Text('Filter'),
+        ],
+      ),
+    );
+  }
+}
+
 class _ReviewCard extends StatelessWidget {
   final Review review;
 
@@ -1325,6 +1507,9 @@ class _ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final reviewsProvider = context.watch<ReviewListProvider>();
+    final helpful = reviewsProvider.helpfulStateFor(review.id);
+    final isReported = reviewsProvider.isReported(review.id);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
@@ -1373,22 +1558,95 @@ class _ReviewCard extends StatelessWidget {
                 showDialog(
                   context: context,
                   builder: (context) {
-                    return AlertDialog(
-                      title: Text('Review by ${review.author}'),
-                      content: SingleChildScrollView(
-                        child: Text(review.content),
-                      ),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Close'),
+                    return Dialog(
+                      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxHeight: 600),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Review by ${review.author}',
+                                      style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.close),
+                                    onPressed: () => Navigator.pop(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const Divider(height: 1),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Markdown(
+                                  data: review.content,
+                                  softLineBreak: true,
+                                  styleSheet: MarkdownStyleSheet(
+                                    p: Theme.of(context).textTheme.bodyMedium,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
                     );
                   },
                 );
               },
               child: const Text('Read Full Review'),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Tooltip(
+                  message: 'Mark as helpful',
+                  child: InkWell(
+                    onTap: () => reviewsProvider.vote(review.id, ReviewVote.helpful),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: helpful.userVote == ReviewVote.helpful
+                            ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.thumb_up_alt_outlined,
+                            size: 18,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text('${helpful.helpfulCount}/${helpful.totalVotes}')
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                TextButton.icon(
+                  onPressed: isReported ? null : () => reviewsProvider.reportReview(review.id),
+                  icon: Icon(
+                    Icons.flag_outlined,
+                    size: 18,
+                    color: isReported ? Colors.grey : Theme.of(context).colorScheme.error,
+                  ),
+                  label: Text(isReported ? 'Reported' : 'Report'),
+                ),
+              ],
             ),
           ],
         ),

@@ -221,36 +221,56 @@ class _SeriesListSkeleton extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: cardColor,
-                    ),
+                    CircleAvatar(radius: 20, backgroundColor: cardColor),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _SkeletonBox(width: double.infinity, height: 16, color: cardColor),
+                          _SkeletonBox(
+                            width: double.infinity,
+                            height: 16,
+                            color: cardColor,
+                          ),
                           const SizedBox(height: 8),
-                          _SkeletonBox(width: 140, height: 12, color: cardColor),
+                          _SkeletonBox(
+                            width: 140,
+                            height: 12,
+                            color: cardColor,
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 12),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
                         color: chipColor,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: _SkeletonBox(width: 28, height: 12, color: chipColor.withOpacity(0.6)),
+                      child: _SkeletonBox(
+                        width: 28,
+                        height: 12,
+                        color: chipColor.withOpacity(0.6),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _SkeletonBox(width: double.infinity, height: 12, color: cardColor),
+                _SkeletonBox(
+                  width: double.infinity,
+                  height: 12,
+                  color: cardColor,
+                ),
                 const SizedBox(height: 6),
-                _SkeletonBox(width: double.infinity, height: 12, color: cardColor),
+                _SkeletonBox(
+                  width: double.infinity,
+                  height: 12,
+                  color: cardColor,
+                ),
                 const SizedBox(height: 6),
                 _SkeletonBox(width: 180, height: 12, color: cardColor),
               ],
@@ -263,7 +283,11 @@ class _SeriesListSkeleton extends StatelessWidget {
 }
 
 class _SkeletonBox extends StatelessWidget {
-  const _SkeletonBox({required this.width, required this.height, required this.color});
+  const _SkeletonBox({
+    required this.width,
+    required this.height,
+    required this.color,
+  });
 
   final double width;
   final double height;

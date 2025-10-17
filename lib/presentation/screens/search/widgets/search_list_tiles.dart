@@ -32,13 +32,16 @@ class SearchResultListTile extends StatelessWidget {
       leading: ResultThumbnail(imageUrl: _posterImageUrl),
       title: Text(
         title.isEmpty
-            ? ((result.mediaType == MediaType.movie && loc.movie['title'] != null)
-                ? 'Untitled ${loc.movie['title']}'
-                : (result.mediaType == MediaType.tv && loc.tv['title'] != null)
-                    ? 'Untitled ${loc.tv['title']}'
-                    : (result.mediaType == MediaType.person && loc.person['title'] != null)
-                        ? 'Untitled ${loc.person['title']}'
-                        : 'Untitled $mediaLabel')
+            ? ((result.mediaType == MediaType.movie &&
+                      loc.movie['title'] != null)
+                  ? 'Untitled ${loc.movie['title']}'
+                  : (result.mediaType == MediaType.tv &&
+                        loc.tv['title'] != null)
+                  ? 'Untitled ${loc.tv['title']}'
+                  : (result.mediaType == MediaType.person &&
+                        loc.person['title'] != null)
+                  ? 'Untitled ${loc.person['title']}'
+                  : 'Untitled $mediaLabel')
             : title,
       ),
       subtitle: Column(

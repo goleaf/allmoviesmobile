@@ -4,7 +4,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../providers/theme_provider.dart';
 import '../../../providers/locale_provider.dart';
 import '../../../providers/watch_region_provider.dart';
-import '../../../providers/preferences_provider.dart';
+// duplicate import removed
 import '../../../core/utils/service_locator.dart';
 import '../../../data/services/cache_service.dart';
 import '../../../data/services/local_storage_service.dart';
@@ -24,16 +24,22 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           _SettingsHeader(title: l.t('settings.appearance')),
-          const _ThemeTile(),
+          _ThemeTile(),
           _SettingsHeader(title: l.t('settings.localization')),
-          const _LanguageTile(),
-          const _RegionTile(),
+          _LanguageTile(),
+          _RegionTile(),
           _SettingsHeader(title: l.t('settings.content')),
-          const _IncludeAdultTile(),
-          const _DefaultSortTile(),
+          _IncludeAdultTile(),
+          _DefaultSortTile(),
+          _MinScoreTile(),
+          _MinVoteCountTile(),
+          _CertificationCountryTile(),
+          _CertificationValueTile(),
+          _SettingsHeader(title: l.t('settings.media')),
+          // _ImageQualityTile(),
           _SettingsHeader(title: l.t('settings.cache')),
-          const _ClearCacheTile(),
-          const _ClearSearchHistoryTile(),
+          _ClearCacheTile(),
+          _ClearSearchHistoryTile(),
           _SettingsHeader(title: l.t('settings.about')),
           _StaticInfoTile(
             icon: Icons.info_outline,
@@ -305,9 +311,9 @@ class _ClearSearchHistoryTile extends StatelessWidget {
         final storage = getIt<LocalStorageService>();
         await storage.clearSearchHistory();
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l.t('common.done'))),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l.t('common.done'))));
         }
       },
     );
@@ -366,9 +372,18 @@ class _DefaultSortTile extends StatelessWidget {
           builder: (context) => SimpleDialog(
             title: Text(l.t('settings.default_sort')),
             children: [
-              _SortOption(raw: 'popularity.desc', label: l.t('sort.popularity_desc')),
-              _SortOption(raw: 'vote_average.desc', label: l.t('sort.rating_desc')),
-              _SortOption(raw: 'release_date.desc', label: l.t('sort.release_date_desc')),
+              _SortOption(
+                raw: 'popularity.desc',
+                label: l.t('sort.popularity_desc'),
+              ),
+              _SortOption(
+                raw: 'vote_average.desc',
+                label: l.t('sort.rating_desc'),
+              ),
+              _SortOption(
+                raw: 'release_date.desc',
+                label: l.t('sort.release_date_desc'),
+              ),
               _SortOption(raw: 'title.asc', label: l.t('sort.title_asc')),
             ],
           ),
@@ -392,6 +407,251 @@ class _SortOption extends StatelessWidget {
     return SimpleDialogOption(
       onPressed: () => Navigator.pop(context, raw),
       child: Text(label),
+    );
+  }
+}
+
+class _MinScoreTile extends StatelessWidget {
+  const _MinScoreTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+    final current = prefs.defaultMinUserScore;
+
+    return ListTile(
+      leading: const Icon(Icons.star_rate_outlined),
+      title: Text(l.t('settings.min_user_score')),
+      subtitle: Text(current.toStringAsFixed(1)),
+      onTap: () async {
+        final controller = TextEditingController(
+          text: current.toStringAsFixed(1),
+        );
+        final selected = await showDialog<double>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l.t('settings.min_user_score')),
+            content: TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(hintText: '0.0 - 10.0'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.t('common.cancel')),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final value = double.tryParse(controller.text);
+                  Navigator.pop(context, value);
+                },
+                child: Text(l.t('common.done')),
+              ),
+            ],
+          ),
+        );
+        if (selected != null) {
+          await prefs.setDefaultMinUserScore(selected);
+        }
+      },
+    );
+  }
+}
+
+class _MinVoteCountTile extends StatelessWidget {
+  const _MinVoteCountTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+    final current = prefs.defaultMinVoteCount;
+
+    return ListTile(
+      leading: const Icon(Icons.how_to_vote_outlined),
+      title: Text(l.t('settings.min_vote_count')),
+      subtitle: Text('$current'),
+      onTap: () async {
+        final controller = TextEditingController(text: '$current');
+        final selected = await showDialog<int>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l.t('settings.min_vote_count')),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(hintText: '0 - 10000'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.t('common.cancel')),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final value = int.tryParse(controller.text);
+                  Navigator.pop(context, value);
+                },
+                child: Text(l.t('common.done')),
+              ),
+            ],
+          ),
+        );
+        if (selected != null) {
+          await prefs.setDefaultMinVoteCount(selected);
+        }
+      },
+    );
+  }
+}
+
+class _ImageQualityTile extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+    final current = prefs.imageQuality;
+
+    String label(String q) {
+      switch (q) {
+        case 'low':
+          return l.t('images.quality_low');
+        case 'medium':
+          return l.t('images.quality_medium');
+        case 'high':
+          return l.t('images.quality_high');
+        case 'original':
+          return l.t('images.quality_original');
+        default:
+          return q;
+      }
+    }
+
+    return ListTile(
+      leading: const Icon(Icons.image_outlined),
+      title: Text(l.t('settings.image_quality')),
+      subtitle: Text(label(current)),
+      onTap: () async {
+        final selected = await showDialog<String>(
+          context: context,
+          builder: (context) => SimpleDialog(
+            title: Text(l.t('settings.image_quality')),
+            children: [
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'low'),
+                child: Text(l.t('images.quality_low')),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'medium'),
+                child: Text(l.t('images.quality_medium')),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'high'),
+                child: Text(l.t('images.quality_high')),
+              ),
+              SimpleDialogOption(
+                onPressed: () => Navigator.pop(context, 'original'),
+                child: Text(l.t('images.quality_original')),
+              ),
+            ],
+          ),
+        );
+        if (selected != null) {
+          await prefs.setImageQuality(selected);
+        }
+      },
+    );
+  }
+}
+
+class _CertificationCountryTile extends StatelessWidget {
+  const _CertificationCountryTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+    final current = prefs.certificationCountry ?? '';
+
+    return ListTile(
+      leading: const Icon(Icons.flag_outlined),
+      title: Text(l.t('settings.certification_country')),
+      subtitle: Text(current.isEmpty ? l.t('common.none') : current),
+      onTap: () async {
+        final controller = TextEditingController(text: current);
+        final selected = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l.t('settings.certification_country')),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(hintText: 'US, GB, DE...'),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.t('common.cancel')),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text.trim()),
+                child: Text(l.t('common.done')),
+              ),
+            ],
+          ),
+        );
+        await prefs.setCertificationCountry(
+          (selected != null && selected.isNotEmpty) ? selected : null,
+        );
+      },
+    );
+  }
+}
+
+class _CertificationValueTile extends StatelessWidget {
+  const _CertificationValueTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final prefs = context.watch<PreferencesProvider>();
+    final current = prefs.certificationValue ?? '';
+
+    return ListTile(
+      leading: const Icon(Icons.badge_outlined),
+      title: Text(l.t('settings.certification')),
+      subtitle: Text(current.isEmpty ? l.t('common.none') : current),
+      onTap: () async {
+        final controller = TextEditingController(text: current);
+        final selected = await showDialog<String>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(l.t('settings.certification')),
+            content: TextField(
+              controller: controller,
+              decoration: const InputDecoration(
+                hintText: 'e.g., PG-13, R, TV-MA',
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(l.t('common.cancel')),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, controller.text.trim()),
+                child: Text(l.t('common.done')),
+              ),
+            ],
+          ),
+        );
+        await prefs.setCertificationValue(
+          (selected != null && selected.isNotEmpty) ? selected : null,
+        );
+      },
     );
   }
 }

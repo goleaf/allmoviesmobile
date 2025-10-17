@@ -71,10 +71,16 @@ class _MediaImageState extends State<MediaImage> {
 
   @override
   Widget build(BuildContext context) {
+    final effectiveSize = widget.size ??
+        MediaImageHelper.resolvePreferredSize(
+          context,
+          type: widget.type,
+          fallback: null,
+        );
     final highResUrl = MediaImageHelper.buildUrl(
       widget.path,
       type: widget.type,
-      size: widget.size,
+      size: effectiveSize,
     );
     final previewUrl = MediaImageHelper.buildPreviewUrl(
       widget.path,

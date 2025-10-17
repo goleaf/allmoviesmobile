@@ -80,10 +80,7 @@ class TmdbRepository {
     final uri = _buildUri(endpoint, query);
     try {
       final response = await _client
-          .get(
-            uri,
-            headers: {'Accept': 'application/json'},
-          )
+          .get(uri, headers: {'Accept': 'application/json'})
           .timeout(AppConfig.requestTimeout);
 
       if (response.statusCode != 200) {
@@ -656,6 +653,25 @@ class TmdbRepository {
       backdrops: _mapImages('backdrops'),
       stills: _mapImages('stills'),
     );
+  }
+
+  Future<Map<String, String>> fetchTvContentRatings(
+    int tvId, {
+    bool forceRefresh = false,
+  }) async {
+    final payload = await _getJson('/tv/$tvId/content_ratings');
+    final results = payload['results'];
+    final map = <String, String>{};
+    if (results is List) {
+      for (final item in results.whereType<Map<String, dynamic>>()) {
+        final code = item['iso_3166_1'];
+        final rating = item['rating'];
+        if (code is String && rating is String && rating.isNotEmpty) {
+          map[code.toUpperCase()] = rating;
+        }
+      }
+    }
+    return map;
   }
 
   Future<Season> fetchTvSeason(

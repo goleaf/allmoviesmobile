@@ -33,29 +33,38 @@ void main() {
     expect(provider.sectionState(PeopleSection.popular).items, isNotEmpty);
   });
 
-  test('PeopleProvider sets globalError and section errors on TmdbException', () async {
-    final failingRepo = _FailingRepo();
-    final provider = PeopleProvider(failingRepo);
-    await provider.initialized;
-    expect(provider.isInitialized, isFalse);
-    expect(provider.globalError, contains('boom'));
-    for (final section in PeopleSection.values) {
-      final state = provider.sectionState(section);
-      expect(state.isLoading, isFalse);
-      expect(state.items, isEmpty);
-      expect(state.errorMessage, isNotNull);
-    }
-  });
+  test(
+    'PeopleProvider sets globalError and section errors on TmdbException',
+    () async {
+      final failingRepo = _FailingRepo();
+      final provider = PeopleProvider(failingRepo);
+      await provider.initialized;
+      expect(provider.isInitialized, isFalse);
+      expect(provider.globalError, contains('boom'));
+      for (final section in PeopleSection.values) {
+        final state = provider.sectionState(section);
+        expect(state.isLoading, isFalse);
+        expect(state.items, isEmpty);
+        expect(state.errorMessage, isNotNull);
+      }
+    },
+  );
 }
 
 class _FailingRepo extends TmdbRepository {
   @override
-  Future<List<Person>> fetchTrendingPeople({String timeWindow = 'day', bool forceRefresh = false}) async {
+  Future<List<Person>> fetchTrendingPeople({
+    String timeWindow = 'day',
+    bool forceRefresh = false,
+  }) async {
     throw TmdbException('boom');
   }
 
   @override
-  Future<PaginatedResponse<Person>> fetchPopularPeople({int page = 1, bool forceRefresh = false}) async {
+  Future<PaginatedResponse<Person>> fetchPopularPeople({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
     throw TmdbException('boom');
   }
 }

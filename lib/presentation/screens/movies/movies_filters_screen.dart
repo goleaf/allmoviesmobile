@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
-// removed unused AppStrings import
+// AppStrings removed; using AppLocalizations instead
 import '../../../data/models/discover_filters_model.dart';
 import '../../../providers/watch_region_provider.dart';
 
@@ -141,13 +141,20 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             children: [
               const Icon(Icons.filter_list),
               const SizedBox(width: 8),
-              Text(l.t('discover.title'), style: Theme.of(context).textTheme.titleLarge),
+              Text(
+                l.t('discover.title'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
               const Spacer(),
-              if (region != null) Chip(label: Text('${AppStrings.region}: $region')),
+              if (region != null)
+                Chip(label: Text('${l.t('settings.region')}: $region')),
             ],
           ),
           const SizedBox(height: 12),
-          Text(AppStrings.byDecade, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.byDecade'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -166,7 +173,10 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(AppStrings.certification, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.certification'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -182,14 +192,21 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(AppStrings.releaseDateRange, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.releaseDateRange'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Row(
             children: [
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.date_range),
-                  label: Text(releaseFrom == null ? AppStrings.from : releaseFrom!.toIso8601String().split('T').first),
+                  label: Text(
+                    releaseFrom == null
+                        ? l.t('common.from')
+                        : releaseFrom!.toIso8601String().split('T').first,
+                  ),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: context,
@@ -207,7 +224,11 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
               Expanded(
                 child: OutlinedButton.icon(
                   icon: const Icon(Icons.event),
-                  label: Text(releaseTo == null ? AppStrings.to : releaseTo!.toIso8601String().split('T').first),
+                  label: Text(
+                    releaseTo == null
+                        ? l.t('common.to')
+                        : releaseTo!.toIso8601String().split('T').first,
+                  ),
                   onPressed: () async {
                     final picked = await showDatePicker(
                       context: context,
@@ -222,7 +243,10 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(AppStrings.voteAverage, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.voteAverage'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           RangeSlider(
             values: RangeValues(voteMin, voteMax),
             min: 0,
@@ -240,7 +264,10 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             },
           ),
           const SizedBox(height: 8),
-          Text(AppStrings.runtimeMinutes, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.runtimeMinutes'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           RangeSlider(
             values: RangeValues(runtimeMin.toDouble(), runtimeMax.toDouble()),
             min: 0,
@@ -255,7 +282,10 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             },
           ),
           const SizedBox(height: 8),
-          Text(AppStrings.voteCountMinimum, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.voteCountMinimum'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           Row(
             children: [
               Expanded(
@@ -275,7 +305,10 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 8),
-          Text(AppStrings.monetizationTypes, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.monetizationTypes'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -297,15 +330,23 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          Text(AppStrings.watchProvidersIds, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.watchProvidersIds'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: AppStrings.watchProvidersHint),
+            decoration: InputDecoration(
+              hintText: l.t('discover.watchProvidersHint'),
+            ),
             onChanged: (v) =>
                 setState(() => watchProviders = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 12),
-          Text(AppStrings.releaseType, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.releaseType'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -332,31 +373,38 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
           const SizedBox(height: 8),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,
-            title: const Text(AppStrings.includeAdultContent),
+            title: Text(l.t('discover.includeAdultContent')),
             value: includeAdult,
             onChanged: (v) => setState(() => includeAdult = v),
           ),
           const SizedBox(height: 12),
-          Text(AppStrings.peopleCompaniesKeywords, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l.t('discover.peopleCompaniesKeywords'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: AppStrings.hintWithCast),
+            decoration: InputDecoration(hintText: l.t('discover.hintWithCast')),
             onChanged: (v) => setState(() => withCast = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: AppStrings.hintWithCrew),
+            decoration: InputDecoration(hintText: l.t('discover.hintWithCrew')),
             onChanged: (v) => setState(() => withCrew = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: AppStrings.hintWithCompanies),
+            decoration: InputDecoration(
+              hintText: l.t('discover.hintWithCompanies'),
+            ),
             onChanged: (v) =>
                 setState(() => withCompanies = v.replaceAll(' ', '')),
           ),
           const SizedBox(height: 8),
           TextField(
-            decoration: const InputDecoration(hintText: AppStrings.hintWithKeywords),
+            decoration: InputDecoration(
+              hintText: l.t('discover.hintWithKeywords'),
+            ),
             onChanged: (v) =>
                 setState(() => withKeywords = v.replaceAll(' ', '')),
           ),

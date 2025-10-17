@@ -126,7 +126,7 @@ class MoviesProvider extends ChangeNotifier {
     if (savedWindow == 'day' || savedWindow == 'week') {
       _trendingWindow = savedWindow!;
     }
-      _discoverFilters = _storage?.getDiscoverFilters();
+    _discoverFilters = _storage?.getDiscoverFilters();
     await refresh(force: true);
   }
 
@@ -154,7 +154,8 @@ class MoviesProvider extends ChangeNotifier {
     try {
       final region = _regionProvider?.region;
       final includeAdultPref = _preferences?.includeAdult ?? false;
-      final defaultSortRaw = _preferences?.defaultDiscoverSortRaw ?? 'popularity.desc';
+      final defaultSortRaw =
+          _preferences?.defaultDiscoverSortRaw ?? 'popularity.desc';
       final defaultSort = () {
         switch (defaultSortRaw) {
           case 'vote_average.desc':
@@ -168,6 +169,10 @@ class MoviesProvider extends ChangeNotifier {
             return SortBy.popularityDesc;
         }
       }();
+      final minVotes = _preferences?.defaultMinVoteCount ?? 0;
+      final minScore = _preferences?.defaultMinUserScore ?? 0.0;
+      final certCountry = _preferences?.certificationCountry;
+      final certValue = _preferences?.certificationValue;
       _discoverFilters =
           (_discoverFilters ??
                   DiscoverFilters(
@@ -175,8 +180,19 @@ class MoviesProvider extends ChangeNotifier {
                     watchRegion: region,
                     withWatchMonetizationTypes: 'flatrate|rent|buy|ads|free',
                     includeAdult: includeAdultPref,
+                    voteCountGte: minVotes > 0 ? minVotes : null,
+                    voteAverageGte: minScore > 0 ? minScore : null,
+                    certificationCountry: certCountry,
+                    certification: certValue,
                   ))
-              .copyWith(watchRegion: region, includeAdult: includeAdultPref);
+              .copyWith(
+                watchRegion: region,
+                includeAdult: includeAdultPref,
+                voteCountGte: minVotes > 0 ? minVotes : null,
+                voteAverageGte: minScore > 0 ? minScore : null,
+                certificationCountry: certCountry,
+                certification: certValue,
+              );
 
       final responses = await Future.wait<PaginatedResponse<Movie>>([
         _repository.fetchTrendingMoviesPaginated(

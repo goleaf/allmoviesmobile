@@ -36,7 +36,11 @@ class SeriesSectionState {
 }
 
 class SeriesProvider extends ChangeNotifier {
-  SeriesProvider(this._repository, {PreferencesProvider? preferencesProvider, bool autoInitialize = true}) {
+  SeriesProvider(
+    this._repository, {
+    PreferencesProvider? preferencesProvider,
+    bool autoInitialize = true,
+  }) {
     _preferences = preferencesProvider;
     if (autoInitialize) {
       _init();

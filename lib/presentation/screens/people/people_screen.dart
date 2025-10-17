@@ -45,7 +45,9 @@ class _PeopleScreenState extends State<PeopleScreen> {
             isScrollable: true,
             tabs: [
               for (final section in sections)
-                Tab(text: _labelForSection(section, AppLocalizations.of(context))),
+                Tab(
+                  text: _labelForSection(section, AppLocalizations.of(context)),
+                ),
             ],
           ),
         ),

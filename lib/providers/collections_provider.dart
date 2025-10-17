@@ -1,6 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-import '../core/constants/app_strings.dart';
 import '../data/models/collection_model.dart';
 import '../data/tmdb_repository.dart';
 
@@ -95,7 +94,7 @@ class CollectionsProvider extends ChangeNotifier {
         ..clear()
         ..addAll(collections);
       if (_popularCollections.isEmpty) {
-        _popularError = AppStrings.collectionsUnavailable;
+        _popularError = 'Collections unavailable';
       }
     } catch (error) {
       _popularError = 'Failed to load collections: $error';
@@ -132,7 +131,7 @@ class CollectionsProvider extends ChangeNotifier {
         ..addAll(updated);
 
       if (_collectionsByGenre.isEmpty) {
-        _genresError = AppStrings.collectionsUnavailable;
+        _genresError = 'Collections unavailable';
       }
     } catch (error) {
       _genresError = 'Failed to load genre collections: $error';
@@ -178,6 +177,7 @@ class CollectionsProvider extends ChangeNotifier {
     String query, {
     bool forceRefresh = false,
   }) async {
+    final previousQuery = _searchQuery;
     _searchQuery = query;
     final trimmed = query.trim();
 
@@ -188,6 +188,14 @@ class CollectionsProvider extends ChangeNotifier {
       _hasSearched = false;
       _isSearching = false;
       notifyListeners();
+      return;
+    }
+
+    // Avoid redundant fetches when the query hasn't changed and we already searched
+    if (!forceRefresh &&
+        _hasSearched &&
+        previousQuery.trim() == trimmed &&
+        !_isSearching) {
       return;
     }
 

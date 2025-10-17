@@ -91,9 +91,9 @@ class _CompanyDetailScreenState extends State<CompanyDetailScreen> {
                   isLoading: isLoading && !snapshot.hasData,
                   onRefreshPressed: () {
                     setState(() {
-                    _future = _repository.fetchCompanyDetails(
-                      widget.company.id,
-                    );
+                      _future = _repository.fetchCompanyDetails(
+                        widget.company.id,
+                      );
                     });
                   },
                 ),

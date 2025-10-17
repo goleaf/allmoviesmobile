@@ -1,4 +1,7 @@
+import 'package:flutter/widgets.dart';
+import 'package:provider/provider.dart';
 import '../config/app_config.dart';
+import '../../providers/preferences_provider.dart';
 
 /// Descriptor for TMDB media image categories.
 enum MediaImageType { poster, backdrop, profile, still, logo }
@@ -137,6 +140,42 @@ class MediaImageHelper {
       size ?? _previewSizes[type] ?? MediaImageSize.w92,
     );
     return '${AppConfig.tmdbImageBaseUrl}/${resolvedSize.value}$sanitized';
+  }
+
+  /// Resolve size from preferences when available via BuildContext.
+  static MediaImageSize resolvePreferredSize(
+    BuildContext context, {
+    required MediaImageType type,
+    MediaImageSize? fallback,
+  }) {
+    MediaImageSize fromQuality(String quality) {
+      switch (quality) {
+        case 'low':
+          return type == MediaImageType.backdrop
+              ? MediaImageSize.w300
+              : MediaImageSize.w154;
+        case 'medium':
+          return type == MediaImageType.backdrop
+              ? MediaImageSize.w780
+              : MediaImageSize.w342;
+        case 'high':
+          return type == MediaImageType.backdrop
+              ? MediaImageSize.w1280
+              : MediaImageSize.w500;
+        case 'original':
+          return MediaImageSize.original;
+        default:
+          return _defaultSizes[type] ?? MediaImageSize.original;
+      }
+    }
+
+    try {
+      final prefs = context.read<PreferencesProvider>();
+      return fromQuality(prefs.imageQuality);
+    } catch (_) {
+      // If no provider in tree, fall back
+      return fallback ?? (_defaultSizes[type] ?? MediaImageSize.original);
+    }
   }
 
   static MediaImageSize _resolveSize(MediaImageType type, MediaImageSize size) {

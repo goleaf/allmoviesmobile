@@ -14,12 +14,20 @@ class _RepoStub extends TmdbRepository {
   _RepoStub(this.season);
 
   @override
-  Future<Season> fetchTvSeason(int tvId, int seasonNumber, {bool forceRefresh = false}) async {
+  Future<Season> fetchTvSeason(
+    int tvId,
+    int seasonNumber, {
+    bool forceRefresh = false,
+  }) async {
     return season;
   }
 
   @override
-  Future<MediaImages> fetchTvSeasonImages(int tvId, int seasonNumber, {bool forceRefresh = false}) async {
+  Future<MediaImages> fetchTvSeasonImages(
+    int tvId,
+    int seasonNumber, {
+    bool forceRefresh = false,
+  }) async {
     return MediaImages.empty();
   }
 }
@@ -33,7 +41,13 @@ void main() {
       seasonNumber: 1,
       overview: 'The beginning.',
     );
-    final season = Season(id: 1, name: 'Season 1', seasonNumber: 1, episodeCount: 1, episodes: [episode]);
+    final season = Season(
+      id: 1,
+      name: 'Season 1',
+      seasonNumber: 1,
+      episodeCount: 1,
+      episodes: [episode],
+    );
 
     final repo = _RepoStub(season);
 
@@ -41,6 +55,7 @@ void main() {
       Provider<TmdbRepository>.value(
         value: repo,
         child: MaterialApp(
+          home: const Scaffold(),
           onGenerateRoute: (settings) {
             if (settings.name == SeasonDetailScreen.routeName) {
               final args = settings.arguments as SeasonDetailArgs;
@@ -58,7 +73,7 @@ void main() {
             }
             return null;
           },
-          initialRoute: SeasonDetailScreen.routeName,
+          // Start with no initial route; we'll push the route with args below
           routes: const {},
         ),
       ),
@@ -66,7 +81,10 @@ void main() {
 
     // Push SeasonDetail
     final nav = tester.state<NavigatorState>(find.byType(Navigator));
-    nav.pushNamed(SeasonDetailScreen.routeName, arguments: const SeasonDetailArgs(tvId: 100, seasonNumber: 1));
+    nav.pushNamed(
+      SeasonDetailScreen.routeName,
+      arguments: const SeasonDetailArgs(tvId: 100, seasonNumber: 1),
+    );
     await tester.pumpAndSettle();
 
     // Episodes section visible
@@ -80,5 +98,3 @@ void main() {
     expect(find.text('Pilot'), findsWidgets);
   });
 }
-
-

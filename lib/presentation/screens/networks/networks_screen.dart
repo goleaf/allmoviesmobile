@@ -44,7 +44,7 @@ class _NetworksScreenState extends State<NetworksScreen> {
     final localization = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.networks)),
+      appBar: AppBar(title: Text(localization.t('network.popular'))),
       drawer: const AppDrawer(),
       body: _NetworksBody(
         provider: provider,

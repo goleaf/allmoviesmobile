@@ -201,7 +201,9 @@ class EpisodeDetailScreen extends StatelessWidget {
       children: [
         Text(
           AppLocalizations.of(context).t('person.known_for'),
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -229,9 +231,19 @@ class EpisodeDetailScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(cast.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    Text(
+                      cast.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
                     if (cast.character != null)
-                      Text(cast.character!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                      Text(
+                        cast.character!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
                   ],
                 ),
               );
@@ -251,14 +263,20 @@ class EpisodeDetailScreen extends StatelessWidget {
       children: [
         Text(
           'Crew',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
           children: display
-              .map((c) => Chip(label: Text('${c.name}${c.job != null ? ' • ${c.job}' : ''}')))
+              .map(
+                (c) => Chip(
+                  label: Text('${c.name}${c.job != null ? ' • ${c.job}' : ''}'),
+                ),
+              )
               .toList(),
         ),
       ],
@@ -269,7 +287,11 @@ class EpisodeDetailScreen extends StatelessWidget {
     if (episode.videos.isEmpty) return const SizedBox.shrink();
     final theme = Theme.of(context);
     final trailers = episode.videos
-        .where((v) => v.site == 'YouTube' && (v.type == 'Trailer' || v.type == 'Teaser'))
+        .where(
+          (v) =>
+              v.site == 'YouTube' &&
+              (v.type == 'Trailer' || v.type == 'Teaser'),
+        )
         .toList();
     if (trailers.isEmpty) return const SizedBox.shrink();
     return Column(
@@ -277,7 +299,9 @@ class EpisodeDetailScreen extends StatelessWidget {
       children: [
         Text(
           'Videos',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         SizedBox(
@@ -287,17 +311,30 @@ class EpisodeDetailScreen extends StatelessWidget {
             itemCount: trailers.length,
             itemBuilder: (context, index) {
               final video = trailers[index];
-              final thumbnailUrl = 'https://img.youtube.com/vi/${video.key}/mqdefault.jpg';
+              final thumbnailUrl =
+                  'https://img.youtube.com/vi/${video.key}/mqdefault.jpg';
               return Container(
                 width: 240,
                 margin: const EdgeInsets.only(right: 12),
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    Image.network(thumbnailUrl, width: 240, height: 140, fit: BoxFit.cover),
+                    Image.network(
+                      thumbnailUrl,
+                      width: 240,
+                      height: 140,
+                      fit: BoxFit.cover,
+                    ),
                     Container(
-                      decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
-                      child: const Icon(Icons.play_arrow, color: Colors.white, size: 48),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.play_arrow,
+                        color: Colors.white,
+                        size: 48,
+                      ),
                     ),
                   ],
                 ),
@@ -320,7 +357,9 @@ class EpisodeDetailScreen extends StatelessWidget {
       children: [
         Text(
           'Images',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
         ),
         const SizedBox(height: 8),
         SizedBox(

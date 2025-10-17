@@ -73,7 +73,9 @@ class _SeasonDetailView extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(title: Text('${loc.t('tv.season')} ${season.seasonNumber}')),
+      appBar: AppBar(
+        title: Text('${loc.t('tv.season')} ${season.seasonNumber}'),
+      ),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -181,10 +183,9 @@ class _SeasonDetailView extends StatelessWidget {
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 12),
-          ...season.episodes.map((e) => _EpisodeTile(
-                episode: e,
-                seasonNumber: season.seasonNumber,
-              )),
+          ...season.episodes.map(
+            (e) => _EpisodeTile(episode: e, seasonNumber: season.seasonNumber),
+          ),
         ],
       ),
     );
@@ -198,7 +199,12 @@ class _SeasonDetailView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context).t('movie.cast'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            AppLocalizations.of(context).t('movie.cast'),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             height: 180,
@@ -225,9 +231,22 @@ class _SeasonDetailView extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      Text(cast.name, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+                      Text(
+                        cast.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
                       if (cast.character != null)
-                        Text(cast.character!, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                        Text(
+                          cast.character!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
                     ],
                   ),
                 );
@@ -248,13 +267,24 @@ class _SeasonDetailView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context).t('movie.crew'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            AppLocalizations.of(context).t('movie.crew'),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: crew
-                .map((c) => Chip(label: Text('${c.name}${c.job != null ? ' • ${c.job}' : ''}')))
+                .map(
+                  (c) => Chip(
+                    label: Text(
+                      '${c.name}${c.job != null ? ' • ${c.job}' : ''}',
+                    ),
+                  ),
+                )
                 .toList(),
           ),
         ],
@@ -266,7 +296,11 @@ class _SeasonDetailView extends StatelessWidget {
     final loc = AppLocalizations.of(context);
     if (season.videos.isEmpty) return const SizedBox.shrink();
     final trailers = season.videos
-        .where((v) => v.site == 'YouTube' && (v.type == 'Trailer' || v.type == 'Teaser'))
+        .where(
+          (v) =>
+              v.site == 'YouTube' &&
+              (v.type == 'Trailer' || v.type == 'Teaser'),
+        )
         .toList();
     if (trailers.isEmpty) return const SizedBox.shrink();
     return Padding(
@@ -274,7 +308,12 @@ class _SeasonDetailView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(AppLocalizations.of(context).t('movie.videos'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+          Text(
+            AppLocalizations.of(context).t('movie.videos'),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 12),
           SizedBox(
             height: 140,
@@ -283,17 +322,30 @@ class _SeasonDetailView extends StatelessWidget {
               itemCount: trailers.length,
               itemBuilder: (context, index) {
                 final video = trailers[index];
-                final thumbnailUrl = 'https://img.youtube.com/vi/${video.key}/mqdefault.jpg';
+                final thumbnailUrl =
+                    'https://img.youtube.com/vi/${video.key}/mqdefault.jpg';
                 return Container(
                   width: 240,
                   margin: const EdgeInsets.only(right: 12),
                   child: Stack(
                     alignment: Alignment.center,
                     children: [
-                      Image.network(thumbnailUrl, width: 240, height: 140, fit: BoxFit.cover),
+                      Image.network(
+                        thumbnailUrl,
+                        width: 240,
+                        height: 140,
+                        fit: BoxFit.cover,
+                      ),
                       Container(
-                        decoration: BoxDecoration(color: Colors.black.withOpacity(0.3), shape: BoxShape.circle),
-                        child: const Icon(Icons.play_arrow, color: Colors.white, size: 48),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.play_arrow,
+                          color: Colors.white,
+                          size: 48,
+                        ),
                       ),
                     ],
                   ),
@@ -309,7 +361,8 @@ class _SeasonDetailView extends StatelessWidget {
   Widget _buildImages(BuildContext context) {
     final loc = AppLocalizations.of(context);
     final repository = context.read<TmdbRepository>();
-    final args = (ModalRoute.of(context)?.settings.arguments) as SeasonDetailArgs?;
+    final args =
+        (ModalRoute.of(context)?.settings.arguments) as SeasonDetailArgs?;
     if (args == null) return const SizedBox.shrink();
     return FutureBuilder<MediaImages>(
       future: repository.fetchTvSeasonImages(args.tvId, args.seasonNumber),
@@ -317,10 +370,14 @@ class _SeasonDetailView extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SizedBox(height: 48, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+            child: SizedBox(
+              height: 48,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
           );
         }
-        if (!snapshot.hasData || !snapshot.data!.hasAny) return const SizedBox.shrink();
+        if (!snapshot.hasData || !snapshot.data!.hasAny)
+          return const SizedBox.shrink();
         final images = snapshot.data!;
         final posters = images.posters.take(10).toList();
         final backdrops = images.backdrops.take(10).toList();
@@ -329,7 +386,12 @@ class _SeasonDetailView extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(AppLocalizations.of(context).t('movie.images'), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              Text(
+                AppLocalizations.of(context).t('movie.images'),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 12),
               if (posters.isNotEmpty) ...[
                 SizedBox(

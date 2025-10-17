@@ -39,6 +39,7 @@ import 'presentation/screens/collections/browse_collections_screen.dart';
 import 'presentation/screens/networks/networks_screen.dart';
 import 'presentation/screens/lists/lists_screen.dart';
 import 'presentation/screens/videos/videos_screen.dart';
+import 'presentation/screens/video_player/video_player_screen.dart';
 import 'presentation/screens/search/search_results_list_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
@@ -106,8 +107,11 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(repo)),
         ChangeNotifierProvider(create: (_) => GenresProvider(repo)),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
-        ChangeNotifierProxyProvider2<WatchRegionProvider, PreferencesProvider,
-            MoviesProvider>(
+        ChangeNotifierProxyProvider2<
+          WatchRegionProvider,
+          PreferencesProvider,
+          MoviesProvider
+        >(
           create: (_) => MoviesProvider(repo, storageService: storageService),
           update: (_, watchRegion, preferences, movies) {
             movies ??= MoviesProvider(repo, storageService: storageService);
@@ -179,6 +183,10 @@ class AllMoviesApp extends StatelessWidget {
                   SearchResultsListScreen.routeName: (context) =>
                       const SearchResultsListScreen(),
                   VideosScreen.routeName: (context) => const VideosScreen(),
+                  VideoPlayerScreen.routeName: (context) => const VideoPlayerScreen(
+                        videoKey: 'dQw4w9WgXcQ',
+                        title: 'Video',
+                      ),
                   ListsScreen.routeName: (context) => const ListsScreen(),
                 },
                 onGenerateRoute: (settings) {

@@ -9,7 +9,11 @@ class _FakeRepo extends TmdbRepository {
   _FakeRepo(this.toReturn);
 
   @override
-  Future<Season> fetchTvSeason(int tvId, int seasonNumber, {bool forceRefresh = false}) async {
+  Future<Season> fetchTvSeason(
+    int tvId,
+    int seasonNumber, {
+    bool forceRefresh = false,
+  }) async {
     calls++;
     return toReturn!;
   }

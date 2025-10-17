@@ -51,12 +51,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
             ),
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenu(value, favoritesProvider),
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'sort', child: Text('Sort')),
-              PopupMenuItem(value: 'filter', child: Text('Filter')),
-              PopupMenuItem(value: 'export', child: Text('Export JSON')),
-              PopupMenuItem(value: 'import', child: Text('Import from URL')),
-              PopupMenuItem(value: 'share', child: Text('Share')),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'sort',
+                child: Text(loc.t('discover.sort_by')),
+              ),
+              PopupMenuItem(
+                value: 'filter',
+                child: Text(loc.t('discover.filters')),
+              ),
+              PopupMenuItem(
+                value: 'share',
+                child: Text(loc.movie['share'] ?? 'Share'),
+              ),
             ],
           ),
         ],
@@ -142,42 +149,47 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
       case 'filter':
         await _pickFilter();
         break;
-      case 'export':
-        final json = provider.exportToJson();
-        if (!mounted) return;
-        await Share.share(json, subject: 'Favorites Export');
-        break;
-      case 'import':
-        await _promptImportUrl(provider);
-        break;
       case 'share':
         final count = provider.favoriteItems.length;
-        await Share.share('My favorites on AllMovies: $count items');
+        await Share.share(
+          '${AppLocalizations.of(context).t('favorites.title')}: $count',
+        );
         break;
     }
   }
+
   Future<void> _pickSortMode() async {
     final selected = await showDialog<_SortMode>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Sort by'),
+        title: Text(AppLocalizations.of(context).t('discover.sort_by')),
         children: [
           RadioListTile<_SortMode>(
             value: _SortMode.dateAdded,
             groupValue: _sortMode,
-            title: const Text('Date added'),
+            title: Text(
+              AppLocalizations.of(context).t('common.date_added') ??
+                  'Date added',
+            ),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_SortMode>(
             value: _SortMode.rating,
             groupValue: _sortMode,
-            title: const Text('Rating'),
+            title: Text(
+              AppLocalizations.of(context).t('movie.rating') ?? 'Rating',
+            ),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_SortMode>(
             value: _SortMode.title,
             groupValue: _sortMode,
-            title: const Text('Title'),
+            title: Text(
+              AppLocalizations.of(
+                    context,
+                  ).t('collection.translation_homepage') ??
+                  'Title',
+            ),
             onChanged: (v) => Navigator.pop(context, v),
           ),
         ],
@@ -192,24 +204,24 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     final selected = await showDialog<_TypeFilter>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Filter'),
+        title: Text(AppLocalizations.of(context).t('discover.filters')),
         children: [
           RadioListTile<_TypeFilter>(
             value: _TypeFilter.all,
             groupValue: _typeFilter,
-            title: const Text('All'),
+            title: Text(AppLocalizations.of(context).t('common.all')),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_TypeFilter>(
             value: _TypeFilter.movie,
             groupValue: _typeFilter,
-            title: const Text('Movies'),
+            title: Text(AppLocalizations.of(context).t('navigation.movies')),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_TypeFilter>(
             value: _TypeFilter.tv,
             groupValue: _typeFilter,
-            title: const Text('TV Shows'),
+            title: Text(AppLocalizations.of(context).t('navigation.tv_shows')),
             onChanged: (v) => Navigator.pop(context, v),
           ),
         ],
@@ -228,8 +240,9 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
         title: const Text('Import from URL'),
         content: TextField(
           controller: controller,
-          decoration:
-              const InputDecoration(hintText: 'https://example.com/favorites.json'),
+          decoration: const InputDecoration(
+            hintText: 'https://example.com/favorites.json',
+          ),
         ),
         actions: [
           TextButton(
@@ -247,14 +260,14 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     try {
       await provider.importFromRemoteJson(Uri.parse(url));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Imported favorites.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Imported favorites.')));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Import failed: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Import failed: $e')));
     }
   }
 }
@@ -375,20 +388,47 @@ class _FavoritesListState extends State<_FavoritesList> {
                 itemBuilder: (context, index) {
                   final movie = movies[index];
                   final isFavorite = provider.isFavorite(movie.id);
-                  return ListTile(
-                    leading: CircleAvatar(
-                      child: Text(
-                        movie.title.isNotEmpty ? movie.title[0] : '?',
-                      ),
+                  return Dismissible(
+                    key: ValueKey('favorite_${movie.id}'),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      color: Colors.redAccent.withOpacity(0.12),
+                      child: const Icon(Icons.delete_outline, color: Colors.redAccent),
                     ),
-                    title: Text(movie.title),
-                    subtitle: Text(_subtitleFor(movie)),
-                    trailing: IconButton(
-                      icon: Icon(
-                        isFavorite ? Icons.favorite : Icons.favorite_border,
-                        color: isFavorite ? Colors.redAccent : null,
+                    onDismissed: (_) => provider.removeFavorite(movie.id),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Text(
+                          movie.title.isNotEmpty ? movie.title[0] : '?',
+                        ),
                       ),
-                      onPressed: () => provider.toggleFavorite(movie.id),
+                      title: Text(movie.title),
+                      subtitle: Row(
+                        children: [
+                          Expanded(child: Text(_subtitleFor(movie))),
+                          if (provider.isWatched(movie.id))
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.visibility, size: 16),
+                                  SizedBox(width: 4),
+                                  Text('Watched'),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.redAccent : null,
+                        ),
+                        onPressed: () => provider.toggleFavorite(movie.id),
+                      ),
                     ),
                   );
                 },

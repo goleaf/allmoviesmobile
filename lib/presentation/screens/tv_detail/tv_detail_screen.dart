@@ -96,6 +96,7 @@ class _TVDetailView extends StatelessWidget {
                 _buildActions(context, details, loc),
                 _buildOverview(context, details, loc),
                 _buildMetadata(context, details, loc),
+                // Content ratings not available on TVDetailed model currently
                 _buildGenres(context, details, loc),
                 _buildNetworks(context, details, loc),
                 _buildSeasons(context, details, loc, provider),
@@ -423,6 +424,71 @@ class _TVDetailView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  // _buildContentRatings removed: the current TVDetailed model doesn't expose ratings
+
+  Widget _buildContentRatings(
+    BuildContext context,
+    TVDetailed details,
+    AppLocalizations loc,
+  ) {
+    final repository = context.read<TmdbRepository>();
+    return FutureBuilder<Map<String, String>>(
+      future: repository.fetchTvContentRatings(details.id),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SizedBox(
+              height: 40,
+              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            ),
+          );
+        }
+        final map = snapshot.data;
+        if (map == null || map.isEmpty) return const SizedBox.shrink();
+        final entries = map.entries.toList()
+          ..sort((a, b) => a.key.compareTo(b.key));
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Content Ratings',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: entries.map((e) {
+                      return Chip(
+                        label: Text('${e.key}: ${e.value}'),
+                        backgroundColor: Theme.of(
+                          context,
+                        ).colorScheme.primaryContainer,
+                        labelStyle: TextStyle(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.onPrimaryContainer,
+                        ),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

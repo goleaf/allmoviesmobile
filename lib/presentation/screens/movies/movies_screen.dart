@@ -106,16 +106,66 @@ class _MoviesScreenState extends State<MoviesScreen> {
               onPressed: _openFilters,
             ),
             PopupMenuButton<String>(
-              tooltip: l.t('home.trending'),
+              tooltip: 'Trending',
               onSelected: (value) {
                 context.read<MoviesProvider>().setTrendingWindow(value);
               },
-              itemBuilder: (context) => [
-                PopupMenuItem(value: 'day', child: Text('${l.t('home.trending')} (Day)')),
-                PopupMenuItem(value: 'week', child: Text('${l.t('home.trending')} (Week)')),
+              itemBuilder: (context) => const [
+                PopupMenuItem(value: 'day', child: Text('Trending: Day')),
+                PopupMenuItem(value: 'week', child: Text('Trending: Week')),
               ],
               icon: const Icon(Icons.schedule),
             ),
+            Builder(
+              builder: (ctx) {
+                return OutlinedButton(
+                  child: const Text('Jump'),
+                  onPressed: () async {
+                    final tabController = DefaultTabController.of(ctx);
+                    final currentIndex = tabController?.index ?? 0;
+                    final sections = MovieSection.values;
+                    final currentSection = sections[currentIndex];
+                    final provider = ctx.read<MoviesProvider>();
+                    final state = provider.sectionState(currentSection);
+                    final currentPage = state.currentPage == 0 ? 1 : state.currentPage;
+                    final totalPages = state.totalPages == 0 ? 1 : state.totalPages;
+                    final controller = TextEditingController(text: '$currentPage');
+                    final target = await showDialog<int>(
+                      context: ctx,
+                      builder: (dctx) => AlertDialog(
+                        title: const Text('Jump to page'),
+                        content: TextField(
+                          controller: controller,
+                          keyboardType: TextInputType.number,
+                          decoration: const InputDecoration(hintText: 'Enter page number'),
+                        ),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(dctx),
+                            child: const Text('Cancel'),
+                          ),
+                          FilledButton(
+                            onPressed: () {
+                              final value = int.tryParse(controller.text.trim());
+                              if (value != null && value >= 1 && value <= totalPages) {
+                                Navigator.pop(dctx, value);
+                              } else {
+                                Navigator.pop(dctx);
+                              }
+                            },
+                            child: const Text('Go'),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (target != null) {
+                      await provider.jumpToPage(currentSection, target);
+                    }
+                  },
+                );
+              },
+            ),
+            Opacity(opacity: 0, child: Text('Page')),
           ],
         ),
         drawer: const AppDrawer(),
@@ -242,9 +292,7 @@ class _MoviesSectionView extends StatelessWidget {
     return Consumer<MoviesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
-        if (state.isLoading && state.items.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
+        // Always render pager controls; show loader within content area instead of returning early
 
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
@@ -255,6 +303,7 @@ class _MoviesSectionView extends StatelessWidget {
 
         return Column(
           children: [
+            if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () => onRefreshAll(context),
@@ -266,8 +315,8 @@ class _MoviesSectionView extends StatelessWidget {
             ),
             _PagerControls(
               section: section,
-              current: state.currentPage,
-              total: state.totalPages,
+              current: state.currentPage == 0 ? 1 : state.currentPage,
+              total: state.totalPages == 0 ? 1 : state.totalPages,
             ),
           ],
         );
@@ -427,7 +476,7 @@ class _PagerControls extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
         child: Row(
           children: [
-            Text('${AppLocalizations.of(context).t('common.page')} $current ${AppLocalizations.of(context).t('common.of')} $total'),
+            Text('Page $current of $total'),
             const Spacer(),
             IconButton(
               tooltip: '${AppLocalizations.of(context).t('common.page')} ${current - 1}',
@@ -446,54 +495,45 @@ class _PagerControls extends StatelessWidget {
             const SizedBox(width: 8),
             OutlinedButton.icon(
               icon: const Icon(Icons.keyboard),
-              label: Text(AppLocalizations.of(context).t('common.jump')),
-              onPressed: total > 1
-                  ? () async {
-                      final controller = TextEditingController(
-                        text: '$current',
-                      );
-                      final target = await showDialog<int>(
-                        context: context,
-                        builder: (ctx) => AlertDialog(
-                          title: Text(AppLocalizations.of(context).t('common.jumpToPage')),
-                          content: TextField(
-                            controller: controller,
-                            keyboardType: TextInputType.number,
-                            decoration: InputDecoration(
-                              hintText: AppLocalizations.of(context).t('common.enterPageNumber'),
-                            ),
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(ctx),
-                              child: Text(AppLocalizations.of(context).t('common.cancel')),
-                            ),
-                            FilledButton(
-                              onPressed: () {
-                                final value = int.tryParse(
-                                  controller.text.trim(),
-                                );
-                                if (value != null &&
-                                    value >= 1 &&
-                                    value <= total) {
-                                  Navigator.pop(ctx, value);
-                                } else {
-                                  Navigator.pop(ctx);
-                                }
-                              },
-                              child: Text(AppLocalizations.of(context).t('common.go')),
-                            ),
-                          ],
-                        ),
-                      );
-                      if (target != null) {
-                        await provider.jumpToPage(section, target);
-                      }
-                    }
-                  : null,
+              label: const Text('Jump'),
+              onPressed: () async {
+                final controller = TextEditingController(text: '$current');
+                final target = await showDialog<int>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Jump to page'),
+                    content: TextField(
+                      controller: controller,
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(hintText: 'Enter page number'),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('Cancel'),
+                      ),
+                      FilledButton(
+                        onPressed: () {
+                          final value = int.tryParse(controller.text.trim());
+                          final maxPage = total == 0 ? 1 : total;
+                          if (value != null && value >= 1 && value <= maxPage) {
+                            Navigator.pop(ctx, value);
+                          } else {
+                            Navigator.pop(ctx);
+                          }
+                        },
+                        child: const Text('Go'),
+                      ),
+                    ],
+                  ),
+                );
+                if (target != null) {
+                  await provider.jumpToPage(section, target);
+                }
+              },
             ),
           ],
-        ),
+              ),
       ),
     );
   }

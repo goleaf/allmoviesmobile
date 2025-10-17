@@ -1,4 +1,4 @@
-import 'package:cached_network_image/cached_network_image.dart';
+// removed unused cached_network_image import
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -7,7 +7,7 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/image_model.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/models/network_detailed_model.dart';
-import '../../../data/services/api_config.dart';
+// removed unused api_config import
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/network_details_provider.dart';
 import '../../../providers/network_shows_provider.dart';

@@ -1,42 +1,46 @@
 import 'package:email_validator/email_validator.dart';
-import '../constants/app_strings.dart';
+import '../localization/app_localizations.dart';
 
 class Validators {
   Validators._();
 
-  static String? validateEmail(String? value) {
+  static String? validateEmail(AppLocalizations l, String? value) {
     if (value == null || value.isEmpty) {
-      return AppStrings.emailRequired;
+      return l.t('errors.generic');
     }
     if (!EmailValidator.validate(value)) {
-      return AppStrings.emailInvalid;
+      return l.t('errors.generic');
     }
     return null;
   }
 
-  static String? validatePassword(String? value) {
+  static String? validatePassword(AppLocalizations l, String? value) {
     if (value == null || value.isEmpty) {
-      return AppStrings.passwordRequired;
+      return l.t('errors.generic');
     }
     if (value.length < 6) {
-      return AppStrings.passwordTooShort;
+      return l.t('errors.generic');
     }
     return null;
   }
 
-  static String? validateConfirmPassword(String? value, String password) {
-    final error = validatePassword(value);
+  static String? validateConfirmPassword(
+    AppLocalizations l,
+    String? value,
+    String password,
+  ) {
+    final error = validatePassword(l, value);
     if (error != null) return error;
 
     if (value != password) {
-      return AppStrings.passwordsDoNotMatch;
+      return l.t('errors.generic');
     }
     return null;
   }
 
-  static String? validateName(String? value) {
+  static String? validateName(AppLocalizations l, String? value) {
     if (value == null || value.isEmpty) {
-      return AppStrings.nameRequired;
+      return l.t('errors.generic');
     }
     return null;
   }

@@ -106,7 +106,8 @@ class _MediaSectionScreenState extends State<MediaSectionScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: '${AppLocalizations.of(context).t('search.title')} ${widget.title.toLowerCase()}',
+                hintText:
+                    '${AppLocalizations.of(context).t('search.title')} ${widget.title.toLowerCase()}',
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),

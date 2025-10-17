@@ -2,7 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../core/constants/app_strings.dart';
+import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/company_model.dart';
 import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
@@ -45,7 +45,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     final companies = provider.searchResults;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.companies)),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).t('company.companies')),
+      ),
       drawer: const AppDrawer(),
       body: Column(
         children: [
@@ -54,7 +56,9 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText: 'Search production companies',
+                hintText: AppLocalizations.of(
+                  context,
+                ).t('search.search_people'),
                 prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(28),
@@ -97,8 +101,10 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
                     _showCompanyDetails(context, details);
                   } else {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Unable to load company details'),
+                      SnackBar(
+                        content: Text(
+                          AppLocalizations.of(context).t('errors.load_failed'),
+                        ),
                       ),
                     );
                   }
@@ -144,7 +150,7 @@ class _CompanyList extends StatelessWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              'Search for companies using the field above.',
+              AppLocalizations.of(context).t('company.description'),
               style: Theme.of(context).textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
@@ -284,12 +290,12 @@ class _CompanyDetailSheet extends StatelessWidget {
                       Text(company.name, style: theme.textTheme.headlineSmall),
                       if ((company.originCountry ?? '').isNotEmpty)
                         Text(
-                          'Country: ${company.originCountry}',
+                          '${AppLocalizations.of(context).t('company.origin_country')}: ${company.originCountry}',
                           style: theme.textTheme.bodyMedium,
                         ),
                       if ((company.headquarters ?? '').isNotEmpty)
                         Text(
-                          'HQ: ${company.headquarters}',
+                          '${AppLocalizations.of(context).t('company.headquarters')}: ${company.headquarters}',
                           style: theme.textTheme.bodyMedium,
                         ),
                       if ((company.homepage ?? '').isNotEmpty)
@@ -306,14 +312,17 @@ class _CompanyDetailSheet extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             if ((company.description ?? '').isNotEmpty) ...[
-              Text('Description', style: theme.textTheme.titleMedium),
+              Text(
+                AppLocalizations.of(context).t('company.description'),
+                style: theme.textTheme.titleMedium,
+              ),
               const SizedBox(height: 8),
               Text(company.description!, style: theme.textTheme.bodyMedium),
               const SizedBox(height: 16),
             ],
             if (company.producedMovies.isNotEmpty) ...[
               Text(
-                'Produced movies (${company.producedMovies.length})',
+                '${AppLocalizations.of(context).t('company.produced_movies')} (${company.producedMovies.length})',
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
@@ -322,7 +331,7 @@ class _CompanyDetailSheet extends StatelessWidget {
             ],
             if (company.producedSeries.isNotEmpty) ...[
               Text(
-                'Produced series (${company.producedSeries.length})',
+                '${AppLocalizations.of(context).t('company.produced_series')} (${company.producedSeries.length})',
                 style: theme.textTheme.titleMedium,
               ),
               const SizedBox(height: 8),

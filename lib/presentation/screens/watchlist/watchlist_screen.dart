@@ -47,12 +47,19 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
             ),
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenu(value, watchlistProvider),
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'sort', child: Text('Sort')),
-              PopupMenuItem(value: 'filter', child: Text('Filter')),
-              PopupMenuItem(value: 'export', child: Text('Export JSON')),
-              PopupMenuItem(value: 'import', child: Text('Import from URL')),
-              PopupMenuItem(value: 'share', child: Text('Share')),
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: 'sort',
+                child: Text(loc.t('discover.sort_by')),
+              ),
+              PopupMenuItem(
+                value: 'filter',
+                child: Text(loc.t('discover.filters')),
+              ),
+              PopupMenuItem(
+                value: 'share',
+                child: Text(loc.movie['share'] ?? 'Share'),
+              ),
             ],
           ),
         ],
@@ -140,17 +147,11 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
       case 'filter':
         _pickFilter();
         break;
-      case 'export':
-        final json = provider.exportToJson();
-        if (!mounted) return;
-        await Share.share(json, subject: 'Watchlist Export');
-        break;
-      case 'import':
-        _promptImportUrl(provider);
-        break;
       case 'share':
         final count = provider.watchlistItems.length;
-        await Share.share('My watchlist on AllMovies: $count items');
+        await Share.share(
+          '${AppLocalizations.of(context).t('watchlist.title')}: $count',
+        );
         break;
     }
   }
@@ -159,24 +160,34 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     final selected = await showDialog<_SortMode>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Sort by'),
+        title: Text(AppLocalizations.of(context).t('discover.sort_by')),
         children: [
           RadioListTile<_SortMode>(
             value: _SortMode.dateAdded,
             groupValue: _sortMode,
-            title: const Text('Date added'),
+            title: Text(
+              AppLocalizations.of(context).t('common.date_added') ??
+                  'Date added',
+            ),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_SortMode>(
             value: _SortMode.rating,
             groupValue: _sortMode,
-            title: const Text('Rating'),
+            title: Text(
+              AppLocalizations.of(context).t('movie.rating') ?? 'Rating',
+            ),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_SortMode>(
             value: _SortMode.title,
             groupValue: _sortMode,
-            title: const Text('Title'),
+            title: Text(
+              AppLocalizations.of(
+                    context,
+                  ).t('collection.translation_homepage') ??
+                  'Title',
+            ),
             onChanged: (v) => Navigator.pop(context, v),
           ),
         ],
@@ -191,24 +202,24 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     final selected = await showDialog<_TypeFilter>(
       context: context,
       builder: (context) => SimpleDialog(
-        title: const Text('Filter'),
+        title: Text(AppLocalizations.of(context).t('discover.filters')),
         children: [
           RadioListTile<_TypeFilter>(
             value: _TypeFilter.all,
             groupValue: _typeFilter,
-            title: const Text('All'),
+            title: Text(AppLocalizations.of(context).t('common.all')),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_TypeFilter>(
             value: _TypeFilter.movie,
             groupValue: _typeFilter,
-            title: const Text('Movies'),
+            title: Text(AppLocalizations.of(context).t('navigation.movies')),
             onChanged: (v) => Navigator.pop(context, v),
           ),
           RadioListTile<_TypeFilter>(
             value: _TypeFilter.tv,
             groupValue: _typeFilter,
-            title: const Text('TV Shows'),
+            title: Text(AppLocalizations.of(context).t('navigation.tv_shows')),
             onChanged: (v) => Navigator.pop(context, v),
           ),
         ],
@@ -375,19 +386,54 @@ class _WatchlistListState extends State<_WatchlistList> {
                 itemBuilder: (context, index) {
                   final movie = movies[index];
                   final isInWatchlist = provider.isInWatchlist(movie.id);
-                  return ListTile(
-                    leading: CircleAvatar(
-                      child: Text(
-                        movie.title.isNotEmpty ? movie.title[0] : '?',
+                  return Dismissible(
+                    key: ValueKey('watch_${movie.id}'),
+                    direction: DismissDirection.endToStart,
+                    background: Container(
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.12),
+                      child: Icon(
+                        Icons.delete_outline,
+                        color: Theme.of(context).colorScheme.primary,
                       ),
                     ),
-                    title: Text(movie.title),
-                    subtitle: Text(_subtitleFor(movie)),
-                    trailing: IconButton(
-                      icon: Icon(
-                        isInWatchlist ? Icons.bookmark : Icons.bookmark_border,
+                    onDismissed: (_) => provider.removeFromWatchlist(movie.id),
+                    child: ListTile(
+                      leading: CircleAvatar(
+                        child: Text(
+                          movie.title.isNotEmpty ? movie.title[0] : '?',
+                        ),
                       ),
-                      onPressed: () => provider.toggleWatchlist(movie.id),
+                      title: Text(movie.title),
+                      subtitle: Row(
+                        children: [
+                          Expanded(child: Text(_subtitleFor(movie))),
+                          if (provider.isWatched(movie.id))
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: const [
+                                  Icon(Icons.visibility, size: 16),
+                                  SizedBox(width: 4),
+                                  Text('Watched'),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                      trailing: IconButton(
+                        icon: Icon(
+                          isInWatchlist
+                              ? Icons.bookmark
+                              : Icons.bookmark_border,
+                        ),
+                        onPressed: () => provider.toggleWatchlist(movie.id),
+                      ),
                     ),
                   );
                 },

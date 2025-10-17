@@ -37,7 +37,11 @@ class _KeywordBrowserScreenState extends State<KeywordBrowserScreen> {
     final localizations = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.keywords)),
+      appBar: AppBar(
+        title: Text(
+          AppLocalizations.of(context).t('keywords.search_results_title'),
+        ),
+      ),
       drawer: const AppDrawer(),
       body: Consumer<KeywordBrowserProvider>(
         builder: (context, provider, _) {

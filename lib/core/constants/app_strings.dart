@@ -59,6 +59,13 @@ class AppStrings {
   static const filters = 'Filters';
   static const apply = 'Apply';
   static const reset = 'Reset';
+  static const page = 'Page';
+  static const of = 'of';
+  static const jump = 'Jump';
+  static const jumpToPage = 'Jump to page';
+  static const enterPageNumber = 'Enter page number';
+  static const go = 'Go';
+  static const cancel = 'Cancel';
   static const region = 'Region';
   static const byDecade = 'By Decade';
   static const certification = 'Certification';
@@ -70,21 +77,16 @@ class AppStrings {
   static const voteCountMinimum = 'Vote Count Minimum';
   static const monetizationTypes = 'Monetization Types';
   static const watchProvidersIds = 'Watch Providers (IDs)';
-  static const watchProvidersHint = 'Comma-separated provider IDs, e.g., 8,9,337';
+  static const watchProvidersHint =
+      'Comma-separated provider IDs, e.g., 8,9,337';
   static const releaseType = 'Release Type';
   static const includeAdultContent = 'Include Adult Content';
   static const peopleCompaniesKeywords = 'People & Companies & Keywords';
   static const hintWithCast = 'With Cast (comma-separated person IDs)';
   static const hintWithCrew = 'With Crew (comma-separated person IDs)';
-  static const hintWithCompanies = 'With Companies (comma-separated company IDs)';
+  static const hintWithCompanies =
+      'With Companies (comma-separated company IDs)';
   static const hintWithKeywords = 'With Keywords (comma-separated keyword IDs)';
-  static const page = 'Page';
-  static const of = 'of';
-  static const jump = 'Jump';
-  static const jumpToPage = 'Jump to page';
-  static const enterPageNumber = 'Enter page number';
-  static const go = 'Go';
-  static const cancel = 'Cancel';
   static const airingToday = 'Airing Today';
   static const onTheAir = 'On The Air';
   static const noAccount = "Don't have an account?";

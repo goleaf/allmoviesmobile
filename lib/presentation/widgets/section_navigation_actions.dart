@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/constants/app_routes.dart';
+import '../../core/localization/app_localizations.dart';
 
 class SectionNavigationActions extends StatelessWidget {
   final String? currentRoute;
@@ -32,19 +33,20 @@ class SectionNavigationActions extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final normalizedRoute = _normalizeRoute(currentRoute);
+    final loc = AppLocalizations.of(context);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         IconButton(
-          tooltip: 'Home',
+          tooltip: loc.t('navigation.home'),
           icon: const Icon(Icons.home_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.home)
               ? null
               : () => _navigateTo(context, AppRoutes.home, normalizedRoute),
         ),
         IconButton(
-          tooltip: 'Movies',
+          tooltip: loc.t('navigation.movies'),
           icon: const Icon(Icons.movie_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.movies)
               ? null
@@ -52,21 +54,21 @@ class SectionNavigationActions extends StatelessWidget {
         ),
         // Videos route is not defined; hide or disable this action
         IconButton(
-          tooltip: 'Series',
+          tooltip: loc.t('navigation.series'),
           icon: const Icon(Icons.tv_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.series)
               ? null
               : () => _navigateTo(context, AppRoutes.series, normalizedRoute),
         ),
         IconButton(
-          tooltip: 'People',
+          tooltip: loc.t('navigation.people'),
           icon: const Icon(Icons.person_search_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.people)
               ? null
               : () => _navigateTo(context, AppRoutes.people, normalizedRoute),
         ),
         IconButton(
-          tooltip: 'Companies',
+          tooltip: loc.t('navigation.companies'),
           icon: const Icon(Icons.apartment_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.companies)
               ? null
@@ -74,7 +76,7 @@ class SectionNavigationActions extends StatelessWidget {
                     _navigateTo(context, AppRoutes.companies, normalizedRoute),
         ),
         IconButton(
-          tooltip: 'Collections',
+          tooltip: loc.t('navigation.collections'),
           icon: const Icon(Icons.collections_bookmark_outlined),
           onPressed: _isCurrentRoute(normalizedRoute, AppRoutes.collections)
               ? null

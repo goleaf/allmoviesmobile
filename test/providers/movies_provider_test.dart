@@ -24,55 +24,55 @@ class FakeRepo extends TmdbRepository {
     int page = 1,
     bool forceRefresh = false,
   }) async => PaginatedResponse<Movie>(
-        page: 1,
-        totalPages: 1,
-        totalResults: 1,
-        results: _one('trend'),
-      );
+    page: 1,
+    totalPages: 1,
+    totalResults: 1,
+    results: _one('trend'),
+  );
 
   @override
   Future<PaginatedResponse<Movie>> fetchNowPlayingMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
   }) async => PaginatedResponse<Movie>(
-        page: 1,
-        totalPages: 1,
-        totalResults: 1,
-        results: _one('now'),
-      );
+    page: 1,
+    totalPages: 1,
+    totalResults: 1,
+    results: _one('now'),
+  );
 
   @override
   Future<PaginatedResponse<Movie>> fetchPopularMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
   }) async => PaginatedResponse<Movie>(
-        page: 1,
-        totalPages: 1,
-        totalResults: 1,
-        results: _one('popular'),
-      );
+    page: 1,
+    totalPages: 1,
+    totalResults: 1,
+    results: _one('popular'),
+  );
 
   @override
   Future<PaginatedResponse<Movie>> fetchTopRatedMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
   }) async => PaginatedResponse<Movie>(
-        page: 1,
-        totalPages: 1,
-        totalResults: 1,
-        results: _one('top'),
-      );
+    page: 1,
+    totalPages: 1,
+    totalResults: 1,
+    results: _one('top'),
+  );
 
   @override
   Future<PaginatedResponse<Movie>> fetchUpcomingMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
   }) async => PaginatedResponse<Movie>(
-        page: 1,
-        totalPages: 1,
-        totalResults: 1,
-        results: _one('upcoming'),
-      );
+    page: 1,
+    totalPages: 1,
+    totalResults: 1,
+    results: _one('upcoming'),
+  );
 
   @override
   Future<List<Movie>> fetchTrendingMovies({

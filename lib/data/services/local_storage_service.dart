@@ -25,6 +25,7 @@ class LocalStorageService {
   static const String _moviesTabIndexKey = 'allmovies_movies_tab_index';
   static const String _moviesScrollPositionsKey =
       'allmovies_movies_scroll_positions';
+  static const String _moviesPageStateKey = 'allmovies_movies_page_state';
 
   static const String _favoritesSyncEnabledKey =
       'allmovies_favorites_sync_enabled';
@@ -253,6 +254,47 @@ class LocalStorageService {
 
     return _prefs.setString(
       _moviesScrollPositionsKey,
+      jsonEncode(map),
+    );
+  }
+
+  int? getMoviesPageIndex(String sectionKey) {
+    final raw = _prefs.getString(_moviesPageStateKey);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      final value = decoded[sectionKey];
+      if (value is int) {
+        return value;
+      }
+      if (value is num) {
+        return value.toInt();
+      }
+    } catch (_) {
+      return null;
+    }
+    return null;
+  }
+
+  Future<bool> setMoviesPageIndex(String sectionKey, int page) async {
+    final raw = _prefs.getString(_moviesPageStateKey);
+    final map = <String, dynamic>{};
+
+    if (raw != null && raw.isNotEmpty) {
+      try {
+        map.addAll(jsonDecode(raw) as Map<String, dynamic>);
+      } catch (_) {
+        // Overwrite when payload is corrupted
+      }
+    }
+
+    map[sectionKey] = page;
+
+    return _prefs.setString(
+      _moviesPageStateKey,
       jsonEncode(map),
     );
   }

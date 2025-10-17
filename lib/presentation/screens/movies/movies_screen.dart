@@ -278,13 +278,14 @@ class _MoviesScreenState extends State<MoviesScreen>
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () => _handleSearch(_searchController.text),
-                  child: _MoviesList(
-                    movies: _searchResults,
-                    emptyMessage: l.t('search.no_results'),
-                  ),
+                child: _MoviesList(
+                  movies: _searchResults,
+                  emptyMessage: l.t('search.no_results'),
+                  isLoadingMore: false,
                 ),
-              )
-            else
+              ),
+            )
+          else
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -402,6 +403,8 @@ class _MoviesSectionViewState extends State<_MoviesSectionView> {
                       AppLocalizations.of(context).t('search.no_results'),
                   scrollController: widget.scrollController,
                   positionsListener: widget.positionsListener,
+                  section: widget.section,
+                  isLoadingMore: state.isLoadingMore,
                 ),
               ),
             ),
@@ -446,18 +449,78 @@ class _MoviesList extends StatefulWidget {
     required this.emptyMessage,
     this.scrollController,
     this.positionsListener,
+    this.section,
+    this.isLoadingMore = false,
   });
 
   final List<Movie> movies;
   final String emptyMessage;
   final ItemScrollController? scrollController;
   final ItemPositionsListener? positionsListener;
+  final MovieSection? section;
+  final bool isLoadingMore;
 
   @override
   State<_MoviesList> createState() => _MoviesListState();
 }
 
 class _MoviesListState extends State<_MoviesList> {
+  static const int _pageSize = 20;
+  static const int _lookahead = 5;
+  int _lastPrefetchedPage = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.positionsListener?.itemPositions.addListener(_handlePositionsUpdate);
+  }
+
+  @override
+  void didUpdateWidget(covariant _MoviesList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.positionsListener != widget.positionsListener) {
+      oldWidget.positionsListener?.itemPositions
+          .removeListener(_handlePositionsUpdate);
+      widget.positionsListener?.itemPositions
+          .addListener(_handlePositionsUpdate);
+    }
+    if (oldWidget.section != widget.section) {
+      _lastPrefetchedPage = -1;
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.positionsListener?.itemPositions.removeListener(_handlePositionsUpdate);
+    super.dispose();
+  }
+
+  void _handlePositionsUpdate() {
+    final section = widget.section;
+    final listener = widget.positionsListener;
+    if (section == null || listener == null) {
+      return;
+    }
+    final positions = listener.itemPositions.value.toList();
+    if (positions.isEmpty) {
+      return;
+    }
+    positions.sort((a, b) => a.index.compareTo(b.index));
+    final maxIndex = positions.last.index + _lookahead;
+    final targetPage = (maxIndex ~/ _pageSize) + 1;
+    if (targetPage == _lastPrefetchedPage) {
+      return;
+    }
+    _lastPrefetchedPage = targetPage;
+    // Prefetch asynchronously to avoid blocking scroll.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context
+          .read<MoviesProvider>()
+          .prefetchAroundIndex(section, maxIndex);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.movies.isEmpty) {
@@ -481,14 +544,24 @@ class _MoviesListState extends State<_MoviesList> {
       );
     }
 
+    final itemCount = widget.movies.length + (widget.isLoadingMore ? 1 : 0);
+
     return ScrollablePositionedList.separated(
       itemScrollController: widget.scrollController,
       itemPositionsListener: widget.positionsListener,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: widget.movies.length,
+      itemCount: itemCount,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
+        if (widget.isLoadingMore && index >= widget.movies.length) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 12),
+            child: Center(
+              child: CircularProgressIndicator(strokeWidth: 2.4),
+            ),
+          );
+        }
         final movie = widget.movies[index];
         return _MovieCard(movie: movie);
       },

@@ -26,6 +26,8 @@ class MovieSectionState {
     this.currentPage = 1,
     this.totalPages = 1,
     this.isLoadingMore = false,
+    this.pages = const <int, List<Movie>>{},
+    this.inflightPages = const <int>{},
   });
 
   static const _sentinel = Object();
@@ -36,6 +38,8 @@ class MovieSectionState {
   final int currentPage;
   final int totalPages;
   final bool isLoadingMore;
+  final Map<int, List<Movie>> pages;
+  final Set<int> inflightPages;
 
   MovieSectionState copyWith({
     List<Movie>? items,
@@ -44,6 +48,8 @@ class MovieSectionState {
     int? currentPage,
     int? totalPages,
     bool? isLoadingMore,
+    Map<int, List<Movie>>? pages,
+    Set<int>? inflightPages,
   }) {
     return MovieSectionState(
       items: items ?? this.items,
@@ -54,6 +60,8 @@ class MovieSectionState {
       currentPage: currentPage ?? this.currentPage,
       totalPages: totalPages ?? this.totalPages,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      pages: pages ?? this.pages,
+      inflightPages: inflightPages ?? this.inflightPages,
     );
   }
 }
@@ -78,6 +86,9 @@ class MoviesProvider extends ChangeNotifier {
   WatchRegionProvider? _regionProvider;
   PreferencesProvider? _preferences;
   LocalStorageService? _storage;
+
+  static const int _pageSize = 20;
+  static const int _maxCachedPages = 6;
 
   // Trending window: 'day' or 'week'
   String _trendingWindow = 'day';
@@ -104,11 +115,16 @@ class MoviesProvider extends ChangeNotifier {
     for (final section in MovieSection.values)
       section: const MovieSectionState(),
   };
+  final Map<MovieSection, Set<int>> _pendingPageLoads = {
+    for (final section in MovieSection.values) section: <int>{},
+  };
 
   bool _isInitialized = false;
   bool _isRefreshing = false;
   String? _globalError;
   DiscoverFilters? _discoverFilters;
+
+  Timer? _backgroundPrefetchTimer;
 
   final Completer<void> _initializedCompleter = Completer<void>();
 
@@ -121,13 +137,68 @@ class MoviesProvider extends ChangeNotifier {
 
   MovieSectionState sectionState(MovieSection section) => _sections[section]!;
 
+  Map<int, List<Movie>> _trimPages(
+    Map<int, List<Movie>> pages,
+    int anchorPage,
+  ) {
+    if (pages.length <= _maxCachedPages) {
+      return pages;
+    }
+    final sorted = pages.keys.toList()..sort();
+    final anchorIndex = sorted.indexOf(anchorPage).clamp(0, sorted.length - 1);
+    final windowHalf = _maxCachedPages ~/ 2;
+    var start = anchorIndex - windowHalf;
+    if (start < 0) {
+      start = 0;
+    }
+    if (start + _maxCachedPages > sorted.length) {
+      start = sorted.length - _maxCachedPages;
+    }
+    final trimmed = <int, List<Movie>>{};
+    for (var i = start; i < start + _maxCachedPages && i < sorted.length; i++) {
+      final page = sorted[i];
+      trimmed[page] = List<Movie>.from(pages[page]!);
+    }
+    return trimmed;
+  }
+
+  List<Movie> _flattenPages(Map<int, List<Movie>> pages) {
+    final sorted = pages.keys.toList()..sort();
+    return [
+      for (final page in sorted) ...pages[page]!,
+    ];
+  }
+
+  bool _isPageInflight(MovieSection section, int page) {
+    return _pendingPageLoads[section]!.contains(page);
+  }
+
+  void _setPageInflight(MovieSection section, int page, bool value) {
+    final set = _pendingPageLoads[section]!;
+    if (value) {
+      set.add(page);
+    } else {
+      set.remove(page);
+    }
+  }
+
   Future<void> _init() async {
     final savedWindow = _storage?.getTrendingWindow();
     if (savedWindow == 'day' || savedWindow == 'week') {
       _trendingWindow = savedWindow!;
     }
     _discoverFilters = _storage?.getDiscoverFilters();
+    final savedPages = {
+      for (final section in MovieSection.values)
+        section: _storage?.getMoviesPageIndex(section.name) ?? 1,
+    };
     await refresh(force: true);
+    for (final entry in savedPages.entries) {
+      if (entry.value > 1) {
+        unawaited(loadPage(entry.key, entry.value));
+      }
+    }
+    _scheduleBackgroundPrefetch();
   }
 
   Future<void> refresh({bool force = false}) async {
@@ -210,11 +281,15 @@ class MoviesProvider extends ChangeNotifier {
       for (var index = 0; index < sectionsList.length; index++) {
         final section = sectionsList[index];
         final resp = responses[index];
+        final firstPage = <int, List<Movie>>{resp.page: resp.results};
         _sections[section] = MovieSectionState(
-          items: resp.results,
+          items: _flattenPages(firstPage),
           currentPage: resp.page,
           totalPages: resp.totalPages,
+          pages: firstPage,
+          inflightPages: const <int>{},
         );
+        _storage?.setMoviesPageIndex(section.name, resp.page);
       }
 
       _globalError = null;
@@ -227,6 +302,7 @@ class MoviesProvider extends ChangeNotifier {
       _setErrorForAll(_globalError);
     } finally {
       _isRefreshing = false;
+      _scheduleBackgroundPrefetch();
       notifyListeners();
       if (!_initializedCompleter.isCompleted) {
         _initializedCompleter.complete();
@@ -329,60 +405,40 @@ class MoviesProvider extends ChangeNotifier {
   // Public getters
   DiscoverFilters? get discoverFilters => _discoverFilters;
 
+  Future<PaginatedResponse<Movie>> _fetchSectionPage(
+    MovieSection section,
+    int page,
+  ) {
+    switch (section) {
+      case MovieSection.trending:
+        return _repository.fetchTrendingMoviesPaginated(
+          timeWindow: _trendingWindow,
+          page: page,
+        );
+      case MovieSection.nowPlaying:
+        return _repository.fetchNowPlayingMoviesPaginated(page: page);
+      case MovieSection.popular:
+        return _repository.fetchPopularMoviesPaginated(page: page);
+      case MovieSection.topRated:
+        return _repository.fetchTopRatedMoviesPaginated(page: page);
+      case MovieSection.upcoming:
+        return _repository.fetchUpcomingMoviesPaginated(page: page);
+      case MovieSection.discover:
+        return _repository.discoverMovies(
+          page: page,
+          discoverFilters: _discoverFilters,
+        );
+    }
+  }
+
   // Pagination controls
   Future<void> loadPage(MovieSection section, int page) async {
-    if (page < 1) return;
-    final state = _sections[section]!;
-    if (state.isLoading) return;
-    _sections[section] = state.copyWith(isLoading: true, errorMessage: null);
-    notifyListeners();
-
-    try {
-      PaginatedResponse<Movie> response;
-      switch (section) {
-        case MovieSection.trending:
-          response = await _repository.fetchTrendingMoviesPaginated(
-            timeWindow: _trendingWindow,
-            page: page,
-          );
-          break;
-        case MovieSection.nowPlaying:
-          response = await _repository.fetchNowPlayingMoviesPaginated(
-            page: page,
-          );
-          break;
-        case MovieSection.popular:
-          response = await _repository.fetchPopularMoviesPaginated(page: page);
-          break;
-        case MovieSection.topRated:
-          response = await _repository.fetchTopRatedMoviesPaginated(page: page);
-          break;
-        case MovieSection.upcoming:
-          response = await _repository.fetchUpcomingMoviesPaginated(page: page);
-          break;
-        case MovieSection.discover:
-          response = await _repository.discoverMovies(
-            page: page,
-            discoverFilters: _discoverFilters,
-          );
-          break;
-      }
-
-      _sections[section] = state.copyWith(
-        isLoading: false,
-        items: response.results,
-        currentPage: response.page,
-        totalPages: response.totalPages,
-        errorMessage: null,
-      );
-    } catch (error) {
-      _sections[section] = state.copyWith(
-        isLoading: false,
-        errorMessage: '$error',
-      );
-    } finally {
-      notifyListeners();
-    }
+    await _loadSectionPage(
+      section,
+      page,
+      isForeground: true,
+      persist: true,
+    );
   }
 
   Future<void> jumpToPage(MovieSection section, int page) =>
@@ -391,11 +447,131 @@ class MoviesProvider extends ChangeNotifier {
   Future<void> loadNextPage(MovieSection section) async {
     final state = _sections[section]!;
     if (state.currentPage >= state.totalPages) return;
-    await loadPage(section, state.currentPage + 1);
+    await _loadSectionPage(
+      section,
+      state.currentPage + 1,
+      isForeground: false,
+      anchorPage: state.currentPage + 1,
+      persist: true,
+    );
   }
 
   void clearError() {
     _globalError = null;
     notifyListeners();
+  }
+
+  Future<void> prefetchAroundIndex(MovieSection section, int index) async {
+    final page = (index ~/ _pageSize) + 1;
+    final state = _sections[section]!;
+    if (page <= 0 || page > state.totalPages) {
+      return;
+    }
+    await _loadSectionPage(
+      section,
+      page,
+      isForeground: false,
+      anchorPage: page,
+      persist: false,
+    );
+  }
+
+  Future<void> _loadSectionPage(
+    MovieSection section,
+    int page, {
+    required bool isForeground,
+    int? anchorPage,
+    bool persist = false,
+  }) async {
+    if (page < 1) return;
+    final state = _sections[section]!;
+    if (_isPageInflight(section, page)) {
+      return;
+    }
+
+    if (!isForeground && state.pages.containsKey(page)) {
+      return;
+    }
+
+    _setPageInflight(section, page, true);
+    final inflight = {...state.inflightPages, page};
+
+    if (isForeground) {
+      _sections[section] = state.copyWith(
+        isLoading: true,
+        errorMessage: null,
+        inflightPages: inflight,
+      );
+    } else {
+      _sections[section] = state.copyWith(
+        isLoadingMore: true,
+        inflightPages: inflight,
+      );
+    }
+    notifyListeners();
+
+    try {
+      final response = await _fetchSectionPage(section, page);
+      final mergedPages = Map<int, List<Movie>>.from(state.pages);
+      mergedPages[page] = response.results;
+      final trimmed = _trimPages(mergedPages, anchorPage ?? page);
+      final flattened = _flattenPages(trimmed);
+      final updatedInflight = {...inflight}..remove(page);
+
+      _sections[section] = state.copyWith(
+        isLoading: false,
+        isLoadingMore: false,
+        items: flattened,
+        currentPage: isForeground ? page : state.currentPage,
+        totalPages: response.totalPages,
+        errorMessage: null,
+        pages: trimmed,
+        inflightPages: updatedInflight,
+      );
+
+      if (persist && isForeground) {
+        _storage?.setMoviesPageIndex(section.name, page);
+      }
+    } catch (error) {
+      final updatedInflight = {...inflight}..remove(page);
+      _sections[section] = state.copyWith(
+        isLoading: false,
+        isLoadingMore: false,
+        errorMessage: '$error',
+        inflightPages: updatedInflight,
+      );
+    } finally {
+      _setPageInflight(section, page, false);
+      notifyListeners();
+    }
+  }
+
+  void _scheduleBackgroundPrefetch() {
+    _backgroundPrefetchTimer?.cancel();
+    _backgroundPrefetchTimer = Timer.periodic(
+      const Duration(minutes: 10),
+      (_) => _runBackgroundPrefetch(),
+    );
+  }
+
+  Future<void> _runBackgroundPrefetch() async {
+    for (final section in MovieSection.values) {
+      final state = _sections[section]!;
+      if (state.currentPage < state.totalPages) {
+        await _loadSectionPage(
+          section,
+          state.currentPage + 1,
+          isForeground: false,
+          anchorPage: state.currentPage + 1,
+          persist: false,
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _backgroundPrefetchTimer?.cancel();
+    super.dispose();
   }
 }

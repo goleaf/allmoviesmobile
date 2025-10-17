@@ -61,6 +61,10 @@ AllMovies is a modern Flutter application with Material Design 3, featuring comp
 - User profile header with avatar
 - Navigation menu items:
   - Home
+  - Movies
+  - Series
+  - People
+  - Companies
   - Favorites (placeholder)
   - Settings (placeholder)
   - About
@@ -96,30 +100,33 @@ lib/
 ├── core/
 │   ├── constants/
 │   │   ├── app_colors.dart      # Color palette
-│   │   └── app_strings.dart     # All UI strings
+│   │   ├── app_routes.dart     # Centralized route names
+│   │   └── app_strings.dart    # All UI strings
 │   ├── theme/
-│   │   └── app_theme.dart       # Material Design 3 theme
+│   │   └── app_theme.dart      # Material Design 3 theme
 │   └── utils/
-│       └── validators.dart      # Form validation logic
+│       └── validators.dart     # Form validation logic
 ├── data/
 │   ├── models/
-│   │   └── user_model.dart      # User data model
+│   │   └── user_model.dart     # User data model
 │   └── services/
 │       └── local_storage_service.dart  # SharedPreferences wrapper
 ├── providers/
-│   └── auth_provider.dart       # Authentication state management
+│   └── auth_provider.dart      # Authentication state management
 └── presentation/
     ├── screens/
     │   ├── auth/
-    │   │   ├── login_screen.dart
-    │   │   ├── register_screen.dart
-    │   │   └── forgot_password_screen.dart
-    │   └── home/
-    │       └── home_screen.dart
+    │   ├── companies/
+    │   ├── home/
+    │   ├── movies/
+    │   ├── people/
+    │   └── series/
     └── widgets/
         ├── app_drawer.dart
         ├── custom_text_field.dart
-        └── loading_overlay.dart
+        ├── loading_overlay.dart
+        ├── media_section_screen.dart
+        └── section_navigation_actions.dart
 ```
 
 ## 📦 Dependencies

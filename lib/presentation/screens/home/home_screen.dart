@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
+import '../../../core/constants/app_routes.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../providers/auth_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/section_navigation_actions.dart';
 
 class HomeScreen extends StatefulWidget {
+  static const routeName = AppRoutes.home;
+
   const HomeScreen({super.key});
 
   @override
@@ -37,10 +42,34 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
+  void _handleSearch(String value) {
+    final query = value.trim().toLowerCase();
+    if (query.isEmpty) {
+      if (!identical(_visibleMovieIndices, _allMovieIndices)) {
+        setState(() {
+          _visibleMovieIndices = _allMovieIndices;
+        });
+      }
+      return;
+    }
+
+    final matches = <int>[];
+    for (var i = 0; i < _normalizedMovieTitles.length; i++) {
+      if (_normalizedMovieTitles[i].contains(query)) {
+        matches.add(i);
+      }
+    }
+
+    setState(() {
+      _visibleMovieIndices = matches;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    
+    final currentRoute = ModalRoute.of(context)?.settings.name;
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -55,49 +84,29 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         actions: [
-          Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: AppStrings.search,
-                  prefixIcon: const Icon(Icons.search, size: 20),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(24),
-                    borderSide: BorderSide.none,
-                  ),
-                  filled: true,
-                  isDense: true,
+          SectionNavigationActions(currentRoute: currentRoute),
+        ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(64),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: AppStrings.search,
+                prefixIcon: const Icon(Icons.search, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
                 ),
-                onChanged: (value) {
-                  final query = value.trim().toLowerCase();
-                  if (query.isEmpty) {
-                    if (!identical(_visibleMovieIndices, _allMovieIndices)) {
-                      setState(() {
-                        _visibleMovieIndices = _allMovieIndices;
-                      });
-                    }
-                    return;
-                  }
-
-                  final matches = <int>[];
-                  for (var i = 0; i < _normalizedMovieTitles.length; i++) {
-                    if (_normalizedMovieTitles[i].contains(query)) {
-                      matches.add(i);
-                    }
-                  }
-
-                  setState(() {
-                    _visibleMovieIndices = matches;
-                  });
-                },
+                filled: true,
+                isDense: true,
               ),
+              onChanged: _handleSearch,
             ),
           ),
-          const SizedBox(width: 8),
-        ],
+        ),
       ),
       drawer: const AppDrawer(),
       body: Padding(

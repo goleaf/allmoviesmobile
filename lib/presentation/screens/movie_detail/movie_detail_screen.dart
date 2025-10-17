@@ -98,7 +98,8 @@ class MovieDetailScreen extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, AppLocalizations loc) {
     final posterUrl = movie.posterUrl;
-    
+    final showing = movie.showingLabel;
+
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -160,6 +161,14 @@ class MovieDetailScreen extends StatelessWidget {
                     voteCount: movie.voteCount,
                     size: 18,
                   ),
+                if (showing != null && showing.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Chip(
+                    label: Text(showing),
+                    backgroundColor:
+                        Theme.of(context).colorScheme.primaryContainer,
+                  ),
+                ],
               ],
             ),
           ),
@@ -284,6 +293,14 @@ class MovieDetailScreen extends StatelessWidget {
       metadata.add(MapEntry(
         loc.t('movie.votes'),
         movie.voteCount.toString(),
+      ));
+    }
+
+    final showing = movie.showingLabel;
+    if (showing != null && showing.isNotEmpty) {
+      metadata.add(MapEntry(
+        loc.t('movie.status'),
+        showing,
       ));
     }
 

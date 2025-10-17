@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/models/movie.dart';
+import '../../../data/models/movie_mappers.dart';
 import '../../../data/services/api_config.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
@@ -89,7 +90,7 @@ class _CollectionMoviesListState extends State<_CollectionMoviesList> {
     for (final id in widget.movieIds) {
       try {
         final details = await repository.fetchMovieDetails(id);
-        movies.add(_mapDetailsToMovie(details));
+        movies.add(details.toMovieSummary());
       } on TmdbException {
         rethrow;
       } catch (error) {
@@ -98,20 +99,6 @@ class _CollectionMoviesListState extends State<_CollectionMoviesList> {
     }
 
     return movies;
-  }
-
-  Movie _mapDetailsToMovie(Map<String, dynamic> json) {
-    final genres = (json['genres'] as List?)
-        ?.whereType<Map<String, dynamic>>()
-        .map((genre) => genre['id'])
-        .whereType<int>()
-        .toList();
-
-    return Movie.fromJson({
-      ...json,
-      'media_type': json['media_type'] ?? 'movie',
-      'genre_ids': genres,
-    });
   }
 
   Future<void> _refresh() async {
@@ -232,6 +219,10 @@ class _CollectionMovieTile extends StatelessWidget {
     final genres = movie.genresText;
     if (genres.isNotEmpty) {
       parts.add(genres);
+    }
+    final showing = movie.showingLabel;
+    if (showing != null && showing.isNotEmpty) {
+      parts.add(showing);
     }
     return parts.isEmpty ? 'No additional details available.' : parts.join(' • ');
   }

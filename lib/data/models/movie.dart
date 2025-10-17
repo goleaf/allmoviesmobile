@@ -10,6 +10,7 @@ class Movie {
     this.backdropPath,
     this.mediaType,
     this.releaseDate,
+    this.runtime,
     this.voteAverage,
     this.voteCount,
     this.popularity,
@@ -17,6 +18,7 @@ class Movie {
     this.originalTitle,
     this.adult = false,
     this.genreIds,
+    this.status,
   });
 
   factory Movie.fromJson(Map<String, dynamic> json) {
@@ -38,6 +40,7 @@ class Movie {
       backdropPath: json['backdrop_path'] as String?,
       mediaType: mediaType,
       releaseDate: (json['release_date'] ?? json['first_air_date']) as String?,
+      runtime: (json['runtime'] as num?)?.toInt(),
       voteAverage: (json['vote_average'] as num?)?.toDouble(),
       voteCount: json['vote_count'] as int?,
       popularity: (json['popularity'] as num?)?.toDouble(),
@@ -45,6 +48,7 @@ class Movie {
       originalTitle: (json['original_title'] ?? json['original_name']) as String?,
       adult: json['adult'] as bool? ?? false,
       genreIds: genreIds,
+      status: (json['status'] as String?)?.trim(),
     );
   }
 
@@ -55,6 +59,7 @@ class Movie {
   final String? backdropPath;
   final String? mediaType;
   final String? releaseDate;
+  final int? runtime;
   final double? voteAverage;
   final int? voteCount;
   final double? popularity;
@@ -62,6 +67,7 @@ class Movie {
   final String? originalTitle;
   final bool adult;
   final List<int>? genreIds;
+  final String? status;
 
   String? get posterUrl =>
       posterPath != null ? 'https://image.tmdb.org/t/p/w500$posterPath' : null;
@@ -111,6 +117,41 @@ class Movie {
       return '';
     }
     return popularity!.toStringAsFixed(0);
+  }
+
+  String? get statusLabel {
+    final trimmed = status?.trim();
+    if (trimmed == null || trimmed.isEmpty) {
+      return null;
+    }
+    return trimmed;
+  }
+
+  bool get isNowShowing {
+    final label = statusLabel;
+    if (label == null || label.toLowerCase() != 'released') {
+      return false;
+    }
+
+    if (releaseDate == null || releaseDate!.isEmpty) {
+      return false;
+    }
+
+    final parsed = DateTime.tryParse(releaseDate!);
+    if (parsed == null) {
+      return false;
+    }
+
+    final now = DateTime.now();
+    final difference = now.difference(parsed).inDays;
+    return difference >= 0 && difference <= 45;
+  }
+
+  String? get showingLabel {
+    if (isNowShowing) {
+      return 'Now Showing';
+    }
+    return statusLabel;
   }
 
   // Map genre IDs to genre names

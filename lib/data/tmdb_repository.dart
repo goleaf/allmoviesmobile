@@ -4,6 +4,7 @@ import 'models/account_model.dart';
 import 'models/certification_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
+import 'models/discover_filters_model.dart';
 import 'models/movie.dart';
 import 'models/movie_detailed_model.dart';
 import 'models/paginated_response.dart';
@@ -140,13 +141,23 @@ class TmdbRepository {
   }
 
   Future<PaginatedResponse<Movie>> discoverMovies({
+    DiscoverFilters? discoverFilters,
     Map<String, String>? filters,
     int page = 1,
     bool forceRefresh = false,
   }) async {
     _checkApiKey();
 
-    final sanitizedFilters = _sanitizeFilters(filters);
+    Map<String, String>? mergedFilters = filters;
+
+    if (discoverFilters != null) {
+      mergedFilters = {
+        ...discoverFilters.toQueryParameters(),
+        if (filters != null) ...filters,
+      };
+    }
+
+    final sanitizedFilters = _sanitizeFilters(mergedFilters);
     final normalizedFilters = _normalizeFilters(sanitizedFilters);
     final cacheKey = 'discover-movies-$normalizedFilters-$page';
     if (!forceRefresh) {

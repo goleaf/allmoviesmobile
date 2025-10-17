@@ -1,128 +1,52 @@
 # AllMovies Mobile
 
-AllMovies is an Android client for browsing movie information from [TMDB](https://www.themoviedb.org/). The project is written in Kotlin and follows an MVVM architecture with Jetpack components.
+AllMovies Mobile is a Flutter application that showcases a local-first movie browsing experience with Material Design 3 styling. The app bootstraps in [`lib/main.dart`](lib/main.dart), where SharedPreferences-backed storage is initialised and the authentication provider decides whether to display the login flow or the home screen. For a breakdown of every implemented screen and widget, see [`FEATURES.md`](FEATURES.md).
 
-This repository now includes a macOS-friendly automation script that lets you run every build, test, and deployment task from the Cursor editor without opening Android Studio. The README provides the full manual process so you can reproduce the workflow or adapt it to your own setup.
+## Project overview
+- Built with Flutter and Dart, targeting mobile, web, and desktop platforms supported by Flutter.
+- Uses the `provider` package for app-wide state management and `shared_preferences` for local persistence.
+- Ships with placeholder movie grid content so it can run without external APIs.
 
-## Features
+## Authentication flow
+Authentication is entirely local and stored in SharedPreferences through `LocalStorageService`:
 
-- Smooth loading indicators while browsing movie collections and details.
-- Full-text movie search with instant results.
-- Favorite lists synced between the catalog and detail screens.
-- Language selection dialog for switching between supported locales.
-- Actor detail pages linked from each movie's cast list.
+1. **Register** – Creates a user entry in SharedPreferences and immediately signs in.
+2. **Login** – Validates credentials against the locally stored users and, on success, flips the `AuthProvider` state to display the home screen.
+3. **Forgot password** – Generates and stores a replacement password for the supplied email, surfacing it in-app for the user to copy.
+4. **Logout** – Clears the active session flag from SharedPreferences and returns the user to the login screen.
 
-## Technology stack
+Because there is no backend, credentials never leave the device. Multiple accounts can be created for testing, and state persists across restarts thanks to SharedPreferences.
 
-- Kotlin with Coroutines, Serialization, and ViewBinding
-- Android Jetpack: ViewModel, LiveData, Room, RecyclerView
-- Networking via Retrofit and OkHttp
-- Image loading with Glide
+## Home screen expectations
+After authentication, users land on a placeholder home screen that demonstrates the final layout without calling a movie API:
 
-## Prerequisites
+- Two-column grid of card-based movie tiles populated with sample data.
+- Search field and navigation drawer wired into the layout but not yet backed by network requests.
+- Drawer options (Favourites, Settings) are present as stubs for future work.
 
-Before running the automation script or manual steps, make sure the following tools are available on your macOS machine:
+This design provides a visual reference for the planned experience while keeping the project runnable offline.
 
-1. **Java Development Kit 17** (Gradle 7.3.3 does not support bytecode produced by newer JDKs such as 20 or 21).
-2. **Android command-line tools** installed under `~/Library/Android/sdk` (the default path used by the script).
-3. **Required Android packages** installed through `sdkmanager`, for example:
-   ```bash
-   sdkmanager \
-     "platform-tools" \
-     "emulator" \
-     "platforms;android-34" \
-     "system-images;android-34;google_apis;x86_64"
-   ```
-4. **An Android Virtual Device (AVD)** created with `avdmanager`, e.g.:
-   ```bash
-   avdmanager create avd \
-     --name allmovies_pixel_5_api_34 \
-     --package "system-images;android-34;google_apis;x86_64" \
-     --device "pixel_5"
-   ```
-5. **Gradle wrapper dependencies** (downloaded automatically during the first build).
+## Running the app
+The repository includes a `macos_cursor_runner.sh` helper for launching Flutter builds from Cursor on macOS, but you can also run everything manually with the Flutter CLI.
 
-> **API key note:** The project looks for a TMDB API key in `local.properties` under the key `apiKey`. If the file is absent the demo key bundled with the project is used. To supply your own key, create `local.properties` in the project root containing `apiKey=<YOUR_KEY>`.
+### Prerequisites
+- [Flutter SDK](https://docs.flutter.dev/get-started/install) set up for your platform.
+- Device or emulator supported by Flutter (Chrome, macOS, iOS, Android, etc.).
 
-## Running every task from Cursor on macOS
-
-The `macos_cursor_runner.sh` script orchestrates the workflow for you: it runs the Gradle tasks, boots the emulator, installs the generated APK, and launches the application. Run it directly from the project root.
-
+### Using the runner script (macOS only)
 ```bash
-./macos_cursor_runner.sh
+./macos_cursor_runner.sh --device-id chrome   # or macos, ios, android
 ```
 
-By default the script executes the following Gradle tasks in order: `clean`, `lint`, `testDebugUnitTest`, and `assembleDebug`. When these tasks complete, the script boots the AVD named `allmovies_pixel_5_api_34`, waits for Android to finish booting, installs `app-debug.apk`, and starts the `dev.tutushkin.allmovies` package via `adb`. The script automatically detects the running emulator serial and tears it down on exit so repeated runs stay clean.
-
-### Script options
-
-- `--skip-build`: Skip the Gradle tasks (useful if you already have a fresh APK).
-- `--skip-emulator`: Run only the Gradle tasks.
-- `--avd-name <name>`: Override the default AVD name without changing the environment variable.
-
-You can also set environment variables before running the script:
-
+### Manual commands
 ```bash
-export ANDROID_SDK_ROOT="$HOME/Library/Android/sdk"
-export AVD_NAME="my_custom_avd"
-./macos_cursor_runner.sh --skip-build
+flutter pub get
+flutter run -d <device_id>
 ```
 
-The script validates that both `adb` and the `emulator` binary are available. If either check fails, install or correct the Android SDK path before rerunning the script.
-
-## Manual workflow without Android Studio
-
-If you prefer to execute the steps manually, follow this guide:
-
-1. **Build and test the project**
-   ```bash
-   ./gradlew clean lint testDebugUnitTest assembleDebug
-   ```
-   The generated debug APK will be located at `app/build/outputs/apk/debug/app-debug.apk`.
-
-2. **Start an emulator from the command line**
-   ```bash
-   "$ANDROID_SDK_ROOT/emulator/emulator" \
-     -avd allmovies_pixel_5_api_34 \
-     -netdelay none -netspeed full \
-     -no-boot-anim -no-snapshot-save
-   ```
-   Wait until `adb shell getprop sys.boot_completed` prints `1` to confirm the boot process has finished.
-
-3. **Install and launch the app**
-   ```bash
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
-   adb shell monkey -p dev.tutushkin.allmovies \
-     -c android.intent.category.LAUNCHER 1
-   ```
-
-4. **Stop the emulator (optional)**
-   ```bash
-   adb emu kill
-   ```
-
-## Troubleshooting
-
-- **`adb` or `emulator` not found:** Ensure `ANDROID_SDK_ROOT` points to the directory containing `platform-tools` and `emulator`.
-- **Gradle build failures:** Verify that you are using JDK 17 (newer JDKs lead to `Unsupported class file major version` errors with this Gradle version) and that you have an active internet connection to download dependencies during the first build.
-- **API key errors:** Double-check `local.properties` for typos and confirm that your TMDB API key is valid.
-
-## Localization verification
-
-The language picker now relies entirely on localized string resources. To confirm the behaviour manually on a device or emulator:
-
-1. Launch the app and open the overflow menu.
-2. Tap **Language** and choose **Русский**; the dialog title and menu entry should immediately render in Russian.
-3. Dismiss and reopen the menu to verify every action title uses the selected locale.
-4. Repeat the steps selecting **English** to switch back.
-
-An instrumentation test suite (`LanguageResourcesInstrumentedTest`) also exercises the localized resources for the dialog labels. Run it with `./gradlew connectedAndroidTest` when an emulator is attached.
-
-## Screenshots
-
-![Movie list screenshot](https://github.com/sergeytutushkin/AllMovies/blob/master/app/src/main/res/drawable/screenshot_list.webp?raw=true)
-![Movie details screenshot](https://github.com/sergeytutushkin/AllMovies/blob/master/app/src/main/res/drawable/screenshot_details.webp?raw=true)
+## Additional resources
+- [`FEATURES.md`](FEATURES.md) – Detailed feature list, architecture overview, and usage tips.
+- [`QA_CHECKLIST.md`](QA_CHECKLIST.md) – Quality checklist maintained for the project.
 
 ## License
-
 This project follows the licensing terms defined by the upstream AllMovies repository.

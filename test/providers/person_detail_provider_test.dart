@@ -7,88 +7,118 @@ class _FakePersonRepository extends TmdbRepository {
   _FakePersonRepository(this.detail) : super(apiKey: 'test');
 
   final PersonDetail detail;
-  int calls = 0;
 
   @override
   Future<PersonDetail> fetchPersonDetails(
     int personId, {
     bool forceRefresh = false,
   }) async {
-    calls += 1;
     return detail;
   }
 }
 
 void main() {
-  group('PersonDetailProvider combined credits sorting', () {
-    final creditA = PersonCredit(
-      id: 1,
-      title: 'Alpha',
-      releaseDate: '2020-05-01',
-      popularity: 12,
-      voteAverage: 7.5,
-      voteCount: 200,
-    );
-    final creditB = PersonCredit(
-      id: 2,
-      title: 'Bravo',
-      releaseDate: '2022-08-15',
-      popularity: 8,
-      voteAverage: 8.9,
-      voteCount: 50,
-    );
-    final creditC = PersonCredit(
-      id: 3,
-      title: 'Charlie',
-      releaseDate: '2018-11-20',
-      popularity: 20,
-      voteAverage: 6.2,
-      voteCount: 500,
-    );
+  group('PersonDetailProvider combined timeline', () {
+    test('groups credits chronologically by year and media type', () async {
+      final detail = PersonDetail(
+        id: 1,
+        name: 'Demo',
+        combinedCredits: PersonCredits(
+          cast: [
+            PersonCredit(
+              id: 10,
+              mediaType: 'movie',
+              title: 'Latest Movie',
+              releaseDate: '2023-05-12',
+              character: 'Hero',
+            ),
+            PersonCredit(
+              id: 11,
+              mediaType: 'tv',
+              name: 'Recent Show',
+              firstAirDate: '2022-09-01',
+              character: 'Lead',
+            ),
+          ],
+          crew: [
+            PersonCredit(
+              id: 12,
+              mediaType: 'movie',
+              title: 'Classic Film',
+              releaseDate: '2018-03-04',
+              job: 'Director',
+            ),
+            PersonCredit(
+              id: 13,
+              mediaType: 'tv',
+              name: 'Classic Series',
+              firstAirDate: '2018-06-10',
+              job: 'Producer',
+            ),
+            const PersonCredit(
+              id: 14,
+              mediaType: null,
+              title: 'Unscheduled Project',
+            ),
+          ],
+        ),
+      );
 
-    final detail = PersonDetail(
-      id: 7,
-      name: 'Test Person',
-      combinedCredits: PersonCredits(
-        cast: [creditA, creditB],
-        crew: [creditC],
-      ),
-    );
-
-    test('exposes sorted lists for year, popularity, and rating', () async {
-      final provider = PersonDetailProvider(_FakePersonRepository(detail), 7);
-
+      final provider = PersonDetailProvider(_FakePersonRepository(detail), 1);
       await provider.load();
 
-      expect(provider.hasCombinedCredits, isTrue);
+      final timeline = provider.combinedCreditsTimeline;
       expect(
-        provider.combinedCreditsSortedByYear.map((c) => c.id),
-        orderedEquals([2, 1, 3]),
+        timeline.map((entry) => entry.year).toList(),
+        [
+          '2023',
+          '2022',
+          '2018',
+          PersonCombinedTimelineEntry.unknownYear,
+        ],
       );
-      expect(
-        provider.combinedCreditsSortedByPopularity.map((c) => c.id),
-        orderedEquals([3, 1, 2]),
-      );
-      expect(
-        provider.combinedCreditsSortedByRating.map((c) => c.id),
-        orderedEquals([2, 1, 3]),
-      );
+
+      final entry2018 =
+          timeline.firstWhere((entry) => entry.year == '2018');
+      final movieGroup = entry2018.groups
+          .firstWhere((group) => group.mediaType == 'movie');
+      final tvGroup =
+          entry2018.groups.firstWhere((group) => group.mediaType == 'tv');
+      expect(movieGroup.credits.single.displayTitle, 'Classic Film');
+      expect(tvGroup.credits.single.displayTitle, 'Classic Series');
+
+      final unknownEntry = timeline
+          .firstWhere((entry) => entry.year == PersonCombinedTimelineEntry.unknownYear);
+      expect(unknownEntry.groups.single.mediaType, 'other');
+      expect(unknownEntry.groups.single.credits.single.displayTitle,
+          'Unscheduled Project');
     });
 
-    test('updates listeners when changing the selected sort option', () async {
-      final provider = PersonDetailProvider(_FakePersonRepository(detail), 7);
+    test('creates a single unknown entry when dates are missing', () async {
+      final detail = PersonDetail(
+        id: 1,
+        name: 'Demo',
+        combinedCredits: const PersonCredits(
+          cast: [
+            PersonCredit(
+              id: 21,
+              mediaType: 'movie',
+              title: 'Mystery Film',
+            ),
+          ],
+          crew: [],
+        ),
+      );
+
+      final provider = PersonDetailProvider(_FakePersonRepository(detail), 1);
       await provider.load();
 
-      expect(provider.combinedCreditsSortOption, PersonCreditsSortOption.year);
-      expect(provider.combinedCreditsSorted.first.id, 2);
-
-      provider.setCombinedCreditsSortOption(PersonCreditsSortOption.popularity);
-      expect(provider.combinedCreditsSortOption, PersonCreditsSortOption.popularity);
-      expect(provider.combinedCreditsSorted.first.id, 3);
-
-      provider.setCombinedCreditsSortOption(PersonCreditsSortOption.rating);
-      expect(provider.combinedCreditsSortOption, PersonCreditsSortOption.rating);
-      expect(provider.combinedCreditsSorted.first.id, 2);
+      final timeline = provider.combinedCreditsTimeline;
+      expect(timeline, hasLength(1));
+      final entry = timeline.single;
+      expect(entry.year, PersonCombinedTimelineEntry.unknownYear);
+      expect(entry.groups.single.mediaType, 'other');
+      expect(entry.groups.single.credits, hasLength(1));
     });
   });
 }

@@ -99,7 +99,19 @@
     "no_episodes": "Нет доступных эпизодов",
     "episode_groups": "Группы эпизодов",
     "episode_group_no_episodes": "В этой группе нет эпизодов",
-    "episode_group_order": "Порядок {order}"
+    "episode_group_order": "Порядок {order}",
+    "episode_group_node_fallback": "Группа {order}",
+    "episode_group_group_count": "{count} коллекций",
+    "episode_group_episode_count": "{count} эпизодов",
+    "episode_group_network": "Канал: {network}",
+    "episode_group_type_unknown": "Пользовательский порядок",
+    "episode_group_type_1": "Порядок по дате выхода",
+    "episode_group_type_2": "Абсолютный порядок",
+    "episode_group_type_3": "Порядок DVD",
+    "episode_group_type_4": "Цифровой порядок",
+    "episode_group_type_5": "Порядок сюжетной арки",
+    "episode_group_type_6": "Порядок производства",
+    "episode_group_type_7": "Телевизионный порядок"
   },
   "person": {
     "title": "Персона",

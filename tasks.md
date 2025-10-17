@@ -245,7 +245,7 @@ write all code with comments, maximum comments, update files if not comments for
 - [x] Favorite/Watchlist buttons
 
 #### 🔄 Remaining Tasks
-- [ ] Episode groups UI (alternative orderings like DVD order, Story arc)
+- [x] Episode groups UI (alternative orderings like DVD order, Story arc)
 - [x] Content ratings display (all countries)
 - [ ] Season images in detail view
 

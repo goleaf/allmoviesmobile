@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
 
@@ -6,7 +7,6 @@ import '../data/models/episode_group_model.dart';
 import '../data/models/episode_model.dart';
 import '../data/models/media_images.dart';
 import '../data/models/season_model.dart';
-import '../data/models/episode_group_model.dart';
 import '../data/models/tv_detailed_model.dart';
 import '../data/tmdb_repository.dart';
 
@@ -26,19 +26,30 @@ class TvDetailProvider extends ChangeNotifier {
   final Map<int, MediaImages> _seasonImages = <int, MediaImages>{};
   final Set<int> _loadingSeasonImages = <int>{};
   final Map<int, String> _seasonImageErrors = <int, String>{};
-  List<EpisodeGroup> _episodeGroups = const <EpisodeGroup>[];
+  final List<EpisodeGroup> _episodeGroups = <EpisodeGroup>[];
   bool _episodeGroupsLoading = false;
   String? _episodeGroupsError;
   String? _selectedEpisodeGroupId;
 
   TVDetailed? get details => _details;
+
   bool get isLoading => _isLoading;
+
   String? get errorMessage => _errorMessage;
+
   int? get selectedSeasonNumber => _selectedSeasonNumber;
-  List<EpisodeGroup> get episodeGroups => _episodeGroups;
+
+  List<Season> get seasons => _details?.seasons ?? const [];
+
+  UnmodifiableListView<EpisodeGroup> get episodeGroups =>
+      UnmodifiableListView<EpisodeGroup>(_episodeGroups);
+
   bool get isEpisodeGroupsLoading => _episodeGroupsLoading;
+
   String? get episodeGroupsError => _episodeGroupsError;
+
   String? get selectedEpisodeGroupId => _selectedEpisodeGroupId;
+
   EpisodeGroup? get selectedEpisodeGroup {
     if (_episodeGroups.isEmpty) {
       return null;
@@ -53,30 +64,6 @@ class TvDetailProvider extends ChangeNotifier {
     }
     return _episodeGroups.first;
   }
-
-  List<Season> get seasons => _details?.seasons ?? const [];
-
-  List<EpisodeGroup> get episodeGroups =>
-      List<EpisodeGroup>.unmodifiable(_episodeGroups);
-
-  bool get isEpisodeGroupsLoading => _episodeGroupsLoading;
-
-  String? get episodeGroupsError => _episodeGroupsError;
-
-  EpisodeGroup? get selectedEpisodeGroup {
-    final targetId = _selectedEpisodeGroupId;
-    if (targetId == null) {
-      return null;
-    }
-    for (final group in _episodeGroups) {
-      if (group.id == targetId) {
-        return group;
-      }
-    }
-    return null;
-  }
-
-  String? get selectedEpisodeGroupId => _selectedEpisodeGroupId;
 
   Season? seasonForNumber(int? seasonNumber) {
     if (seasonNumber == null) {
@@ -136,7 +123,7 @@ class TvDetailProvider extends ChangeNotifier {
       _seasonImages.clear();
       _seasonImageErrors.clear();
       _loadingSeasonImages.clear();
-      _episodeGroups = const <EpisodeGroup>[];
+      _episodeGroups.clear();
       _episodeGroupsError = null;
       _selectedEpisodeGroupId = null;
 
@@ -159,6 +146,7 @@ class TvDetailProvider extends ChangeNotifier {
 
   Future<void> refresh() => load(forceRefresh: true);
 
+  /// Forces a reload of episode groups from TMDB.
   Future<void> refreshEpisodeGroups() =>
       _loadEpisodeGroups(forceRefresh: true);
 
@@ -180,14 +168,20 @@ class TvDetailProvider extends ChangeNotifier {
   Future<void> retrySeasonImages(int seasonNumber) =>
       _ensureSeasonImagesLoaded(seasonNumber, forceRefresh: true);
 
+  /// Updates the currently active alternative order by identifier.
   void selectEpisodeGroup(String groupId) {
     if (_selectedEpisodeGroupId == groupId) {
+      return;
+    }
+    final hasMatch = _episodeGroups.any((group) => group.id == groupId);
+    if (!hasMatch) {
       return;
     }
     _selectedEpisodeGroupId = groupId;
     notifyListeners();
   }
 
+  /// Re-attempts loading episode groups after a failure.
   Future<void> retryEpisodeGroups() =>
       _loadEpisodeGroups(forceRefresh: true);
 
@@ -224,8 +218,14 @@ class TvDetailProvider extends ChangeNotifier {
     }
   }
 
+  /// Loads alternative episode orderings from TMDB.
+  ///
+  /// The provider first calls `GET /3/tv/$tvId/episode_groups` to obtain the
+  /// available group identifiers, then hydrates every entry with
+  /// `GET /3/tv/episode_group/{id}` which returns the JSON payload describing
+  /// the nested collections and episodes.
   Future<void> _loadEpisodeGroups({bool forceRefresh = false}) async {
-    if (_episodeGroupsLoading) {
+    if (_episodeGroupsLoading && !forceRefresh) {
       return;
     }
 
@@ -235,9 +235,8 @@ class TvDetailProvider extends ChangeNotifier {
 
     _episodeGroupsLoading = true;
     if (forceRefresh) {
-      _episodeGroups.clear();
+      _episodeGroupsError = null;
     }
-    _episodeGroupsError = null;
     notifyListeners();
 
     try {
@@ -249,17 +248,18 @@ class TvDetailProvider extends ChangeNotifier {
         ..clear()
         ..addAll(groups);
       if (_episodeGroups.isNotEmpty) {
-        final firstGroupId = _episodeGroups.first.id;
         if (_selectedEpisodeGroupId == null ||
             !_episodeGroups.any((group) => group.id == _selectedEpisodeGroupId)) {
-          _selectedEpisodeGroupId = firstGroupId;
+          _selectedEpisodeGroupId = _episodeGroups.first.id;
         }
       } else {
         _selectedEpisodeGroupId = null;
       }
+      _episodeGroupsError = null;
     } catch (error) {
+      _episodeGroups
+        ..clear();
       _episodeGroupsError = _mapError(error);
-      _episodeGroups.clear();
       _selectedEpisodeGroupId = null;
     } finally {
       _episodeGroupsLoading = false;
@@ -295,41 +295,6 @@ class TvDetailProvider extends ChangeNotifier {
       _seasonImageErrors[seasonNumber] = _mapError(error);
     } finally {
       _loadingSeasonImages.remove(seasonNumber);
-      notifyListeners();
-    }
-  }
-
-  Future<void> _loadEpisodeGroups({bool forceRefresh = false}) async {
-    if (_episodeGroupsLoading && !forceRefresh) {
-      return;
-    }
-
-    _episodeGroupsLoading = true;
-    if (forceRefresh) {
-      _episodeGroupsError = null;
-    }
-    notifyListeners();
-
-    try {
-      final groups = await _repository.fetchTvEpisodeGroups(
-        tvId,
-        forceRefresh: forceRefresh,
-      );
-      _episodeGroups = groups;
-      _episodeGroupsError = null;
-      if (groups.isNotEmpty) {
-        if (_selectedEpisodeGroupId == null ||
-            !groups.any((group) => group.id == _selectedEpisodeGroupId)) {
-          _selectedEpisodeGroupId = groups.first.id;
-        }
-      } else {
-        _selectedEpisodeGroupId = null;
-      }
-    } catch (error) {
-      _episodeGroups = const <EpisodeGroup>[];
-      _episodeGroupsError = _mapError(error);
-    } finally {
-      _episodeGroupsLoading = false;
       notifyListeners();
     }
   }

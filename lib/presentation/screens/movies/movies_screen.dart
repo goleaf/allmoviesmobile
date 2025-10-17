@@ -102,6 +102,17 @@ class _MoviesScreenState extends State<MoviesScreen> {
               icon: const Icon(Icons.filter_list),
               onPressed: _openFilters,
             ),
+            PopupMenuButton<String>(
+              tooltip: 'Trending Window',
+              onSelected: (value) {
+                context.read<MoviesProvider>().setTrendingWindow(value);
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(value: 'day', child: Text('Trending: Day')),
+                const PopupMenuItem(value: 'week', child: Text('Trending: Week')),
+              ],
+              icon: const Icon(Icons.schedule),
+            ),
           ],
         ),
         drawer: const AppDrawer(),

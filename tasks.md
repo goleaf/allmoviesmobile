@@ -352,6 +352,7 @@ write all code with comments, maximum comments, update files if not comments for
 - [ ] Trending all media types
 - [x] Trending all media types
 - [ ] Time window selector UI (day/week)
+- [x] Time window selector UI (day/week)
 - [ ] Dedicated trending screen with tabs
 - [ ] Trending section on home screen enhancement
 

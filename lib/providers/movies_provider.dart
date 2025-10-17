@@ -51,6 +51,16 @@ class MoviesProvider extends ChangeNotifier {
   final TmdbRepository _repository;
   WatchRegionProvider? _regionProvider;
 
+  // Trending window: 'day' or 'week'
+  String _trendingWindow = 'day';
+  String get trendingWindow => _trendingWindow;
+  void setTrendingWindow(String window) {
+    if (window != 'day' && window != 'week') return;
+    if (_trendingWindow == window) return;
+    _trendingWindow = window;
+    refresh(force: true);
+  }
+
   void bindRegionProvider(WatchRegionProvider provider) {
     _regionProvider = provider;
     notifyListeners();
@@ -100,7 +110,7 @@ class MoviesProvider extends ChangeNotifier {
       );
 
       final results = await Future.wait<List<Movie>>([
-        _repository.fetchTrendingMovies(),
+        _repository.fetchTrendingMovies(timeWindow: _trendingWindow),
         _repository.fetchNowPlayingMovies(),
         _repository.fetchPopularMovies(),
         _repository.fetchTopRatedMovies(),
@@ -149,11 +159,6 @@ class MoviesProvider extends ChangeNotifier {
     }
   }
 
-  void clearError() {
-    _globalError = null;
-    notifyListeners();
-  }
-
   Future<void> applyDecadeFilter(int startYear) async {
     // Example: startYear=1990 => 1990-01-01 to 1999-12-31
     final endYear = startYear + 9;
@@ -199,5 +204,10 @@ class MoviesProvider extends ChangeNotifier {
     } finally {
       notifyListeners();
     }
+  }
+
+  void clearError() {
+    _globalError = null;
+    notifyListeners();
   }
 }

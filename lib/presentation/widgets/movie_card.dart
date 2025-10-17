@@ -35,100 +35,116 @@ class MovieCard extends StatelessWidget {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final isFavorite = favoritesProvider.isFavorite(id);
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Card(
-        clipBehavior: Clip.antiAlias,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        child: Stack(
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Poster Image
-                Expanded(child: _buildPoster()),
-                // Movie Info
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          if (voteAverage != null) ...[
-                            const Icon(
-                              Icons.star,
-                              size: 14,
-                              color: Colors.amber,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              voteAverage!.toStringAsFixed(1),
-                              style: const TextStyle(fontSize: 12),
-                            ),
-                          ],
-                          const Spacer(),
-                          if (releaseDate != null && releaseDate!.isNotEmpty)
-                            Text(
-                              releaseDate!.substring(0, 4),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                        ],
-                      ),
-                      if (showingLabel != null && showingLabel!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+    return Semantics(
+      label: loc.t('accessibility.movieCardLabel').replaceFirst('{title}', title),
+      button: onTap != null,
+      child: GestureDetector(
+        onTap: onTap,
+        child: Card(
+          clipBehavior: Clip.antiAlias,
+          elevation: 4,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Stack(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Poster Image
+                  Expanded(child: _buildPoster()),
+                  // Movie Info
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text(
-                          showingLabel!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Theme.of(context).colorScheme.primary,
-                            fontWeight: FontWeight.w600,
+                          title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            if (voteAverage != null) ...[
+                              const Icon(
+                                Icons.star,
+                                size: 14,
+                                color: Colors.amber,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                voteAverage!.toStringAsFixed(1),
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ],
+                            const Spacer(),
+                            if (releaseDate != null && releaseDate!.isNotEmpty)
+                              Text(
+                                releaseDate!.substring(0, 4),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                          ],
+                        ),
+                        if (showingLabel != null && showingLabel!.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            showingLabel!,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
                       ],
-                    ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-            // Favorite Button
-            Positioned(
-              top: 4,
-              right: 4,
-              child: Material(
-                color: Colors.black54,
-                shape: const CircleBorder(),
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  onTap: () {
-                    favoritesProvider.toggleFavorite(id);
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Icon(
-                      isFavorite ? Icons.favorite : Icons.favorite_border,
-                      color: isFavorite ? Colors.red : Colors.white,
-                      size: 20,
+                ],
+              ),
+              // Favorite Button
+              Positioned(
+                top: 4,
+                right: 4,
+                child: Semantics(
+                  label: isFavorite
+                      ? loc
+                          .t('accessibility.removeFromFavorites')
+                          .replaceFirst('{title}', title)
+                      : loc
+                          .t('accessibility.addToFavorites')
+                          .replaceFirst('{title}', title),
+                  button: true,
+                  child: Material(
+                    color: Colors.black54,
+                    shape: const CircleBorder(),
+                    child: InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () {
+                        favoritesProvider.toggleFavorite(id);
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: Icon(
+                          isFavorite ? Icons.favorite : Icons.favorite_border,
+                          color: isFavorite ? Colors.red : Colors.white,
+                          size: 20,
+                        ),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -149,6 +165,7 @@ class MovieCard extends StatelessWidget {
       type: MediaImageType.poster,
       size: MediaImageSize.w342,
       fit: BoxFit.cover,
+      semanticLabel: title,
       overlay: MediaImageOverlay(
         gradientResolvers: [
           (theme, _) {

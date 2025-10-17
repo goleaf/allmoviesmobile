@@ -30,15 +30,19 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     return WillPopScope(
       onWillPop: _handleWillPop,
       child: Scaffold(
-        body: IndexedStack(
-          index: _currentDestination.index,
-          children: [
-            for (final destination in AppDestination.values)
-              _DestinationNavigator(
-                navigatorKey: _navigatorKeys[destination]!,
-                destination: destination,
-              ),
-          ],
+        body: Semantics(
+          container: true,
+          label: AppLocalizations.of(context).t('accessibility.landmarkMain'),
+          child: IndexedStack(
+            index: _currentDestination.index,
+            children: [
+              for (final destination in AppDestination.values)
+                _DestinationNavigator(
+                  navigatorKey: _navigatorKeys[destination]!,
+                  destination: destination,
+                ),
+            ],
+          ),
         ),
         bottomNavigationBar: _buildBottomNavigationBar(),
       ),
@@ -64,44 +68,52 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
   Widget _buildBottomNavigationBar() {
     final l = AppLocalizations.of(context);
-    return NavigationBar(
-      selectedIndex: _currentDestination.index,
-      onDestinationSelected: (index) {
-        final selected = AppDestination.values[index];
+    return Semantics(
+      container: true,
+      label: l.t('accessibility.landmarkNavigation'),
+      child: NavigationBar(
+        selectedIndex: _currentDestination.index,
+        onDestinationSelected: (index) {
+          final selected = AppDestination.values[index];
 
-        if (_currentDestination == selected) {
-          _navigatorKeys[selected]!.currentState?.popUntil(
-            (route) => route.isFirst,
-          );
-          return;
-        }
+          if (_currentDestination == selected) {
+            _navigatorKeys[selected]!.currentState?.popUntil(
+              (route) => route.isFirst,
+            );
+            return;
+          }
 
-        setState(() {
-          _currentDestination = selected;
-        });
-      },
-      destinations: [
-        NavigationDestination(
-          icon: const Icon(Icons.home_outlined),
-          selectedIcon: const Icon(Icons.home),
-          label: l.t('navigation.home'),
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.movie_outlined),
-          selectedIcon: const Icon(Icons.movie),
-          label: l.t('navigation.movies'),
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.tv_outlined),
-          selectedIcon: const Icon(Icons.tv),
-          label: l.t('navigation.series'),
-        ),
-        NavigationDestination(
-          icon: const Icon(Icons.search),
-          selectedIcon: const Icon(Icons.search),
-          label: l.t('navigation.search'),
-        ),
-      ],
+          setState(() {
+            _currentDestination = selected;
+          });
+        },
+        destinations: [
+          NavigationDestination(
+            icon: const Icon(Icons.home_outlined),
+            selectedIcon: const Icon(Icons.home),
+            label: l.t('navigation.home'),
+            tooltip: l.t('navigation.home'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.movie_outlined),
+            selectedIcon: const Icon(Icons.movie),
+            label: l.t('navigation.movies'),
+            tooltip: l.t('navigation.movies'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.tv_outlined),
+            selectedIcon: const Icon(Icons.tv),
+            label: l.t('navigation.series'),
+            tooltip: l.t('navigation.series'),
+          ),
+          NavigationDestination(
+            icon: const Icon(Icons.search),
+            selectedIcon: const Icon(Icons.search),
+            label: l.t('navigation.search'),
+            tooltip: l.t('navigation.search'),
+          ),
+        ],
+      ),
     );
   }
 }

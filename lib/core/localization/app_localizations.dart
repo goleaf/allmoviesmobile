@@ -40,6 +40,7 @@ class AppLocalizations {
         'title': 'Settings',
         'appearance': 'Appearance',
         'localization': 'Localization',
+        'accessibility': 'Accessibility',
         'about': 'About',
         'appVersion': 'App version',
         'theme': 'Theme',
@@ -48,6 +49,34 @@ class AppLocalizations {
         'chooseLanguage': 'Choose Language',
         'region': 'Region',
         'chooseRegion': 'Choose Region',
+        'accessibilityHighContrast': 'High contrast mode',
+        'accessibilityHighContrastSubtitle':
+            'Increase contrast for text and interface elements.',
+        'accessibilityColorBlind': 'Color-blind friendly palette',
+        'accessibilityColorBlindSubtitle':
+            'Use blue/orange accents that remain distinguishable.',
+        'accessibilityKeyboardNavigation': 'Keyboard navigation support',
+        'accessibilityKeyboardNavigationSubtitle':
+            'Enable spatial focus traversal for hardware keyboards.',
+        'accessibilityFocusIndicators': 'Enhanced focus indicators',
+        'accessibilityFocusIndicatorsSubtitle':
+            'Display clear outlines around the currently focused control.',
+        'accessibilityTextScale': 'Text size',
+        'accessibilityTextScaleSubtitle':
+            'Adjust overall font scaling throughout the app.',
+        'accessibilityTextScaleSliderLabel': 'Font size slider',
+      },
+      'accessibility': {
+        'landmarkMain': 'Main content area',
+        'landmarkNavigation': 'Primary navigation',
+        'imagePoster': 'Poster image',
+        'imageBackdrop': 'Backdrop image',
+        'imageProfile': 'Profile image',
+        'imageStill': 'Still frame image',
+        'imageLogo': 'Logo image',
+        'movieCardLabel': 'Movie card for {title}',
+        'addToFavorites': 'Add {title} to favorites',
+        'removeFromFavorites': 'Remove {title} from favorites',
       },
       'home': {
         'trending': 'Trending',
@@ -184,6 +213,8 @@ class AppLocalizations {
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};
   Map<String, dynamic> get errors => _localizedStrings['errors'] ?? {};
   Map<String, dynamic> get genres => _localizedStrings['genres'] ?? {};
+  Map<String, dynamic> get accessibility =>
+      _localizedStrings['accessibility'] ?? {};
 
   // Convenience method for direct access
   String t(String key) => translate(key);

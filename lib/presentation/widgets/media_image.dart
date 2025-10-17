@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/localization/app_localizations.dart';
 import '../../core/utils/media_image_helper.dart';
 import '../../data/services/compressed_image_cache_manager.dart';
 import '../../data/services/network_quality_service.dart';
@@ -25,6 +26,8 @@ class MediaImage extends StatefulWidget {
     this.fadeInDuration = const Duration(milliseconds: 450),
     this.crossFadeDuration = const Duration(milliseconds: 280),
     this.overlay = const MediaImageOverlay.none(),
+    this.semanticLabel,
+    this.excludeFromSemantics = false,
   });
 
   final String? path;
@@ -41,6 +44,8 @@ class MediaImage extends StatefulWidget {
   final Duration fadeInDuration;
   final Duration crossFadeDuration;
   final MediaImageOverlay overlay;
+  final String? semanticLabel;
+  final bool excludeFromSemantics;
 
   @override
   State<MediaImage> createState() => _MediaImageState();
@@ -136,12 +141,42 @@ class _MediaImageState extends State<MediaImage> {
       children: stackChildren,
     );
 
-    return _wrapWithSize(
+    final labeledChild = _wrapWithSize(
       ClipRRect(
         borderRadius: widget.borderRadius ?? BorderRadius.zero,
         child: stack,
       ),
     );
+
+    if (widget.excludeFromSemantics) {
+      return labeledChild;
+    }
+
+    final semanticsLabel = widget.semanticLabel ?? _defaultSemanticLabel(context);
+
+    return Semantics(
+      image: true,
+      label: semanticsLabel,
+      child: labeledChild,
+    );
+  }
+
+  /// Provides a localized fallback description for the rendered image when
+  /// callers do not supply a [semanticLabel].
+  String _defaultSemanticLabel(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    switch (widget.type) {
+      case MediaImageType.poster:
+        return l.t('accessibility.imagePoster');
+      case MediaImageType.backdrop:
+        return l.t('accessibility.imageBackdrop');
+      case MediaImageType.profile:
+        return l.t('accessibility.imageProfile');
+      case MediaImageType.still:
+        return l.t('accessibility.imageStill');
+      case MediaImageType.logo:
+        return l.t('accessibility.imageLogo');
+    }
   }
 
   Widget? _buildPreviewLayer(String? previewUrl, Widget placeholder) {

@@ -64,6 +64,8 @@ import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/accessibility_provider.dart';
+import 'core/theme/accessibility_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -118,6 +120,7 @@ class AllMoviesApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => AccessibilityProvider(prefs)),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(storageService),
         ),
@@ -161,12 +164,18 @@ class AllMoviesApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => ListsProvider(storageService)),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(prefs)),
       ],
-      child: Consumer2<LocaleProvider, ThemeProvider>(
-        builder: (context, localeProvider, themeProvider, _) {
+      child: Consumer3<LocaleProvider, ThemeProvider, AccessibilityProvider>(
+        builder: (context, localeProvider, themeProvider, accessibility, _) {
           return DynamicColorBuilder(
             builder: (lightDynamic, darkDynamic) {
-              final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-              final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+              final lightTheme = AccessibilityTheme.adapt(
+                AppTheme.light(dynamicScheme: lightDynamic),
+                accessibility,
+              );
+              final darkTheme = AccessibilityTheme.adapt(
+                AppTheme.dark(dynamicScheme: darkDynamic),
+                accessibility,
+              );
 
               return MaterialApp(
                 title: AppLocalizations.of(context).t('app.name'),
@@ -174,6 +183,26 @@ class AllMoviesApp extends StatelessWidget {
                 darkTheme: darkTheme,
                 themeMode: themeProvider.materialThemeMode,
                 locale: localeProvider.locale,
+                builder: (context, child) {
+                  final mediaQuery = MediaQuery.of(context);
+                  final textScale = accessibility.textScale;
+                  final enableKeyboardTraversal = accessibility.keyboardNavigation;
+
+                  Widget wrapped = child ?? const SizedBox.shrink();
+
+                  if (enableKeyboardTraversal) {
+                    wrapped = FocusTraversalGroup(
+                      policy: const OrderedTraversalPolicy(),
+                      descendantsAreFocusable: true,
+                      child: wrapped,
+                    );
+                  }
+
+                  return MediaQuery(
+                    data: mediaQuery.copyWith(textScaleFactor: textScale),
+                    child: wrapped,
+                  );
+                },
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
                   GlobalMaterialLocalizations.delegate,

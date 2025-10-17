@@ -9,6 +9,7 @@ import '../../../core/utils/service_locator.dart';
 import '../../../data/services/cache_service.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../providers/preferences_provider.dart';
+import '../../../providers/accessibility_provider.dart';
 
 class SettingsScreen extends StatelessWidget {
   static const routeName = '/settings';
@@ -37,6 +38,8 @@ class SettingsScreen extends StatelessWidget {
           _CertificationValueTile(),
           _SettingsHeader(title: l.t('settings.media')),
           // _ImageQualityTile(),
+          _SettingsHeader(title: l.t('settings.accessibility')),
+          const _AccessibilitySection(),
           _SettingsHeader(title: l.t('settings.cache')),
           _ClearCacheTile(),
           _ClearSearchHistoryTile(),
@@ -202,6 +205,78 @@ class _LanguageDialog extends StatelessWidget {
         TextButton(
           onPressed: () => Navigator.pop(context),
           child: Text(l10n.t('common.cancel')),
+        ),
+      ],
+    );
+  }
+}
+
+/// Renders all accessibility toggles (contrast, keyboard navigation, text scaling).
+class _AccessibilitySection extends StatelessWidget {
+  const _AccessibilitySection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final accessibility = context.watch<AccessibilityProvider>();
+
+    return Column(
+      children: [
+        SwitchListTile.adaptive(
+          secondary: const Icon(Icons.contrast),
+          title: Text(l.t('settings.accessibilityHighContrast')),
+          subtitle: Text(l.t('settings.accessibilityHighContrastSubtitle')),
+          value: accessibility.highContrast,
+          onChanged: (value) => accessibility.setHighContrast(value),
+        ),
+        SwitchListTile.adaptive(
+          secondary: const Icon(Icons.palette_outlined),
+          title: Text(l.t('settings.accessibilityColorBlind')),
+          subtitle: Text(l.t('settings.accessibilityColorBlindSubtitle')),
+          value: accessibility.colorBlindFriendly,
+          onChanged: (value) => accessibility.setColorBlindFriendly(value),
+        ),
+        SwitchListTile.adaptive(
+          secondary: const Icon(Icons.tab_outlined),
+          title: Text(l.t('settings.accessibilityKeyboardNavigation')),
+          subtitle: Text(l.t('settings.accessibilityKeyboardNavigationSubtitle')),
+          value: accessibility.keyboardNavigation,
+          onChanged: (value) => accessibility.setKeyboardNavigation(value),
+        ),
+        SwitchListTile.adaptive(
+          secondary: const Icon(Icons.center_focus_strong_outlined),
+          title: Text(l.t('settings.accessibilityFocusIndicators')),
+          subtitle: Text(l.t('settings.accessibilityFocusIndicatorsSubtitle')),
+          value: accessibility.focusIndicatorsEnabled,
+          onChanged: (value) => accessibility.setFocusIndicatorsEnabled(value),
+        ),
+        ListTile(
+          leading: const Icon(Icons.text_fields),
+          title: Text(l.t('settings.accessibilityTextScale')),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.t('settings.accessibilityTextScaleSubtitle')),
+              Semantics(
+                label: l.t('settings.accessibilityTextScaleSliderLabel'),
+                value: accessibility.textScale.toStringAsFixed(2),
+                increasedValue: (accessibility.textScale + 0.1)
+                    .clamp(0.8, 1.6)
+                    .toStringAsFixed(2),
+                decreasedValue: (accessibility.textScale - 0.1)
+                    .clamp(0.8, 1.6)
+                    .toStringAsFixed(2),
+                child: Slider(
+                  value: accessibility.textScale,
+                  min: 0.8,
+                  max: 1.6,
+                  divisions: 8,
+                  label: accessibility.textScale.toStringAsFixed(2),
+                  onChanged: (value) => accessibility.setTextScale(value),
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );

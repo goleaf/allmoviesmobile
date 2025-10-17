@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -5,129 +6,217 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/models/person_model.dart';
 import '../../../providers/people_provider.dart';
 import '../../widgets/app_drawer.dart';
-import '../person_detail/person_detail_screen.dart';
 
-class PeopleScreen extends StatelessWidget {
+class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';
 
   const PeopleScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<PeopleProvider>();
+  State<PeopleScreen> createState() => _PeopleScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.people),
+class _PeopleScreenState extends State<PeopleScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<PeopleProvider>().refresh();
+    });
+  }
+
+  Future<void> _refreshAll(BuildContext context) {
+    return context.read<PeopleProvider>().refresh(force: true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = PeopleSection.values;
+
+    return DefaultTabController(
+      length: sections.length,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(AppStrings.people),
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: [
+              for (final section in sections) Tab(text: _labelForSection(section)),
+            ],
+          ),
+        ),
+        drawer: const AppDrawer(),
+        body: TabBarView(
+          children: [
+            for (final section in sections)
+              _PeopleSectionView(
+                section: section,
+                onRefreshAll: _refreshAll,
+              ),
+          ],
+        ),
       ),
-      drawer: const AppDrawer(),
-      body: _PeopleBody(provider: provider),
+    );
+  }
+
+  String _labelForSection(PeopleSection section) {
+    switch (section) {
+      case PeopleSection.trending:
+        return AppStrings.trending;
+      case PeopleSection.popular:
+        return AppStrings.popular;
+    }
+  }
+}
+
+class _PeopleSectionView extends StatelessWidget {
+  const _PeopleSectionView({
+    required this.section,
+    required this.onRefreshAll,
+  });
+
+  final PeopleSection section;
+  final Future<void> Function(BuildContext context) onRefreshAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PeopleProvider>(
+      builder: (context, provider, _) {
+        final state = provider.sectionState(section);
+        if (state.isLoading && state.items.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state.errorMessage != null && state.items.isEmpty) {
+          return _ErrorView(
+            message: state.errorMessage!,
+            onRetry: () => onRefreshAll(context),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => onRefreshAll(context),
+          child: _PeopleList(
+            people: state.items,
+            onPersonSelected: (person) async {
+              try {
+                final details = await provider.loadDetails(person.id);
+                // ignore: use_build_context_synchronously
+                if (context.mounted) {
+                  _showPersonDetails(context, details);
+                }
+              } catch (error) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Failed to load details: $error'),
+                    ),
+                  );
+                }
+              }
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showPersonDetails(BuildContext context, Person person) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        final padding = MediaQuery.of(context).viewInsets;
+        return Padding(
+          padding: EdgeInsets.only(bottom: padding.bottom),
+          child: _PersonDetailSheet(person: person),
+        );
+      },
     );
   }
 }
 
-class _PeopleBody extends StatelessWidget {
-  const _PeopleBody({required this.provider});
+class _PeopleList extends StatelessWidget {
+  const _PeopleList({
+    required this.people,
+    required this.onPersonSelected,
+  });
 
-  final PeopleProvider provider;
+  final List<Person> people;
+  final ValueChanged<Person> onPersonSelected;
 
   @override
   Widget build(BuildContext context) {
-    if (provider.isLoading && provider.people.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (provider.errorMessage != null && provider.people.isEmpty) {
-      return _ErrorView(
-        message: provider.errorMessage!,
-        onRetry: provider.refreshPeople,
+    if (people.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 120),
+          Icon(
+            Icons.person_outline,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              AppStrings.noResultsFound,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        ],
       );
     }
 
-    if (provider.people.isEmpty) {
-      return const _EmptyView(message: 'No people found right now. Pull to refresh.');
-    }
-
-    final itemCount = provider.people.length + (provider.isLoadingMore ? 1 : 0);
-
-    return RefreshIndicator(
-      onRefresh: provider.refreshPeople,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          final metrics = notification.metrics;
-          final shouldLoadMore =
-              metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                  provider.canLoadMore &&
-                  !provider.isLoadingMore &&
-                  !provider.isLoading;
-
-          if (shouldLoadMore) {
-            provider.loadMorePeople();
-          }
-
-          return false;
-        },
-        child: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: itemCount,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            if (index >= provider.people.length) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            final person = provider.people[index];
-            return _PersonCard(person: person);
-          },
-        ),
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: people.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final person = people[index];
+        return _PersonCard(
+          person: person,
+          onTap: () => onPersonSelected(person),
+        );
+      },
     );
   }
 }
 
 class _PersonCard extends StatelessWidget {
-  const _PersonCard({required this.person});
+  const _PersonCard({
+    required this.person,
+    required this.onTap,
+  });
 
   final Person person;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final subtitleParts = <String>[];
-    if (person.knownForDepartment != null && person.knownForDepartment!.isNotEmpty) {
-      subtitleParts.add(person.knownForDepartment!);
-    }
-    if (person.popularity != null) {
-      subtitleParts.add('Popularity ${person.popularity!.toStringAsFixed(1)}');
-    }
+    final colorScheme = Theme.of(context).colorScheme;
+    final profileUrl = person.profilePath;
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => PersonDetailScreen(
-                personId: person.id,
-                initialPerson: person,
-              ),
-            ),
-          );
-        },
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               CircleAvatar(
-                radius: 28,
-                backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                child: Text(
-                  person.name.substring(0, 1).toUpperCase(),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+                radius: 32,
+                backgroundColor: colorScheme.primaryContainer,
+                backgroundImage: profileUrl != null
+                    ? CachedNetworkImageProvider(
+                        'https://image.tmdb.org/t/p/w185$profileUrl',
+                      )
+                    : null,
+                child: profileUrl == null
+                    ? Icon(Icons.person_outline, color: colorScheme.primary)
+                    : null,
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -137,22 +226,25 @@ class _PersonCard extends StatelessWidget {
                     Text(
                       person.name,
                       style: Theme.of(context).textTheme.titleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      subtitleParts.join(' • '),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      (person.biography?.isNotEmpty ?? false)
-                          ? person.biography!
-                          : 'Biography not available yet.',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
+                    if ((person.knownForDepartment ?? '').isNotEmpty)
+                      Text(
+                        person.knownForDepartment!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    const SizedBox(height: 4),
+                    if (person.popularity != null)
+                      Text(
+                        'Popularity ${person.popularity!.toStringAsFixed(1)}',
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
                   ],
                 ),
               ),
+              const Icon(Icons.keyboard_arrow_right),
             ],
           ),
         ),
@@ -161,30 +253,100 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
+class _PersonDetailSheet extends StatelessWidget {
+  const _PersonDetailSheet({required this.person});
 
-  final String message;
-  final Future<void> Function() onRetry;
+  final Person person;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
+            Row(
+              children: [
+                if (person.profilePath != null)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: CachedNetworkImage(
+                      imageUrl: 'https://image.tmdb.org/t/p/w300${person.profilePath}',
+                      width: 120,
+                      height: 160,
+                      fit: BoxFit.cover,
+                    ),
+                  )
+                else
+                  Container(
+                    width: 120,
+                    height: 160,
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceVariant,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(Icons.person_outline, size: 48, color: theme.colorScheme.primary),
+                  ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        person.name,
+                        style: theme.textTheme.headlineSmall,
+                      ),
+                      if ((person.knownForDepartment ?? '').isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          person.knownForDepartment!,
+                          style: theme.textTheme.titleMedium,
+                        ),
+                      ],
+                      if ((person.placeOfBirth ?? '').isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Text(
+                          'Born in ${person.placeOfBirth}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Try Again'),
-            ),
+            const SizedBox(height: 24),
+            if ((person.biography ?? '').isNotEmpty) ...[
+              Text(
+                'Biography',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                person.biography!,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (person.alsoKnownAs.isNotEmpty) ...[
+              Text(
+                'Also known as',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  for (final alias in person.alsoKnownAs)
+                    Chip(label: Text(alias)),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -192,22 +354,44 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-class _EmptyView extends StatelessWidget {
-  const _EmptyView({required this.message});
+class _ErrorView extends StatelessWidget {
+  const _ErrorView({
+    required this.message,
+    required this.onRetry,
+  });
 
   final String message;
+  final Future<void> Function() onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          message,
-          style: Theme.of(context).textTheme.bodyLarge,
-          textAlign: TextAlign.center,
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        const SizedBox(height: 120),
+        Icon(
+          Icons.error_outline,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
         ),
-      ),
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Center(
+          child: FilledButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text(AppStrings.retry),
+          ),
+        ),
+      ],
     );
   }
 }

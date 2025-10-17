@@ -48,6 +48,16 @@ class AppStrings {
   
   // UI
   static const search = 'Search movies...';
+  static const searchMovies = 'Search movies';
+  static const noResultsFound = 'No results found';
+  static const trending = 'Trending';
+  static const nowPlaying = 'Now Playing';
+  static const popular = 'Popular';
+  static const topRated = 'Top Rated';
+  static const upcoming = 'Upcoming';
+  static const discover = 'Discover';
+  static const airingToday = 'Airing Today';
+  static const onTheAir = 'On The Air';
   static const noAccount = "Don't have an account?";
   static const haveAccount = 'Already have an account?';
   static const yourNewPassword = 'Your new password:';

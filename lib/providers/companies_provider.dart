@@ -1,48 +1,75 @@
-import '../data/models/company_model.dart';
-import '../data/models/paginated_response.dart';
-import '../data/tmdb_repository.dart';
-import 'paginated_resource_provider.dart';
+import 'package:flutter/material.dart';
 
-class CompaniesProvider extends PaginatedResourceProvider<Company> {
-  CompaniesProvider(this._repository, {String initialQuery = 'studio'})
-      : _query = initialQuery.trim().isEmpty ? 'studio' : initialQuery.trim() {
-    loadInitial();
-  }
+import '../data/models/company_model.dart';
+import '../data/tmdb_repository.dart';
+
+class CompaniesProvider extends ChangeNotifier {
+  CompaniesProvider(this._repository);
 
   final TmdbRepository _repository;
-  String _query;
 
-  String get query => _query;
-  List<Company> get companies => items;
-  bool get isLoading => isInitialLoading;
-  bool get isLoadingMore => super.isLoadingMore;
-  bool get canLoadMore => hasMore;
+  final List<Company> _searchResults = [];
+  bool _isSearching = false;
+  String? _errorMessage;
+  String _lastQuery = '';
 
-  Future<void> refreshCompanies() => refresh();
-  Future<void> loadMoreCompanies() => loadMore();
+  List<Company> get searchResults => List.unmodifiable(_searchResults);
+  bool get isSearching => _isSearching;
+  String? get errorMessage => _errorMessage;
+  String get lastQuery => _lastQuery;
 
-  Future<void> searchCompanies(String newQuery) async {
-    final sanitized = newQuery.trim();
-    if (sanitized.isEmpty) {
-      _query = 'studio';
-      await loadInitial(forceRefresh: true);
+  Future<void> searchCompanies(String query) async {
+    final normalized = query.trim();
+    if (normalized.isEmpty) {
+      _searchResults
+        ..clear();
+      _errorMessage = null;
+      _lastQuery = '';
+      notifyListeners();
       return;
     }
 
-    if (sanitized.toLowerCase() == _query.toLowerCase() && items.isNotEmpty) {
+    if (_isSearching && normalized == _lastQuery) {
       return;
     }
 
-    _query = sanitized;
-    await loadInitial(forceRefresh: true);
+    _isSearching = true;
+    _errorMessage = null;
+    _lastQuery = normalized;
+    notifyListeners();
+
+    try {
+      final results = await _repository.searchCompanies(normalized);
+      _searchResults
+        ..clear()
+        ..addAll(results);
+      _errorMessage = null;
+    } on TmdbException catch (error) {
+      _errorMessage = error.message;
+      _searchResults.clear();
+    } catch (error) {
+      _errorMessage = 'Failed to search companies: $error';
+      _searchResults.clear();
+    } finally {
+      _isSearching = false;
+      notifyListeners();
+    }
   }
 
-  @override
-  Future<PaginatedResponse<Company>> loadPage(int page, {bool forceRefresh = false}) {
-    return _repository.fetchCompanies(
-      query: _query,
-      page: page,
-      forceRefresh: forceRefresh,
-    );
+  Future<Company?> fetchCompanyDetails(int companyId) async {
+    try {
+      return await _repository.fetchCompanyDetails(companyId);
+    } catch (error) {
+      _errorMessage = 'Failed to load company details: $error';
+      notifyListeners();
+      return null;
+    }
+  }
+
+  void clear() {
+    _searchResults.clear();
+    _errorMessage = null;
+    _lastQuery = '';
+    notifyListeners();
   }
 }

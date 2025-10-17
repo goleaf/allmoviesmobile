@@ -3,11 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
-import '../../../data/services/api_config.dart';
 import '../../../data/models/company_model.dart';
 import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
-import '../company_detail/company_detail_screen.dart';
 
 class CompaniesScreen extends StatefulWidget {
   static const routeName = '/companies';
@@ -19,7 +17,13 @@ class CompaniesScreen extends StatefulWidget {
 }
 
 class _CompaniesScreenState extends State<CompaniesScreen> {
-  final TextEditingController _searchController = TextEditingController();
+  late final TextEditingController _searchController;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+  }
 
   @override
   void dispose() {
@@ -27,240 +31,193 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
     super.dispose();
   }
 
+  Future<void> _performSearch(String query) async {
+    await context.read<CompaniesProvider>().searchCompanies(query);
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<CompaniesProvider>();
+    final companies = provider.searchResults;
 
     return Scaffold(
       appBar: AppBar(
         title: const Text(AppStrings.companies),
       ),
       drawer: const AppDrawer(),
-      body: _CompaniesBody(
-        provider: provider,
-        controller: _searchController,
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search production companies',
+                prefixIcon: const Icon(Icons.search),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                  borderSide: BorderSide.none,
+                ),
+                filled: true,
+                isDense: true,
+              ),
+              onSubmitted: _performSearch,
+              onChanged: (value) {
+                if (value.isEmpty) {
+                  context.read<CompaniesProvider>().clear();
+                }
+              },
+            ),
+          ),
+          if (provider.isSearching)
+            const LinearProgressIndicator(minHeight: 2),
+          if (provider.errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  provider.errorMessage!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ),
+            ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => _performSearch(provider.lastQuery),
+              child: _CompanyList(
+                companies: companies,
+                onCompanySelected: (company) async {
+                  final details = await provider.fetchCompanyDetails(company.id);
+                  if (!context.mounted) return;
+                  if (details != null) {
+                    _showCompanyDetails(context, details);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Unable to load company details')), 
+                    );
+                  }
+                },
+              ),
+            ),
+          ),
+        ],
       ),
+    );
+  }
+
+  void _showCompanyDetails(BuildContext context, Company company) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) {
+        final padding = MediaQuery.of(context).viewInsets;
+        return Padding(
+          padding: EdgeInsets.only(bottom: padding.bottom),
+          child: _CompanyDetailSheet(company: company),
+        );
+      },
     );
   }
 }
 
-class _CompaniesBody extends StatelessWidget {
-  const _CompaniesBody({required this.provider, required this.controller});
-
-  final CompaniesProvider provider;
-  final TextEditingController controller;
-
-  @override
-  Widget build(BuildContext context) {
-    if (provider.isLoading && provider.companies.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (provider.errorMessage != null && provider.companies.isEmpty) {
-      return _ErrorView(
-        message: provider.errorMessage!,
-        onRetry: provider.refreshCompanies,
-      );
-    }
-
-    if (provider.companies.isEmpty) {
-      return RefreshIndicator(
-        onRefresh: provider.refreshCompanies,
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            _SearchField(
-              controller: controller,
-              onSearch: provider.searchCompanies,
-              isLoading: provider.isLoading,
-            ),
-            const SizedBox(height: 16),
-            const _EmptyView(
-              message: 'No companies found. Try searching for another studio.',
-            ),
-          ],
-        ),
-      );
-    }
-
-    final itemCount = 1 + provider.companies.length + (provider.isLoadingMore ? 1 : 0);
-
-    return RefreshIndicator(
-      onRefresh: provider.refreshCompanies,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          final metrics = notification.metrics;
-          final shouldLoadMore =
-              metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                  provider.canLoadMore &&
-                  !provider.isLoadingMore &&
-                  !provider.isLoading;
-
-          if (shouldLoadMore) {
-            provider.loadMoreCompanies();
-          }
-
-          return false;
-        },
-        child: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: itemCount,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            if (index == 0) {
-              return _SearchField(
-                controller: controller,
-                onSearch: provider.searchCompanies,
-                isLoading: provider.isLoading,
-              );
-            }
-
-            final dataIndex = index - 1;
-
-            if (dataIndex >= provider.companies.length) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            final company = provider.companies[dataIndex];
-            return _CompanyCard(company: company);
-          },
-        ),
-      ),
-    );
-  }
-}
-
-class _SearchField extends StatelessWidget {
-  const _SearchField({
-    required this.controller,
-    required this.onSearch,
-    required this.isLoading,
+class _CompanyList extends StatelessWidget {
+  const _CompanyList({
+    required this.companies,
+    required this.onCompanySelected,
   });
 
-  final TextEditingController controller;
-  final Future<void> Function(String) onSearch;
-  final bool isLoading;
+  final List<Company> companies;
+  final ValueChanged<Company> onCompanySelected;
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      textInputAction: TextInputAction.search,
-      decoration: InputDecoration(
-        labelText: 'Search companies',
-        hintText: 'e.g. Studio Ghibli',
-        suffixIcon: isLoading
-            ? const Padding(
-                padding: EdgeInsets.all(12),
-                child: SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-              )
-            : IconButton(
-                icon: const Icon(Icons.search),
-                onPressed: () => onSearch(controller.text),
-              ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-      onSubmitted: onSearch,
+    if (companies.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 120),
+          Icon(
+            Icons.business_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              'Search for companies using the field above.',
+              style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: companies.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final company = companies[index];
+        return _CompanyCard(
+          company: company,
+          onTap: () => onCompanySelected(company),
+        );
+      },
     );
   }
 }
 
 class _CompanyCard extends StatelessWidget {
-  const _CompanyCard({required this.company});
+  const _CompanyCard({
+    required this.company,
+    required this.onTap,
+  });
 
   final Company company;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final logoUrl = ApiConfig.getLogoUrl(company.logoPath);
-    final subtitleParts = <String>[];
-    if (company.originCountry != null && company.originCountry!.isNotEmpty) {
-      subtitleParts.add(company.originCountry!);
-    }
-    if (company.homepage != null && company.homepage!.isNotEmpty) {
-      subtitleParts.add(company.homepage!);
-    }
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(
-            context,
-            CompanyDetailScreen.routeName,
-            arguments: company,
-          );
-        },
+        onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 56,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(12),
+              _CompanyLogo(logoPath: company.logoPath),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      company.name,
+                      style: Theme.of(context).textTheme.titleMedium,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    child: logoUrl.isNotEmpty
-                        ? CachedNetworkImage(
-                            imageUrl: logoUrl,
-                            fit: BoxFit.contain,
-                            placeholder: (context, url) => const Center(
-                              child: SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              ),
-                            ),
-                            errorWidget: (context, url, error) => Icon(
-                              Icons.business_outlined,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          )
-                        : Icon(
-                            Icons.business_outlined,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          company.name,
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          subtitleParts.join(' • '),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    if ((company.originCountry ?? '').isNotEmpty)
+                      Text(
+                        company.originCountry!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    if ((company.headquarters ?? '').isNotEmpty)
+                      Text(
+                        company.headquarters!,
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                  ],
+                ),
               ),
-              const SizedBox(height: 12),
-              Text(
-                (company.description?.isNotEmpty ?? false)
-                    ? company.description!
-                    : 'No description available.',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              Icon(Icons.keyboard_arrow_right, color: colorScheme.onSurfaceVariant),
             ],
           ),
         ),
@@ -269,30 +226,117 @@ class _CompanyCard extends StatelessWidget {
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
+class _CompanyLogo extends StatelessWidget {
+  const _CompanyLogo({this.logoPath});
 
-  final String message;
-  final Future<void> Function() onRetry;
+  final String? logoPath;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: 56,
+      height: 56,
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: logoPath != null
+          ? Padding(
+              padding: const EdgeInsets.all(8),
+              child: CachedNetworkImage(
+                imageUrl: 'https://image.tmdb.org/t/p/w185$logoPath',
+                fit: BoxFit.contain,
+                errorWidget: (_, __, ___) => Icon(Icons.business, color: colorScheme.primary),
+              ),
+            )
+          : Icon(Icons.business, color: colorScheme.primary),
+    );
+  }
+}
+
+class _CompanyDetailSheet extends StatelessWidget {
+  const _CompanyDetailSheet({required this.company});
+
+  final Company company;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return SafeArea(
+      child: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _CompanyLogo(logoPath: company.logoPath),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        company.name,
+                        style: theme.textTheme.headlineSmall,
+                      ),
+                      if ((company.originCountry ?? '').isNotEmpty)
+                        Text(
+                          'Country: ${company.originCountry}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      if ((company.headquarters ?? '').isNotEmpty)
+                        Text(
+                          'HQ: ${company.headquarters}',
+                          style: theme.textTheme.bodyMedium,
+                        ),
+                      if ((company.homepage ?? '').isNotEmpty)
+                        Text(
+                          company.homepage!,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Try Again'),
-            ),
+            const SizedBox(height: 24),
+            if ((company.description ?? '').isNotEmpty) ...[
+              Text(
+                'Description',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                company.description!,
+                style: theme.textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 16),
+            ],
+            if (company.producedMovies.isNotEmpty) ...[
+              Text(
+                'Produced movies (${company.producedMovies.length})',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              _ReferenceList(items: company.producedMovies),
+              const SizedBox(height: 16),
+            ],
+            if (company.producedSeries.isNotEmpty) ...[
+              Text(
+                'Produced series (${company.producedSeries.length})',
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              _ReferenceList(items: company.producedSeries),
+            ],
           ],
         ),
       ),
@@ -300,22 +344,30 @@ class _ErrorView extends StatelessWidget {
   }
 }
 
-class _EmptyView extends StatelessWidget {
-  const _EmptyView({required this.message});
+class _ReferenceList extends StatelessWidget {
+  const _ReferenceList({required this.items});
 
-  final String message;
+  final List<dynamic> items;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          message,
-          style: Theme.of(context).textTheme.bodyLarge,
-          textAlign: TextAlign.center,
-        ),
-      ),
+    if (items.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final item in items.take(12))
+          Chip(
+            label: Text(
+              item is Map<String, dynamic>
+                  ? (item['title'] ?? item['name'] ?? 'Unknown') as String
+                  : '$item',
+            ),
+          ),
+      ],
     );
   }
 }

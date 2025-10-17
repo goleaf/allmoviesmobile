@@ -4,86 +4,149 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/movie.dart';
 import '../../../providers/series_provider.dart';
+import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
-import '../tv_detail/tv_detail_screen.dart';
 
-class SeriesScreen extends StatelessWidget {
+class SeriesScreen extends StatefulWidget {
   static const routeName = '/series';
 
   const SeriesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<SeriesProvider>();
+  State<SeriesScreen> createState() => _SeriesScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text(AppStrings.series),
+class _SeriesScreenState extends State<SeriesScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<SeriesProvider>().refresh();
+    });
+  }
+
+  Future<void> _refreshAll(BuildContext context) {
+    return context.read<SeriesProvider>().refresh(force: true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = SeriesSection.values;
+
+    return DefaultTabController(
+      length: sections.length,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(AppStrings.series),
+          bottom: TabBar(
+            isScrollable: true,
+            tabs: [
+              for (final section in sections) Tab(text: _labelForSection(section)),
+            ],
+          ),
+        ),
+        drawer: const AppDrawer(),
+        body: TabBarView(
+          children: [
+            for (final section in sections)
+              _SeriesSectionView(
+                section: section,
+                onRefreshAll: _refreshAll,
+              ),
+          ],
+        ),
       ),
-      drawer: const AppDrawer(),
-      body: _SeriesBody(provider: provider),
+    );
+  }
+
+  String _labelForSection(SeriesSection section) {
+    switch (section) {
+      case SeriesSection.trending:
+        return AppStrings.trending;
+      case SeriesSection.popular:
+        return AppStrings.popular;
+      case SeriesSection.topRated:
+        return AppStrings.topRated;
+      case SeriesSection.airingToday:
+        return AppStrings.airingToday;
+      case SeriesSection.onTheAir:
+        return AppStrings.onTheAir;
+    }
+  }
+}
+
+class _SeriesSectionView extends StatelessWidget {
+  const _SeriesSectionView({
+    required this.section,
+    required this.onRefreshAll,
+  });
+
+  final SeriesSection section;
+  final Future<void> Function(BuildContext context) onRefreshAll;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SeriesProvider>(
+      builder: (context, provider, _) {
+        final state = provider.sectionState(section);
+        if (state.isLoading && state.items.isEmpty) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (state.errorMessage != null && state.items.isEmpty) {
+          return _ErrorView(
+            message: state.errorMessage!,
+            onRetry: () => onRefreshAll(context),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () => onRefreshAll(context),
+          child: _SeriesList(
+            series: state.items,
+          ),
+        );
+      },
     );
   }
 }
 
-class _SeriesBody extends StatelessWidget {
-  const _SeriesBody({required this.provider});
+class _SeriesList extends StatelessWidget {
+  const _SeriesList({required this.series});
 
-  final SeriesProvider provider;
+  final List<Movie> series;
 
   @override
   Widget build(BuildContext context) {
-    if (provider.isLoading && provider.series.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-
-    if (provider.errorMessage != null && provider.series.isEmpty) {
-      return _ErrorView(
-        message: provider.errorMessage!,
-        onRetry: provider.refreshSeries,
+    if (series.isEmpty) {
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          const SizedBox(height: 120),
+          Icon(
+            Icons.live_tv_outlined,
+            size: 48,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              AppStrings.noResultsFound,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+        ],
       );
     }
 
-    if (provider.series.isEmpty) {
-      return const _EmptyView(message: 'No TV shows found right now. Pull to refresh.');
-    }
-
-    final itemCount = provider.series.length + (provider.isLoadingMore ? 1 : 0);
-
-    return RefreshIndicator(
-      onRefresh: provider.refreshSeries,
-      child: NotificationListener<ScrollNotification>(
-        onNotification: (notification) {
-          final metrics = notification.metrics;
-          final shouldLoadMore =
-              metrics.pixels >= metrics.maxScrollExtent - 200 &&
-                  provider.canLoadMore &&
-                  !provider.isLoadingMore &&
-                  !provider.isLoading;
-
-          if (shouldLoadMore) {
-            provider.loadMoreSeries();
-          }
-
-          return false;
-        },
-        child: ListView.separated(
-          padding: const EdgeInsets.all(16),
-          itemCount: itemCount,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            if (index >= provider.series.length) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Center(child: CircularProgressIndicator()),
-              );
-            }
-
-            final show = provider.series[index];
-            return _SeriesCard(show: show);
-          },
-        ),
-      ),
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: series.length,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final show = series[index];
+        return _SeriesCard(show: show);
+      },
     );
   }
 }
@@ -95,23 +158,15 @@ class _SeriesCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitleParts = <String>[];
-    final releaseYear = show.releaseYear;
-    if (releaseYear != null && releaseYear.isNotEmpty) {
-      subtitleParts.add(releaseYear);
-    }
-    if (show.mediaLabel.isNotEmpty) {
-      subtitleParts.add(show.mediaLabel);
-    }
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
+          Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => TVDetailScreen(tvShow: show),
+              builder: (_) => MovieDetailScreen(movie: show),
             ),
           );
         },
@@ -121,103 +176,106 @@ class _SeriesCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(12),
+                children: [
+                  CircleAvatar(
+                    backgroundColor: colorScheme.primaryContainer,
+                    child: Icon(
+                      Icons.live_tv_outlined,
+                      color: colorScheme.primary,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.tv_outlined,
-                    color: Theme.of(context).colorScheme.primary,
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          show.title,
+                          style: Theme.of(context).textTheme.titleMedium,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _buildSubtitle(show),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        show.title,
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitleParts.join(' • '),
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-                Chip(
-                  label: Text(show.formattedRating),
-                  backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+                  if (show.voteAverage != null)
+                    Chip(
+                      label: Text(show.formattedRating),
+                      backgroundColor: colorScheme.secondaryContainer,
+                    ),
+                ],
+              ),
+              if ((show.overview ?? '').isNotEmpty) ...[
+                const SizedBox(height: 12),
+                Text(
+                  show.overview!,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              show.overview ?? 'No overview available.',
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
             ],
           ),
         ),
       ),
     );
   }
+
+  String _buildSubtitle(Movie show) {
+    final buffer = <String>[];
+    if (show.releaseYear != null && show.releaseYear!.isNotEmpty) {
+      buffer.add(show.releaseYear!);
+    }
+    if (show.genresText.isNotEmpty) {
+      buffer.add(show.genresText);
+    }
+    return buffer.join(' • ');
+  }
 }
 
 class _ErrorView extends StatelessWidget {
-  const _ErrorView({required this.message, required this.onRetry});
+  const _ErrorView({
+    required this.message,
+    required this.onRetry,
+  });
 
   final String message;
   final Future<void> Function() onRetry;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message,
-              style: Theme.of(context).textTheme.bodyLarge,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Try Again'),
-            ),
-          ],
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        const SizedBox(height: 120),
+        Icon(
+          Icons.error_outline,
+          size: 48,
+          color: Theme.of(context).colorScheme.error,
         ),
-      ),
-    );
-  }
-}
-
-class _EmptyView extends StatelessWidget {
-  const _EmptyView({required this.message});
-
-  final String message;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Text(
-          message,
-          style: Theme.of(context).textTheme.bodyLarge,
-          textAlign: TextAlign.center,
+        const SizedBox(height: 12),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            message,
+            style: Theme.of(context).textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
         ),
-      ),
+        const SizedBox(height: 16),
+        Center(
+          child: FilledButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text(AppStrings.retry),
+          ),
+        ),
+      ],
     );
   }
 }

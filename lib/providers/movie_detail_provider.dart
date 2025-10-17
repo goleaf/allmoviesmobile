@@ -1,54 +1,48 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
-import '../data/models/keyword_model.dart';
+import '../data/models/movie.dart';
 import '../data/models/movie_detailed_model.dart';
-import '../data/models/genre_model.dart';
 import '../data/tmdb_repository.dart';
 
 class MovieDetailProvider with ChangeNotifier {
-  MovieDetailProvider(this._repository, this.movieId) {
-    _fetch();
-  }
+  MovieDetailProvider(this._repository, this.movie);
 
   final TmdbRepository _repository;
-  final int movieId;
+  final Movie movie;
 
-  MovieDetailed? _movie;
+  MovieDetailed? _details;
   bool _isLoading = false;
   String? _errorMessage;
+  bool _isOverviewExpanded = false;
 
-  MovieDetailed? get movie => _movie;
+  MovieDetailed? get details => _details;
+  Movie get initialMovie => movie;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
+  bool get hasError => _errorMessage != null;
+  bool get isOverviewExpanded => _isOverviewExpanded;
 
-  List<Keyword> get keywords => _movie?.keywords ?? const [];
-  List<Genre> get genres => _movie?.genres ?? const [];
-
-  bool get hasKeywords => keywords.isNotEmpty;
-  bool get hasGenres => genres.isNotEmpty;
-
-  Future<void> refresh() => _fetch(forceRefresh: true);
-
-  Future<void> _fetch({bool forceRefresh = false}) async {
-    if (_isLoading) {
-      return;
-    }
-
+  Future<void> load({bool forceRefresh = false}) async {
+    if (_isLoading) return;
     _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      final detailedMovie =
-          await _repository.fetchMovieDetails(movieId, forceRefresh: forceRefresh);
-      _movie = detailedMovie;
-      _errorMessage = null;
-    } catch (error, stackTrace) {
-      _errorMessage = 'Failed to load movie details: $error';
-      debugPrintStack(label: _errorMessage, stackTrace: stackTrace);
+      _details = await _repository.fetchMovieDetails(
+        movie.id,
+        forceRefresh: forceRefresh,
+      );
+    } catch (error) {
+      _errorMessage = error.toString();
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
-}
 
+  void toggleOverview() {
+    _isOverviewExpanded = !_isOverviewExpanded;
+    notifyListeners();
+  }
+}

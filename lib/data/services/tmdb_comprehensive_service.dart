@@ -9,9 +9,9 @@ class TmdbComprehensiveService {
     http.Client? client,
     String? apiKey,
     String? language,
-  })  : _client = client ?? http.Client(),
-        _apiKey = apiKey ?? AppConfig.tmdbApiKey,
-        _language = language ?? AppConfig.defaultLanguage;
+  }) : _client = client ?? http.Client(),
+       _apiKey = apiKey ?? AppConfig.tmdbApiKey,
+       _language = language ?? AppConfig.defaultLanguage;
 
   final http.Client _client;
   final String _apiKey;
@@ -23,20 +23,15 @@ class TmdbComprehensiveService {
     String endpoint, [
     Map<String, String>? queryParams,
   ]) async {
-    final uri = Uri.https(
-      'api.themoviedb.org',
-      '/3$endpoint',
-      {
-        'api_key': _apiKey,
-        'language': _language,
-        if (queryParams != null) ...queryParams,
-      },
-    );
+    final uri = Uri.https('api.themoviedb.org', '/3$endpoint', {
+      'api_key': _apiKey,
+      'language': _language,
+      if (queryParams != null) ...queryParams,
+    });
 
-    final response = await _client.get(
-      uri,
-      headers: {'Accept': 'application/json'},
-    ).timeout(AppConfig.requestTimeout);
+    final response = await _client
+        .get(uri, headers: {'Accept': 'application/json'})
+        .timeout(AppConfig.requestTimeout);
 
     if (response.statusCode != 200) {
       throw TmdbServiceException(
@@ -101,7 +96,9 @@ class TmdbComprehensiveService {
 
   /// Get movie images
   Future<Map<String, dynamic>> getMovieImages(int movieId) async {
-    return await _get('/movie/$movieId/images', {'include_image_language': 'en,null'});
+    return await _get('/movie/$movieId/images', {
+      'include_image_language': 'en,null',
+    });
   }
 
   /// Get movie keywords
@@ -215,7 +212,9 @@ class TmdbComprehensiveService {
 
   /// Get TV show images
   Future<Map<String, dynamic>> getTVShowImages(int tvId) async {
-    return await _get('/tv/$tvId/images', {'include_image_language': 'en,null'});
+    return await _get('/tv/$tvId/images', {
+      'include_image_language': 'en,null',
+    });
   }
 
   /// Get TV show keywords
@@ -362,7 +361,8 @@ class TmdbComprehensiveService {
     int episodeNumber,
   ) async {
     return await _get(
-        '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/credits');
+      '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/credits',
+    );
   }
 
   /// Get TV episode videos
@@ -372,7 +372,8 @@ class TmdbComprehensiveService {
     int episodeNumber,
   ) async {
     return await _get(
-        '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/videos');
+      '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/videos',
+    );
   }
 
   /// Get TV episode images
@@ -382,7 +383,8 @@ class TmdbComprehensiveService {
     int episodeNumber,
   ) async {
     return await _get(
-        '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/images');
+      '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/images',
+    );
   }
 
   /// Get TV episode external IDs
@@ -392,7 +394,8 @@ class TmdbComprehensiveService {
     int episodeNumber,
   ) async {
     return await _get(
-        '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/external_ids');
+      '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/external_ids',
+    );
   }
 
   /// Get TV episode translations
@@ -402,7 +405,8 @@ class TmdbComprehensiveService {
     int episodeNumber,
   ) async {
     return await _get(
-        '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/translations');
+      '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/translations',
+    );
   }
 
   // ==================== PEOPLE ====================
@@ -526,10 +530,7 @@ class TmdbComprehensiveService {
     String query, {
     int page = 1,
   }) async {
-    return await _get('/search/company', {
-      'query': query,
-      'page': '$page',
-    });
+    return await _get('/search/company', {'query': query, 'page': '$page'});
   }
 
   /// Search for keywords
@@ -537,10 +538,7 @@ class TmdbComprehensiveService {
     String query, {
     int page = 1,
   }) async {
-    return await _get('/search/keyword', {
-      'query': query,
-      'page': '$page',
-    });
+    return await _get('/search/keyword', {'query': query, 'page': '$page'});
   }
 
   /// Search for collections
@@ -548,10 +546,7 @@ class TmdbComprehensiveService {
     String query, {
     int page = 1,
   }) async {
-    return await _get('/search/collection', {
-      'query': query,
-      'page': '$page',
-    });
+    return await _get('/search/collection', {'query': query, 'page': '$page'});
   }
 
   // ==================== DISCOVER ====================
@@ -585,7 +580,7 @@ class TmdbComprehensiveService {
     String? withoutGenres,
     String? withKeywords,
     String? withoutKeywords,
-    int? withRuntime Gte,
+    int? withRuntimeGte,
     int? withRuntimeLte,
     String? withOriginalLanguage,
     String? withWatchProviders,
@@ -603,7 +598,8 @@ class TmdbComprehensiveService {
       if (includeAdult != null) 'include_adult': '$includeAdult',
       if (includeVideo != null) 'include_video': '$includeVideo',
       if (year != null) 'year': '$year',
-      if (primaryReleaseYear != null) 'primary_release_year': '$primaryReleaseYear',
+      if (primaryReleaseYear != null)
+        'primary_release_year': '$primaryReleaseYear',
       if (primaryReleaseDateGte != null)
         'primary_release_date.gte': primaryReleaseDateGte,
       if (primaryReleaseDateLte != null)
@@ -627,7 +623,8 @@ class TmdbComprehensiveService {
       if (withRuntimeLte != null) 'with_runtime.lte': '$withRuntimeLte',
       if (withOriginalLanguage != null)
         'with_original_language': withOriginalLanguage,
-      if (withWatchProviders != null) 'with_watch_providers': withWatchProviders,
+      if (withWatchProviders != null)
+        'with_watch_providers': withWatchProviders,
       if (watchRegion != null) 'watch_region': watchRegion,
       if (withWatchMonetizationTypes != null)
         'with_watch_monetization_types': withWatchMonetizationTypes,
@@ -684,7 +681,8 @@ class TmdbComprehensiveService {
         'with_original_language': withOriginalLanguage,
       if (withNetworks != null) 'with_networks': withNetworks,
       if (withCompanies != null) 'with_companies': withCompanies,
-      if (withWatchProviders != null) 'with_watch_providers': withWatchProviders,
+      if (withWatchProviders != null)
+        'with_watch_providers': withWatchProviders,
       if (watchRegion != null) 'watch_region': watchRegion,
       if (withWatchMonetizationTypes != null)
         'with_watch_monetization_types': withWatchMonetizationTypes,
@@ -747,7 +745,9 @@ class TmdbComprehensiveService {
   }
 
   /// Get collection translations
-  Future<Map<String, dynamic>> getCollectionTranslations(int collectionId) async {
+  Future<Map<String, dynamic>> getCollectionTranslations(
+    int collectionId,
+  ) async {
     return await _get('/collection/$collectionId/translations');
   }
 
@@ -995,4 +995,3 @@ class TmdbServiceException implements Exception {
   @override
   String toString() => 'TmdbServiceException: $message';
 }
-

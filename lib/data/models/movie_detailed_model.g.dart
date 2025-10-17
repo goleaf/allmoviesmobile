@@ -11,6 +11,7 @@ _$MovieDetailedImpl _$$MovieDetailedImplFromJson(Map<String, dynamic> json) =>
       id: (json['id'] as num).toInt(),
       title: json['title'] as String,
       originalTitle: json['original_title'] as String,
+      originalLanguage: json['original_language'] as String?,
       voteAverage: (json['vote_average'] as num).toDouble(),
       voteCount: (json['vote_count'] as num).toInt(),
       overview: json['overview'] as String?,
@@ -39,6 +40,11 @@ _$MovieDetailedImpl _$$MovieDetailedImplFromJson(Map<String, dynamic> json) =>
           const [],
       posterPath: json['poster_path'] as String?,
       backdropPath: json['backdrop_path'] as String?,
+      collection: json['belongs_to_collection'] == null
+          ? null
+          : Collection.fromJson(
+              json['belongs_to_collection'] as Map<String, dynamic>,
+            ),
       popularity: (json['popularity'] as num?)?.toDouble(),
       status: json['status'] as String?,
       homepage: json['homepage'] as String?,
@@ -47,9 +53,66 @@ _$MovieDetailedImpl _$$MovieDetailedImplFromJson(Map<String, dynamic> json) =>
           : ExternalIds.fromJson(json['external_ids'] as Map<String, dynamic>),
       budget: (json['budget'] as num?)?.toInt(),
       revenue: (json['revenue'] as num?)?.toInt(),
+      cast:
+          (json['cast'] as List<dynamic>?)
+              ?.map((e) => Cast.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      crew:
+          (json['crew'] as List<dynamic>?)
+              ?.map((e) => Crew.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      keywords:
+          (json['keywords'] as List<dynamic>?)
+              ?.map((e) => Keyword.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      reviews:
+          (json['reviews'] as List<dynamic>?)
+              ?.map((e) => Review.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      releaseDates:
+          (json['release_dates'] as List<dynamic>?)
+              ?.map(
+                (e) => ReleaseDatesResult.fromJson(e as Map<String, dynamic>),
+              )
+              .toList() ??
+          const [],
+      watchProviders: json['watchProviders'] == null
+          ? const {}
+          : MovieDetailed._watchProvidersFromJson(
+              json['watchProviders'] as Map<String, dynamic>?,
+            ),
+      alternativeTitles:
+          (json['alternative_titles'] as List<dynamic>?)
+              ?.map((e) => AlternativeTitle.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      translations:
+          (json['translations'] as List<dynamic>?)
+              ?.map((e) => Translation.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
       videos:
           (json['videos'] as List<dynamic>?)
               ?.map((e) => Video.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      imageBackdrops:
+          (json['imageBackdrops'] as List<dynamic>?)
+              ?.map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      imagePosters:
+          (json['imagePosters'] as List<dynamic>?)
+              ?.map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      imageProfiles:
+          (json['imageProfiles'] as List<dynamic>?)
+              ?.map((e) => ImageModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       images:
@@ -79,6 +142,7 @@ Map<String, dynamic> _$$MovieDetailedImplToJson(_$MovieDetailedImpl instance) =>
       'id': instance.id,
       'title': instance.title,
       'original_title': instance.originalTitle,
+      'original_language': instance.originalLanguage,
       'vote_average': instance.voteAverage,
       'vote_count': instance.voteCount,
       'overview': instance.overview,
@@ -91,13 +155,27 @@ Map<String, dynamic> _$$MovieDetailedImplToJson(_$MovieDetailedImpl instance) =>
       'spoken_languages': instance.spokenLanguages,
       'poster_path': instance.posterPath,
       'backdrop_path': instance.backdropPath,
+      'belongs_to_collection': instance.collection,
       'popularity': instance.popularity,
       'status': instance.status,
       'homepage': instance.homepage,
       'external_ids': instance.externalIds,
       'budget': instance.budget,
       'revenue': instance.revenue,
+      'cast': instance.cast,
+      'crew': instance.crew,
+      'keywords': instance.keywords,
+      'reviews': instance.reviews,
+      'release_dates': instance.releaseDates,
+      'watchProviders': MovieDetailed._watchProvidersToJson(
+        instance.watchProviders,
+      ),
+      'alternative_titles': instance.alternativeTitles,
+      'translations': instance.translations,
       'videos': instance.videos,
+      'imageBackdrops': instance.imageBackdrops,
+      'imagePosters': instance.imagePosters,
+      'imageProfiles': instance.imageProfiles,
       'images': instance.images,
       'recommendations': instance.recommendations,
       'similar': instance.similar,

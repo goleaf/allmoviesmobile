@@ -128,6 +128,7 @@ class _ApiExplorerScreenState extends State<ApiExplorerScreen> {
                   subtitle:
                       'Stream, rent, or buy titles with global partner availability.',
                   labels: snapshot.watchProviderRegions
+                      .take(24)
                       .map((region) => '${region.englishName} (${region.countryCode})'),
                 ),
                 _TimezoneSection(snapshot: snapshot),

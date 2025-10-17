@@ -140,7 +140,7 @@ class ApiExplorerProvider extends ChangeNotifier {
         languages: _takeFirst(languages, 24),
         countries: _takeFirst(countries, 24),
         timezones: _takeFirst(timezones, 24),
-        watchProviderRegions: _takeFirst(providerRegions, 24),
+        watchProviderRegions: List<WatchProviderRegion>.unmodifiable(providerRegions),
         watchProvidersMovie: watchProvidersMovie,
         watchProvidersTv: watchProvidersTv,
         movieCertifications: movieCertifications,

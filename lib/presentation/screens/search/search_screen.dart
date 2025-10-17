@@ -7,7 +7,12 @@ import '../movie_detail/movie_detail_screen.dart';
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
 
-  const SearchScreen({super.key});
+  final String? initialQuery;
+
+  const SearchScreen({
+    super.key,
+    this.initialQuery,
+  });
 
   @override
   State<SearchScreen> createState() => _SearchScreenState();
@@ -20,8 +25,18 @@ class _SearchScreenState extends State<SearchScreen> {
   @override
   void initState() {
     super.initState();
+    if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+      _searchController.text = widget.initialQuery!;
+    }
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
+      if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
+        _performSearch(
+          context.read<SearchProvider>(),
+          query: widget.initialQuery!,
+        );
+      } else {
+        _focusNode.requestFocus();
+      }
     });
   }
 
@@ -32,10 +47,16 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
-  void _performSearch(SearchProvider provider) {
-    final query = _searchController.text.trim();
-    if (query.isNotEmpty) {
-      provider.search(query);
+  void _performSearch(SearchProvider provider, {String? query}) {
+    final queryText = (query ?? _searchController.text).trim();
+    if (queryText.isNotEmpty) {
+      if (_searchController.text != queryText) {
+        _searchController.value = TextEditingValue(
+          text: queryText,
+          selection: TextSelection.collapsed(offset: queryText.length),
+        );
+      }
+      provider.search(queryText);
     }
   }
 

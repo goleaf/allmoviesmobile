@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +11,8 @@ import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../../providers/watch_region_provider.dart';
 import '../series/series_filters_screen.dart';
+import '../../../data/services/local_storage_service.dart';
+import '../../widgets/virtualized_list_view.dart';
 
 class SeriesScreen extends StatefulWidget {
   static const routeName = '/series';
@@ -19,10 +23,57 @@ class SeriesScreen extends StatefulWidget {
   State<SeriesScreen> createState() => _SeriesScreenState();
 }
 
-class _SeriesScreenState extends State<SeriesScreen> {
+class _SeriesScreenState extends State<SeriesScreen>
+    with SingleTickerProviderStateMixin {
+  late final LocalStorageService _storageService;
+  late final TabController _tabController;
+  final Map<SeriesSection, ScrollController> _scrollControllers = {};
+  final Map<SeriesSection, VoidCallback> _scrollListeners = {};
+  final Map<SeriesSection, Timer?> _scrollDebouncers = {};
+  late final List<SeriesSection> _sections;
+
   @override
   void initState() {
     super.initState();
+    _storageService = context.read<LocalStorageService>();
+    _sections = SeriesSection.values;
+    final initialIndex = _storageService
+        .getSeriesTabIndex()
+        .clamp(0, _sections.length - 1);
+    _tabController = TabController(
+      length: _sections.length,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        return;
+      }
+      unawaited(_storageService.setSeriesTabIndex(_tabController.index));
+    });
+
+    for (final section in _sections) {
+      final offset = _storageService.getSeriesScrollOffset(section.name);
+      final controller = ScrollController(
+        initialScrollOffset: offset ?? 0.0,
+      );
+      void listener() {
+        _scrollDebouncers[section]?.cancel();
+        _scrollDebouncers[section] = Timer(const Duration(milliseconds: 400), () {
+          unawaited(
+            _storageService.setSeriesScrollOffset(
+              section.name,
+              controller.offset,
+            ),
+          );
+        });
+      }
+
+      controller.addListener(listener);
+      _scrollControllers[section] = controller;
+      _scrollListeners[section] = listener;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<SeriesProvider>().refresh();
     });
@@ -34,38 +85,60 @@ class _SeriesScreenState extends State<SeriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sections = SeriesSection.values;
-
     final l = AppLocalizations.of(context);
-    return DefaultTabController(
-      length: sections.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(l.t('tv.series')),
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: [
-              for (final section in sections)
-                Tab(text: _labelForSection(section, l)),
-            ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l.t('tv.series')),
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: [
+            for (final section in _sections)
+              Tab(text: _labelForSection(section, l)),
+          ],
+        ),
+        actions: [
+          IconButton(
+            tooltip: 'Filter by Network',
+            icon: const Icon(Icons.hub_outlined),
+            onPressed: _openNetworkFilter,
           ),
-          actions: [
-            IconButton(
-              tooltip: 'Filter by Network',
-              icon: const Icon(Icons.hub_outlined),
-              onPressed: _openNetworkFilter,
+        ],
+      ),
+      drawer: const AppDrawer(),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          for (final section in _sections)
+            _SeriesSectionView(
+              section: section,
+              onRefreshAll: _refreshAll,
+              controller: _scrollControllers[section],
             ),
-          ],
-        ),
-        drawer: const AppDrawer(),
-        body: TabBarView(
-          children: [
-            for (final section in sections)
-              _SeriesSectionView(section: section, onRefreshAll: _refreshAll),
-          ],
-        ),
+        ],
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    for (final section in _sections) {
+      _scrollDebouncers[section]?.cancel();
+      final controller = _scrollControllers[section];
+      final listener = _scrollListeners[section];
+      if (controller != null && listener != null) {
+        controller.removeListener(listener);
+        unawaited(
+          _storageService.setSeriesScrollOffset(
+            section.name,
+            controller.offset,
+          ),
+        );
+        controller.dispose();
+      }
+    }
+    super.dispose();
   }
 
   String _labelForSection(SeriesSection section, AppLocalizations l) {
@@ -93,9 +166,9 @@ extension on _SeriesScreenState {
       if (result is Map<String, String>) {
         await context.read<SeriesProvider>().applyTvFilters(result);
         if (!mounted) return;
-        DefaultTabController.of(
-          context,
-        ).animateTo(SeriesSection.values.indexOf(SeriesSection.popular));
+        _tabController.animateTo(
+          SeriesSection.values.indexOf(SeriesSection.popular),
+        );
       }
     });
   }
@@ -113,9 +186,9 @@ class _NetworkChip extends StatelessWidget {
       onPressed: () async {
         Navigator.pop(context);
         await context.read<SeriesProvider>().applyNetworkFilter(id);
-        final controller = DefaultTabController.of(context);
-        if (controller != null) {
-          controller.animateTo(
+        final screenState = context.findAncestorStateOfType<_SeriesScreenState>();
+        if (screenState != null) {
+          screenState._tabController.animateTo(
             SeriesSection.values.indexOf(SeriesSection.popular),
           );
         }
@@ -127,10 +200,15 @@ class _NetworkChip extends StatelessWidget {
 }
 
 class _SeriesSectionView extends StatelessWidget {
-  const _SeriesSectionView({required this.section, required this.onRefreshAll});
+  const _SeriesSectionView({
+    required this.section,
+    required this.onRefreshAll,
+    this.controller,
+  });
 
   final SeriesSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
+  final ScrollController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +233,10 @@ class _SeriesSectionView extends StatelessWidget {
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () => onRefreshAll(context),
-                child: _SeriesList(series: state.items),
+                child: _SeriesList(
+                  series: state.items,
+                  controller: controller,
+                ),
               ),
             ),
             if (state.errorMessage != null && state.items.isNotEmpty)
@@ -186,14 +267,16 @@ class _SeriesSectionView extends StatelessWidget {
 }
 
 class _SeriesList extends StatelessWidget {
-  const _SeriesList({required this.series});
+  const _SeriesList({required this.series, this.controller});
 
   final List<Movie> series;
+  final ScrollController? controller;
 
   @override
   Widget build(BuildContext context) {
     if (series.isEmpty) {
       return ListView(
+        controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 120),
@@ -213,7 +296,8 @@ class _SeriesList extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
+    return VirtualizedSeparatedListView(
+      controller: controller,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: series.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -221,6 +305,8 @@ class _SeriesList extends StatelessWidget {
         final show = series[index];
         return _SeriesCard(show: show);
       },
+      cacheExtent: 720,
+      addAutomaticKeepAlives: true,
     );
   }
 }

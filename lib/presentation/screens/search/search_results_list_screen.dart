@@ -5,6 +5,7 @@ import '../../../data/models/search_result_model.dart';
 import '../../../providers/search_provider.dart';
 import 'widgets/search_list_tiles.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../widgets/virtualized_list_view.dart';
 
 class SearchResultsListArgs {
   const SearchResultsListArgs({this.mediaType, this.showCompanies = false})
@@ -107,9 +108,11 @@ class _MediaResultsBody extends StatelessWidget {
 
             return false;
           },
-          child: ListView.builder(
+          child: VirtualizedListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             itemCount: itemCount,
+            cacheExtent: 800,
+            addAutomaticKeepAlives: true,
             itemBuilder: (context, index) {
               if (index >= results.length) {
                 return const Padding(
@@ -167,9 +170,11 @@ class _CompanyResultsBody extends StatelessWidget {
 
             return false;
           },
-          child: ListView.builder(
+          child: VirtualizedListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             itemCount: itemCount,
+            cacheExtent: 800,
+            addAutomaticKeepAlives: true,
             itemBuilder: (context, index) {
               if (index >= results.length) {
                 return const Padding(

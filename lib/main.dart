@@ -11,6 +11,7 @@ import 'core/utils/memory_optimizer.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/background_sync_service.dart';
 import 'data/services/network_quality_service.dart';
+import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -111,6 +112,17 @@ class AllMoviesApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider<TmdbRepository>.value(value: repo),
+        Provider<BackgroundPrefetchService>(
+          create: (_) {
+            final service = BackgroundPrefetchService(
+              repository: repo,
+              networkQualityNotifier: networkQualityNotifier,
+            );
+            service.initialize();
+            return service;
+          },
+          dispose: (_, service) => service.dispose(),
+        ),
         Provider<LocalStorageService>.value(value: storageService),
         Provider<SharedPreferences>.value(value: prefs),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(

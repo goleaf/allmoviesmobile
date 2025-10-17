@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -9,6 +11,8 @@ import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
+import '../../../data/services/local_storage_service.dart';
+import '../../widgets/virtualized_list_view.dart';
 
 class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';
@@ -19,10 +23,57 @@ class PeopleScreen extends StatefulWidget {
   State<PeopleScreen> createState() => _PeopleScreenState();
 }
 
-class _PeopleScreenState extends State<PeopleScreen> {
+class _PeopleScreenState extends State<PeopleScreen>
+    with SingleTickerProviderStateMixin {
+  late final LocalStorageService _storageService;
+  late final TabController _tabController;
+  final Map<PeopleSection, ScrollController> _controllers = {};
+  final Map<PeopleSection, VoidCallback> _listeners = {};
+  final Map<PeopleSection, Timer?> _debouncers = {};
+  late final List<PeopleSection> _sections;
+
   @override
   void initState() {
     super.initState();
+    _storageService = context.read<LocalStorageService>();
+    _sections = PeopleSection.values;
+    final initialIndex = _storageService
+        .getPeopleTabIndex()
+        .clamp(0, _sections.length - 1);
+    _tabController = TabController(
+      length: _sections.length,
+      vsync: this,
+      initialIndex: initialIndex,
+    );
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging) {
+        return;
+      }
+      unawaited(_storageService.setPeopleTabIndex(_tabController.index));
+    });
+
+    for (final section in _sections) {
+      final offset = _storageService.getPeopleScrollOffset(section.name);
+      final controller = ScrollController(
+        initialScrollOffset: offset ?? 0,
+      );
+      void listener() {
+        _debouncers[section]?.cancel();
+        _debouncers[section] = Timer(const Duration(milliseconds: 350), () {
+          unawaited(
+            _storageService.setPeopleScrollOffset(
+              section.name,
+              controller.offset,
+            ),
+          );
+        });
+      }
+
+      controller.addListener(listener);
+      _controllers[section] = controller;
+      _listeners[section] = listener;
+    }
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<PeopleProvider>().refresh();
     });
@@ -34,32 +85,54 @@ class _PeopleScreenState extends State<PeopleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final sections = PeopleSection.values;
-
-    return DefaultTabController(
-      length: sections.length,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(AppLocalizations.of(context).t('person.people')),
-          bottom: TabBar(
-            isScrollable: true,
-            tabs: [
-              for (final section in sections)
-                Tab(
-                  text: _labelForSection(section, AppLocalizations.of(context)),
-                ),
-            ],
-          ),
-        ),
-        drawer: const AppDrawer(),
-        body: TabBarView(
-          children: [
-            for (final section in sections)
-              _PeopleSectionView(section: section, onRefreshAll: _refreshAll),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context).t('person.people')),
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          tabs: [
+            for (final section in _sections)
+              Tab(
+                text: _labelForSection(section, AppLocalizations.of(context)),
+              ),
           ],
         ),
       ),
+      drawer: const AppDrawer(),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          for (final section in _sections)
+            _PeopleSectionView(
+              section: section,
+              onRefreshAll: _refreshAll,
+              controller: _controllers[section],
+            ),
+        ],
+      ),
     );
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    for (final section in _sections) {
+      _debouncers[section]?.cancel();
+      final controller = _controllers[section];
+      final listener = _listeners[section];
+      if (controller != null && listener != null) {
+        controller.removeListener(listener);
+        unawaited(
+          _storageService.setPeopleScrollOffset(
+            section.name,
+            controller.offset,
+          ),
+        );
+        controller.dispose();
+      }
+    }
+    super.dispose();
   }
 
   String _labelForSection(PeopleSection section, AppLocalizations l) {
@@ -73,10 +146,15 @@ class _PeopleScreenState extends State<PeopleScreen> {
 }
 
 class _PeopleSectionView extends StatelessWidget {
-  const _PeopleSectionView({required this.section, required this.onRefreshAll});
+  const _PeopleSectionView({
+    required this.section,
+    required this.onRefreshAll,
+    this.controller,
+  });
 
   final PeopleSection section;
   final Future<void> Function(BuildContext context) onRefreshAll;
+  final ScrollController? controller;
 
   @override
   Widget build(BuildContext context) {
@@ -98,6 +176,7 @@ class _PeopleSectionView extends StatelessWidget {
           onRefresh: () => onRefreshAll(context),
           child: _PeopleList(
             people: state.items,
+            controller: controller,
             onPersonSelected: (person) async {
               try {
                 final PersonDetail details = await provider.loadDetails(
@@ -127,15 +206,21 @@ class _PeopleSectionView extends StatelessWidget {
 }
 
 class _PeopleList extends StatelessWidget {
-  const _PeopleList({required this.people, required this.onPersonSelected});
+  const _PeopleList({
+    required this.people,
+    required this.onPersonSelected,
+    this.controller,
+  });
 
   final List<Person> people;
   final ValueChanged<Person> onPersonSelected;
+  final ScrollController? controller;
 
   @override
   Widget build(BuildContext context) {
     if (people.isEmpty) {
       return ListView(
+        controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
           const SizedBox(height: 120),
@@ -155,7 +240,8 @@ class _PeopleList extends StatelessWidget {
       );
     }
 
-    return ListView.separated(
+    return VirtualizedSeparatedListView(
+      controller: controller,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       itemCount: people.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -166,6 +252,8 @@ class _PeopleList extends StatelessWidget {
           onTap: () => onPersonSelected(person),
         );
       },
+      cacheExtent: 640,
+      addAutomaticKeepAlives: true,
     );
   }
 }

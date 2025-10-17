@@ -2,13 +2,23 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 import '../../../data/models/video_model.dart';
 
+/// Full screen video player that consumes TMDB video payloads returned by
+/// `GET /3/movie/{id}/videos` or `GET /3/tv/{id}/videos`.
+///
+/// The UI exposes player level controls (quality selection and autoplay) when
+/// the provider supports them and falls back to launching the external site for
+/// other video hosts.
 class VideoPlayerScreenArgs {
+  /// Creates a strongly typed bundle of information used to launch the
+  /// [VideoPlayerScreen]. The arguments map directly to TMDB's video JSON
+  /// payload so upstream callers can pass the decoded models verbatim.
   const VideoPlayerScreenArgs({
     required this.videos,
     this.initialVideoKey,
@@ -22,6 +32,8 @@ class VideoPlayerScreenArgs {
   final bool autoPlay;
 }
 
+/// Stateful route that renders an embedded YouTube experience (when available)
+/// or a provider agnostic fallback when a video cannot be played inline.
 class VideoPlayerScreen extends StatefulWidget {
   static const routeName = '/video-player';
 
@@ -75,6 +87,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _selectVideo(initialVideo, notify: false);
   }
 
+  /// Chooses the correct initial entry. When a preferred key is provided we
+  /// honor it; otherwise the first item returned by TMDB becomes the default.
   Video _resolveInitialVideo(VideoPlayerScreenArgs args) {
     if (args.initialVideoKey != null) {
       for (final video in args.videos) {
@@ -86,10 +100,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return args.videos.first;
   }
 
+  /// Whether at least one playable video exists.
   bool get _hasVideos => _videos.isNotEmpty;
 
+  /// Simple helper to detect embeddable YouTube entries.
   bool _isYoutube(Video video) => video.site.toLowerCase() == 'youtube';
 
+  /// Centralizes selection logic and reuses the existing controller whenever
+  /// possible so navigation between videos feels instantaneous.
   void _selectVideo(Video video, {bool notify = true}) {
     void updateSelection() {
       final isYoutubeVideo = _isYoutube(video);
@@ -121,6 +139,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Sets up a new [YoutubePlayerController] for the selected video.
   void _initializeYoutubeController(Video video) {
     _disposeYoutubeController();
     _requestedQualityLevels = false;
@@ -141,6 +160,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _ytController = controller;
   }
 
+  /// Releases resources whenever we navigate away from an embedded video.
   void _disposeYoutubeController() {
     final controller = _ytController;
     if (controller != null) {
@@ -154,18 +174,16 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     _isFullScreen = false;
   }
 
+  /// Updates the iframe quality level to match the dropdown selection.
   Future<void> _handleQualityChange(String quality) async {
     final controller = _ytController;
-    final webController = controller?.value.webViewController;
-    if (controller == null || webController == null) {
+    if (controller == null || controller.value.webViewController == null) {
       return;
     }
 
     final normalized = quality == 'auto' ? 'default' : quality;
     try {
-      await webController.evaluateJavascript(
-        source: 'setPlaybackQuality("$normalized")',
-      );
+      await _runYoutubeJavascript('setPlaybackQuality("$normalized")');
       if (!mounted) {
         return;
       }
@@ -177,16 +195,17 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Requests the list of available quality levels from the iframe API.
   Future<void> _loadYoutubeQualities() async {
     final controller = _ytController;
-    final webController = controller?.value.webViewController;
-    if (controller == null || webController == null) {
+    if (controller == null || controller.value.webViewController == null) {
       return;
     }
 
     try {
-      final result = await webController.evaluateJavascript(
-        source: 'JSON.stringify(getAvailableQualityLevels())',
+      final result = await _runYoutubeJavascript(
+        'JSON.stringify(getAvailableQualityLevels())',
+        expectResult: true,
       );
       if (!mounted) {
         return;
@@ -209,6 +228,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Converts the result from the iframe API into a Dart list of identifiers.
   List<String> _parseQualityLevels(dynamic result) {
     if (result == null) {
       return const [];
@@ -229,6 +249,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return const [];
   }
 
+  /// Listens for controller updates so we can refresh quality information and
+  /// react to full screen toggles.
   void _handleYoutubeUpdates() {
     final controller = _ytController;
     if (controller == null || !mounted) {
@@ -255,6 +277,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Persists the autoplay toggle and syncs it with the embedded controller.
   Future<void> _toggleAutoPlay(bool value) async {
     setState(() {
       _autoPlay = value;
@@ -270,6 +293,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Produces a de-duplicated list of the video categories returned by TMDB.
   Iterable<String> get _availableTypes sync* {
     final seen = <String>{};
     for (final video in _videos) {
@@ -279,6 +303,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Updates the current selection whenever a type chip is tapped.
   void _onTypeSelected(String type) {
     if (_selectedType == type) {
       return;
@@ -291,6 +316,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Applies the active type filter. We always return at least one item so the
+  /// UI keeps a meaningful selection visible.
   List<Video> get _videosForCurrentType {
     if (_selectedType == null) {
       return _videos;
@@ -303,6 +330,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return filtered;
   }
 
+  /// Converts the ISO timestamp provided by TMDB into a short, readable date.
   String _formatPublishedDate(Video video) {
     final publishedAt = video.publishedAt;
     if (publishedAt.isEmpty) {
@@ -315,6 +343,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return DateFormat.yMMMd().format(parsed.toLocal());
   }
 
+  /// Maps iframe identifiers to friendly labels for the dropdown UI.
   String _qualityLabel(String quality) {
     const labels = {
       'auto': 'Auto',
@@ -333,6 +362,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     return labels[quality] ?? quality.toUpperCase();
   }
 
+  /// Renders playback related controls like autoplay and quality selection.
   Widget _buildPlaybackOptions({required bool showQualitySelector}) {
     final qualityOptions = <String>[..._availableQualities];
     if (showQualitySelector && qualityOptions.isNotEmpty) {
@@ -397,6 +427,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
+  /// Displays choice chips for each available video category.
   Widget _buildTypeSelector() {
     final types = _availableTypes.toList();
     if (types.length <= 1) {
@@ -423,6 +454,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
+  /// Presents a list of all videos returned by TMDB, highlighting the active
+  /// selection.
   Widget _buildVideoList() {
     final videos = _videosForCurrentType;
     return Expanded(
@@ -510,6 +543,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
+  /// Provides a concise textual summary beneath the player with metadata
+  /// surfaced by TMDB (type, provider and publish date).
   Widget _buildVideoSummary(Video video) {
     final published = _formatPublishedDate(video);
     return Padding(
@@ -534,6 +569,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
+  /// Generates a deep link for providers that require the browser or their own
+  /// native application.
   Uri? _videoUri(Video video) {
     final key = video.key;
     switch (video.site.toLowerCase()) {
@@ -543,11 +580,14 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         return Uri.parse('https://vimeo.com/$key');
       case 'dailymotion':
         return Uri.parse('https://www.dailymotion.com/video/$key');
+      case 'facebook':
+        return Uri.parse('https://www.facebook.com/watch/?v=$key');
       default:
         return null;
     }
   }
 
+  /// Attempts to open the supplied URI in an external application.
   Future<void> _launchExternal(Uri uri) async {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!mounted) {
@@ -561,6 +601,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     }
   }
 
+  /// Visual fallback for providers without inline embedding support.
   Widget _buildExternalVideoPlaceholder(Video video) {
     final uri = _videoUri(video);
     return Container(
@@ -597,6 +638,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
+  /// Shared scaffold builder used by both the embedded and fallback flows so we
+  /// do not duplicate the surrounding layout.
   Widget _buildScaffold({
     required Video video,
     required Widget playerSection,
@@ -624,6 +667,8 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
     );
   }
 
+  /// Chooses between the embedded player or fallback placeholder depending on
+  /// the currently selected provider.
   @override
   Widget build(BuildContext context) {
     final video = _selectedVideo;
@@ -665,6 +710,52 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
         child: _buildExternalVideoPlaceholder(video),
       ),
     );
+  }
+
+  /// Helper that centralizes JavaScript execution. `youtube_player_flutter`
+  /// exposes the underlying [WebViewController] which supports both
+  /// `runJavascript` (fire-and-forget) and `runJavascriptReturningResult`
+  /// depending on the platform. We attempt to use the richer API while still
+  /// gracefully falling back when only the fire-and-forget variant exists.
+  Future<String?> _runYoutubeJavascript(
+    String source, {
+    bool expectResult = false,
+  }) async {
+    final controller = _ytController?.value.webViewController;
+    if (controller == null) {
+      return null;
+    }
+
+    try {
+      if (expectResult) {
+        return await controller.runJavascriptReturningResult(source);
+      }
+      await controller.runJavascript(source);
+      return null;
+    } on MissingPluginException catch (error, stackTrace) {
+      debugPrint(
+        'WebView controller missing plugin for JS eval: $error\n$stackTrace',
+      );
+      return null;
+    } on UnimplementedError catch (error, stackTrace) {
+      debugPrint(
+        'runJavascriptReturningResult not implemented: $error\n$stackTrace',
+      );
+      if (!expectResult) {
+        return null;
+      }
+      try {
+        await controller.runJavascript(source);
+      } catch (secondaryError, secondaryStack) {
+        debugPrint(
+          'Failed fallback JS execution: $secondaryError\n$secondaryStack',
+        );
+      }
+      return null;
+    } catch (error, stackTrace) {
+      debugPrint('Failed to execute JS: $error\n$stackTrace');
+      return null;
+    }
   }
 }
 

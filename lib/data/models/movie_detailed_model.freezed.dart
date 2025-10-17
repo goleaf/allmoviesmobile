@@ -56,6 +56,8 @@ mixin _$MovieDetailed {
   List<ImageModel> get images => throw _privateConstructorUsedError;
   List<MovieRef> get recommendations => throw _privateConstructorUsedError;
   List<MovieRef> get similar => throw _privateConstructorUsedError;
+  List<Cast> get cast => throw _privateConstructorUsedError;
+  List<Crew> get crew => throw _privateConstructorUsedError;
 
   /// Serializes this MovieDetailed to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -100,6 +102,8 @@ abstract class $MovieDetailedCopyWith<$Res> {
     List<ImageModel> images,
     List<MovieRef> recommendations,
     List<MovieRef> similar,
+    List<Cast> cast,
+    List<Crew> crew,
   });
 
   $ExternalIdsCopyWith<$Res> get externalIds;
@@ -145,6 +149,8 @@ class _$MovieDetailedCopyWithImpl<$Res, $Val extends MovieDetailed>
     Object? images = null,
     Object? recommendations = null,
     Object? similar = null,
+    Object? cast = null,
+    Object? crew = null,
   }) {
     return _then(
       _value.copyWith(
@@ -299,6 +305,8 @@ abstract class _$$MovieDetailedImplCopyWith<$Res>
     List<ImageModel> images,
     List<MovieRef> recommendations,
     List<MovieRef> similar,
+    List<Cast> cast,
+    List<Crew> crew,
   });
 
   @override
@@ -344,6 +352,8 @@ class __$$MovieDetailedImplCopyWithImpl<$Res>
     Object? images = null,
     Object? recommendations = null,
     Object? similar = null,
+    Object? cast = null,
+    Object? crew = null,
   }) {
     return _then(
       _$MovieDetailedImpl(
@@ -446,7 +456,15 @@ class __$$MovieDetailedImplCopyWithImpl<$Res>
         similar: null == similar
             ? _value._similar
             : similar // ignore: cast_nullable_to_non_nullable
-                  as List<MovieRef>,
+                as List<MovieRef>,
+        cast: null == cast
+            ? _value.cast
+            : cast // ignore: cast_nullable_to_non_nullable
+                as List<Cast>,
+        crew: null == crew
+            ? _value.crew
+            : crew // ignore: cast_nullable_to_non_nullable
+                as List<Crew>,
       ),
     );
   }
@@ -484,6 +502,8 @@ class _$MovieDetailedImpl implements _MovieDetailed {
     final List<ImageModel> images = const [],
     final List<MovieRef> recommendations = const [],
     final List<MovieRef> similar = const [],
+    final List<Cast> cast = const [],
+    final List<Crew> crew = const [],
   }) : _genres = genres,
        _productionCompanies = productionCompanies,
        _productionCountries = productionCountries,
@@ -491,7 +511,9 @@ class _$MovieDetailedImpl implements _MovieDetailed {
        _videos = videos,
        _images = images,
        _recommendations = recommendations,
-       _similar = similar;
+       _similar = similar,
+       _cast = cast,
+       _crew = crew;
 
   factory _$MovieDetailedImpl.fromJson(Map<String, dynamic> json) =>
       _$$MovieDetailedImplFromJson(json);
@@ -611,9 +633,27 @@ class _$MovieDetailedImpl implements _MovieDetailed {
     return EqualUnmodifiableListView(_similar);
   }
 
+  final List<Cast> _cast;
+  @override
+  @JsonKey()
+  List<Cast> get cast {
+    if (_cast is EqualUnmodifiableListView) return _cast;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_cast);
+  }
+
+  final List<Crew> _crew;
+  @override
+  @JsonKey()
+  List<Crew> get crew {
+    if (_crew is EqualUnmodifiableListView) return _crew;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_crew);
+  }
+
   @override
   String toString() {
-    return 'MovieDetailed(id: $id, title: $title, originalTitle: $originalTitle, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, releaseDate: $releaseDate, runtime: $runtime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, budget: $budget, revenue: $revenue, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar)';
+    return 'MovieDetailed(id: $id, title: $title, originalTitle: $originalTitle, voteAverage: $voteAverage, voteCount: $voteCount, overview: $overview, tagline: $tagline, releaseDate: $releaseDate, runtime: $runtime, genres: $genres, productionCompanies: $productionCompanies, productionCountries: $productionCountries, spokenLanguages: $spokenLanguages, posterPath: $posterPath, backdropPath: $backdropPath, popularity: $popularity, status: $status, homepage: $homepage, externalIds: $externalIds, budget: $budget, revenue: $revenue, videos: $videos, images: $images, recommendations: $recommendations, similar: $similar, cast: $cast, crew: $crew)';
   }
 
   @override
@@ -667,7 +707,9 @@ class _$MovieDetailedImpl implements _MovieDetailed {
               other._recommendations,
               _recommendations,
             ) &&
-            const DeepCollectionEquality().equals(other._similar, _similar));
+            const DeepCollectionEquality().equals(other._similar, _similar) &&
+            const DeepCollectionEquality().equals(other._cast, _cast) &&
+            const DeepCollectionEquality().equals(other._crew, _crew));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -696,10 +738,12 @@ class _$MovieDetailedImpl implements _MovieDetailed {
     budget,
     revenue,
     const DeepCollectionEquality().hash(_videos),
-    const DeepCollectionEquality().hash(_images),
-    const DeepCollectionEquality().hash(_recommendations),
-    const DeepCollectionEquality().hash(_similar),
-  ]);
+      const DeepCollectionEquality().hash(_images),
+      const DeepCollectionEquality().hash(_recommendations),
+      const DeepCollectionEquality().hash(_similar),
+      const DeepCollectionEquality().hash(_cast),
+      const DeepCollectionEquality().hash(_crew),
+    ]);
 
   /// Create a copy of MovieDetailed
   /// with the given fields replaced by the non-null parameter values.
@@ -744,6 +788,8 @@ abstract class _MovieDetailed implements MovieDetailed {
     final List<ImageModel> images,
     final List<MovieRef> recommendations,
     final List<MovieRef> similar,
+    final List<Cast> cast,
+    final List<Crew> crew,
   }) = _$MovieDetailedImpl;
 
   factory _MovieDetailed.fromJson(Map<String, dynamic> json) =
@@ -809,6 +855,10 @@ abstract class _MovieDetailed implements MovieDetailed {
   List<MovieRef> get recommendations;
   @override
   List<MovieRef> get similar;
+  @override
+  List<Cast> get cast;
+  @override
+  List<Crew> get crew;
 
   /// Create a copy of MovieDetailed
   /// with the given fields replaced by the non-null parameter values.

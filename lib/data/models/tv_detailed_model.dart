@@ -2,6 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'company_model.dart';
 import 'country_model.dart';
+import 'credit_model.dart';
 import 'external_ids_model.dart';
 import 'genre_model.dart';
 import 'image_model.dart';
@@ -52,6 +53,8 @@ class TVDetailed with _$TVDetailed {
     @Default([]) List<ImageModel> images,
     @Default([]) List<TVRef> recommendations,
     @Default([]) List<TVRef> similar,
+    @Default([]) List<Cast> cast,
+    @Default([]) List<Crew> crew,
   }) = _TVDetailed;
 
   factory TVDetailed.fromJson(Map<String, dynamic> json) =>

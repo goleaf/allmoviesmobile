@@ -54,13 +54,15 @@ class AppStrings {
   static const copyPassword = 'Copy Password';
   static const passwordCopied = 'Password copied to clipboard!';
   static const movies = 'Movies';
-  static const videos = 'Videos';
   static const series = 'Series';
   static const people = 'People';
   static const companies = 'Companies';
   static const apiExplorer = 'TMDB Explorer';
-  static const tmdbV4Reference = 'TMDB v4 Reference';
   static const exploreCollections = 'Explore the latest highlights from our catalog.';
-  static const createdBy = 'Created by the AllMovies Mobile team';
+  static const recommendedForYou = 'Recommended for You';
+  static const recommendationsSubtitle =
+      'Discover fresh picks tailored to your taste.';
+  static const recommendationsEmpty =
+      'Add favorites or start watching titles to unlock personalized picks.';
 }
 

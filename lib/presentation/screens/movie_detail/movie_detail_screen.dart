@@ -36,6 +36,7 @@ class MovieDetailScreen extends StatelessWidget {
                 _buildActions(context, loc),
                 _buildOverview(context, loc),
                 _buildMetadata(context, loc),
+                _buildAlternativeTitles(context, loc),
                 _buildGenres(context, loc),
                 const SizedBox(height: 24),
               ],
@@ -319,6 +320,48 @@ class MovieDetailScreen extends StatelessWidget {
                   ],
                 ),
               )),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAlternativeTitles(BuildContext context, AppLocalizations loc) {
+    final titles = movie.alternativeTitles;
+    if (titles.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('movie.alternative_titles'),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: titles
+                .map(
+                  (title) => Chip(
+                    label: Text(title),
+                    backgroundColor: colorScheme.secondaryContainer,
+                    labelStyle: theme.textTheme.bodyMedium?.copyWith(
+                      color: colorScheme.onSecondaryContainer,
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 16),
         ],
       ),
     );

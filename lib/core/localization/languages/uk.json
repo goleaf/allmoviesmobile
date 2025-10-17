@@ -41,6 +41,7 @@
     "revenue": "Збори",
     "status": "Статус",
     "genres": "Жанри",
+    "alternative_titles": "Альтернативні Назви",
     "production_companies": "Виробничі Компанії",
     "production_countries": "Країни Виробництва",
     "spoken_languages": "Мови",
@@ -76,6 +77,7 @@
     "number_of_episodes": "Кількість Епізодів",
     "episode_runtime": "Тривалість Епізоду",
     "networks": "Мережі",
+    "alternative_titles": "Альтернативні Назви",
     "similar": "Схожі Шоу"
   },
   "person": {

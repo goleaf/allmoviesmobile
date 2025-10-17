@@ -63,6 +63,20 @@ class Movie {
   final bool adult;
   final List<int>? genreIds;
 
+  List<String> get alternativeTitles {
+    final normalizedPrimary = title.trim().toLowerCase();
+    final titles = <String>{};
+
+    final candidate = originalTitle?.trim();
+    if (candidate != null && candidate.isNotEmpty) {
+      if (candidate.toLowerCase() != normalizedPrimary) {
+        titles.add(candidate);
+      }
+    }
+
+    return List.unmodifiable(titles);
+  }
+
   String? get posterUrl =>
       posterPath != null ? 'https://image.tmdb.org/t/p/w500$posterPath' : null;
 

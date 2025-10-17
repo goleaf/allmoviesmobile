@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import 'package:provider/provider.dart';
-
 import '../../core/localization/app_localizations.dart';
 import '../../core/navigation/deep_link_handler.dart';
 import '../../core/navigation/deep_link_parser.dart';
@@ -10,22 +8,25 @@ import '../../data/models/company_model.dart';
 import '../../data/models/episode_model.dart';
 import '../../data/models/movie.dart';
 import '../../data/tmdb_repository.dart';
+import '../../providers/app_state_provider.dart';
+import '../navigation/app_destination.dart';
 import '../navigation/season_detail_args.dart';
 import '../screens/collections/collection_detail_screen.dart';
 import '../screens/company_detail/company_detail_screen.dart';
 import '../screens/episode_detail/episode_detail_screen.dart';
 import '../navigation/episode_detail_args.dart';
+import '../screens/home/home_screen.dart';
 import '../screens/movie_detail/movie_detail_screen.dart';
 import '../screens/person_detail/person_detail_screen.dart';
 import '../screens/season_detail/season_detail_screen.dart';
 import '../screens/tv_detail/tv_detail_screen.dart';
 // Home/More removed in this app variant; keep movies/search/series only
 import '../screens/movies/movies_screen.dart';
+import '../screens/movies/movies_filters_screen.dart';
 import '../screens/search/search_screen.dart';
+import '../screens/series/series_screen.dart';
 import '../screens/series/series_filters_screen.dart';
 import '../widgets/offline_banner.dart';
-
-enum AppDestination { movies, tv, search }
 
 class AppNavigationShell extends StatefulWidget {
   const AppNavigationShell({super.key});
@@ -40,9 +41,16 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       destination: GlobalKey<NavigatorState>(),
   };
 
-  AppDestination _currentDestination = AppDestination.movies;
+  late AppDestination _currentDestination;
   DeepLinkHandler? _deepLinkHandler;
   bool _isHandlingDeepLink = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentDestination =
+        context.read<AppStateProvider>().currentDestination;
+  }
 
   @override
   void didChangeDependencies() {
@@ -215,6 +223,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     setState(() {
       _currentDestination = destination;
     });
+    context.read<AppStateProvider>().updateDestination(destination);
     await Future<void>.delayed(Duration.zero);
   }
 
@@ -325,7 +334,7 @@ class _DestinationNavigator extends StatelessWidget {
         return const SeriesScreen();
       case SeriesFiltersScreen.routeName:
         final args = settings.arguments;
-        if (args is SeriesFiltersScreenArgs) {
+        if (args is SeriesFiltersScreenArguments) {
           return SeriesFiltersScreen(
             initialFilters: args.initialFilters,
             presetSaved: args.presetSaved,

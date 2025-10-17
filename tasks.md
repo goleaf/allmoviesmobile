@@ -872,11 +872,11 @@ All search types are fully implemented in repository and accessible via search p
   - Favorites
   - Watchlist
   - Settings
-- [ ] Quick filters in app bar
+- [x] Quick filters in app bar
  - [x] Quick filters in app bar
-- [ ] Breadcrumb navigation for deep links
+- [x] Breadcrumb navigation for deep links
 - [x] Back navigation preservation
-- [ ] Deep linking support
+- [x] Deep linking support
 
 **Files Updated**:
 - `lib/main.dart`

@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'episode_model.dart';
+import 'video_model.dart';
 
 part 'season_model.freezed.dart';
 part 'season_model.g.dart';
@@ -15,6 +16,7 @@ class Season with _$Season {
     @JsonKey(name: 'poster_path') String? posterPath,
     @JsonKey(name: 'episode_count') int? episodeCount,
     @Default([]) List<Episode> episodes,
+    @Default([]) List<Video> videos,
   }) = _Season;
 
   factory Season.fromJson(Map<String, dynamic> json) =>

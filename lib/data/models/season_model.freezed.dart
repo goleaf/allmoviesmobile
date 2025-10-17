@@ -33,6 +33,7 @@ mixin _$Season {
   @JsonKey(name: 'episode_count')
   int? get episodeCount => throw _privateConstructorUsedError;
   List<Episode> get episodes => throw _privateConstructorUsedError;
+  List<Video> get videos => throw _privateConstructorUsedError;
 
   /// Serializes this Season to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -57,6 +58,7 @@ abstract class $SeasonCopyWith<$Res> {
     @JsonKey(name: 'poster_path') String? posterPath,
     @JsonKey(name: 'episode_count') int? episodeCount,
     List<Episode> episodes,
+    List<Video> videos,
   });
 }
 
@@ -83,6 +85,7 @@ class _$SeasonCopyWithImpl<$Res, $Val extends Season>
     Object? posterPath = freezed,
     Object? episodeCount = freezed,
     Object? episodes = null,
+    Object? videos = null,
   }) {
     return _then(
       _value.copyWith(
@@ -118,6 +121,10 @@ class _$SeasonCopyWithImpl<$Res, $Val extends Season>
                 ? _value.episodes
                 : episodes // ignore: cast_nullable_to_non_nullable
                       as List<Episode>,
+            videos: null == videos
+                ? _value.videos
+                : videos // ignore: cast_nullable_to_non_nullable
+                      as List<Video>,
           )
           as $Val,
     );
@@ -141,6 +148,7 @@ abstract class _$$SeasonImplCopyWith<$Res> implements $SeasonCopyWith<$Res> {
     @JsonKey(name: 'poster_path') String? posterPath,
     @JsonKey(name: 'episode_count') int? episodeCount,
     List<Episode> episodes,
+    List<Video> videos,
   });
 }
 
@@ -166,6 +174,7 @@ class __$$SeasonImplCopyWithImpl<$Res>
     Object? posterPath = freezed,
     Object? episodeCount = freezed,
     Object? episodes = null,
+    Object? videos = null,
   }) {
     return _then(
       _$SeasonImpl(
@@ -201,6 +210,10 @@ class __$$SeasonImplCopyWithImpl<$Res>
             ? _value._episodes
             : episodes // ignore: cast_nullable_to_non_nullable
                   as List<Episode>,
+        videos: null == videos
+            ? _value._videos
+            : videos // ignore: cast_nullable_to_non_nullable
+                  as List<Video>,
       ),
     );
   }
@@ -218,7 +231,9 @@ class _$SeasonImpl implements _Season {
     @JsonKey(name: 'poster_path') this.posterPath,
     @JsonKey(name: 'episode_count') this.episodeCount,
     final List<Episode> episodes = const [],
-  }) : _episodes = episodes;
+    final List<Video> videos = const [],
+  })  : _episodes = episodes,
+        _videos = videos;
 
   factory _$SeasonImpl.fromJson(Map<String, dynamic> json) =>
       _$$SeasonImplFromJson(json);
@@ -250,9 +265,18 @@ class _$SeasonImpl implements _Season {
     return EqualUnmodifiableListView(_episodes);
   }
 
+  final List<Video> _videos;
+  @override
+  @JsonKey()
+  List<Video> get videos {
+    if (_videos is EqualUnmodifiableListView) return _videos;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_videos);
+  }
+
   @override
   String toString() {
-    return 'Season(id: $id, name: $name, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, posterPath: $posterPath, episodeCount: $episodeCount, episodes: $episodes)';
+    return 'Season(id: $id, name: $name, seasonNumber: $seasonNumber, overview: $overview, airDate: $airDate, posterPath: $posterPath, episodeCount: $episodeCount, episodes: $episodes, videos: $videos)';
   }
 
   @override
@@ -271,7 +295,8 @@ class _$SeasonImpl implements _Season {
                 other.posterPath == posterPath) &&
             (identical(other.episodeCount, episodeCount) ||
                 other.episodeCount == episodeCount) &&
-            const DeepCollectionEquality().equals(other._episodes, _episodes));
+            const DeepCollectionEquality().equals(other._episodes, _episodes) &&
+            const DeepCollectionEquality().equals(other._videos, _videos));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -286,6 +311,7 @@ class _$SeasonImpl implements _Season {
     posterPath,
     episodeCount,
     const DeepCollectionEquality().hash(_episodes),
+    const DeepCollectionEquality().hash(_videos),
   );
 
   /// Create a copy of Season
@@ -312,6 +338,7 @@ abstract class _Season implements Season {
     @JsonKey(name: 'poster_path') final String? posterPath,
     @JsonKey(name: 'episode_count') final int? episodeCount,
     final List<Episode> episodes,
+    final List<Video> videos,
   }) = _$SeasonImpl;
 
   factory _Season.fromJson(Map<String, dynamic> json) = _$SeasonImpl.fromJson;
@@ -336,6 +363,8 @@ abstract class _Season implements Season {
   int? get episodeCount;
   @override
   List<Episode> get episodes;
+  @override
+  List<Video> get videos;
 
   /// Create a copy of Season
   /// with the given fields replaced by the non-null parameter values.

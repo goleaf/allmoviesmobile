@@ -15,6 +15,11 @@
       "type": "array",
       "items": { "$ref": "episode.schema.json" },
       "default": []
+    },
+    "videos": {
+      "type": "array",
+      "items": { "$ref": "video.schema.json" },
+      "default": []
     }
   },
   "additionalProperties": false

@@ -63,7 +63,6 @@ class _ImageGalleryState extends State<ImageGallery> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final image = widget.images[_currentIndex];
     final backgroundUrl = MediaImageHelper.buildPreviewUrl(
       image.filePath,
@@ -114,8 +113,14 @@ class _ImageGalleryState extends State<ImageGallery> {
               const SizedBox(height: 24),
             ],
           ),
-          _EdgeGradientOverlay(position: EdgeGradientPosition.top),
-          _EdgeGradientOverlay(position: EdgeGradientPosition.bottom),
+          _EdgeGradientOverlay(
+            position: EdgeGradientPosition.top,
+            isVisible: _showChrome,
+          ),
+          _EdgeGradientOverlay(
+            position: EdgeGradientPosition.bottom,
+            isVisible: _showChrome,
+          ),
         ],
       ),
     );
@@ -130,21 +135,37 @@ class _ImageGalleryState extends State<ImageGallery> {
 
     return AnimatedSwitcher(
       duration: const Duration(milliseconds: 300),
-      child: ImageFiltered(
+      switchInCurve: Curves.easeOut,
+      switchOutCurve: Curves.easeIn,
+      child: Stack(
         key: ValueKey(url),
-        imageFilter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            image: DecorationImage(
-              image: imageProvider,
-              fit: BoxFit.cover,
-              colorFilter: ColorFilter.mode(
-                Colors.black.withOpacity(0.35),
-                BlendMode.darken,
+        fit: StackFit.expand,
+        children: [
+          ImageFiltered(
+            imageFilter: ImageFilter.blur(sigmaX: 28, sigmaY: 28),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: imageProvider,
+                  fit: BoxFit.cover,
+                ),
               ),
             ),
           ),
-        ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black.withOpacity(0.82),
+                  Colors.black.withOpacity(0.35),
+                  Colors.black.withOpacity(0.82),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -180,9 +201,13 @@ class _ImageGalleryState extends State<ImageGallery> {
 enum EdgeGradientPosition { top, bottom }
 
 class _EdgeGradientOverlay extends StatelessWidget {
-  const _EdgeGradientOverlay({required this.position});
+  const _EdgeGradientOverlay({
+    required this.position,
+    required this.isVisible,
+  });
 
   final EdgeGradientPosition position;
+  final bool isVisible;
 
   @override
   Widget build(BuildContext context) {
@@ -199,16 +224,20 @@ class _EdgeGradientOverlay extends StatelessWidget {
       left: 0,
       right: 0,
       child: IgnorePointer(
-        child: Container(
-          height: 180,
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: begin,
-              end: end,
-              colors: [
-                Colors.black.withOpacity(0.7),
-                Colors.black.withOpacity(0.0),
-              ],
+        child: AnimatedOpacity(
+          duration: const Duration(milliseconds: 200),
+          opacity: isVisible ? 1 : 0,
+          child: Container(
+            height: 180,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: begin,
+                end: end,
+                colors: [
+                  Colors.black.withOpacity(0.85),
+                  Colors.black.withOpacity(0.0),
+                ],
+              ),
             ),
           ),
         ),
@@ -241,22 +270,42 @@ class _GalleryTopBar extends StatelessWidget {
         child: SafeArea(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
-                  onPressed: onClose,
-                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                ),
-                const Spacer(),
-                Text(
-                  '${currentIndex + 1} / $total',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withOpacity(0.18),
+                        Colors.white.withOpacity(0.06),
+                      ],
+                    ),
+                    border: Border.all(color: Colors.white.withOpacity(0.12)),
+                  ),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.close, color: Colors.white),
+                        onPressed: onClose,
+                        tooltip:
+                            MaterialLocalizations.of(context).closeButtonTooltip,
                       ),
+                      const Spacer(),
+                      Text(
+                        '${currentIndex + 1} / $total',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -282,54 +331,78 @@ class _ThumbnailStrip extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 96,
-      child: ListView.separated(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        scrollDirection: Axis.horizontal,
-        itemBuilder: (context, index) {
-          final image = images[index];
-          final url = MediaImageHelper.buildPreviewUrl(
-            image.filePath,
-            type: mediaType,
-            size: MediaImageSize.w154,
-          );
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.black.withOpacity(0.72),
+              Colors.black.withOpacity(0.3),
+            ],
+          ),
+        ),
+        child: ListView.separated(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          scrollDirection: Axis.horizontal,
+          itemBuilder: (context, index) {
+            final image = images[index];
+            final url = MediaImageHelper.buildPreviewUrl(
+              image.filePath,
+              type: mediaType,
+              size: MediaImageSize.w154,
+            );
 
-          return GestureDetector(
-            onTap: () => onTap(index),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 180),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: index == currentIndex
-                      ? Theme.of(context).colorScheme.primary
-                      : Colors.white24,
-                  width: index == currentIndex ? 2 : 1,
+            return GestureDetector(
+              onTap: () => onTap(index),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                    color: index == currentIndex
+                        ? Theme.of(context).colorScheme.primary
+                        : Colors.white24,
+                    width: index == currentIndex ? 2 : 1,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: index == currentIndex
+                      ? [
+                          BoxShadow(
+                            color:
+                                Theme.of(context).colorScheme.primary.withOpacity(0.4),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ]
+                      : null,
                 ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: AspectRatio(
-                  aspectRatio: image.aspectRatio > 0 ? image.aspectRatio : 1.5,
-                  child: CachedNetworkImage(
-                    imageUrl: url ?? '',
-                    fit: BoxFit.cover,
-                    memCacheHeight: 200,
-                    placeholder: (context, _) => Container(
-                      color: Colors.white12,
-                    ),
-                    errorWidget: (context, _, __) => Container(
-                      color: Colors.white12,
-                      alignment: Alignment.center,
-                      child: const Icon(Icons.broken_image, color: Colors.white54),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: AspectRatio(
+                    aspectRatio:
+                        image.aspectRatio > 0 ? image.aspectRatio : 1.5,
+                    child: CachedNetworkImage(
+                      imageUrl: url ?? '',
+                      fit: BoxFit.cover,
+                      memCacheHeight: 200,
+                      placeholder: (context, _) => Container(
+                        color: Colors.white12,
+                      ),
+                      errorWidget: (context, _, __) => Container(
+                        color: Colors.white12,
+                        alignment: Alignment.center,
+                        child:
+                            const Icon(Icons.broken_image, color: Colors.white54),
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
-        separatorBuilder: (_, __) => const SizedBox(width: 12),
-        itemCount: images.length,
+            );
+          },
+          separatorBuilder: (_, __) => const SizedBox(width: 12),
+          itemCount: images.length,
+        ),
       ),
     );
   }

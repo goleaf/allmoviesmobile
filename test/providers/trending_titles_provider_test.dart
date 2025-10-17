@@ -1,8 +1,9 @@
+import 'package:flutter_test/flutter_test.dart';
+
 import 'package:allmovies_mobile/data/models/movie.dart';
 import 'package:allmovies_mobile/data/models/paginated_response.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 import 'package:allmovies_mobile/providers/trending_titles_provider.dart';
-import 'package:flutter_test/flutter_test.dart';
 
 class FakeRepo extends TmdbRepository {
   @override

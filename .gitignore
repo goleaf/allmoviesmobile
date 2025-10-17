@@ -30,3 +30,4 @@ outputs/
 **/api_keys.dart
 lib/core/config/api_keys.dart
 
+.dart_tool/

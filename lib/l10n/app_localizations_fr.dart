@@ -98,4 +98,91 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get apiExplorer => 'Explorateur TMDB';
+
+  @override
+  String get filters => 'Filtres';
+
+  @override
+  String get reset => 'Réinitialiser';
+
+  @override
+  String get region => 'Région';
+
+  @override
+  String get byDecade => 'Par décennie';
+
+  @override
+  String get certification => 'Certification';
+
+  @override
+  String get releaseDateRange => 'Plage de date de sortie';
+
+  @override
+  String get from => 'De';
+
+  @override
+  String get to => 'À';
+
+  @override
+  String get voteAverage => 'Note moyenne';
+
+  @override
+  String get runtimeMinutes => 'Durée (minutes)';
+
+  @override
+  String get voteCountMinimum => 'Nombre de votes minimum';
+
+  @override
+  String get monetizationTypes => 'Types de monétisation';
+
+  @override
+  String get watchProvidersIds => 'Fournisseurs (IDs)';
+
+  @override
+  String get providerIdsHint =>
+      'IDs de fournisseurs séparés par des virgules, ex.: 8,9,337';
+
+  @override
+  String get releaseType => 'Type de sortie';
+
+  @override
+  String get releaseTypePremiere => 'Première';
+
+  @override
+  String get releaseTypeTheatricalLimited => 'Cinéma (limité)';
+
+  @override
+  String get releaseTypeTheatrical => 'Cinéma';
+
+  @override
+  String get releaseTypeDigital => 'Numérique';
+
+  @override
+  String get releaseTypePhysical => 'Physique';
+
+  @override
+  String get releaseTypeTV => 'TV';
+
+  @override
+  String get includeAdultContent => 'Inclure le contenu adulte';
+
+  @override
+  String get peopleCompaniesKeywords => 'Personnes & sociétés & mots-clés';
+
+  @override
+  String get withCastHint => 'Avec acteurs (IDs séparés par des virgules)';
+
+  @override
+  String get withCrewHint => 'Avec équipe (IDs séparés par des virgules)';
+
+  @override
+  String get withCompaniesHint =>
+      'Avec sociétés (IDs séparés par des virgules)';
+
+  @override
+  String get withKeywordsHint =>
+      'Avec mots-clés (IDs séparés par des virgules)';
+
+  @override
+  String get apply => 'Appliquer';
 }

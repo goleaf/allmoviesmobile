@@ -6,6 +6,8 @@ import '../screens/more/more_screen.dart';
 import '../screens/movies/movies_screen.dart';
 import '../screens/search/search_screen.dart';
 import '../screens/series/series_screen.dart';
+import '../screens/movies/movies_filters_screen.dart';
+import '../screens/series/series_filters_screen.dart';
 
 enum AppDestination {
   home,
@@ -192,8 +194,12 @@ class _DestinationNavigator extends StatelessWidget {
         return const HomeScreen();
       case MoviesScreen.routeName:
         return const MoviesScreen();
+      case MoviesFiltersScreen.routeName:
+        return const MoviesFiltersScreen();
       case SeriesScreen.routeName:
         return const SeriesScreen();
+      case SeriesFiltersScreen.routeName:
+        return const SeriesFiltersScreen();
       case SearchScreen.routeName:
         final initialQuery = settings.arguments is String ? settings.arguments as String : null;
         return SearchScreen(initialQuery: initialQuery);

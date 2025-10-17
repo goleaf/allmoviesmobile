@@ -6,6 +6,7 @@ import '../../../core/constants/app_strings.dart';
 import '../../../data/models/person_model.dart';
 import '../../../providers/people_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/media_image.dart';
 
 class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';
@@ -122,17 +123,7 @@ class _PeopleSectionView extends StatelessWidget {
   }
 
   void _showPersonDetails(BuildContext context, Person person) {
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) {
-        final padding = MediaQuery.of(context).viewInsets;
-        return Padding(
-          padding: EdgeInsets.only(bottom: padding.bottom),
-          child: _PersonDetailSheet(person: person),
-        );
-      },
-    );
+    Navigator.pushNamed(context, '/person-detail', arguments: person.id);
   }
 }
 
@@ -206,17 +197,16 @@ class _PersonCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              CircleAvatar(
-                radius: 32,
-                backgroundColor: colorScheme.primaryContainer,
-                backgroundImage: profileUrl != null
-                    ? CachedNetworkImageProvider(
-                        'https://image.tmdb.org/t/p/w185$profileUrl',
-                      )
-                    : null,
-                child: profileUrl == null
-                    ? Icon(Icons.person_outline, color: colorScheme.primary)
-                    : null,
+              ClipRRect(
+                borderRadius: BorderRadius.circular(32),
+                child: MediaImage(
+                  path: profileUrl,
+                  type: MediaImageType.profile,
+                  size: MediaImageSize.w185,
+                  width: 64,
+                  height: 64,
+                  fit: BoxFit.cover,
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -253,106 +243,7 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
-class _PersonDetailSheet extends StatelessWidget {
-  const _PersonDetailSheet({required this.person});
-
-  final Person person;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                if (person.profilePath != null)
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: CachedNetworkImage(
-                      imageUrl: 'https://image.tmdb.org/t/p/w300${person.profilePath}',
-                      width: 120,
-                      height: 160,
-                      fit: BoxFit.cover,
-                    ),
-                  )
-                else
-                  Container(
-                    width: 120,
-                    height: 160,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.surfaceVariant,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(Icons.person_outline, size: 48, color: theme.colorScheme.primary),
-                  ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        person.name,
-                        style: theme.textTheme.headlineSmall,
-                      ),
-                      if ((person.knownForDepartment ?? '').isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          person.knownForDepartment!,
-                          style: theme.textTheme.titleMedium,
-                        ),
-                      ],
-                      if ((person.placeOfBirth ?? '').isNotEmpty) ...[
-                        const SizedBox(height: 8),
-                        Text(
-                          'Born in ${person.placeOfBirth}',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-            if ((person.biography ?? '').isNotEmpty) ...[
-              Text(
-                'Biography',
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                person.biography!,
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 16),
-            ],
-            if (person.alsoKnownAs.isNotEmpty) ...[
-              Text(
-                'Also known as',
-                style: theme.textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  for (final alias in person.alsoKnownAs)
-                    Chip(label: Text(alias)),
-                ],
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-}
+// Removed inline bottom sheet; detail now uses dedicated screen via routing
 
 class _ErrorView extends StatelessWidget {
   const _ErrorView({

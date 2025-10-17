@@ -1,0 +1,12 @@
+{
+  "id": 550,
+  "backdrops": [
+    {"file_path": "/b1.jpg", "width": 1280, "height": 720}
+  ],
+  "posters": [
+    {"file_path": "/p1.jpg", "width": 500, "height": 750}
+  ],
+  "profiles": []
+}
+
+

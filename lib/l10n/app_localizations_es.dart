@@ -99,4 +99,90 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get apiExplorer => 'Explorador TMDB';
+
+  @override
+  String get filters => 'Filtros';
+
+  @override
+  String get reset => 'Restablecer';
+
+  @override
+  String get region => 'Región';
+
+  @override
+  String get byDecade => 'Por década';
+
+  @override
+  String get certification => 'Certificación';
+
+  @override
+  String get releaseDateRange => 'Rango de fecha de estreno';
+
+  @override
+  String get from => 'Desde';
+
+  @override
+  String get to => 'Hasta';
+
+  @override
+  String get voteAverage => 'Puntuación media';
+
+  @override
+  String get runtimeMinutes => 'Duración (minutos)';
+
+  @override
+  String get voteCountMinimum => 'Votos mínimos';
+
+  @override
+  String get monetizationTypes => 'Tipos de monetización';
+
+  @override
+  String get watchProvidersIds => 'Proveedores (IDs)';
+
+  @override
+  String get providerIdsHint =>
+      'IDs de proveedores separados por comas, p. ej., 8,9,337';
+
+  @override
+  String get releaseType => 'Tipo de lanzamiento';
+
+  @override
+  String get releaseTypePremiere => 'Estreno';
+
+  @override
+  String get releaseTypeTheatricalLimited => 'Cines (limitado)';
+
+  @override
+  String get releaseTypeTheatrical => 'Cines';
+
+  @override
+  String get releaseTypeDigital => 'Digital';
+
+  @override
+  String get releaseTypePhysical => 'Físico';
+
+  @override
+  String get releaseTypeTV => 'TV';
+
+  @override
+  String get includeAdultContent => 'Incluir contenido para adultos';
+
+  @override
+  String get peopleCompaniesKeywords => 'Personas y compañías y palabras clave';
+
+  @override
+  String get withCastHint =>
+      'Con reparto (IDs de personas separados por comas)';
+
+  @override
+  String get withCrewHint => 'Con equipo (IDs de personas separados por comas)';
+
+  @override
+  String get withCompaniesHint => 'Con compañías (IDs separados por comas)';
+
+  @override
+  String get withKeywordsHint => 'Con palabras clave (IDs separados por comas)';
+
+  @override
+  String get apply => 'Aplicar';
 }

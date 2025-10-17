@@ -98,4 +98,89 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get apiExplorer => 'TMDB Explorer';
+
+  @override
+  String get filters => 'Filters';
+
+  @override
+  String get reset => 'Reset';
+
+  @override
+  String get region => 'Region';
+
+  @override
+  String get byDecade => 'By Decade';
+
+  @override
+  String get certification => 'Certification';
+
+  @override
+  String get releaseDateRange => 'Release Date Range';
+
+  @override
+  String get from => 'From';
+
+  @override
+  String get to => 'To';
+
+  @override
+  String get voteAverage => 'Vote Average';
+
+  @override
+  String get runtimeMinutes => 'Runtime (minutes)';
+
+  @override
+  String get voteCountMinimum => 'Vote Count Minimum';
+
+  @override
+  String get monetizationTypes => 'Monetization Types';
+
+  @override
+  String get watchProvidersIds => 'Watch Providers (IDs)';
+
+  @override
+  String get providerIdsHint => 'Comma-separated provider IDs, e.g., 8,9,337';
+
+  @override
+  String get releaseType => 'Release Type';
+
+  @override
+  String get releaseTypePremiere => 'Premiere';
+
+  @override
+  String get releaseTypeTheatricalLimited => 'Theatrical (Limited)';
+
+  @override
+  String get releaseTypeTheatrical => 'Theatrical';
+
+  @override
+  String get releaseTypeDigital => 'Digital';
+
+  @override
+  String get releaseTypePhysical => 'Physical';
+
+  @override
+  String get releaseTypeTV => 'TV';
+
+  @override
+  String get includeAdultContent => 'Include Adult Content';
+
+  @override
+  String get peopleCompaniesKeywords => 'People & Companies & Keywords';
+
+  @override
+  String get withCastHint => 'With Cast (comma-separated person IDs)';
+
+  @override
+  String get withCrewHint => 'With Crew (comma-separated person IDs)';
+
+  @override
+  String get withCompaniesHint =>
+      'With Companies (comma-separated company IDs)';
+
+  @override
+  String get withKeywordsHint => 'With Keywords (comma-separated keyword IDs)';
+
+  @override
+  String get apply => 'Apply';
 }

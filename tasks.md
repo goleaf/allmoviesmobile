@@ -873,7 +873,7 @@ write all code with comments, maximum comments, update files if not comments for
 
 - [x] Basic model tests (3 models)
 - [ ] All model tests (104 models)
-- [ ] Service tests (CacheService, LocalStorageService)
+- [x] Service tests (CacheService, LocalStorageService)
 - [ ] Repository tests (TmdbRepository)
 - [ ] Provider tests (all 29 providers)
 - [ ] Utility tests

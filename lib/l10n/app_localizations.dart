@@ -281,6 +281,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'TMDB Explorer'**
   String get apiExplorer;
+
+  /// No description provided for @filters.
+  ///
+  /// In en, this message translates to:
+  /// **'Filters'**
+  String get filters;
+
+  /// No description provided for @reset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset'**
+  String get reset;
+
+  /// No description provided for @region.
+  ///
+  /// In en, this message translates to:
+  /// **'Region'**
+  String get region;
+
+  /// No description provided for @byDecade.
+  ///
+  /// In en, this message translates to:
+  /// **'By Decade'**
+  String get byDecade;
+
+  /// No description provided for @certification.
+  ///
+  /// In en, this message translates to:
+  /// **'Certification'**
+  String get certification;
+
+  /// No description provided for @releaseDateRange.
+  ///
+  /// In en, this message translates to:
+  /// **'Release Date Range'**
+  String get releaseDateRange;
+
+  /// No description provided for @from.
+  ///
+  /// In en, this message translates to:
+  /// **'From'**
+  String get from;
+
+  /// No description provided for @to.
+  ///
+  /// In en, this message translates to:
+  /// **'To'**
+  String get to;
+
+  /// No description provided for @voteAverage.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote Average'**
+  String get voteAverage;
+
+  /// No description provided for @runtimeMinutes.
+  ///
+  /// In en, this message translates to:
+  /// **'Runtime (minutes)'**
+  String get runtimeMinutes;
+
+  /// No description provided for @voteCountMinimum.
+  ///
+  /// In en, this message translates to:
+  /// **'Vote Count Minimum'**
+  String get voteCountMinimum;
+
+  /// No description provided for @monetizationTypes.
+  ///
+  /// In en, this message translates to:
+  /// **'Monetization Types'**
+  String get monetizationTypes;
+
+  /// No description provided for @watchProvidersIds.
+  ///
+  /// In en, this message translates to:
+  /// **'Watch Providers (IDs)'**
+  String get watchProvidersIds;
+
+  /// No description provided for @providerIdsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Comma-separated provider IDs, e.g., 8,9,337'**
+  String get providerIdsHint;
+
+  /// No description provided for @releaseType.
+  ///
+  /// In en, this message translates to:
+  /// **'Release Type'**
+  String get releaseType;
+
+  /// No description provided for @releaseTypePremiere.
+  ///
+  /// In en, this message translates to:
+  /// **'Premiere'**
+  String get releaseTypePremiere;
+
+  /// No description provided for @releaseTypeTheatricalLimited.
+  ///
+  /// In en, this message translates to:
+  /// **'Theatrical (Limited)'**
+  String get releaseTypeTheatricalLimited;
+
+  /// No description provided for @releaseTypeTheatrical.
+  ///
+  /// In en, this message translates to:
+  /// **'Theatrical'**
+  String get releaseTypeTheatrical;
+
+  /// No description provided for @releaseTypeDigital.
+  ///
+  /// In en, this message translates to:
+  /// **'Digital'**
+  String get releaseTypeDigital;
+
+  /// No description provided for @releaseTypePhysical.
+  ///
+  /// In en, this message translates to:
+  /// **'Physical'**
+  String get releaseTypePhysical;
+
+  /// No description provided for @releaseTypeTV.
+  ///
+  /// In en, this message translates to:
+  /// **'TV'**
+  String get releaseTypeTV;
+
+  /// No description provided for @includeAdultContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Include Adult Content'**
+  String get includeAdultContent;
+
+  /// No description provided for @peopleCompaniesKeywords.
+  ///
+  /// In en, this message translates to:
+  /// **'People & Companies & Keywords'**
+  String get peopleCompaniesKeywords;
+
+  /// No description provided for @withCastHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With Cast (comma-separated person IDs)'**
+  String get withCastHint;
+
+  /// No description provided for @withCrewHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With Crew (comma-separated person IDs)'**
+  String get withCrewHint;
+
+  /// No description provided for @withCompaniesHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With Companies (comma-separated company IDs)'**
+  String get withCompaniesHint;
+
+  /// No description provided for @withKeywordsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'With Keywords (comma-separated keyword IDs)'**
+  String get withKeywordsHint;
+
+  /// No description provided for @apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get apply;
 }
 
 class _AppLocalizationsDelegate

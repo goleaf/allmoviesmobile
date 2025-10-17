@@ -1,0 +1,19 @@
+{
+  "page": 1,
+  "total_pages": 1,
+  "total_results": 1,
+  "results": [
+    {
+      "id": 550,
+      "title": "Fight Club",
+      "overview": "An insomniac office worker...",
+      "poster_path": "/a26cQPRhJPX6GbWfQbvZdrrp9j9.jpg",
+      "backdrop_path": "/fCayJrkfRaCRCTh8GqN30f8oyQF.jpg",
+      "vote_average": 8.4,
+      "vote_count": 24000,
+      "media_type": "movie"
+    }
+  ]
+}
+
+

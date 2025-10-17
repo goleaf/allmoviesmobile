@@ -98,4 +98,88 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get apiExplorer => 'TMDB Эксплорер';
+
+  @override
+  String get filters => 'Фильтры';
+
+  @override
+  String get reset => 'Сброс';
+
+  @override
+  String get region => 'Регион';
+
+  @override
+  String get byDecade => 'По десятилетиям';
+
+  @override
+  String get certification => 'Возрастной рейтинг';
+
+  @override
+  String get releaseDateRange => 'Диапазон дат релиза';
+
+  @override
+  String get from => 'От';
+
+  @override
+  String get to => 'До';
+
+  @override
+  String get voteAverage => 'Средний рейтинг';
+
+  @override
+  String get runtimeMinutes => 'Продолжительность (мин)';
+
+  @override
+  String get voteCountMinimum => 'Минимум голосов';
+
+  @override
+  String get monetizationTypes => 'Типы монетизации';
+
+  @override
+  String get watchProvidersIds => 'Провайдеры (ID)';
+
+  @override
+  String get providerIdsHint => 'ID провайдеров через запятую, напр.: 8,9,337';
+
+  @override
+  String get releaseType => 'Тип релиза';
+
+  @override
+  String get releaseTypePremiere => 'Премьера';
+
+  @override
+  String get releaseTypeTheatricalLimited => 'Кино (ограниченный)';
+
+  @override
+  String get releaseTypeTheatrical => 'Кино';
+
+  @override
+  String get releaseTypeDigital => 'Цифровой';
+
+  @override
+  String get releaseTypePhysical => 'Физический';
+
+  @override
+  String get releaseTypeTV => 'ТВ';
+
+  @override
+  String get includeAdultContent => 'Включить контент 18+';
+
+  @override
+  String get peopleCompaniesKeywords => 'Персоны, компании и ключевые слова';
+
+  @override
+  String get withCastHint => 'С актёрами (ID через запятую)';
+
+  @override
+  String get withCrewHint => 'С командой (ID через запятую)';
+
+  @override
+  String get withCompaniesHint => 'С компаниями (ID через запятую)';
+
+  @override
+  String get withKeywordsHint => 'С ключевыми словами (ID через запятую)';
+
+  @override
+  String get apply => 'Применить';
 }

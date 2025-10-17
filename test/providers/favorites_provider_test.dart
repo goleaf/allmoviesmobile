@@ -1,7 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:allmovies_mobile/providers/favorites_provider.dart';
-import 'package:allmovies_mobile/data/services/local_storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/providers/favorites_provider.dart';
 
 void main() {
   group('FavoritesProvider Tests', () {

@@ -56,6 +56,9 @@ class AppStrings {
   static const topRated = 'Top Rated';
   static const upcoming = 'Upcoming';
   static const discover = 'Discover';
+  static const filters = 'Filters';
+  static const apply = 'Apply';
+  static const reset = 'Reset';
   static const airingToday = 'Airing Today';
   static const onTheAir = 'On The Air';
   static const noAccount = "Don't have an account?";

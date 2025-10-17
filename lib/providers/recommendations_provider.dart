@@ -105,9 +105,10 @@ class RecommendationsProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      _recommendedMovies = await _repository.discoverMovies(
-        genreIds: [genreId],
+      final response = await _repository.discoverMovies(
+        filters: {'with_genres': '$genreId'},
       );
+      _recommendedMovies = response.results;
     } catch (error) {
       _errorMessage = 'Failed to fetch movies by genre: $error';
       _recommendedMovies = [];

@@ -297,15 +297,29 @@ class _SearchResultCard extends StatelessWidget {
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: result.mediaType == MediaType.movie
-            ? () {
-                Navigator.pushNamed(
-                  context,
-                  MovieDetailScreen.routeName,
-                  arguments: result.id,
-                );
-              }
-            : null,
+      onTap: switch (result.mediaType) {
+        MediaType.movie => () {
+            Navigator.pushNamed(
+              context,
+              MovieDetailScreen.routeName,
+              arguments: result.id,
+            );
+          },
+        MediaType.tv => () {
+            Navigator.pushNamed(
+              context,
+              TVDetailScreen.routeName,
+              arguments: result.id,
+            );
+          },
+        MediaType.person => () {
+            Navigator.pushNamed(
+              context,
+              PersonDetailScreen.routeName,
+              arguments: result.id,
+            );
+          },
+      },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -374,10 +388,10 @@ class _SearchResultCard extends StatelessWidget {
 
   String? get _posterImage {
     if (result.posterPath != null && result.posterPath!.isNotEmpty) {
-      return 'https://image.tmdb.org/t/p/w342${result.posterPath}';
+      return AppConfig.tmdbImageBaseUrl + '/w342' + (result.posterPath!.startsWith('/') ? '' : '/') + result.posterPath!;
     }
     if (result.profilePath != null && result.profilePath!.isNotEmpty) {
-      return 'https://image.tmdb.org/t/p/w342${result.profilePath}';
+      return AppConfig.tmdbImageBaseUrl + '/w342' + (result.profilePath!.startsWith('/') ? '' : '/') + result.profilePath!;
     }
     return null;
   }

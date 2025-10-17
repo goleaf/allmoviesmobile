@@ -17,10 +17,13 @@ import '../../../providers/favorites_provider.dart';
 import '../../../providers/tv_detail_provider.dart';
 import '../../../providers/watch_region_provider.dart';
 import '../../../providers/watchlist_provider.dart';
-import '../../widgets/error_display.dart';
+import '../../widgets/error_widget.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../../data/models/watch_provider_model.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
+import '../../widgets/media_image.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -112,9 +115,6 @@ class _TVDetailView extends StatelessWidget {
 
   Widget _buildAppBar(BuildContext context, TVDetailed details, AppLocalizations loc) {
     final backdropPath = details.backdropPath;
-    final backdropUrl = backdropPath != null
-        ? 'https://image.tmdb.org/t/p/w780$backdropPath'
-        : null;
 
     return SliverAppBar(
       expandedHeight: 250,
@@ -126,21 +126,15 @@ class _TVDetailView extends StatelessWidget {
             shadows: [Shadow(color: Colors.black, blurRadius: 8)],
           ),
         ),
-        background: backdropUrl != null
+        background: backdropPath != null
             ? Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: backdropUrl,
+                  MediaImage(
+                    path: backdropPath,
+                    type: MediaImageType.backdrop,
+                    size: MediaImageSize.w780,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image, size: 64),
-                    ),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -166,9 +160,6 @@ class _TVDetailView extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context, TVDetailed details, AppLocalizations loc) {
     final posterPath = details.posterPath;
-    final posterUrl = posterPath != null
-        ? 'https://image.tmdb.org/t/p/w500$posterPath'
-        : null;
 
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -177,31 +168,14 @@ class _TVDetailView extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: posterUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: posterUrl,
-                    width: 120,
-                    height: 180,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 120,
-                      height: 180,
-                      color: Colors.grey[300],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 120,
-                      height: 180,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image),
-                    ),
-                  )
-                : Container(
-                    width: 120,
-                    height: 180,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.tv),
-                  ),
+            child: MediaImage(
+              path: posterPath,
+              type: MediaImageType.poster,
+              size: MediaImageSize.w500,
+              width: 120,
+              height: 180,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -1121,9 +1095,6 @@ class _NetworkLogo extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final logoPath = network.logoPath;
-    final logoUrl = logoPath != null
-        ? 'https://image.tmdb.org/t/p/w92$logoPath'
-        : null;
 
     return Container(
       margin: const EdgeInsets.only(right: 12),
@@ -1139,22 +1110,13 @@ class _NetworkLogo extends StatelessWidget {
           ),
         ],
       ),
-      child: logoUrl != null
-          ? CachedNetworkImage(
-              imageUrl: logoUrl,
+      child: logoPath != null
+          ? MediaImage(
+              path: logoPath,
+              type: MediaImageType.logo,
+              size: MediaImageSize.w92,
               height: 40,
               fit: BoxFit.contain,
-              placeholder: (context, url) => Container(
-                width: 80,
-                height: 40,
-                color: Colors.grey[300],
-              ),
-              errorWidget: (context, url, error) => Container(
-                width: 80,
-                height: 40,
-                color: Colors.grey[300],
-                child: const Icon(Icons.tv),
-              ),
             )
           : Container(
               width: 80,
@@ -1179,9 +1141,6 @@ class _SeasonCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final posterPath = season.posterPath;
-    final posterUrl = posterPath != null
-        ? 'https://image.tmdb.org/t/p/w342$posterPath'
-        : null;
 
     return Container(
       width: 140,
@@ -1194,31 +1153,14 @@ class _SeasonCard extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(8),
-              child: posterUrl != null
-                  ? CachedNetworkImage(
-                      imageUrl: posterUrl,
-                      width: 140,
-                      height: 200,
-                      fit: BoxFit.cover,
-                      placeholder: (context, url) => Container(
-                        width: 140,
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.tv),
-                      ),
-                      errorWidget: (context, url, error) => Container(
-                        width: 140,
-                        height: 200,
-                        color: Colors.grey[300],
-                        child: const Icon(Icons.tv),
-                      ),
-                    )
-                  : Container(
-                      width: 140,
-                      height: 200,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.tv),
-                    ),
+              child: MediaImage(
+                path: posterPath,
+                type: MediaImageType.poster,
+                size: MediaImageSize.w342,
+                width: 140,
+                height: 200,
+                fit: BoxFit.cover,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
@@ -1253,9 +1195,6 @@ class _EpisodeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final stillPath = episode.stillPath;
-    final stillUrl = stillPath != null
-        ? 'https://image.tmdb.org/t/p/w300$stillPath'
-        : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -1268,25 +1207,16 @@ class _EpisodeCard extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (stillUrl != null)
+              if (stillPath != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(4),
-                  child: CachedNetworkImage(
-                    imageUrl: stillUrl,
+                  child: MediaImage(
+                    path: stillPath,
+                    type: MediaImageType.still,
+                    size: MediaImageSize.w300,
                     width: 120,
                     height: 68,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 120,
-                      height: 68,
-                      color: Colors.grey[300],
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 120,
-                      height: 68,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.tv, size: 32),
-                    ),
                   ),
                 ),
               const SizedBox(width: 12),
@@ -1334,9 +1264,6 @@ class _CastCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final profilePath = cast.profilePath;
-    final profileUrl = profilePath != null
-        ? 'https://image.tmdb.org/t/p/w185$profilePath'
-        : null;
 
     return Container(
       width: 120,
@@ -1346,31 +1273,14 @@ class _CastCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: profileUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: profileUrl,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person),
-                    ),
-                  )
-                : Container(
-                    width: 120,
-                    height: 120,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.person),
-                  ),
+            child: MediaImage(
+              path: profilePath,
+              type: MediaImageType.profile,
+              size: MediaImageSize.w185,
+              width: 120,
+              height: 120,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -1475,9 +1385,7 @@ class _ProviderLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final logoUrl = logoPath.isNotEmpty
-        ? 'https://image.tmdb.org/t/p/w92$logoPath'
-        : null;
+    final logoUrl = logoPath.isNotEmpty ? logoPath : null;
 
     return Container(
       margin: const EdgeInsets.only(right: 8),
@@ -1494,21 +1402,12 @@ class _ProviderLogo extends StatelessWidget {
         ],
       ),
       child: logoUrl != null
-          ? CachedNetworkImage(
-              imageUrl: logoUrl,
+          ? MediaImage(
+              path: logoUrl,
+              type: MediaImageType.logo,
+              size: MediaImageSize.w92,
               height: 30,
               fit: BoxFit.contain,
-              placeholder: (context, url) => Container(
-                width: 40,
-                height: 30,
-                color: Colors.grey[300],
-              ),
-              errorWidget: (context, url, error) => Container(
-                width: 40,
-                height: 30,
-                color: Colors.grey[300],
-                child: const Icon(Icons.tv),
-              ),
             )
           : Container(
               width: 40,

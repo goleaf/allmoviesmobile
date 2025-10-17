@@ -1,7 +1,8 @@
-import 'package:allmovies_mobile/data/services/local_storage_service.dart';
-import 'package:allmovies_mobile/providers/watchlist_provider.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/providers/watchlist_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

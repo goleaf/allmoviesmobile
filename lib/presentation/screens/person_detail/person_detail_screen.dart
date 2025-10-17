@@ -10,6 +10,7 @@ import '../../../data/models/person_detail_model.dart';
 import '../../../data/models/person_model.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/person_detail_provider.dart';
+import '../../widgets/media_image.dart';
 
 class PersonDetailScreen extends StatelessWidget {
   static const routeName = '/person-detail';
@@ -156,14 +157,11 @@ class _PersonAppBar extends StatelessWidget {
           fit: StackFit.expand,
           children: [
             if (resolvedProfileUrl != null)
-              CachedNetworkImage(
-                imageUrl: resolvedProfileUrl,
+              MediaImage(
+                path: resolvedProfileUrl,
+                type: MediaImageType.profile,
+                size: MediaImageSize.h632,
                 fit: BoxFit.cover,
-                placeholder: (context, url) => Container(
-                  color: Colors.grey.shade300,
-                  child: const Center(child: CircularProgressIndicator()),
-                ),
-                errorWidget: (context, url, error) => _FallbackProfile(name: name),
               )
             else
               _FallbackProfile(name: name),
@@ -877,22 +875,17 @@ class _ImageGallerySection extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
             final image = images[index];
-            final imageUrl = _imageUrl(image.filePath, size: 'w300');
+            final imageUrl = image.filePath;
             return ClipRRect(
               borderRadius: BorderRadius.circular(12),
               child: AspectRatio(
                 aspectRatio: image.aspectRatio,
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) => Container(
-                    color: Colors.grey.shade200,
+                  child: MediaImage(
+                    path: imageUrl,
+                    type: MediaImageType.profile,
+                    size: MediaImageSize.w300,
+                    fit: BoxFit.cover,
                   ),
-                  errorWidget: (context, url, error) => Container(
-                    color: Colors.grey.shade300,
-                    child: const Icon(Icons.broken_image),
-                  ),
-                ),
               ),
             );
           },
@@ -925,7 +918,7 @@ class _TaggedImagesSection extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(width: 12),
           itemBuilder: (context, index) {
             final image = tagged[index];
-            final imageUrl = _imageUrl(image.filePath, size: 'w300');
+            final imageUrl = image.filePath;
             final mediaTitle = image.media?.titleOrName;
             return SizedBox(
               width: 200,
@@ -936,16 +929,11 @@ class _TaggedImagesSection extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                     child: AspectRatio(
                       aspectRatio: image.aspectRatio,
-                      child: CachedNetworkImage(
-                        imageUrl: imageUrl,
+                      child: MediaImage(
+                        path: imageUrl,
+                        type: MediaImageType.profile,
+                        size: MediaImageSize.w300,
                         fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: Colors.grey.shade200,
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: Colors.grey.shade300,
-                          child: const Icon(Icons.broken_image),
-                        ),
                       ),
                     ),
                   ),

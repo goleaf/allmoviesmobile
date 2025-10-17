@@ -20,6 +20,7 @@ import '../../widgets/error_widget.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
+import '../../widgets/media_image.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
@@ -147,17 +148,11 @@ class _MovieDetailView extends StatelessWidget {
             ? Stack(
                 fit: StackFit.expand,
                 children: [
-                  CachedNetworkImage(
-                    imageUrl: backdropUrl,
+                  MediaImage(
+                    path: details.backdropPath,
+                    type: MediaImageType.backdrop,
+                    size: MediaImageSize.w780,
                     fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      color: Colors.grey[300],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image, size: 64),
-                    ),
                   ),
                   Container(
                     decoration: BoxDecoration(
@@ -192,31 +187,14 @@ class _MovieDetailView extends StatelessWidget {
           // Poster
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: posterUrl != null && posterUrl.isNotEmpty
-                ? CachedNetworkImage(
-                    imageUrl: posterUrl,
-                    width: 120,
-                    height: 180,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 120,
-                      height: 180,
-                      color: Colors.grey[300],
-                      child: const Center(child: CircularProgressIndicator()),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 120,
-                      height: 180,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.broken_image),
-                    ),
-                  )
-                : Container(
-                    width: 120,
-                    height: 180,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.movie),
-                  ),
+            child: MediaImage(
+              path: details.posterPath,
+              type: MediaImageType.poster,
+              size: MediaImageSize.w500,
+              width: 120,
+              height: 180,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(width: 16),
           // Title and basic info
@@ -957,10 +935,11 @@ class _MovieDetailView extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (collection.backdropPath != null)
-                CachedNetworkImage(
-                  imageUrl: 'https://image.tmdb.org/t/p/w780${collection.backdropPath}',
+                MediaImage(
+                  path: collection.backdropPath,
+                  type: MediaImageType.backdrop,
+                  size: MediaImageSize.w780,
                   height: 120,
-                  width: double.infinity,
                   fit: BoxFit.cover,
                 ),
               Padding(
@@ -1148,8 +1127,10 @@ class _MovieDetailView extends StatelessWidget {
                     if ((company.logoPath ?? '').isNotEmpty) {
                       return ClipRRect(
                         borderRadius: BorderRadius.circular(6),
-                        child: CachedNetworkImage(
-                          imageUrl: 'https://image.tmdb.org/t/p/w92${company.logoPath}',
+                        child: MediaImage(
+                          path: company.logoPath,
+                          type: MediaImageType.logo,
+                          size: MediaImageSize.w92,
                           height: 40,
                           fit: BoxFit.contain,
                         ),
@@ -1209,9 +1190,7 @@ class _CastCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final profileUrl = cast.profilePath != null
-        ? 'https://image.tmdb.org/t/p/w185${cast.profilePath}'
-        : null;
+    final profileUrl = cast.profilePath;
 
     return Container(
       width: 120,
@@ -1221,31 +1200,14 @@ class _CastCard extends StatelessWidget {
         children: [
           ClipRRect(
             borderRadius: BorderRadius.circular(8),
-            child: profileUrl != null
-                ? CachedNetworkImage(
-                    imageUrl: profileUrl,
-                    width: 120,
-                    height: 120,
-                    fit: BoxFit.cover,
-                    placeholder: (context, url) => Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person),
-                    ),
-                    errorWidget: (context, url, error) => Container(
-                      width: 120,
-                      height: 120,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.person),
-                    ),
-                  )
-                : Container(
-                    width: 120,
-                    height: 120,
-                    color: Colors.grey[300],
-                    child: const Icon(Icons.person),
-                  ),
+            child: MediaImage(
+              path: profileUrl,
+              type: MediaImageType.profile,
+              size: MediaImageSize.w185,
+              width: 120,
+              height: 120,
+              fit: BoxFit.cover,
+            ),
           ),
           const SizedBox(height: 8),
           Text(
@@ -1428,8 +1390,10 @@ class _ProviderLogo extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
-      child: CachedNetworkImage(
-        imageUrl: 'https://image.tmdb.org/t/p/w92$logoPath',
+      child: MediaImage(
+        path: logoPath,
+        type: MediaImageType.logo,
+        size: MediaImageSize.w92,
         width: 48,
         height: 48,
         fit: BoxFit.cover,

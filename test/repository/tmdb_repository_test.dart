@@ -1,3 +1,5 @@
+// removed duplicate test suite; see unified tests below
+
 import 'dart:convert';
 
 import 'package:allmovies_mobile/data/models/movie.dart';

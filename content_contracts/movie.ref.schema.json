@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "movie.ref.schema.json",
+  "title": "MovieRef",
+  "type": "object",
+  "required": ["id", "title"],
+  "properties": {
+    "id": { "type": "integer" },
+    "title": { "type": "string" }
+  },
+  "additionalProperties": false
+}

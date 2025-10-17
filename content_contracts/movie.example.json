@@ -1,0 +1,68 @@
+{
+  "id": 603,
+  "title": "The Matrix",
+  "original_title": "The Matrix",
+  "overview": "A computer hacker learns about the true nature of reality.",
+  "tagline": "Welcome to the Real World.",
+  "release_date": "1999-03-31",
+  "runtime": 136,
+  "genres": [
+    { "id": 28, "name": "Action" },
+    { "id": 878, "name": "Science Fiction" }
+  ],
+  "production_companies": [
+    {
+      "id": 79,
+      "name": "Village Roadshow Pictures",
+      "logo_path": "/vrp.png",
+      "origin_country": "US",
+      "description": null,
+      "headquarters": null,
+      "homepage": null,
+      "produced_movies": [],
+      "produced_series": []
+    }
+  ],
+  "production_countries": [
+    { "iso_3166_1": "US", "name": "United States of America" }
+  ],
+  "spoken_languages": [
+    { "iso_639_1": "en", "name": "English" }
+  ],
+  "poster_path": "/matrix-poster.jpg",
+  "backdrop_path": "/matrix-backdrop.jpg",
+  "vote_average": 8.2,
+  "vote_count": 25000,
+  "popularity": 120.5,
+  "status": "Released",
+  "homepage": "https://www.warnerbros.com/movies/matrix",
+  "external_ids": { "imdb_id": "tt0133093" },
+  "budget": 63000000,
+  "revenue": 463517383,
+  "videos": [
+    {
+      "key": "m8e-FF8MsqU",
+      "site": "YouTube",
+      "type": "Trailer",
+      "name": "Official Trailer",
+      "official": true,
+      "published_at": "2019-05-10T00:00:00Z"
+    }
+  ],
+  "images": [
+    {
+      "file_path": "/matrix-poster.jpg",
+      "width": 2000,
+      "height": 3000,
+      "aspect_ratio": 0.67,
+      "vote_average": null,
+      "vote_count": null
+    }
+  ],
+  "recommendations": [
+    { "id": 604, "title": "The Matrix Reloaded" }
+  ],
+  "similar": [
+    { "id": 27205, "title": "Inception" }
+  ]
+}

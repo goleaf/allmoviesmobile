@@ -1,6 +1,9 @@
+import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import 'supported_locales.dart' as localization_metadata;
 
 class AppLocalizations {
   final Locale locale;
@@ -216,11 +219,9 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  static const List<Locale> supportedLocales = [
-    Locale('en', ''),
-    Locale('ru', ''),
-    Locale('uk', ''),
-  ];
+  static final List<Locale> supportedLocales = UnmodifiableListView(
+    localization_metadata.supportedLocales,
+  );
 
   Future<bool> load() async {
     try {
@@ -288,7 +289,13 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) {
-    return ['en', 'ru', 'uk'].contains(locale.languageCode);
+    return AppLocalizations.supportedLocales.any(
+      (supported) =>
+          supported.languageCode == locale.languageCode &&
+          (supported.countryCode == null ||
+              supported.countryCode!.isEmpty ||
+              supported.countryCode == locale.countryCode),
+    );
   }
 
   @override

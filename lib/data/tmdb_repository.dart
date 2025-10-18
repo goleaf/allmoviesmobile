@@ -10,6 +10,7 @@ import 'models/certification_model.dart';
 import 'models/collection_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
+import 'models/change_model.dart';
 import 'models/discover_filters_model.dart';
 import 'models/episode_group_model.dart';
 import 'models/genre_model.dart';
@@ -279,6 +280,23 @@ class TmdbRepository {
     T Function(Map<String, dynamic>) mapper,
   ) {
     return PaginatedResponse<T>.fromJson(json, mapper);
+  }
+
+  /// Build a query map for change-tracking endpoints, normalizing dates.
+  Map<String, String> _buildChangeQuery({
+    required int page,
+    String? startDate,
+    String? endDate,
+  }) {
+    final normalizedStart = startDate?.trim();
+    final normalizedEnd = endDate?.trim();
+    return <String, String>{
+      'page': page <= 0 ? '1' : '$page',
+      if (normalizedStart != null && normalizedStart.isNotEmpty)
+        'start_date': normalizedStart,
+      if (normalizedEnd != null && normalizedEnd.isNotEmpty)
+        'end_date': normalizedEnd,
+    };
   }
 
   // ---------------------------------------------------------------------------
@@ -1823,6 +1841,306 @@ class TmdbRepository {
       },
       forceRefresh: forceRefresh,
       ttlSeconds: CacheService.movieDetailsTTL,
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Change Tracking
+  // ---------------------------------------------------------------------------
+
+  /// Fetches the chronological change history for a specific movie.
+  ///
+  /// TMDB endpoint: `GET /3/movie/{movie_id}/changes`.
+  /// Example payload:
+  /// ```json
+  /// {
+  ///   "changes": [
+  ///     {
+  ///       "key": "title",
+  ///       "items": [
+  ///         {
+  ///           "id": "533ec651c3a36854480003eb",
+  ///           "action": "updated",
+  ///           "time": "2013-04-03 23:00:45 UTC"
+  ///         }
+  ///       ]
+  ///     }
+  ///   ]
+  /// }
+  /// ```
+  Future<ChangesResponse> fetchMovieChanges(
+    int movieId, {
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final query = _buildChangeQuery(
+      page: page,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    final cacheKey = [
+      'change',
+      'movie',
+      '$movieId',
+      query['page'] ?? '1',
+      query['start_date'] ?? '',
+      query['end_date'] ?? '',
+    ].join('::');
+    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
+
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/movie/$movieId/changes',
+          query: query,
+        );
+        return ChangesResponse.fromJson(payload);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: ttlSeconds,
+    );
+  }
+
+  /// Fetches the change history for a TV series.
+  ///
+  /// TMDB endpoint: `GET /3/tv/{series_id}/changes`.
+  /// Example response snippet:
+  /// ```json
+  /// {
+  ///   "changes": [
+  ///     { "key": "overview", "items": [ { "action": "updated" } ] }
+  ///   ]
+  /// }
+  /// ```
+  Future<ChangesResponse> fetchTvChanges(
+    int tvId, {
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final query = _buildChangeQuery(
+      page: page,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    final cacheKey = [
+      'change',
+      'tv',
+      '$tvId',
+      query['page'] ?? '1',
+      query['start_date'] ?? '',
+      query['end_date'] ?? '',
+    ].join('::');
+    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
+
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/$tvId/changes',
+          query: query,
+        );
+        return ChangesResponse.fromJson(payload);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: ttlSeconds,
+    );
+  }
+
+  /// Fetches the change history for a person profile (cast or crew).
+  ///
+  /// TMDB endpoint: `GET /3/person/{person_id}/changes`.
+  /// Example response snippet:
+  /// ```json
+  /// {
+  ///   "changes": [
+  ///     {
+  ///       "key": "biography",
+  ///       "items": [ { "action": "updated" } ]
+  ///     }
+  ///   ]
+  /// }
+  /// ```
+  Future<ChangesResponse> fetchPersonChanges(
+    int personId, {
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final query = _buildChangeQuery(
+      page: page,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    final cacheKey = [
+      'change',
+      'person',
+      '$personId',
+      query['page'] ?? '1',
+      query['start_date'] ?? '',
+      query['end_date'] ?? '',
+    ].join('::');
+    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
+
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/person/$personId/changes',
+          query: query,
+        );
+        return ChangesResponse.fromJson(payload);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: ttlSeconds,
+    );
+  }
+
+  /// Retrieves IDs for movies that have changed recently.
+  ///
+  /// TMDB endpoint: `GET /3/movie/changes`.
+  /// Example payload:
+  /// ```json
+  /// {
+  ///   "results": [ { "id": 603, "adult": false } ]
+  /// }
+  /// ```
+  Future<PaginatedResponse<ChangeResource>> fetchMovieChangeList({
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final query = _buildChangeQuery(
+      page: page,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    final cacheKey = [
+      'change_list',
+      'movie',
+      query['page'] ?? '1',
+      query['start_date'] ?? '',
+      query['end_date'] ?? '',
+    ].join('::');
+    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
+
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/movie/changes',
+          query: query,
+        );
+        return _mapPaginated<ChangeResource>(
+          payload,
+          ChangeResource.fromJson,
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: ttlSeconds,
+    );
+  }
+
+  /// Retrieves IDs for TV series with recent metadata updates.
+  ///
+  /// TMDB endpoint: `GET /3/tv/changes`.
+  /// Example response snippet:
+  /// ```json
+  /// {
+  ///   "results": [ { "id": 1399 } ]
+  /// }
+  /// ```
+  Future<PaginatedResponse<ChangeResource>> fetchTvChangeList({
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final query = _buildChangeQuery(
+      page: page,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    final cacheKey = [
+      'change_list',
+      'tv',
+      query['page'] ?? '1',
+      query['start_date'] ?? '',
+      query['end_date'] ?? '',
+    ].join('::');
+    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
+
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/changes',
+          query: query,
+        );
+        return _mapPaginated<ChangeResource>(
+          payload,
+          ChangeResource.fromJson,
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: ttlSeconds,
+    );
+  }
+
+  /// Retrieves IDs for people whose TMDB profiles changed recently.
+  ///
+  /// TMDB endpoint: `GET /3/person/changes`.
+  /// Example payload snippet:
+  /// ```json
+  /// {
+  ///   "results": [ { "id": 287, "adult": false } ]
+  /// }
+  /// ```
+  Future<PaginatedResponse<ChangeResource>> fetchPersonChangeList({
+    String? startDate,
+    String? endDate,
+    int page = 1,
+    bool includeAdult = false,
+    bool forceRefresh = false,
+  }) {
+    final query = _buildChangeQuery(
+      page: page,
+      startDate: startDate,
+      endDate: endDate,
+    );
+    if (includeAdult) {
+      query['include_adult'] = 'true';
+    }
+    final cacheKey = [
+      'change_list',
+      'person',
+      query['page'] ?? '1',
+      query['start_date'] ?? '',
+      query['end_date'] ?? '',
+      includeAdult ? 'adult' : 'safe',
+    ].join('::');
+    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
+
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/person/changes',
+          query: query,
+        );
+        return _mapPaginated<ChangeResource>(
+          payload,
+          ChangeResource.fromJson,
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: ttlSeconds,
     );
   }
 

@@ -366,6 +366,21 @@
     "added": "Added to watchlist",
     "removed": "Removed from watchlist"
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You're all caught up.",
+    "mark_all_read": "Mark all read",
+    "clear_all": "Clear all",
+    "clear_all_confirm": "This will remove all notifications. Continue?",
+    "view": "View",
+    "mark_read": "Mark read",
+    "category": {
+      "system": "Updates",
+      "social": "Community",
+      "list": "Lists & Watchlist",
+      "recommendation": "Suggestions"
+    }
+  },
   "accessibility": {
     "search_hint": "Search for movies, shows, or people",
     "search_label": "Search the catalog",
@@ -446,6 +461,7 @@
     "retry": "Retry",
     "refresh": "Refresh",
     "cancel": "Cancel",
+    "confirm": "Confirm",
     "ok": "OK",
     "yes": "Yes",
     "no": "No",

@@ -132,6 +132,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
 
   @override
   void dispose() {
+    widget.networkQualityNotifier.dispose();
     _deepLinkHandler.dispose();
     _foregroundObserver.detach();
     super.dispose();

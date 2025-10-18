@@ -27,6 +27,7 @@ import '../screens/series/series_screen.dart';
 import '../screens/tv_detail/tv_detail_screen.dart';
 import '../widgets/offline_banner.dart';
 
+/// Hosts the root shell that powers the bottom navigation experience.
 class AppNavigationShell extends StatefulWidget {
   const AppNavigationShell({super.key});
 
@@ -103,6 +104,8 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     );
   }
 
+  /// Handles the Android back button and ensures we navigate back to the
+  /// correct destination instead of immediately closing the app.
   Future<bool> _handleWillPop() async {
     final currentNavigator = _navigatorKeys[_currentDestination]!.currentState!;
 
@@ -121,6 +124,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     return true;
   }
 
+  /// Responds to any pending deep links dispatched by [DeepLinkHandler].
+  ///
+  /// Each deep link is consumed once to avoid duplicate navigation events.
   Future<void> _handlePendingDeepLink() async {
     if (!mounted || _isHandlingDeepLink) return;
     final handler = _deepLinkHandler;
@@ -137,8 +143,19 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     }
   }
 
+  /// Routes an incoming [DeepLinkData] to the appropriate destination.
+  ///
+  /// TMDB endpoints used for the associated payloads:
+  /// - Movies: `GET /3/movie/{movie_id}` returns the JSON consumed by
+  ///   [MovieDetailScreen].
+  /// - TV shows: `GET /3/tv/{series_id}` provides the base data for
+  ///   [TVDetailScreen].
+  /// - Episodes: `GET /3/tv/{tv_id}/season/{season_number}/episode/{episode_number}`
+  ///   supplies the detailed episode JSON used in [EpisodeDetailScreen].
+  /// - Companies & Collections: `GET /3/company/{company_id}` and
+  ///   `GET /3/collection/{collection_id}` drive their respective screens.
   Future<void> _openDeepLink(DeepLinkData link) async {
-    final rootNavigator = Navigator.of(context, rootNavigator: true);
+    final rootNavigatorState = Navigator.of(context, rootNavigator: true);
     final repo = context.read<TmdbRepository>();
     final loc = AppLocalizations.of(context);
 
@@ -151,15 +168,17 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     switch (link.type) {
       case DeepLinkType.movie:
         await _ensureDestination(AppDestination.movies);
-        await rootNavigator.pushNamed(
-          MovieDetailScreen.routeName,
+        await _pushRootNamed(
+          navigator: rootNavigatorState,
+          routeName: MovieDetailScreen.routeName,
           arguments: Movie(id: link.id!, title: 'Movie #${link.id}'),
         );
         break;
       case DeepLinkType.tvShow:
         await _ensureDestination(AppDestination.tv);
-        await rootNavigator.pushNamed(
-          TVDetailScreen.routeName,
+        await _pushRootNamed(
+          navigator: rootNavigatorState,
+          routeName: TVDetailScreen.routeName,
           arguments: Movie(
             id: link.id!,
             title: 'Series #${link.id}',
@@ -169,8 +188,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
         break;
       case DeepLinkType.season:
         await _ensureDestination(AppDestination.tv);
-        await rootNavigator.pushNamed(
-          SeasonDetailScreen.routeName,
+        await _pushRootNamed(
+          navigator: rootNavigatorState,
+          routeName: SeasonDetailScreen.routeName,
           arguments: SeasonDetailArgs(
             tvId: link.id!,
             seasonNumber: link.seasonNumber!,
@@ -186,29 +206,34 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
             link.episodeNumber!,
           );
           if (!mounted) return;
-          await rootNavigator.pushNamed(
-            EpisodeDetailScreen.routeName,
+          await _pushRootNamed(
+            navigator: rootNavigatorState,
+            routeName: EpisodeDetailScreen.routeName,
             arguments: EpisodeDetailArgs(tvId: link.id!, episode: episode),
           );
         } catch (error) {
+          // Falls back to the localized generic error when the API call fails.
           await showError(loc.t('errors.generic'));
         }
         break;
       case DeepLinkType.person:
-        await rootNavigator.pushNamed(
-          PersonDetailScreen.routeName,
+        await _pushRootNamed(
+          navigator: rootNavigatorState,
+          routeName: PersonDetailScreen.routeName,
           arguments: link.id!,
         );
         break;
       case DeepLinkType.company:
-        await rootNavigator.pushNamed(
-          CompanyDetailScreen.routeName,
+        await _pushRootNamed(
+          navigator: rootNavigatorState,
+          routeName: CompanyDetailScreen.routeName,
           arguments: Company(id: link.id!, name: 'Company #${link.id}'),
         );
         break;
       case DeepLinkType.collection:
-        await rootNavigator.pushNamed(
-          CollectionDetailScreen.routeName,
+        await _pushRootNamed(
+          navigator: rootNavigatorState,
+          routeName: CollectionDetailScreen.routeName,
           arguments: link.id!,
         );
         break;
@@ -224,6 +249,18 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     }
   }
 
+  /// Pushes a new route on the root navigator while keeping the helper code
+  /// consistent for every deep link branch.
+  Future<void> _pushRootNamed({
+    required NavigatorState navigator,
+    required String routeName,
+    Object? arguments,
+  }) async {
+    await navigator.pushNamed(routeName, arguments: arguments);
+  }
+
+  /// Updates the current bottom navigation destination and waits for the UI
+  /// to rebuild before proceeding with deep link navigation.
   Future<void> _ensureDestination(AppDestination destination) async {
     if (_currentDestination == destination) return;
     setState(() {
@@ -233,6 +270,8 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     await Future<void>.delayed(Duration.zero);
   }
 
+  /// Builds the Material 3 bottom navigation bar, wiring destinations to
+  /// [AppStateProvider] so the selection persists across app restarts.
   Widget _buildBottomNavigationBar() {
     final l = AppLocalizations.of(context);
     return NavigationBar(
@@ -278,6 +317,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   }
 }
 
+/// Dedicated nested navigator for each bottom navigation destination. This
+/// keeps navigation stacks isolated so users can switch tabs without losing
+/// their previous navigation history.
 class _DestinationNavigator extends StatelessWidget {
   const _DestinationNavigator({
     required this.navigatorKey,
@@ -328,6 +370,7 @@ class _DestinationNavigator extends StatelessWidget {
     return MaterialPageRoute(builder: (_) => page, settings: settings);
   }
 
+  /// Resolves routes shared across multiple navigators (filters, search, etc.).
   Widget _buildSharedRoute(RouteSettings settings) {
     switch (settings.name) {
       case HomeScreen.routeName:
@@ -377,6 +420,8 @@ class _DestinationNavigator extends StatelessWidget {
   }
 }
 
+/// Persists the last visited route for a destination so the shell can
+/// restore users to the same screen when they return to a tab.
 class _AppStateNavigatorObserver extends NavigatorObserver {
   _AppStateNavigatorObserver({
     required this.context,
@@ -386,6 +431,8 @@ class _AppStateNavigatorObserver extends NavigatorObserver {
   final BuildContext context;
   final AppDestination destination;
 
+  /// Saves the latest route for the current destination inside
+  /// [AppStateProvider] so it can be restored later.
   void _persist(Route<dynamic>? route) {
     final name = route?.settings.name;
     if (name == null || name.isEmpty) {

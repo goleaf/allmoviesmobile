@@ -49,6 +49,15 @@ flutter run -d <device_id> --dart-define=TMDB_API_KEY=YOUR_KEY_HERE
 
 For release or profile builds, include the same dart-define when invoking `flutter build`.
 
+## Developer workflows
+- Keep [`CHANGELOG.md`](../CHANGELOG.md) up to date with every functional change. It lives at the repository root so release
+  managers can compile notes without digging through commit history.
+- Run `flutter analyze` and `flutter test` locally before submitting patches. They ensure imports stay tidy and navigation logic
+  such as the deep-link aware `AppNavigationShell` keeps building cleanly.
+- Document navigation flows with inline Dart doc comments whenever you add new screens. Deep link handlers in
+  `lib/presentation/navigation/app_navigation_shell.dart` now reference the TMDB endpoints they rely on so future contributors
+  can trace JSON payloads quickly.
+
 ## Maintaining Isar schemas
 When regenerating the local database bindings, use the helper script to keep schema and index IDs within the JavaScript safe integer range required by Flutter web builds:
 

@@ -112,7 +112,11 @@ dependencies:
   
   # Rich animations and transitions
   animations: ^2.0.11
-  
+  lottie: ^3.1.2
+
+  # Rating widgets
+  flutter_rating_bar: ^4.0.1
+
   # Skeleton loading states
   shimmer: ^3.0.0
 
@@ -125,10 +129,10 @@ dependencies:
   chewie: ^1.13.0
   vimeo_video_player: ^1.0.1
   flutter_inappwebview: ^6.1.5
-  
+
   # Pagination
   infinite_scroll_pagination: ^5.1.1
-  
+
   # Navigation
   go_router: ^16.2.5
 
@@ -136,13 +140,20 @@ dependencies:
   carousel_slider: ^5.0.0
 
   # Pull to refresh
+  pull_to_refresh: ^2.0.0
   pull_to_refresh_flutter3: ^2.0.2
+
+  # Grid layouts
+  flutter_staggered_grid_view: ^0.7.0
 
   # Background work
   workmanager: ^0.5.2
-  
+
   # YouTube player
   youtube_player_flutter: ^9.0.3
+
+  # Error tracking
+  sentry_flutter: ^8.9.0
 
 dev_dependencies:
   flutter_test:

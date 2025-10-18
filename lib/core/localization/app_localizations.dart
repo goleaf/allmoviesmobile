@@ -73,6 +73,19 @@ class AppLocalizations {
         'chooseLanguage': 'Choose Language',
         'region': 'Region',
         'chooseRegion': 'Choose Region',
+        'notifications': 'Notifications',
+        'notifications_new_releases': 'New releases',
+        'notifications_new_releases_description':
+            'Get alerts when new movies or shows arrive.',
+        'notifications_watchlist_alerts': 'Watchlist alerts',
+        'notifications_watchlist_alerts_description':
+            'Stay informed about updates to your watchlist.',
+        'notifications_recommendations': 'Recommendations',
+        'notifications_recommendations_description':
+            'Receive personalized picks based on your tastes.',
+        'notifications_marketing': 'Marketing updates',
+        'notifications_marketing_description':
+            'Hear about app news and promotional offers.',
         'high_contrast': 'High contrast mode',
         'high_contrast_description':
             'Increase color contrast for better readability.',

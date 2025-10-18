@@ -47,6 +47,8 @@ class SettingsScreen extends StatelessWidget {
           _MinVoteCountTile(),
           _CertificationCountryTile(),
           _CertificationValueTile(),
+          _SettingsHeader(title: l.t('settings.notifications')),
+          const _NotificationSettingsTiles(),
           _SettingsHeader(title: l.t('settings.media')),
           // _ImageQualityTile(),
           _SettingsHeader(title: l.t('settings.cache')),
@@ -194,6 +196,60 @@ class _OfflineStorageTile extends StatelessWidget {
       unitIndex++;
     }
     return '${value.toStringAsFixed(1)} ${units[unitIndex]}';
+  }
+}
+
+class _NotificationSettingsTiles extends StatelessWidget {
+  const _NotificationSettingsTiles();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return Consumer<PreferencesProvider>(
+      builder: (context, provider, _) {
+        return Column(
+          children: [
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.new_releases_outlined),
+              title: Text(l.t('settings.notifications_new_releases')),
+              subtitle:
+                  Text(l.t('settings.notifications_new_releases_description')),
+              value: provider.notificationsNewReleases,
+              onChanged: (value) =>
+                  provider.setNotificationsNewReleases(value),
+            ),
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.playlist_add_check_outlined),
+              title: Text(l.t('settings.notifications_watchlist_alerts')),
+              subtitle: Text(
+                l.t('settings.notifications_watchlist_alerts_description'),
+              ),
+              value: provider.notificationsWatchlistAlerts,
+              onChanged: (value) =>
+                  provider.setNotificationsWatchlistAlerts(value),
+            ),
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.recommend_outlined),
+              title: Text(l.t('settings.notifications_recommendations')),
+              subtitle: Text(
+                l.t('settings.notifications_recommendations_description'),
+              ),
+              value: provider.notificationsRecommendations,
+              onChanged: (value) =>
+                  provider.setNotificationsRecommendations(value),
+            ),
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.campaign_outlined),
+              title: Text(l.t('settings.notifications_marketing')),
+              subtitle:
+                  Text(l.t('settings.notifications_marketing_description')),
+              value: provider.notificationsMarketing,
+              onChanged: (value) => provider.setNotificationsMarketing(value),
+            ),
+          ],
+        );
+      },
+    );
   }
 }
 

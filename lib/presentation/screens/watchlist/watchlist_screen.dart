@@ -379,64 +379,68 @@ class _WatchlistListState extends State<_WatchlistList> {
             ),
             const Divider(height: 1),
             Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: movies.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final movie = movies[index];
-                  final isInWatchlist = provider.isInWatchlist(movie.id);
-                  return Dismissible(
-                    key: ValueKey('watch_${movie.id}'),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withOpacity(0.12),
-                      child: Icon(
-                        Icons.delete_outline,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                    ),
-                    onDismissed: (_) => provider.removeFromWatchlist(movie.id),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        child: Text(
-                          movie.title.isNotEmpty ? movie.title[0] : '?',
+              child: RefreshIndicator(
+                onRefresh: provider.refreshWatchlist,
+                child: ListView.separated(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(16),
+                  itemCount: movies.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final movie = movies[index];
+                    final isInWatchlist = provider.isInWatchlist(movie.id);
+                    return Dismissible(
+                      key: ValueKey('watch_${movie.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.12),
+                        child: Icon(
+                          Icons.delete_outline,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                      title: Text(movie.title),
-                      subtitle: Row(
-                        children: [
-                          Expanded(child: Text(_subtitleFor(movie))),
-                          if (provider.isWatched(movie.id))
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Icons.visibility, size: 16),
-                                  SizedBox(width: 4),
-                                  Text('Watched'),
-                                ],
+                      onDismissed: (_) => provider.removeFromWatchlist(movie.id),
+                      child: ListTile(
+                        leading: CircleAvatar(
+                          child: Text(
+                            movie.title.isNotEmpty ? movie.title[0] : '?',
+                          ),
+                        ),
+                        title: Text(movie.title),
+                        subtitle: Row(
+                          children: [
+                            Expanded(child: Text(_subtitleFor(movie))),
+                            if (provider.isWatched(movie.id))
+                              Padding(
+                                padding: const EdgeInsets.only(left: 8),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Icon(Icons.visibility, size: 16),
+                                    SizedBox(width: 4),
+                                    Text('Watched'),
+                                  ],
+                                ),
                               ),
-                            ),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(
-                          isInWatchlist
-                              ? Icons.bookmark
-                              : Icons.bookmark_border,
+                          ],
                         ),
-                        onPressed: () => provider.toggleWatchlist(movie.id),
+                        trailing: IconButton(
+                          icon: Icon(
+                            isInWatchlist
+                                ? Icons.bookmark
+                                : Icons.bookmark_border,
+                          ),
+                          onPressed: () => provider.toggleWatchlist(movie.id),
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ],

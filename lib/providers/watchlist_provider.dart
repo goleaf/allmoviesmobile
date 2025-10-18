@@ -42,6 +42,10 @@ class WatchlistProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> refreshWatchlist() async {
+    _loadWatchlist();
+  }
+
   Future<void> toggleWatchlist(
     int id, {
     SavedMediaType type = SavedMediaType.movie,

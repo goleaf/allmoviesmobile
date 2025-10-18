@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/favorites_provider.dart';
 // Removed erroneous barrel imports; use direct imports instead
 import '../../core/utils/media_image_helper.dart';
-import 'loading_indicator.dart';
+import '../../core/localization/app_localizations.dart';
 import 'media_image.dart';
 
 /// Movie/TV card with poster, metadata, hero transition and favorite toggle.
@@ -35,6 +35,7 @@ class MovieCard extends StatelessWidget {
     final favoritesProvider = context.watch<FavoritesProvider>();
     final isFavorite = favoritesProvider.isFavorite(id);
     final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
     final accessibilityStrings = loc.accessibility;
 
     final year = (releaseDate != null && releaseDate!.length >= 4)
@@ -43,24 +44,26 @@ class MovieCard extends StatelessWidget {
     final semanticsParts = <String>[title];
     if (year != null) {
       semanticsParts.add(
-        '${loc.movie['release_date'] ?? 'Release date'} $year',
+        '${(loc.movie['release_date'] as String?) ?? 'Release date'} $year',
       );
     }
     if (voteAverage != null) {
       semanticsParts.add(
-        '${loc.movie['rating'] ?? 'Rating'} ${voteAverage!.toStringAsFixed(1)}',
+        '${(loc.movie['rating'] as String?) ?? 'Rating'} ${voteAverage!.toStringAsFixed(1)}',
       );
     }
     final semanticsLabel = semanticsParts.join(', ');
-    final semanticsHint = accessibilityStrings['open_details'] ?? 'Open details';
+    final semanticsHint =
+        (accessibilityStrings['open_details'] as String?) ?? 'Open details';
     final posterLabelTemplate =
-        accessibilityStrings['poster_label'] ?? 'Poster for {title}';
+        (accessibilityStrings['poster_label'] as String?) ?? 'Poster for {title}';
     final posterSemanticLabel =
         posterLabelTemplate.replaceAll('{title}', title);
     final favoriteAddLabel =
-        accessibilityStrings['favorite_add'] ?? 'Add to favorites';
+        (accessibilityStrings['favorite_add'] as String?) ?? 'Add to favorites';
     final favoriteRemoveLabel =
-        accessibilityStrings['favorite_remove'] ?? 'Remove from favorites';
+        (accessibilityStrings['favorite_remove'] as String?) ??
+            'Remove from favorites';
 
     return Semantics(
       container: true,
@@ -82,7 +85,9 @@ class MovieCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(child: _buildPoster(posterSemanticLabel)),
+                    Expanded(
+                      child: _buildPoster(posterSemanticLabel),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Column(
@@ -180,16 +185,20 @@ class MovieCard extends StatelessWidget {
     );
   }
 
-  Widget _buildPoster() {
+  Widget _buildPoster(String semanticLabel) {
     final tag = heroTag ?? 'movie-poster-$id';
     if (posterPath == null || posterPath!.isEmpty) {
       return Hero(
         tag: tag,
         flightShuttleBuilder: _buildFlightShuttle,
-        child: Container(
-          color: Colors.grey[300],
-          child: const Center(
-            child: Icon(Icons.movie, size: 48, color: Colors.grey),
+        child: Semantics(
+          label: semanticLabel,
+          image: true,
+          child: Container(
+            color: Colors.grey[300],
+            child: const Center(
+              child: Icon(Icons.movie, size: 48, color: Colors.grey),
+            ),
           ),
         ),
       );
@@ -198,43 +207,43 @@ class MovieCard extends StatelessWidget {
     return Hero(
       tag: tag,
       flightShuttleBuilder: _buildFlightShuttle,
-      child: MediaImage(
-        path: posterPath,
-        type: MediaImageType.poster,
-        size: MediaImageSize.w342,
-        fit: BoxFit.cover,
-        overlay: MediaImageOverlay(
-          gradientResolvers: [
-            (theme, _) {
-              final isDark = theme.brightness == Brightness.dark;
-              return LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(isDark ? 0.4 : 0.6),
-                  Colors.black.withOpacity(0),
-                ],
-              );
-            },
-          ],
-        ),
-        placeholder: Container(
-          color: Colors.grey[300],
-          child: const Center(child: CircularProgressIndicator()),
-        ),
-        errorWidget: Container(
-          color: Colors.grey[300],
-          child: const Center(
-            child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+      child: Semantics(
+        label: semanticLabel,
+        image: true,
+        child: MediaImage(
+          path: posterPath,
+          type: MediaImageType.poster,
+          size: MediaImageSize.w342,
+          fit: BoxFit.cover,
+          overlay: MediaImageOverlay(
+            gradientResolvers: [
+              (theme, _) {
+                final isDark = theme.brightness == Brightness.dark;
+                return LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black.withOpacity(isDark ? 0.4 : 0.6),
+                    Colors.black.withOpacity(0),
+                  ],
+                );
+              },
+            ],
+          ),
+          placeholder: Container(
+            color: Colors.grey[300],
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+          errorWidget: Container(
+            color: Colors.grey[300],
+            child: const Center(
+              child: Icon(Icons.broken_image, size: 48, color: Colors.grey),
+            ),
           ),
         ),
       ),
     );
 
-    return Hero(
-      tag: resolvedHeroTag,
-      child: imageWidget,
-    );
   }
 
   double _resolveDimension(double value, double fallback) {

@@ -100,6 +100,12 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, SeriesScreen.routeName),
           ),
           ListTile(
+            leading: const Icon(Icons.category_outlined),
+            title: Text(AppLocalizations.of(context).t('navigation.genres')),
+            selected: currentRoute == GenresScreen.routeName,
+            onTap: () => _navigateTo(context, GenresScreen.routeName),
+          ),
+          ListTile(
             leading: const Icon(Icons.people_alt_outlined),
             title: Text(AppLocalizations.of(context).t('navigation.people')),
             selected: currentRoute == PeopleScreen.routeName,

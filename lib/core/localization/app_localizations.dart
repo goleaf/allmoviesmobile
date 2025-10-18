@@ -23,6 +23,7 @@ class AppLocalizations {
         'series': 'Series',
         'people': 'People',
         'companies': 'Companies',
+        'genres': 'Genres',
       },
       'company': {
         'title': 'Company',
@@ -215,6 +216,27 @@ class AppLocalizations {
         'profile_label': 'Profile image for {name}',
         'collection_label': 'Collection poster for {title}',
       },
+      'genre_browser': {
+        'title': 'Genres',
+        'movies_tab': 'Movies',
+        'tv_tab': 'TV Shows',
+        'trending_title': 'Trending genres',
+        'trending_subtitle': "What's popular right now",
+        'selection_hint': 'Pick one or more genres to filter results.',
+        'clear_selection': 'Clear selection',
+        'no_selection': 'Select genres to explore matching titles.',
+        'loading': 'Loading genre data...',
+        'trending_count': '{count} trending titles',
+        'stats_title': 'Genre statistics',
+        'stats_rating': 'Avg rating',
+        'stats_popularity': 'Avg popularity',
+        'stats_votes': 'Avg votes',
+        'stats_years': 'Release span',
+        'stats_top_titles': 'Top titles',
+        'stats_empty': 'Select genres to see statistics.',
+        'load_more': 'Load more',
+        'no_results': 'No titles match this combination yet.',
+      },
     };
     return fallback;
   }
@@ -280,6 +302,8 @@ class AppLocalizations {
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};
   Map<String, dynamic> get errors => _localizedStrings['errors'] ?? {};
   Map<String, dynamic> get genres => _localizedStrings['genres'] ?? {};
+  Map<String, dynamic> get genreBrowser =>
+      _localizedStrings['genre_browser'] ?? {};
   Map<String, dynamic> get accessibility =>
       _localizedStrings['accessibility'] ?? {};
 

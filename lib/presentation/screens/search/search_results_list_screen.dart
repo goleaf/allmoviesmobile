@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 import 'package:provider/provider.dart';
 
 import '../../../data/models/search_result_model.dart';
@@ -93,7 +92,7 @@ class _MediaResultsBody extends StatelessWidget {
           ); // Should not happen normally.
         }
 
-        final controller = provider.mediaPagingController(mediaType);
+        final itemCount = results.length + (provider.isLoadingMore ? 1 : 0);
 
         return NotificationListener<ScrollNotification>(
           onNotification: (notification) {
@@ -154,7 +153,8 @@ class _CompanyResultsBody extends StatelessWidget {
           );
         }
 
-        final controller = provider.companyPagingController;
+        final itemCount =
+            results.length + (provider.isLoadingMoreCompanies ? 1 : 0);
 
         return NotificationListener<ScrollNotification>(
           onNotification: (notification) {

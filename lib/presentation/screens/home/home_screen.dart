@@ -13,6 +13,7 @@ import '../../../providers/people_provider.dart';
 import '../../../providers/recommendations_provider.dart';
 import '../../../providers/series_provider.dart';
 import '../../../providers/watchlist_provider.dart';
+import '../../../core/layout/device_breakpoints.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../widgets/movie_card.dart';
@@ -291,8 +292,12 @@ class _QuickAccessSection extends StatelessWidget {
     final navLabel =
         accessibility['quick_access_navigation'] ?? 'Quick actions';
 
+    final width = MediaQuery.of(context).size.width;
+    final horizontalPadding =
+        DeviceBreakpoints.horizontalPaddingForWidth(width);
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
       child: Semantics(
         container: true,
         label: navLabel,
@@ -309,11 +314,12 @@ class _QuickAccessSection extends StatelessWidget {
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final columns = constraints.maxWidth > 720
-                    ? 3
-                    : constraints.maxWidth > 480
-                        ? 2
-                        : 1;
+                final columns = DeviceBreakpoints.columnsForWidth(
+                  constraints.maxWidth,
+                  phone: 1,
+                  tablet: 2,
+                  desktop: 3,
+                );
                 final spacing = 12.0;
                 final totalSpacing = spacing * (columns - 1);
                 final itemWidth = (constraints.maxWidth - totalSpacing) /

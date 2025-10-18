@@ -9,6 +9,7 @@ import '../../data/models/episode_model.dart';
 import '../../data/models/movie.dart';
 import '../../data/tmdb_repository.dart';
 import '../../providers/app_state_provider.dart';
+import '../../providers/diagnostics_provider.dart';
 import '../navigation/app_destination.dart';
 import '../navigation/episode_detail_args.dart';
 import '../navigation/season_detail_args.dart';
@@ -26,6 +27,7 @@ import '../screens/series/series_filters_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/tv_detail/tv_detail_screen.dart';
 import '../widgets/offline_banner.dart';
+import '../widgets/performance/performance_stats_banner.dart';
 
 /// Hosts the root shell that powers the bottom navigation experience.
 class AppNavigationShell extends StatefulWidget {
@@ -79,28 +81,42 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: _handleWillPop,
-      child: Scaffold(
-        body: Column(
-          children: [
-            const OfflineBanner(),
-            Expanded(
-              child: IndexedStack(
-                index: _destinations.indexOf(_currentDestination),
-                children: [
-                  for (final destination in _destinations)
-                    _DestinationNavigator(
-                      navigatorKey: _navigatorKeys[destination]!,
-                      destination: destination,
-                    ),
-                ],
+    return Consumer<DiagnosticsProvider>(
+      builder: (context, diagnostics, child) {
+        final shell = Scaffold(
+          body: Column(
+            children: [
+              const OfflineBanner(),
+              Expanded(
+                child: IndexedStack(
+                  index: _destinations.indexOf(_currentDestination),
+                  children: [
+                    for (final destination in _destinations)
+                      _DestinationNavigator(
+                        navigatorKey: _navigatorKeys[destination]!,
+                        destination: destination,
+                      ),
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
-        bottomNavigationBar: _buildBottomNavigationBar(),
-      ),
+            ],
+          ),
+          bottomNavigationBar: _buildBottomNavigationBar(),
+        );
+
+        return WillPopScope(
+          onWillPop: _handleWillPop,
+          child: Stack(
+            children: [
+              shell,
+              if (diagnostics.profilerEnabled)
+                PerformanceStatsBanner(
+                  statsListenable: diagnostics.statsListenable,
+                ),
+            ],
+          ),
+        );
+      },
     );
   }
 

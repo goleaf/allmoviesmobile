@@ -7,6 +7,7 @@ import '../../../data/models/configuration_model.dart';
 import '../../../providers/companies_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
+import '../../widgets/virtualized_list_view.dart';
 import '../../../core/utils/media_image_helper.dart' as mih;
 import '../company_detail/company_detail_screen.dart';
 import '../../../core/utils/media_image_helper.dart';
@@ -522,6 +523,7 @@ class _CompanyResultsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CompaniesProvider>();
     if (companies.isEmpty) {
       final loc = AppLocalizations.of(context);
       final theme = Theme.of(context);
@@ -545,16 +547,60 @@ class _CompanyResultsList extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        for (var i = 0; i < companies.length; i++) ...[
-          _CompanyCard(
-            company: companies[i],
-            onTap: () => onCompanySelected(companies[i]),
+    final trailingItems = <Widget>[];
+    if (provider.isSearching) {
+      trailingItems.add(
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    final errorMessage = provider.errorMessage;
+    if (errorMessage != null && errorMessage.isNotEmpty) {
+      final theme = Theme.of(context);
+      trailingItems.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              errorMessage,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
           ),
-          if (i < companies.length - 1) const SizedBox(height: 12),
-        ],
-      ],
+        ),
+      );
+    }
+
+    final itemCount = companies.length + trailingItems.length;
+
+    return VirtualizedSeparatedListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: itemCount,
+      separatorBuilder: (context, index) {
+        final bool isBetweenCompanies = index < companies.length - 1;
+        if (isBetweenCompanies) {
+          return const SizedBox(height: 12);
+        }
+        return const SizedBox(height: 16);
+      },
+      itemBuilder: (context, index) {
+        if (index < companies.length) {
+          final company = companies[index];
+          return _CompanyCard(
+            company: company,
+            onTap: () => onCompanySelected(company),
+          );
+        }
+
+        final trailingIndex = index - companies.length;
+        return trailingItems[trailingIndex];
+      },
     );
   }
 }

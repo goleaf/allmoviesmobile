@@ -27,6 +27,10 @@ class FavoritesProvider with ChangeNotifier {
   bool isFavorite(int id) => _favoriteIds.contains(id);
   int get count => _favoriteIds.length;
 
+  Future<void> refreshFavorites() async {
+    _loadFavorites();
+  }
+
   bool isWatched(int id, {SavedMediaType type = SavedMediaType.movie}) {
     for (final item in _favoriteItems) {
       if (item.id == id && item.type == type) {

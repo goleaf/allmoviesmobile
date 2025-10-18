@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-enum NotificationCategory { system, social, list, recommendation, marketing }
+enum NotificationCategory { system, social, list, recommendation, contentUpdate }
 
 @immutable
 class AppNotification {

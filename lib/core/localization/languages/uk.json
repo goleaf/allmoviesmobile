@@ -6,7 +6,6 @@
   "navigation": {
     "home": "Головна",
     "movies": "Фільми",
-    "genres": "Жанри",
     "tv_shows": "ТВ Шоу",
     "series": "Серіали",
     "people": "Люди",
@@ -37,16 +36,18 @@
     "featured_collections": "Добірки",
     "personalized_recommendations": "Рекомендації для вас"
   },
-  "genres": {
-    "title": "Жанри",
-    "movies_tab": "Фільми",
-    "tv_tab": "Серіали",
-    "empty_movies": "Жанри фільмів з'являться після синхронізації з TMDB.",
-    "empty_tv": "Жанри серіалів з'являться після синхронізації з TMDB.",
-    "discover_movies": "Відкрити добірку фільмів",
-    "discover_tv": "Відкрити добірку серіалів",
-    "adjust_filters": "Налаштувати фільтри",
-    "error_fallback": "Показуємо резервний список жанрів, доки TMDB недоступний."
+  "change_tracking": {
+    "banner_title": "Доступні нові оновлення",
+    "banner_description_single": "TMDB щойно оновив 1 елемент.",
+    "banner_description_multiple": "TMDB щойно оновив {count} елементів.",
+    "view": "Переглянути",
+    "mark_read": "Позначити прочитаним",
+    "refresh": "Оновити дані",
+    "sheet_title": "Останні зміни контенту",
+    "empty": "Усе переглянуто. Ми повідомимо, коли TMDB оновить дані.",
+    "updated_movie": "Фільм оновлено",
+    "updated_tv": "Серіал оновлено",
+    "updated_person": "Персону оновлено"
   },
   "movie": {
     "title": "Фільм",
@@ -84,22 +85,6 @@
     "add_to_watchlist": "Додати до Списку Перегляду",
     "remove_from_watchlist": "Прибрати зі Списку Перегляду",
     "share": "Поділитися"
-  },
-  "reviews": {
-    "title": "User Reviews",
-    "empty": "No reviews yet",
-    "filter_label": "Rating",
-    "sort_label": "Sort",
-    "sort_newest": "Newest",
-    "sort_highest": "Highest rated",
-    "report": "Report",
-    "reported": "Reported",
-    "report_success": "Thanks, we'll take a look.",
-    "helpful": "Helpful",
-    "not_helpful": "Not helpful",
-    "helpful_votes": "Helpful votes",
-    "read_full": "Read full review",
-    "load_more": "Load more"
   },
   "share": {
     "title": "Поділитися посиланням",
@@ -140,14 +125,6 @@
     "episode_group_type_5": "Порядок сюжетної арки",
     "episode_group_type_6": "Виробничий порядок",
     "episode_group_type_7": "Телевізійний порядок"
-  },
-  "episode": {
-    "title": "Епізод",
-    "cast": "Акторський склад",
-    "guest_stars": "Запрошені зірки",
-    "crew": "Знімальна команда",
-    "videos": "Відео та трейлери",
-    "images": "Кадри епізоду"
   },
   "person": {
     "title": "Персона",
@@ -378,21 +355,6 @@
     "added": "Додано до списку",
     "removed": "Видалено зі списку"
   },
-  "notifications": {
-    "title": "Сповіщення",
-    "empty": "Усі сповіщення переглянуто.",
-    "mark_all_read": "Позначити всі як прочитані",
-    "clear_all": "Очистити все",
-    "clear_all_confirm": "Це видалить усі сповіщення. Продовжити?",
-    "view": "Переглянути",
-    "mark_read": "Позначити прочитаним",
-    "category": {
-      "system": "Оновлення",
-      "social": "Спільнота",
-      "list": "Списки й відстежуване",
-      "recommendation": "Рекомендації"
-    }
-  },
   "accessibility": {
     "search_hint": "Пошук фільмів, серіалів або людей",
     "search_label": "Пошук у каталозі",
@@ -418,15 +380,6 @@
     "language_english": "Англійська",
     "language_russian": "Російська",
     "language_ukrainian": "Українська",
-    "notifications": "Сповіщення",
-    "notifications_new_releases": "Нові релізи",
-    "notifications_new_releases_description": "Отримуйте сповіщення про появу нових фільмів та серіалів.",
-    "notifications_watchlist_alerts": "Оповіщення списку перегляду",
-    "notifications_watchlist_alerts_description": "Будьте в курсі змін у вашому списку перегляду.",
-    "notifications_recommendations": "Рекомендації",
-    "notifications_recommendations_description": "Отримуйте персональні добірки відповідно до ваших вподобань.",
-    "notifications_marketing": "Маркетингові оновлення",
-    "notifications_marketing_description": "Дозвольте надсилання новин та промо-пропозицій.",
     "cache": "Кеш",
     "clear_cache": "Очистити Кеш",
     "cache_cleared": "Кеш успішно очищено",
@@ -439,22 +392,7 @@
     "color_blind_friendly": "Палітра для людей з дальтонізмом",
     "color_blind_friendly_description": "Використовує кольори, що залишаються розрізнюваними при поширених формах дальтонізму.",
     "text_size": "Розмір тексту",
-    "text_size_description": "Налаштування масштабу тексту інтерфейсу.",
-    "notifications": "Сповіщення",
-    "notifications_enable": "Push-сповіщення",
-    "notifications_description": "Отримуйте сповіщення про нові релізи, зміни у списку та персональні рекомендації.",
-    "notifications_permission_rationale": "Увімкніть push-сповіщення, щоб дізнаватися про нові релізи та доступність у стримінгу.",
-    "notifications_permission_denied": "Сповіщення вимкнені в системних налаштуваннях. Увімкніть їх, щоб отримувати сповіщення.",
-    "notifications_permission_pending": "Натисніть перемикач вище, щоб увімкнути сповіщення.",
-    "notifications_disabled": "Push-сповіщення вимкнені.",
-    "notifications_platform_unsupported": "Push-сповіщення доступні лише на Android та iOS.",
-    "notifications_sync_error": "Не вдалося оновити налаштування сповіщень.",
-    "notifications_categories": {
-      "new_releases": "Нові релізи",
-      "watchlist": "Сповіщення списку відстеження",
-      "recommendations": "Персональні рекомендації",
-      "marketing": "Новини та оновлення продукту"
-    }
+    "text_size_description": "Налаштування масштабу тексту інтерфейсу."
   },
   "statistics": {
     "title": "Статистика переглядів",
@@ -497,7 +435,6 @@
     "retry": "Повторити",
     "refresh": "Оновити",
     "cancel": "Скасувати",
-    "confirm": "Підтвердити",
     "ok": "ОК",
     "yes": "Так",
     "no": "Ні",

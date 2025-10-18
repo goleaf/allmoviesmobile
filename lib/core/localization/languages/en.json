@@ -6,7 +6,6 @@
   "navigation": {
     "home": "Home",
     "movies": "Movies",
-    "genres": "Genres",
     "tv_shows": "TV Shows",
     "series": "Series",
     "people": "People",
@@ -37,16 +36,18 @@
     "featured_collections": "Featured collections",
     "personalized_recommendations": "Recommended for you"
   },
-  "genres": {
-    "title": "Genres",
-    "movies_tab": "Movies",
-    "tv_tab": "TV Shows",
-    "empty_movies": "Movie genres will appear once we're synced with TMDB.",
-    "empty_tv": "TV genres will appear once we're synced with TMDB.",
-    "discover_movies": "Discover movies",
-    "discover_tv": "Discover series",
-    "adjust_filters": "Adjust filters",
-    "error_fallback": "We're showing fallback genres until TMDB responds."
+  "change_tracking": {
+    "banner_title": "Latest updates available",
+    "banner_description_single": "TMDB just refreshed 1 item.",
+    "banner_description_multiple": "TMDB just refreshed {count} items.",
+    "view": "View",
+    "mark_read": "Mark as read",
+    "refresh": "Refresh updates",
+    "sheet_title": "Recent content changes",
+    "empty": "You're all caught up. We'll let you know when TMDB updates.",
+    "updated_movie": "Movie updated",
+    "updated_tv": "Series updated",
+    "updated_person": "Person updated"
   },
   "movie": {
     "title": "Movie",
@@ -140,14 +141,6 @@
     "episode_group_type_5": "Story arc order",
     "episode_group_type_6": "Production order",
     "episode_group_type_7": "TV order"
-  },
-  "episode": {
-    "title": "Episode",
-    "cast": "Cast",
-    "guest_stars": "Guest Stars",
-    "crew": "Crew",
-    "videos": "Videos & Trailers",
-    "images": "Episode Images"
   },
   "person": {
     "title": "Person",
@@ -378,21 +371,6 @@
     "added": "Added to watchlist",
     "removed": "Removed from watchlist"
   },
-  "notifications": {
-    "title": "Notifications",
-    "empty": "You're all caught up.",
-    "mark_all_read": "Mark all read",
-    "clear_all": "Clear all",
-    "clear_all_confirm": "This will remove all notifications. Continue?",
-    "view": "View",
-    "mark_read": "Mark read",
-    "category": {
-      "system": "Updates",
-      "social": "Community",
-      "list": "Lists & Watchlist",
-      "recommendation": "Suggestions"
-    }
-  },
   "accessibility": {
     "search_hint": "Search for movies, shows, or people",
     "search_label": "Search the catalog",
@@ -418,15 +396,6 @@
     "language_english": "English",
     "language_russian": "Russian",
     "language_ukrainian": "Ukrainian",
-    "notifications": "Notifications",
-    "notifications_new_releases": "New releases",
-    "notifications_new_releases_description": "Get alerts when new movies or shows arrive.",
-    "notifications_watchlist_alerts": "Watchlist alerts",
-    "notifications_watchlist_alerts_description": "Stay informed about updates to your watchlist.",
-    "notifications_recommendations": "Recommendations",
-    "notifications_recommendations_description": "Receive personalized picks based on your tastes.",
-    "notifications_marketing": "Marketing updates",
-    "notifications_marketing_description": "Hear about app news and promotional offers.",
     "cache": "Cache",
     "clear_cache": "Clear Cache",
     "cache_cleared": "Cache cleared successfully",
@@ -439,22 +408,7 @@
     "color_blind_friendly": "Color-blind friendly palette",
     "color_blind_friendly_description": "Use palettes that remain legible for common color blindness.",
     "text_size": "Text size",
-    "text_size_description": "Adjust interface text scale.",
-    "notifications": "Notifications",
-    "notifications_enable": "Push notifications",
-    "notifications_description": "Get alerts about new releases, watchlist updates, and personalized picks.",
-    "notifications_permission_rationale": "Enable push notifications to stay informed about new releases and streaming availability.",
-    "notifications_permission_denied": "Notifications are disabled in system settings. Enable them to receive alerts.",
-    "notifications_permission_pending": "Tap the switch above to enable notifications.",
-    "notifications_disabled": "Push notifications are turned off.",
-    "notifications_platform_unsupported": "Push notifications are only available on Android and iOS.",
-    "notifications_sync_error": "Unable to update notification preferences right now.",
-    "notifications_categories": {
-      "new_releases": "New releases",
-      "watchlist": "Watchlist alerts",
-      "recommendations": "Personalized recommendations",
-      "marketing": "Product updates & announcements"
-    }
+    "text_size_description": "Adjust interface text scale."
   },
   "statistics": {
     "title": "Viewing statistics",
@@ -497,7 +451,6 @@
     "retry": "Retry",
     "refresh": "Refresh",
     "cancel": "Cancel",
-    "confirm": "Confirm",
     "ok": "OK",
     "yes": "Yes",
     "no": "No",

@@ -1,9 +1,6 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
-import 'supported_locales.dart' as localization_metadata;
 
 class AppLocalizations {
   final Locale locale;
@@ -23,7 +20,6 @@ class AppLocalizations {
       'app': {'name': 'AllMovies'},
       'navigation': {
         'movies': 'Movies',
-        'genres': 'Genres',
         'series': 'Series',
         'people': 'People',
         'companies': 'Companies',
@@ -48,7 +44,6 @@ class AppLocalizations {
       },
       'common': {
         'cancel': 'Cancel',
-        'confirm': 'Confirm',
         'retry': 'Retry',
         'refresh': 'Refresh',
         'from': 'From',
@@ -78,19 +73,6 @@ class AppLocalizations {
         'chooseLanguage': 'Choose Language',
         'region': 'Region',
         'chooseRegion': 'Choose Region',
-        'notifications': 'Notifications',
-        'notifications_new_releases': 'New releases',
-        'notifications_new_releases_description':
-            'Get alerts when new movies or shows arrive.',
-        'notifications_watchlist_alerts': 'Watchlist alerts',
-        'notifications_watchlist_alerts_description':
-            'Stay informed about updates to your watchlist.',
-        'notifications_recommendations': 'Recommendations',
-        'notifications_recommendations_description':
-            'Receive personalized picks based on your tastes.',
-        'notifications_marketing': 'Marketing updates',
-        'notifications_marketing_description':
-            'Hear about app news and promotional offers.',
         'high_contrast': 'High contrast mode',
         'high_contrast_description':
             'Increase color contrast for better readability.',
@@ -112,16 +94,19 @@ class AppLocalizations {
         'continue_watching': 'Continue Watching',
         'personalized_recommendations': 'Recommended for you',
       },
-      'genres': {
-        'title': 'Genres',
-        'movies_tab': 'Movies',
-        'tv_tab': 'TV Shows',
-        'empty_movies': "Movie genres will appear once we're synced with TMDB.",
-        'empty_tv': "TV genres will appear once we're synced with TMDB.",
-        'discover_movies': 'Discover movies',
-        'discover_tv': 'Discover series',
-        'adjust_filters': 'Adjust filters',
-        'error_fallback': "We're showing fallback genres until TMDB responds.",
+      'change_tracking': {
+        'banner_title': 'Latest updates available',
+        'banner_description_single': 'TMDB just refreshed 1 item.',
+        'banner_description_multiple':
+            'TMDB just refreshed {count} items.',
+        'view': 'View',
+        'mark_read': 'Mark as read',
+        'refresh': 'Refresh updates',
+        'sheet_title': 'Recent content changes',
+        'empty': 'You\'re all caught up. We\'ll let you know when TMDB updates.',
+        'updated_movie': 'Movie updated',
+        'updated_tv': 'Series updated',
+        'updated_person': 'Person updated',
       },
       'tv': {
         'overview': 'Overview',
@@ -146,14 +131,6 @@ class AppLocalizations {
         'episode_group_type_6': 'Production order',
         'episode_group_type_7': 'TV order',
       },
-      'episode': {
-        'title': 'Episode',
-        'cast': 'Cast',
-        'guest_stars': 'Guest stars',
-        'crew': 'Crew',
-        'videos': 'Videos & trailers',
-        'images': 'Episode images',
-      },
       'movie': {
         'overview': 'Overview',
         'cast': 'Cast',
@@ -161,7 +138,6 @@ class AppLocalizations {
         'videos': 'Videos',
         'images': 'Images',
         'movies': 'Movies',
-        'share': 'Share',
       },
       'person': {
         'popularity': 'Popularity',
@@ -239,21 +215,6 @@ class AppLocalizations {
         'profile_label': 'Profile image for {name}',
         'collection_label': 'Collection poster for {title}',
       },
-      'notifications': {
-        'title': 'Notifications',
-        'empty': "You're all caught up.",
-        'mark_all_read': 'Mark all read',
-        'clear_all': 'Clear all',
-        'clear_all_confirm': 'This will remove all notifications. Continue?',
-        'view': 'View',
-        'mark_read': 'Mark read',
-        'category': {
-          'system': 'Updates',
-          'social': 'Community',
-          'list': 'Lists & Watchlist',
-          'recommendation': 'Suggestions',
-        }
-      },
     };
     return fallback;
   }
@@ -261,9 +222,11 @@ class AppLocalizations {
   static const LocalizationsDelegate<AppLocalizations> delegate =
       _AppLocalizationsDelegate();
 
-  static final List<Locale> supportedLocales = UnmodifiableListView(
-    localization_metadata.supportedLocales,
-  );
+  static const List<Locale> supportedLocales = [
+    Locale('en', ''),
+    Locale('ru', ''),
+    Locale('uk', ''),
+  ];
 
   Future<bool> load() async {
     try {
@@ -305,7 +268,6 @@ class AppLocalizations {
   Map<String, dynamic> get home => _localizedStrings['home'] ?? {};
   Map<String, dynamic> get movie => _localizedStrings['movie'] ?? {};
   Map<String, dynamic> get tv => _localizedStrings['tv'] ?? {};
-  Map<String, dynamic> get episode => _localizedStrings['episode'] ?? {};
   Map<String, dynamic> get person => _localizedStrings['person'] ?? {};
   Map<String, dynamic> get company => _localizedStrings['company'] ?? {};
   Map<String, dynamic> get network => _localizedStrings['network'] ?? {};
@@ -313,8 +275,6 @@ class AppLocalizations {
   Map<String, dynamic> get discover => _localizedStrings['discover'] ?? {};
   Map<String, dynamic> get favorites => _localizedStrings['favorites'] ?? {};
   Map<String, dynamic> get watchlist => _localizedStrings['watchlist'] ?? {};
-  Map<String, dynamic> get notifications =>
-      _localizedStrings['notifications'] ?? {};
   Map<String, dynamic> get settings => _localizedStrings['settings'] ?? {};
   Map<String, dynamic> get statistics => _localizedStrings['statistics'] ?? {};
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};
@@ -333,13 +293,7 @@ class _AppLocalizationsDelegate
 
   @override
   bool isSupported(Locale locale) {
-    return AppLocalizations.supportedLocales.any(
-      (supported) =>
-          supported.languageCode == locale.languageCode &&
-          (supported.countryCode == null ||
-              supported.countryCode!.isEmpty ||
-              supported.countryCode == locale.countryCode),
-    );
+    return ['en', 'ru', 'uk'].contains(locale.languageCode);
   }
 
   @override

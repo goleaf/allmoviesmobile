@@ -29,42 +29,29 @@ class AppTheme {
 
   static ThemeData light({
     ColorScheme? dynamicScheme,
-    bool highContrast = false,
-    bool colorBlindFriendly = false,
-    bool emphasizeFocus = true,
+    AccessibilityThemeOptions options = const AccessibilityThemeOptions(),
   }) {
     final baseScheme = dynamicScheme ?? _fallbackLightScheme;
-    final colorScheme = _applyAccessibility(
-      baseScheme,
-      highContrast: highContrast,
-      colorBlindFriendly: colorBlindFriendly,
-    );
-    return _buildTheme(colorScheme, highContrast: highContrast, emphasizeFocus: emphasizeFocus);
+    final colorScheme = _applyAccessibility(baseScheme, options);
+    return _buildTheme(colorScheme, options);
   }
 
   static ThemeData dark({
     ColorScheme? dynamicScheme,
-    bool highContrast = false,
-    bool colorBlindFriendly = false,
-    bool emphasizeFocus = true,
+    AccessibilityThemeOptions options = const AccessibilityThemeOptions(),
   }) {
     final baseScheme = dynamicScheme ?? _fallbackDarkScheme;
-    final colorScheme = _applyAccessibility(
-      baseScheme,
-      highContrast: highContrast,
-      colorBlindFriendly: colorBlindFriendly,
-    );
-    return _buildTheme(colorScheme, highContrast: highContrast, emphasizeFocus: emphasizeFocus);
+    final colorScheme = _applyAccessibility(baseScheme, options);
+    return _buildTheme(colorScheme, options);
   }
 
   static ColorScheme _applyAccessibility(
-    ColorScheme base, {
-    required bool highContrast,
-    required bool colorBlindFriendly,
-  }) {
+    ColorScheme base,
+    AccessibilityThemeOptions options,
+  ) {
     var scheme = base;
 
-    if (colorBlindFriendly) {
+    if (options.colorBlindFriendlyPalette) {
       const primary = Color(0xFF005A9C);
       const onPrimary = Color(0xFFFFFFFF);
       const secondary = Color(0xFFF18F01);
@@ -91,7 +78,7 @@ class AppTheme {
       );
     }
 
-    if (highContrast) {
+    if (options.highContrast) {
       scheme = base.brightness == Brightness.dark
           ? ColorScheme.highContrastDark(
               primary: scheme.primary,
@@ -132,7 +119,10 @@ class AppTheme {
     return scheme;
   }
 
-  static ThemeData _buildTheme(ColorScheme colorScheme, {bool highContrast = false, bool emphasizeFocus = true}) {
+  static ThemeData _buildTheme(
+    ColorScheme colorScheme,
+    AccessibilityThemeOptions options,
+  ) {
     final isDark = colorScheme.brightness == Brightness.dark;
     // Avoid runtime font fetching during tests or when fonts are unavailable
     final baseTextTheme = ThemeData(
@@ -156,9 +146,11 @@ class AppTheme {
     final surfaceElevated = surfaceTint(isDark ? 0.32 : 0.12);
     final surfaceHighest = surfaceTint(isDark ? 0.4 : 0.16);
 
-    final focusGlowColor = emphasizeFocus
-        ? colorScheme.tertiary.withOpacity(isDark ? 0.85 : 0.7)
-        : colorScheme.primary.withOpacity(0.4);
+    final focusHighlightColor = options.highContrast
+        ? colorScheme.secondary.withOpacity(isDark ? 0.55 : 0.45)
+        : options.emphasizeFocus
+            ? colorScheme.tertiary.withOpacity(isDark ? 0.85 : 0.7)
+            : colorScheme.primary.withOpacity(isDark ? 0.22 : 0.16);
 
     return ThemeData(
       useMaterial3: true,
@@ -169,10 +161,16 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.surface,
       textTheme: textTheme,
       iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
-      focusColor: focusGlowColor,
-      hoverColor: colorScheme.primary.withOpacity(0.08),
-      highlightColor: colorScheme.primary.withOpacity(0.12),
-      splashColor: colorScheme.primary.withOpacity(0.16),
+      focusColor: focusHighlightColor,
+      hoverColor: colorScheme.primary.withOpacity(
+        options.emphasizeFocus ? 0.1 : 0.08,
+      ),
+      highlightColor: colorScheme.primary.withOpacity(
+        options.emphasizeFocus ? 0.16 : 0.12,
+      ),
+      splashColor: colorScheme.primary.withOpacity(
+        options.emphasizeFocus ? 0.2 : 0.16,
+      ),
       // cardTheme removed to avoid SDK type conflicts; rely on defaults
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,

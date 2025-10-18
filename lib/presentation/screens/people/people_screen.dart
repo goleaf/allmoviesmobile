@@ -8,6 +8,7 @@ import '../../../providers/people_provider.dart';
 import '../../../data/models/person_detail_model.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -174,10 +175,6 @@ class _PeopleSectionView extends StatelessWidget {
     return Consumer<PeopleProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
-        if (state.isLoading && state.items.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
@@ -185,28 +182,43 @@ class _PeopleSectionView extends StatelessWidget {
           );
         }
 
+        final showSkeleton = state.isLoading && state.items.isEmpty;
+
         return RefreshIndicator(
           onRefresh: () => onRefreshAll(context),
-          child: _PeopleList(
-            people: state.items,
-            controller: controller,
-            onPersonSelected: (person) async {
-              try {
-                final PersonDetail details = await provider.loadDetails(
-                  person.id,
-                );
-                // ignore: use_build_context_synchronously
-                if (context.mounted) {
-                  _showPersonDetails(context, details.id);
-                }
-              } catch (error) {
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Failed to load details: $error')),
-                  );
-                }
-              }
-            },
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            switchInCurve: Curves.easeInOut,
+            switchOutCurve: Curves.easeInOut,
+            child: showSkeleton
+                ? _PeopleListSkeleton(
+                    key: const ValueKey('people_skeleton'),
+                    controller: controller,
+                  )
+                : _PeopleList(
+                    key: const ValueKey('people_list'),
+                    people: state.items,
+                    controller: controller,
+                    onPersonSelected: (person) async {
+                      try {
+                        final PersonDetail details = await provider.loadDetails(
+                          person.id,
+                        );
+                        // ignore: use_build_context_synchronously
+                        if (context.mounted) {
+                          _showPersonDetails(context, details.id);
+                        }
+                      } catch (error) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to load details: $error'),
+                            ),
+                          );
+                        }
+                      }
+                    },
+                  ),
           ),
         );
       },
@@ -220,6 +232,7 @@ class _PeopleSectionView extends StatelessWidget {
 
 class _PeopleList extends StatelessWidget {
   const _PeopleList({
+    super.key,
     required this.people,
     required this.onPersonSelected,
     this.controller,
@@ -268,6 +281,80 @@ class _PeopleList extends StatelessWidget {
       },
       cacheExtent: 640,
       addAutomaticKeepAlives: true,
+    );
+  }
+}
+
+class _PeopleListSkeleton extends StatelessWidget {
+  const _PeopleListSkeleton({super.key, this.controller});
+
+  final ScrollController? controller;
+
+  static const _itemCount = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      controller: controller,
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: _itemCount,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) => const _PersonCardSkeleton(),
+    );
+  }
+}
+
+class _PersonCardSkeleton extends StatelessWidget {
+  const _PersonCardSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const ShimmerLoading(
+              width: 64,
+              height: 64,
+              borderRadius: BorderRadius.all(Radius.circular(32)),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final maxWidth = constraints.maxWidth;
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerLoading(
+                        width: maxWidth * 0.6,
+                        height: 16,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: 8),
+                      ShimmerLoading(
+                        width: maxWidth * 0.4,
+                        height: 14,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      const SizedBox(height: 8),
+                      ShimmerLoading(
+                        width: maxWidth * 0.5,
+                        height: 14,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -10,6 +12,7 @@ import 'package:allmovies_mobile/data/tmdb_repository.dart';
 import 'package:allmovies_mobile/providers/people_provider.dart';
 import 'package:allmovies_mobile/presentation/screens/people/people_screen.dart';
 import 'package:allmovies_mobile/core/localization/app_localizations.dart';
+import 'package:allmovies_mobile/presentation/widgets/loading_indicator.dart';
 
 import '../test_utils/pump_app.dart';
 
@@ -56,6 +59,34 @@ class _FakeRepo extends TmdbRepository {
     // keep the object intentionally small for quicker test execution.
     return detail ?? PersonDetail(id: personId, name: 'Detail $personId');
   }
+}
+
+class _PendingRepo extends TmdbRepository {
+  _PendingRepo({
+    required this.trendingCompleter,
+    required this.popularCompleter,
+  });
+
+  final Completer<List<Person>> trendingCompleter;
+  final Completer<PaginatedResponse<Person>> popularCompleter;
+
+  @override
+  Future<List<Person>> fetchTrendingPeople({
+    String timeWindow = 'day',
+    bool forceRefresh = false,
+  }) async => trendingCompleter.future;
+
+  @override
+  Future<PaginatedResponse<Person>> fetchPopularPeople({
+    int page = 1,
+    bool forceRefresh = false,
+  }) async => popularCompleter.future;
+
+  @override
+  Future<PersonDetail> fetchPersonDetails(
+    int personId, {
+    bool forceRefresh = false,
+  }) async => PersonDetail(id: personId, name: 'Detail $personId');
 }
 
 /// Simple observer that captures pushed routes so we can ensure the expected
@@ -205,5 +236,55 @@ void main() {
 
     expect(find.text('Actor One'), findsOneWidget);
     expect(find.text('Director One'), findsOneWidget);
+  });
+
+  testWidgets('renders shimmer skeleton while initial results load', (tester) async {
+    final trendingCompleter = Completer<List<Person>>();
+    final popularCompleter = Completer<PaginatedResponse<Person>>();
+
+    await pumpApp(
+      tester,
+      const PeopleScreen(),
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => PeopleProvider(
+            _PendingRepo(
+              trendingCompleter: trendingCompleter,
+              popularCompleter: popularCompleter,
+            ),
+          ),
+        ),
+      ],
+      localizationsDelegates: delegates,
+    );
+
+    await tester.pump();
+
+    expect(find.byType(ShimmerLoading), findsWidgets);
+
+    final listFinder = find.byWidgetPredicate(
+      (widget) =>
+          widget is ListView &&
+          widget.physics is AlwaysScrollableScrollPhysics,
+    );
+    expect(listFinder, findsOneWidget);
+
+    trendingCompleter.complete(
+      const [Person(id: 30, name: 'Trending Loaded')],
+    );
+    popularCompleter.complete(
+      PaginatedResponse<Person>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 1,
+        results: const [Person(id: 31, name: 'Popular Loaded')],
+      ),
+    );
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    expect(find.byType(ShimmerLoading), findsNothing);
+    expect(find.text('Trending Loaded'), findsOneWidget);
   });
 }

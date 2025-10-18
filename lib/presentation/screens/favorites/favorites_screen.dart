@@ -372,69 +372,83 @@ class _FavoritesListState extends State<_FavoritesList> {
         final avgRating = _averageRating(movies);
         final totalRuntime = _totalRuntimeMinutes(movies);
 
-        return Column(
-          children: [
-            _StatsBar(
-              count: movies.length,
-              avgRating: avgRating,
-              totalRuntimeMinutes: totalRuntime,
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: ListView.separated(
-                padding: const EdgeInsets.all(16),
-                itemCount: movies.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 12),
-                itemBuilder: (context, index) {
-                  final movie = movies[index];
-                  final isFavorite = provider.isFavorite(movie.id);
-                  return Dismissible(
-                    key: ValueKey('favorite_${movie.id}'),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.symmetric(horizontal: 16),
-                      color: Colors.redAccent.withOpacity(0.12),
-                      child: const Icon(Icons.delete_outline, color: Colors.redAccent),
+        return RefreshIndicator(
+          onRefresh: provider.refreshFavorites,
+          child: ListView.separated(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(bottom: 16),
+            itemCount: movies.length + 1,
+            separatorBuilder: (context, index) {
+              if (index == 0) {
+                return const SizedBox(height: 16);
+              }
+              return const SizedBox(height: 12);
+            },
+            itemBuilder: (context, index) {
+              if (index == 0) {
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _StatsBar(
+                      count: movies.length,
+                      avgRating: avgRating,
+                      totalRuntimeMinutes: totalRuntime,
                     ),
-                    onDismissed: (_) => provider.removeFavorite(movie.id),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        child: Text(
-                          movie.title.isNotEmpty ? movie.title[0] : '?',
-                        ),
+                    const Divider(height: 1),
+                  ],
+                );
+              }
+
+              final movie = movies[index - 1];
+              final isFavorite = provider.isFavorite(movie.id);
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Dismissible(
+                  key: ValueKey('favorite_${movie.id}'),
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    color: Colors.redAccent.withOpacity(0.12),
+                    child: const Icon(Icons.delete_outline, color: Colors.redAccent),
+                  ),
+                  onDismissed: (_) => provider.removeFavorite(movie.id),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Text(
+                        movie.title.isNotEmpty ? movie.title[0] : '?',
                       ),
-                      title: Text(movie.title),
-                      subtitle: Row(
-                        children: [
-                          Expanded(child: Text(_subtitleFor(movie))),
-                          if (provider.isWatched(movie.id))
-                            Padding(
-                              padding: const EdgeInsets.only(left: 8),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Icons.visibility, size: 16),
-                                  SizedBox(width: 4),
-                                  Text('Watched'),
-                                ],
-                              ),
+                    ),
+                    title: Text(movie.title),
+                    subtitle: Row(
+                      children: [
+                        Expanded(child: Text(_subtitleFor(movie))),
+                        if (provider.isWatched(movie.id))
+                          Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Icon(Icons.visibility, size: 16),
+                                SizedBox(width: 4),
+                                Text('Watched'),
+                              ],
                             ),
-                        ],
-                      ),
-                      trailing: IconButton(
-                        icon: Icon(
-                          isFavorite ? Icons.favorite : Icons.favorite_border,
-                          color: isFavorite ? Colors.redAccent : null,
-                        ),
-                        onPressed: () => provider.toggleFavorite(movie.id),
-                      ),
+                          ),
+                      ],
                     ),
-                  );
-                },
-              ),
-            ),
-          ],
+                    trailing: IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.redAccent : null,
+                      ),
+                      onPressed: () => provider.toggleFavorite(movie.id),
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         );
       },
     );

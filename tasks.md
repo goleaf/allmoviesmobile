@@ -184,7 +184,7 @@ write all code with comments, maximum comments, update files if not comments for
 - [x] Infinite scroll pagination
 
 #### 🔄 Remaining Tasks
-- [x] Enhanced pagination with jump-to-page
+- [ ] Enhanced pagination with jump-to-page
 - [ ] Filter presets save/load
 
 **Files Implemented**:
@@ -874,9 +874,9 @@ All search types are fully implemented in repository and accessible via search p
   - Settings
 - [ ] Quick filters in app bar
  - [x] Quick filters in app bar
-- [x] Breadcrumb navigation for deep links
+- [ ] Breadcrumb navigation for deep links
 - [x] Back navigation preservation
-- [x] Deep linking support
+- [ ] Deep linking support
 
 **Files Updated**:
 - `lib/main.dart`
@@ -1034,7 +1034,7 @@ All search types are fully implemented in repository and accessible via search p
 ## 🎯 PRIORITY 7: Additional Content Screens (Week 8)
 
 ### 7.1 Certifications Screen
-**Status**: 🟢 Complete
+**Status**: 🟢 100% Complete
 **Priority**: LOW
 
 - [x] Movie certifications by country
@@ -1083,18 +1083,18 @@ All search types are fully implemented in repository and accessible via search p
 ---
 
 ### 7.4 Configuration Screen (Advanced)
-**Status**: 🟢 100% Complete
+**Status**: 🔴 Not Started  
 **Priority**: LOW
 
-- [x] API configuration caching display
-- [x] Image base URLs info
-- [x] Available image sizes
-- [x] Change tracking
-- [x] Supported languages list
-- [x] Supported countries list
-- [x] Supported timezones
-- [x] Supported jobs/departments
-- [x] Available certifications
+- [ ] API configuration caching display
+- [ ] Image base URLs info
+- [ ] Available image sizes
+- [ ] Change tracking
+- [ ] Supported languages list
+- [ ] Supported countries list
+- [ ] Supported timezones
+- [ ] Supported jobs/departments
+- [ ] Available certifications
 
 **Files to Create**:
 - `lib/presentation/screens/config/config_info_screen.dart`
@@ -1127,16 +1127,16 @@ All search types are fully implemented in repository and accessible via search p
 **Status**: 🔴 Not Started  
 **Priority**: LOW
 
-- [x] Watch time statistics
-- [x] Charts for:
-  - [x] Box office trends
-  - [x] Rating distributions
-  - [x] Release timelines
-  - [x] Genre popularity
-  - [x] Actor career timeline
-  - [x] Budget vs revenue scatter
-  - [x] Episode ratings graph
-  - [x] Season comparison charts
+- [ ] Watch time statistics
+- [ ] Charts for:
+  - Box office trends
+  - Rating distributions
+  - Release timelines
+  - Genre popularity
+  - Actor career timeline
+  - Budget vs revenue scatter
+  - Episode ratings graph
+  - Season comparison charts
 
 **Files to Create**:
 - `lib/presentation/screens/statistics/statistics_screen.dart`

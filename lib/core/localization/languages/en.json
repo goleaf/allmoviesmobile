@@ -10,13 +10,12 @@
     "series": "Series",
     "people": "People",
     "companies": "Companies",
-    "certifications": "Content Ratings",
     "search": "Search",
     "discover": "Discover",
     "favorites": "Favorites",
     "watchlist": "Watchlist",
     "settings": "Settings",
-    "statistics": "Statistics"
+    "certifications": "Certifications"
   },
   "home": {
     "trending": "Trending",
@@ -408,21 +407,6 @@
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites"
   },
-  "certifications": {
-    "title": "Content ratings",
-    "movies_tab": "Movies",
-    "tv_tab": "TV",
-    "search_hint": "Search by country or rating",
-    "filter_all": "All ratings",
-    "filter_label_movies": "Movie rating",
-    "filter_label_tv": "TV rating",
-    "info_message": "Browse official ratings, explanations, and age guidance for each region.",
-    "empty_message": "No certifications match your filters yet. Try selecting a different rating.",
-    "warning_mature": "⚠️ Mature audiences only",
-    "warning_parental": "🔶 Parental guidance strongly advised",
-    "warning_unrated": "ℹ️ Not formally rated",
-    "warning_general": "✅ Suitable for general audiences"
-  },
   "errors": {
     "generic": "Something went wrong",
     "network_error": "Network error. Please check your connection.",
@@ -482,37 +466,5 @@
     "war": "War",
     "war_politics": "War & Politics",
     "western": "Western"
-  },
-  "statistics": {
-    "title": "Statistics",
-    "chart_placeholder": "Add more items to unlock this chart.",
-    "watch_time_title": "Watch time overview",
-    "watch_time_total": "Total planned",
-    "watch_time_watched": "Watched",
-    "watch_time_remaining": "Remaining",
-    "watch_time_completion": "Completion rate",
-    "watch_time_movies": "Movies",
-    "watch_time_tv": "TV shows",
-    "watch_time_watched_count": "Watched titles",
-    "watch_time_unwatched_count": "Queued titles",
-    "rating_distribution": "Rating distribution",
-    "release_timeline": "Release timeline",
-    "genre_popularity": "Genre popularity",
-    "box_office_trend": "Box office trend (vote count proxy)",
-    "budget_vs_revenue": "Budget vs revenue (runtime vs votes)",
-    "budget_vs_revenue_x_label": "Runtime (minutes)",
-    "budget_vs_revenue_y_label": "Vote count",
-    "episode_ratings": "Episode ratings by series",
-    "episode_ratings_x_label": "Episode index",
-    "episode_ratings_y_label": "Average rating",
-    "season_comparison": "Season comparison",
-    "season_comparison_y_label": "Avg episodes / season",
-    "season_label": "seasons",
-    "episode_label": "episodes",
-    "updated_at": "Last updated {timestamp}",
-    "empty_title": "No insights yet",
-    "empty_message": "Add favorites or watchlist entries to unlock personalized charts.",
-    "empty_action": "Refresh",
-    "actor_timeline": "Actor career timeline"
   }
 }

@@ -1,221 +1,322 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 import '../data/models/certification_model.dart';
+import '../data/models/configuration_model.dart';
 import '../data/tmdb_repository.dart';
 
-/// Provider responsible for loading and exposing TMDB certification catalogs
-/// for both movies and TV shows alongside helpful UI metadata such as
-/// localized country names and filter options.
-class CertificationsProvider with ChangeNotifier {
+/// Immutable view model describing the certifications that belong to a specific
+/// country. The UI consumes this to render grouped country sections.
+class CertificationCountryEntry {
+  const CertificationCountryEntry({
+    required this.code,
+    required this.name,
+    required this.certifications,
+  });
+
+  final String code;
+  final String name;
+  final List<Certification> certifications;
+}
+
+/// Aggregated focus details for a single certification rating across movies and
+/// television.
+class CertificationFocusSummary {
+  const CertificationFocusSummary({
+    required this.rating,
+    required this.movieCountries,
+    required this.tvCountries,
+    required this.meanings,
+  });
+
+  final String rating;
+  final List<String> movieCountries;
+  final List<String> tvCountries;
+  final List<String> meanings;
+
+  /// Countries where the rating exists for either movies or television.
+  List<String> get allCountries {
+    final set = <String>{...movieCountries, ...tvCountries};
+    final list = set.toList()..sort();
+    return list;
+  }
+
+  int get totalCountries => allCountries.length;
+}
+
+/// Provides certification reference data and exposes helpers for filtering by
+/// country, rating value, or textual query.
+class CertificationsProvider extends ChangeNotifier {
   CertificationsProvider(this._repository);
 
   final TmdbRepository _repository;
 
-  Map<String, List<Certification>> _movieCertifications = const {};
-  Map<String, List<Certification>> _tvCertifications = const {};
-  Map<String, String> _countryNames = const {};
-  bool _isLoadingMovies = false;
-  bool _isLoadingTv = false;
-  bool _isLoadingCountries = false;
-  String? _movieError;
-  String? _tvError;
-  String? _countryError;
-  String? _selectedMovieCertification;
-  String? _selectedTvCertification;
+  final Map<String, CountryInfo> _countryMap = <String, CountryInfo>{};
+  Map<String, List<Certification>> _movieCertifications =
+      <String, List<Certification>>{};
+  Map<String, List<Certification>> _tvCertifications =
+      <String, List<Certification>>{};
 
-  Map<String, List<Certification>> get movieCertifications =>
-      _movieCertifications;
-  Map<String, List<Certification>> get tvCertifications => _tvCertifications;
-  Map<String, String> get countryNames => _countryNames;
-  bool get isLoadingMovies => _isLoadingMovies;
-  bool get isLoadingTv => _isLoadingTv;
-  bool get isLoadingCountries => _isLoadingCountries;
-  String? get movieError => _movieError;
-  String? get tvError => _tvError;
-  String? get countryError => _countryError;
-  String? get selectedMovieCertification => _selectedMovieCertification;
-  String? get selectedTvCertification => _selectedTvCertification;
+  bool _isLoading = false;
+  bool _hasLoaded = false;
+  String? _errorMessage;
+  String _query = '';
+  String? _selectedCertification;
 
-  /// Ensures that all certification catalogs and supporting metadata are
-  /// available. Subsequent invocations will be ignored unless `forceRefresh`
-  /// is set to true.
-  Future<void> ensureLoaded({bool forceRefresh = false}) async {
-    if (!forceRefresh &&
-        _movieCertifications.isNotEmpty &&
-        _tvCertifications.isNotEmpty &&
-        _countryNames.isNotEmpty) {
-      return;
+  bool get isLoading => _isLoading;
+  bool get hasLoaded => _hasLoaded;
+  bool get hasError => _errorMessage != null;
+  String? get errorMessage => _errorMessage;
+  String get query => _query;
+  String? get selectedCertification => _selectedCertification;
+
+  /// All certification tokens encountered across movie and TV endpoints,
+  /// ordered by their lowest reported `order` value in TMDB responses.
+  List<String> get availableCertifications {
+    final ranking = <String, int>{};
+
+    void addEntries(Map<String, List<Certification>> source) {
+      source.forEach((_, certs) {
+        for (final cert in certs) {
+          final key = cert.certification.trim();
+          if (key.isEmpty) {
+            continue;
+          }
+          ranking.update(
+            key,
+            (value) => value < cert.order ? value : cert.order,
+            ifAbsent: () => cert.order,
+          );
+        }
+      });
     }
 
-    await Future.wait([
-      loadMovieCertifications(forceRefresh: forceRefresh),
-      loadTvCertifications(forceRefresh: forceRefresh),
-      loadCountryNames(forceRefresh: forceRefresh),
-    ]);
+    addEntries(_movieCertifications);
+    addEntries(_tvCertifications);
+
+    final items = ranking.entries.toList()
+      ..sort((a, b) => a.value.compareTo(b.value));
+    return items.map((entry) => entry.key).toList(growable: false);
   }
 
-  /// Loads movie certifications using TMDB's `GET /3/certification/movie/list`
-  /// endpoint. The JSON payload has the shape
-  /// `{ "certifications": { "US": [{ "certification": "PG-13", "meaning": "Parents Strongly Cautioned", "order": 4 }] } }`.
-  Future<void> loadMovieCertifications({bool forceRefresh = false}) async {
-    if (_movieCertifications.isNotEmpty && !forceRefresh) {
+  /// Country entries filtered for movie certifications.
+  List<CertificationCountryEntry> get movieEntries =>
+      _buildEntries(_movieCertifications);
+
+  /// Country entries filtered for TV certifications.
+  List<CertificationCountryEntry> get tvEntries =>
+      _buildEntries(_tvCertifications);
+
+  /// Aggregated description for the currently selected certification filter.
+  CertificationFocusSummary? get focusSummary {
+    final rating = _selectedCertification;
+    if (rating == null || rating.trim().isEmpty) {
+      return null;
+    }
+
+    final target = rating.toLowerCase();
+    final movieCountries = <String>{};
+    final tvCountries = <String>{};
+    final meanings = <String>{};
+
+    void collect(
+      Map<String, List<Certification>> source,
+      Set<String> accumulator,
+    ) {
+      source.forEach((code, list) {
+        final matches = list.where(
+          (cert) => cert.certification.toLowerCase() == target,
+        );
+        if (matches.isEmpty) {
+          return;
+        }
+        accumulator.add(_countryNameFor(code));
+        for (final cert in matches) {
+          final meaning = cert.meaning.trim();
+          if (meaning.isNotEmpty) {
+            meanings.add(meaning);
+          }
+        }
+      });
+    }
+
+    collect(_movieCertifications, movieCountries);
+    collect(_tvCertifications, tvCountries);
+
+    if (movieCountries.isEmpty && tvCountries.isEmpty) {
+      return null;
+    }
+
+    final movieList = movieCountries.toList()..sort();
+    final tvList = tvCountries.toList()..sort();
+    final meaningList = meanings.toList()..sort();
+
+    return CertificationFocusSummary(
+      rating: rating,
+      movieCountries: movieList,
+      tvCountries: tvList,
+      meanings: meaningList,
+    );
+  }
+
+  /// Fetches certification reference data from the TMDB API.
+  ///
+  /// - Countries: `GET /3/configuration/countries`
+  /// - Movie certifications: `GET /3/certification/movie/list`
+  /// - TV certifications: `GET /3/certification/tv/list`
+  Future<void> load({bool forceRefresh = false}) async {
+    if (_isLoading) {
+      return;
+    }
+    if (_hasLoaded && !forceRefresh) {
       return;
     }
 
-    _isLoadingMovies = true;
-    _movieError = null;
+    _isLoading = true;
+    _errorMessage = null;
     notifyListeners();
 
     try {
-      final results =
-          await _repository.fetchMovieCertifications(forceRefresh: forceRefresh);
-      if (results.isNotEmpty) {
-        _movieCertifications = results;
-      }
+      final countriesFuture =
+          _repository.fetchCountries(forceRefresh: forceRefresh);
+      final movieFuture =
+          _repository.fetchMovieCertifications(forceRefresh: forceRefresh);
+      final tvFuture =
+          _repository.fetchTvCertifications(forceRefresh: forceRefresh);
+
+      final countries = await countriesFuture;
+      final movieCerts = await movieFuture;
+      final tvCerts = await tvFuture;
+
+      _applyCountries(countries);
+      _movieCertifications = _normalizeCertifications(movieCerts);
+      _tvCertifications = _normalizeCertifications(tvCerts);
+
+      _hasLoaded = true;
     } on TmdbException catch (error) {
-      _movieError = error.message;
+      _errorMessage = error.message;
     } catch (error) {
-      _movieError = 'Failed to load movie certifications: $error';
+      _errorMessage = 'Failed to load certifications: $error';
     } finally {
-      _isLoadingMovies = false;
+      _isLoading = false;
       notifyListeners();
     }
   }
 
-  /// Loads TV certifications using TMDB's `GET /3/certification/tv/list`
-  /// endpoint. The JSON payload mirrors the movie variant with the same
-  /// structure as
-  /// `{ "certifications": { "US": [{ "certification": "TV-MA", "meaning": "Mature Audiences Only", "order": 6 }] } }`.
-  Future<void> loadTvCertifications({bool forceRefresh = false}) async {
-    if (_tvCertifications.isNotEmpty && !forceRefresh) {
+  /// Ensures the provider has loaded at least once, calling [load] lazily.
+  Future<void> ensureInitialized() async {
+    if (_hasLoaded || _isLoading) {
       return;
     }
+    await load();
+  }
 
-    _isLoadingTv = true;
-    _tvError = null;
+  /// Refreshes the cached payloads from TMDB, forcing new network requests.
+  Future<void> refresh() => load(forceRefresh: true);
+
+  /// Updates the free-text filter applied to countries or meanings.
+  void updateQuery(String value) {
+    final normalized = value.trim();
+    if (_query == normalized) {
+      return;
+    }
+    _query = normalized;
     notifyListeners();
+  }
 
-    try {
-      final results =
-          await _repository.fetchTvCertifications(forceRefresh: forceRefresh);
-      if (results.isNotEmpty) {
-        _tvCertifications = results;
+  /// Toggles the selected certification filter.
+  void toggleCertification(String? rating) {
+    if (rating == null || rating.isEmpty) {
+      _selectedCertification = null;
+    } else if (_selectedCertification == rating) {
+      _selectedCertification = null;
+    } else {
+      _selectedCertification = rating;
+    }
+    notifyListeners();
+  }
+
+  void clearFilters() {
+    _query = '';
+    _selectedCertification = null;
+    notifyListeners();
+  }
+
+  void _applyCountries(List<CountryInfo> countries) {
+    _countryMap
+      ..clear()
+      ..addEntries(
+        countries.map(
+          (country) => MapEntry(country.code.toUpperCase(), country),
+        ),
+      );
+  }
+
+  Map<String, List<Certification>> _normalizeCertifications(
+    Map<String, List<Certification>> source,
+  ) {
+    final normalized = <String, List<Certification>>{};
+    source.forEach((code, list) {
+      if (list.isEmpty) {
+        return;
       }
-    } on TmdbException catch (error) {
-      _tvError = error.message;
-    } catch (error) {
-      _tvError = 'Failed to load TV certifications: $error';
-    } finally {
-      _isLoadingTv = false;
-      notifyListeners();
-    }
+      final normalizedCode = code.toUpperCase();
+      final sorted = List<Certification>.from(list)
+        ..sort((a, b) => a.order.compareTo(b.order));
+      normalized[normalizedCode] = sorted;
+    });
+    return normalized;
   }
 
-  /// Loads localized country names so that ISO 3166-1 alpha-2 codes can be
-  /// displayed as human readable labels. Data originates from
-  /// `GET /3/configuration/countries` whose JSON payload looks like
-  /// `[ { "iso_3166_1": "US", "english_name": "United States of America" } ]`.
-  Future<void> loadCountryNames({bool forceRefresh = false}) async {
-    if (_countryNames.isNotEmpty && !forceRefresh) {
-      return;
+  List<CertificationCountryEntry> _buildEntries(
+    Map<String, List<Certification>> source,
+  ) {
+    if (source.isEmpty) {
+      return const <CertificationCountryEntry>[];
     }
 
-    _isLoadingCountries = true;
-    _countryError = null;
-    notifyListeners();
+    final filter = _query.toLowerCase();
+    final rating = _selectedCertification?.toLowerCase();
+    final results = <CertificationCountryEntry>[];
 
-    try {
-      final countries = await _repository.fetchCountries(forceRefresh: forceRefresh);
-      if (countries.isNotEmpty) {
-        _countryNames = {
-          for (final country in countries)
-            country.code.toUpperCase(): country.englishName,
-        };
+    source.forEach((code, list) {
+      if (list.isEmpty) {
+        return;
       }
-    } on TmdbException catch (error) {
-      _countryError = error.message;
-    } catch (error) {
-      _countryError = 'Failed to load country names: $error';
-    } finally {
-      _isLoadingCountries = false;
-      notifyListeners();
-    }
-  }
 
-  /// Updates the selected movie certification filter; use `null` to disable.
-  void setSelectedMovieCertification(String? value) {
-    if (value == _selectedMovieCertification) {
-      return;
-    }
-    _selectedMovieCertification = value?.isEmpty == true ? null : value;
-    notifyListeners();
-  }
+      if (rating != null &&
+          !list.any((cert) => cert.certification.toLowerCase() == rating)) {
+        return;
+      }
 
-  /// Updates the selected TV certification filter; use `null` to disable.
-  void setSelectedTvCertification(String? value) {
-    if (value == _selectedTvCertification) {
-      return;
-    }
-    _selectedTvCertification = value?.isEmpty == true ? null : value;
-    notifyListeners();
-  }
-
-  /// Returns a sorted list of all unique movie certification codes so the UI
-  /// can build filter controls.
-  List<String> movieCertificationOptions() {
-    final orders = <String, int>{};
-    for (final entry in _movieCertifications.values) {
-      for (final cert in entry) {
-        final key = cert.certification.isEmpty ? 'NR' : cert.certification;
-        final order = orders[key];
-        if (order == null || cert.order < order) {
-          orders[key] = cert.order;
+      final name = _countryNameFor(code);
+      if (filter.isNotEmpty) {
+        final matchesCountry =
+            name.toLowerCase().contains(filter) || code.toLowerCase().contains(filter);
+        final matchesCert = list.any((cert) {
+          final token = cert.certification.toLowerCase();
+          final meaning = cert.meaning.toLowerCase();
+          return token.contains(filter) || meaning.contains(filter);
+        });
+        if (!matchesCountry && !matchesCert) {
+          return;
         }
       }
-    }
-    final values = orders.keys.toList()
-      ..sort((a, b) {
-        final orderA = orders[a] ?? 0;
-        final orderB = orders[b] ?? 0;
-        final cmp = orderA.compareTo(orderB);
-        if (cmp != 0) return cmp;
-        return a.compareTo(b);
-      });
-    return values;
+
+      results.add(
+        CertificationCountryEntry(
+          code: code,
+          name: name,
+          certifications: list,
+        ),
+      );
+    });
+
+    results.sort((a, b) => a.name.compareTo(b.name));
+    return results;
   }
 
-  /// Returns a sorted list of all unique TV certification codes so the UI can
-  /// build filter controls.
-  List<String> tvCertificationOptions() {
-    final orders = <String, int>{};
-    for (final entry in _tvCertifications.values) {
-      for (final cert in entry) {
-        final key = cert.certification.isEmpty ? 'NR' : cert.certification;
-        final order = orders[key];
-        if (order == null || cert.order < order) {
-          orders[key] = cert.order;
-        }
-      }
-    }
-    final values = orders.keys.toList()
-      ..sort((a, b) {
-        final orderA = orders[a] ?? 0;
-        final orderB = orders[b] ?? 0;
-        final cmp = orderA.compareTo(orderB);
-        if (cmp != 0) return cmp;
-        return a.compareTo(b);
-      });
-    return values;
-  }
-
-  /// Resolves a display name for the supplied ISO 3166-1 alpha-2 code. The
-  /// method gracefully falls back to the uppercase code if no localized name is
-  /// available.
-  String countryName(String code) {
-    if (code.isEmpty) {
-      return code;
-    }
-    final normalized = code.toUpperCase();
-    return _countryNames[normalized] ?? normalized;
+  String _countryNameFor(String code) {
+    final lookup = _countryMap[code.toUpperCase()];
+    return lookup?.englishName ?? code.toUpperCase();
   }
 }

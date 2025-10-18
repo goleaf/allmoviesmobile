@@ -20,7 +20,6 @@ import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
-import 'providers/certifications_provider.dart';
 import 'providers/locale_provider.dart';
 import 'providers/offline_provider.dart';
 import 'providers/search_provider.dart';
@@ -32,7 +31,6 @@ import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
-import 'presentation/screens/certifications/certifications_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
 import 'presentation/screens/movie_detail/movie_detail_screen.dart';
@@ -53,6 +51,7 @@ import 'presentation/screens/lists/lists_screen.dart';
 import 'presentation/screens/videos/videos_screen.dart';
 import 'presentation/screens/video_player/video_player_screen.dart';
 import 'presentation/screens/search/search_results_list_screen.dart';
+import 'presentation/screens/certifications/certifications_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
 import 'data/models/company_model.dart';
@@ -63,10 +62,8 @@ import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/series/series_filters_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
-import 'presentation/screens/statistics/statistics_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
-import 'providers/configuration_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/series_provider.dart';
@@ -75,9 +72,8 @@ import 'providers/networks_provider.dart';
 import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
-import 'providers/statistics_provider.dart';
+import 'providers/certifications_provider.dart';
 import 'core/navigation/deep_link_handler.dart';
-import 'presentation/screens/config/config_info_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -208,18 +204,6 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
             offlineService: offlineService,
           ),
         ),
-        ChangeNotifierProxyProvider2<FavoritesProvider, WatchlistProvider,
-            StatisticsProvider>(
-          create: (_) => StatisticsProvider(),
-          update: (_, favorites, watchlist, statistics) {
-            statistics ??= StatisticsProvider();
-            statistics.updateSources(
-              favorites: favorites.favoriteItems,
-              watchlist: watchlist.watchlistItems,
-            );
-            return statistics;
-          },
-        ),
         ChangeNotifierProvider(
           create: (_) => SearchProvider(_repository, widget.storageService),
         ),
@@ -229,9 +213,6 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(_repository)),
         ChangeNotifierProvider(create: (_) => GenresProvider(_repository)),
-        ChangeNotifierProvider(
-          create: (_) => CertificationsProvider(_repository),
-        ),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(widget.prefs)),
         ChangeNotifierProxyProvider2<
           WatchRegionProvider,
@@ -275,7 +256,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
         ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
         ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
-        ChangeNotifierProvider(create: (_) => ConfigurationProvider(_repository)),
+        ChangeNotifierProvider(
+          create: (_) => CertificationsProvider(_repository),
+        ),
         ChangeNotifierProvider(
           create: (_) => ListsProvider(widget.storageService),
         ),
@@ -336,24 +319,21 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       PeopleScreen.routeName: (context) => const PeopleScreen(),
                       CompaniesScreen.routeName: (context) =>
                           const CompaniesScreen(),
-                      CertificationsScreen.routeName: (context) =>
-                          const CertificationsScreen(),
                       FavoritesScreen.routeName: (context) =>
                           const FavoritesScreen(),
                       WatchlistScreen.routeName: (context) =>
                           const WatchlistScreen(),
                       SettingsScreen.routeName: (context) => const SettingsScreen(),
-                      StatisticsScreen.routeName: (context) => const StatisticsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
-                      ConfigInfoScreen.routeName: (context) =>
-                          const ConfigInfoScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
                           const KeywordBrowserScreen(),
                       NetworksScreen.routeName: (context) =>
                           const NetworksScreen(),
                       CollectionsBrowserScreen.routeName: (context) =>
                           const CollectionsBrowserScreen(),
+                      CertificationsScreen.routeName: (context) =>
+                          const CertificationsScreen(),
                       SearchResultsListScreen.routeName: (context) =>
                           const SearchResultsListScreen(),
                       VideosScreen.routeName: (context) => const VideosScreen(),

@@ -51,6 +51,8 @@ class SettingsScreen extends StatelessWidget {
           _MinVoteCountTile(),
           _CertificationCountryTile(),
           _CertificationValueTile(),
+          _SettingsHeader(title: l.t('settings.notifications')),
+          const _NotificationSettingsTiles(),
           _SettingsHeader(title: l.t('settings.media')),
           // _ImageQualityTile(),
           _SettingsHeader(title: l.t('settings.cache')),
@@ -204,54 +206,54 @@ class _OfflineStorageTile extends StatelessWidget {
   }
 }
 
-class _PerformanceOverlayTile extends StatelessWidget {
-  const _PerformanceOverlayTile();
+class _NotificationSettingsTiles extends StatelessWidget {
+  const _NotificationSettingsTiles();
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
-    final title = l.settings['show_performance_overlay'] ??
-        'Show Flutter performance overlay';
-    final subtitle = l.settings['show_performance_overlay_hint'] ??
-        'Displays the engine and widget layers FPS chart.';
-
-    return Consumer<DiagnosticsProvider>(
+    return Consumer<PreferencesProvider>(
       builder: (context, provider, _) {
-        return SwitchListTile.adaptive(
-          secondary: const Icon(Icons.speed_outlined),
-          title: Text(title),
-          subtitle: Text(subtitle),
-          value: provider.performanceOverlayEnabled,
-          onChanged: (value) {
-            provider.setPerformanceOverlayEnabled(value);
-          },
-        );
-      },
-    );
-  }
-}
-
-class _PerformanceProfilerTile extends StatelessWidget {
-  const _PerformanceProfilerTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final title =
-        l.settings['frame_profiler'] ?? 'Enable frame timing profiler';
-    final subtitle = l.settings['frame_profiler_hint'] ??
-        'Collects rolling frame build/raster metrics for diagnostics.';
-
-    return Consumer<DiagnosticsProvider>(
-      builder: (context, provider, _) {
-        return SwitchListTile.adaptive(
-          secondary: const Icon(Icons.bar_chart_outlined),
-          title: Text(title),
-          subtitle: Text(subtitle),
-          value: provider.profilerEnabled,
-          onChanged: (value) {
-            provider.setProfilerEnabled(value);
-          },
+        return Column(
+          children: [
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.new_releases_outlined),
+              title: Text(l.t('settings.notifications_new_releases')),
+              subtitle:
+                  Text(l.t('settings.notifications_new_releases_description')),
+              value: provider.notificationsNewReleases,
+              onChanged: (value) =>
+                  provider.setNotificationsNewReleases(value),
+            ),
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.playlist_add_check_outlined),
+              title: Text(l.t('settings.notifications_watchlist_alerts')),
+              subtitle: Text(
+                l.t('settings.notifications_watchlist_alerts_description'),
+              ),
+              value: provider.notificationsWatchlistAlerts,
+              onChanged: (value) =>
+                  provider.setNotificationsWatchlistAlerts(value),
+            ),
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.recommend_outlined),
+              title: Text(l.t('settings.notifications_recommendations')),
+              subtitle: Text(
+                l.t('settings.notifications_recommendations_description'),
+              ),
+              value: provider.notificationsRecommendations,
+              onChanged: (value) =>
+                  provider.setNotificationsRecommendations(value),
+            ),
+            SwitchListTile.adaptive(
+              secondary: const Icon(Icons.campaign_outlined),
+              title: Text(l.t('settings.notifications_marketing')),
+              subtitle:
+                  Text(l.t('settings.notifications_marketing_description')),
+              value: provider.notificationsMarketing,
+              onChanged: (value) => provider.setNotificationsMarketing(value),
+            ),
+          ],
         );
       },
     );

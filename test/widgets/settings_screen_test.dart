@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import 'package:allmovies_mobile/core/constants/preferences_keys.dart';
 import 'package:allmovies_mobile/core/localization/app_localizations.dart';
 import 'package:allmovies_mobile/providers/locale_provider.dart';
 import 'package:allmovies_mobile/providers/theme_provider.dart';
@@ -41,6 +42,9 @@ void main() {
 
     await tester.pumpAndSettle();
 
+    final context = tester.element(find.byType(SettingsScreen));
+    final l = AppLocalizations.of(context);
+
     // Theme
     await tester.tap(find.textContaining('Theme'));
     await tester.pumpAndSettle();
@@ -73,6 +77,37 @@ void main() {
         await tester.pumpAndSettle();
       }
     }
+
+    // Notifications
+    final notificationsHeader = find.text(l.t('settings.notifications'));
+    await tester.ensureVisible(notificationsHeader);
+    expect(notificationsHeader, findsOneWidget);
+
+    Future<void> toggleNotification(String labelKey, String prefKey) async {
+      final label = l.t(labelKey);
+      final tileFinder = find.widgetWithText(SwitchListTile, label);
+      expect(tileFinder, findsOneWidget);
+      await tester.tap(tileFinder);
+      await tester.pumpAndSettle();
+      expect(prefs.getBool(prefKey), isTrue);
+    }
+
+    await toggleNotification(
+      'settings.notifications_new_releases',
+      PreferenceKeys.notificationsNewReleases,
+    );
+    await toggleNotification(
+      'settings.notifications_watchlist_alerts',
+      PreferenceKeys.notificationsWatchlistAlerts,
+    );
+    await toggleNotification(
+      'settings.notifications_recommendations',
+      PreferenceKeys.notificationsRecommendations,
+    );
+    await toggleNotification(
+      'settings.notifications_marketing',
+      PreferenceKeys.notificationsMarketing,
+    );
 
     expect(find.byType(SettingsScreen), findsOneWidget);
   });

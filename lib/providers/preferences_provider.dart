@@ -7,18 +7,64 @@ import '../data/models/tv_discover_filters.dart';
 
 class PreferencesProvider extends ChangeNotifier {
   PreferencesProvider(this._prefs)
-    : _includeAdult = _prefs.getBool(PreferenceKeys.includeAdult) ?? false;
+      : _includeAdult = _prefs.getBool(PreferenceKeys.includeAdult) ?? false,
+        _notificationsNewReleases =
+            _prefs.getBool(PreferenceKeys.notificationsNewReleases) ?? false,
+        _notificationsWatchlistAlerts =
+            _prefs.getBool(PreferenceKeys.notificationsWatchlistAlerts) ??
+                false,
+        _notificationsRecommendations =
+            _prefs.getBool(PreferenceKeys.notificationsRecommendations) ??
+                false,
+        _notificationsMarketing =
+            _prefs.getBool(PreferenceKeys.notificationsMarketing) ?? false;
 
   final SharedPreferences _prefs;
 
   bool _includeAdult;
+  bool _notificationsNewReleases;
+  bool _notificationsWatchlistAlerts;
+  bool _notificationsRecommendations;
+  bool _notificationsMarketing;
 
   bool get includeAdult => _includeAdult;
+  bool get notificationsNewReleases => _notificationsNewReleases;
+  bool get notificationsWatchlistAlerts => _notificationsWatchlistAlerts;
+  bool get notificationsRecommendations => _notificationsRecommendations;
+  bool get notificationsMarketing => _notificationsMarketing;
 
   Future<void> setIncludeAdult(bool value) async {
     if (value == _includeAdult) return;
     _includeAdult = value;
     await _prefs.setBool(PreferenceKeys.includeAdult, value);
+    notifyListeners();
+  }
+
+  Future<void> setNotificationsNewReleases(bool value) async {
+    if (value == _notificationsNewReleases) return;
+    _notificationsNewReleases = value;
+    await _prefs.setBool(PreferenceKeys.notificationsNewReleases, value);
+    notifyListeners();
+  }
+
+  Future<void> setNotificationsWatchlistAlerts(bool value) async {
+    if (value == _notificationsWatchlistAlerts) return;
+    _notificationsWatchlistAlerts = value;
+    await _prefs.setBool(PreferenceKeys.notificationsWatchlistAlerts, value);
+    notifyListeners();
+  }
+
+  Future<void> setNotificationsRecommendations(bool value) async {
+    if (value == _notificationsRecommendations) return;
+    _notificationsRecommendations = value;
+    await _prefs.setBool(PreferenceKeys.notificationsRecommendations, value);
+    notifyListeners();
+  }
+
+  Future<void> setNotificationsMarketing(bool value) async {
+    if (value == _notificationsMarketing) return;
+    _notificationsMarketing = value;
+    await _prefs.setBool(PreferenceKeys.notificationsMarketing, value);
     notifyListeners();
   }
 

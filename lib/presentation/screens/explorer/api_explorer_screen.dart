@@ -1,6 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/certification_model.dart';
@@ -706,6 +708,8 @@ class _WatchProvidersSection extends StatelessWidget {
 
   final ApiExplorerSnapshot snapshot;
 
+  static final Uri _justWatchUri = Uri.parse('https://www.justwatch.com/');
+
   @override
   Widget build(BuildContext context) {
     if (snapshot.watchProvidersMovie.isEmpty &&
@@ -785,6 +789,12 @@ class _WatchProvidersSection extends StatelessWidget {
                     ],
                   );
                 }),
+                const SizedBox(height: 16),
+                const Divider(height: 1),
+                const SizedBox(height: 12),
+                _JustWatchAttribution(
+                  onLinkTap: () => _openJustWatch(context),
+                ),
               ],
             ),
           ),
@@ -817,6 +827,90 @@ class _WatchProvidersSection extends StatelessWidget {
     });
 
     return providers;
+  }
+
+  static Future<void> _openJustWatch(BuildContext context) async {
+    final launched = await launchUrl(
+      _justWatchUri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!launched) {
+      final messenger = ScaffoldMessenger.maybeOf(context);
+      messenger?.showSnackBar(
+        const SnackBar(
+          content: Text('Unable to open JustWatch right now.'),
+        ),
+      );
+    }
+  }
+}
+
+class _JustWatchAttribution extends StatelessWidget {
+  const _JustWatchAttribution({required this.onLinkTap});
+
+  final VoidCallback onLinkTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final baseStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+      height: 1.4,
+    );
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceVariant.withOpacity(
+          theme.brightness == Brightness.dark ? 0.35 : 0.6,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                RichText(
+                  text: TextSpan(
+                    style: baseStyle,
+                    children: [
+                      const TextSpan(
+                        text: 'Streaming availability data provided by ',
+                      ),
+                      TextSpan(
+                        text: 'JustWatch',
+                        style: baseStyle?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                          decoration: TextDecoration.underline,
+                        ),
+                        recognizer: TapGestureRecognizer()..onTap = onLinkTap,
+                      ),
+                      const TextSpan(text: '.'),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Tap to explore regional catalogs and learn more about data sourcing.',
+                  style: baseStyle,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

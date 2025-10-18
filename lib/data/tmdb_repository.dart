@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
@@ -58,6 +59,11 @@ class TmdbRepository {
           }
           return AppConfig.tmdbApiKey;
        })() {
+    if (_networkQualityNotifier != null) {
+      _networkQualityNotifier!.addListener(_handleNetworkQualityChange);
+      _handleNetworkQualityChange();
+    }
+
     if (_cache != null) {
       MemoryOptimizer.instance.registerCacheService(_cache);
       _cache!
@@ -284,6 +290,13 @@ class TmdbRepository {
         break;
     }
   }
+
+  @visibleForTesting
+  Duration get networkAwareDelayForTesting => _networkAwareDelay;
+
+  @visibleForTesting
+  Duration delayForQualityForTesting(NetworkQuality? quality) =>
+      _delayForQuality(quality);
 
   void dispose() {
     _networkQualityNotifier?.removeListener(_handleNetworkQualityChange);

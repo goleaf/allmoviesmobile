@@ -10,6 +10,7 @@ import '../data/services/local_storage_service.dart';
 import '../data/services/offline_service.dart';
 import '../core/constants/app_strings.dart';
 import 'preferences_provider.dart';
+import '../core/utils/performance_monitor.dart';
 
 enum MovieSection {
   trending,
@@ -19,6 +20,21 @@ enum MovieSection {
   upcoming,
   discover,
 }
+
+/// Maps each movie section to the TMDB JSON endpoint that powers its content.
+///
+/// Keeping the association in a single place makes it trivial to emit
+/// diagnostics, documentation comments, and telemetry that explains which
+/// remote payload (e.g. `GET /3/trending/movie/{time_window}`) backed a given
+/// UI update.
+const Map<MovieSection, String> _sectionEndpointByType = {
+  MovieSection.trending: '/3/trending/movie/{time_window}',
+  MovieSection.nowPlaying: '/3/movie/now_playing',
+  MovieSection.popular: '/3/movie/popular',
+  MovieSection.topRated: '/3/movie/top_rated',
+  MovieSection.upcoming: '/3/movie/upcoming',
+  MovieSection.discover: '/3/discover/movie',
+};
 
 class MovieSectionState {
   const MovieSectionState({
@@ -122,6 +138,9 @@ class MoviesProvider extends ChangeNotifier {
   final Map<MovieSection, Set<int>> _pendingPageLoads = {
     for (final section in MovieSection.values) section: <int>{},
   };
+  final Map<MovieSection, int> _lastFetchDurationsMs = {
+    for (final section in MovieSection.values) section: 0,
+  };
 
   bool _isInitialized = false;
   bool _isRefreshing = false;
@@ -140,6 +159,22 @@ class MoviesProvider extends ChangeNotifier {
   Future<void> get initialized => _initializedCompleter.future;
 
   MovieSectionState sectionState(MovieSection section) => _sections[section]!;
+
+  /// Exposes the most recent network duration per section in milliseconds.
+  ///
+  /// Each entry corresponds to a TMDB endpoint described in
+  /// [_sectionEndpointByType] so that UX or QA teams can cross-reference the
+  /// captured timings with the originating JSON payload (for example, a spike
+  /// on `MovieSection.trending` points to `GET /3/trending/movie/{time_window}`).
+  Map<MovieSection, int> get lastFetchDurationsMs =>
+      Map.unmodifiable(_lastFetchDurationsMs);
+
+  /// Aggregates the latest refresh timings to provide a quick snapshot of how
+  /// long the entire home experience took to hydrate from TMDB.
+  int get lastTotalFetchDurationMs => _lastFetchDurationsMs.values.fold<int>(
+        0,
+        (running, value) => running + value,
+      );
 
   Map<int, List<Movie>> _trimPages(
     Map<int, List<Movie>> pages,
@@ -279,16 +314,45 @@ class MoviesProvider extends ChangeNotifier {
                 certification: certValue,
               );
 
+      _resetSectionDurations();
       final responses = await Future.wait<PaginatedResponse<Movie>>([
-        _repository.fetchTrendingMoviesPaginated(
-          timeWindow: _trendingWindow,
-          page: 1,
+        _measureSectionFetch(
+          section: MovieSection.trending,
+          endpoint: _sectionEndpointByType[MovieSection.trending]!,
+          request: () => _repository.fetchTrendingMoviesPaginated(
+            timeWindow: _trendingWindow,
+            page: 1,
+          ),
         ),
-        _repository.fetchNowPlayingMoviesPaginated(page: 1),
-        _repository.fetchPopularMoviesPaginated(page: 1),
-        _repository.fetchTopRatedMoviesPaginated(page: 1),
-        _repository.fetchUpcomingMoviesPaginated(page: 1),
-        _repository.discoverMovies(page: 1, discoverFilters: _discoverFilters),
+        _measureSectionFetch(
+          section: MovieSection.nowPlaying,
+          endpoint: _sectionEndpointByType[MovieSection.nowPlaying]!,
+          request: () =>
+              _repository.fetchNowPlayingMoviesPaginated(page: 1),
+        ),
+        _measureSectionFetch(
+          section: MovieSection.popular,
+          endpoint: _sectionEndpointByType[MovieSection.popular]!,
+          request: () => _repository.fetchPopularMoviesPaginated(page: 1),
+        ),
+        _measureSectionFetch(
+          section: MovieSection.topRated,
+          endpoint: _sectionEndpointByType[MovieSection.topRated]!,
+          request: () => _repository.fetchTopRatedMoviesPaginated(page: 1),
+        ),
+        _measureSectionFetch(
+          section: MovieSection.upcoming,
+          endpoint: _sectionEndpointByType[MovieSection.upcoming]!,
+          request: () => _repository.fetchUpcomingMoviesPaginated(page: 1),
+        ),
+        _measureSectionFetch(
+          section: MovieSection.discover,
+          endpoint: _sectionEndpointByType[MovieSection.discover]!,
+          request: () => _repository.discoverMovies(
+            page: 1,
+            discoverFilters: _discoverFilters,
+          ),
+        ),
       ]);
 
       final sectionsList = MovieSection.values;
@@ -324,6 +388,44 @@ class MoviesProvider extends ChangeNotifier {
       if (!_initializedCompleter.isCompleted) {
         _initializedCompleter.complete();
       }
+    }
+  }
+
+  /// Resets the stored metrics before a new refresh cycle begins so that stale
+  /// values never bleed into reporting dashboards or QA screenshots.
+  void _resetSectionDurations() {
+    for (final section in MovieSection.values) {
+      _lastFetchDurationsMs[section] = 0;
+    }
+  }
+
+  /// Wraps a TMDB request with stopwatch-based telemetry.
+  ///
+  /// The `endpoint` string must match the documented REST path (for example,
+  /// `/3/movie/now_playing`). Captured metrics are logged through
+  /// [PerformanceMonitor] and stored locally so that UI layers can expose the
+  /// most recent millisecond duration for each section without needing to
+  /// listen to debug logs.
+  Future<PaginatedResponse<Movie>> _measureSectionFetch({
+    required MovieSection section,
+    required String endpoint,
+    required Future<PaginatedResponse<Movie>> Function() request,
+  }) async {
+    final operationName = 'movies.${section.name} $endpoint';
+    final stopwatch = Stopwatch()..start();
+    PerformanceMonitor.startTimer(operationName);
+    try {
+      final response = await request();
+      final elapsed = stopwatch.elapsedMilliseconds;
+      _lastFetchDurationsMs[section] = elapsed;
+      PerformanceMonitor.logMetric(
+        '$operationName.count',
+        response.results.length,
+      );
+      return response;
+    } finally {
+      stopwatch.stop();
+      PerformanceMonitor.stopTimer(operationName, logResult: false);
     }
   }
 

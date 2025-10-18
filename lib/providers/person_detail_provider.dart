@@ -118,6 +118,58 @@ class PersonDetailProvider extends ChangeNotifier {
         .toList(growable: false);
   }
 
+  List<PersonCareerTimelineBucket> get careerTimelineBuckets {
+    final detail = _detail;
+    if (detail == null) {
+      return const <PersonCareerTimelineBucket>[];
+    }
+
+    final buckets = <String, _CareerTimelineAccumulator>{};
+    final castSeen = <String>{};
+    final crewSeen = <String>{};
+
+    for (final credit in detail.combinedCredits.cast) {
+      final key = _creditKey(credit);
+      if (!castSeen.add(key)) {
+        continue;
+      }
+      final year =
+          credit.releaseYear ?? PersonCombinedTimelineEntry.unknownYear;
+      final accumulator =
+          buckets.putIfAbsent(year, () => _CareerTimelineAccumulator(year));
+      accumulator.actingCount++;
+    }
+
+    for (final credit in detail.combinedCredits.crew) {
+      final key = _creditKey(credit);
+      if (!crewSeen.add(key)) {
+        continue;
+      }
+      final year =
+          credit.releaseYear ?? PersonCombinedTimelineEntry.unknownYear;
+      final accumulator =
+          buckets.putIfAbsent(year, () => _CareerTimelineAccumulator(year));
+      accumulator.crewCount++;
+    }
+
+    if (buckets.isEmpty) {
+      return const <PersonCareerTimelineBucket>[];
+    }
+
+    final sortedYears = buckets.keys.toList()
+      ..sort(_compareYearLabelsAscending);
+
+    return sortedYears
+        .map(
+          (year) => PersonCareerTimelineBucket(
+            year: year,
+            actingCredits: buckets[year]?.actingCount ?? 0,
+            crewCredits: buckets[year]?.crewCount ?? 0,
+          ),
+        )
+        .toList(growable: false);
+  }
+
   Future<void> load({bool forceRefresh = false}) async {
     try {
       _isLoading = true;
@@ -286,11 +338,59 @@ int _compareYearLabels(String a, String b) {
   return b.compareTo(a);
 }
 
+int _compareYearLabelsAscending(String a, String b) {
+  final unknown = PersonCombinedTimelineEntry.unknownYear;
+  if (a == unknown && b == unknown) {
+    return 0;
+  }
+  if (a == unknown) {
+    return 1;
+  }
+  if (b == unknown) {
+    return -1;
+  }
+  final parsedA = int.tryParse(a);
+  final parsedB = int.tryParse(b);
+  if (parsedA != null && parsedB != null) {
+    return parsedA.compareTo(parsedB);
+  }
+  if (parsedA != null) {
+    return -1;
+  }
+  if (parsedB != null) {
+    return 1;
+  }
+  return a.compareTo(b);
+}
+
 String _creditKey(PersonCredit credit) {
   final mediaType = credit.mediaType ?? PersonCombinedTimelineEntry.unknownMediaType;
   final job = credit.job ?? '';
   final character = credit.character ?? '';
   return '${credit.id}::$mediaType::$job::$character';
+}
+
+class PersonCareerTimelineBucket {
+  const PersonCareerTimelineBucket({
+    required this.year,
+    required this.actingCredits,
+    required this.crewCredits,
+  });
+
+  final String year;
+  final int actingCredits;
+  final int crewCredits;
+
+  int get total => actingCredits + crewCredits;
+  bool get hasKnownYear => year != PersonCombinedTimelineEntry.unknownYear;
+}
+
+class _CareerTimelineAccumulator {
+  _CareerTimelineAccumulator(this.year);
+
+  final String year;
+  int actingCount = 0;
+  int crewCount = 0;
 }
 
 class PersonCombinedTimelineEntry {

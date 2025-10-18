@@ -120,5 +120,69 @@ void main() {
       expect(entry.groups.single.mediaType, 'other');
       expect(entry.groups.single.credits, hasLength(1));
     });
+
+    test('builds career timeline buckets with acting and crew counts', () async {
+      final detail = PersonDetail(
+        id: 1,
+        name: 'Demo',
+        combinedCredits: PersonCredits(
+          cast: [
+            PersonCredit(
+              id: 31,
+              mediaType: 'movie',
+              title: 'Early Acting Role',
+              releaseDate: '2010-01-15',
+            ),
+            PersonCredit(
+              id: 32,
+              mediaType: 'tv',
+              name: 'Recent Series',
+              firstAirDate: '2022-09-20',
+            ),
+          ],
+          crew: [
+            PersonCredit(
+              id: 41,
+              mediaType: 'movie',
+              title: 'Early Crew Role',
+              releaseDate: '2010-06-10',
+            ),
+            PersonCredit(
+              id: 42,
+              mediaType: 'movie',
+              title: 'Latest Crew Project',
+              releaseDate: '2023-02-01',
+            ),
+            const PersonCredit(
+              id: 43,
+              mediaType: 'movie',
+              title: 'Unscheduled Crew Project',
+            ),
+          ],
+        ),
+      );
+
+      final provider = PersonDetailProvider(_FakePersonRepository(detail), 1);
+      await provider.load();
+
+      final buckets = provider.careerTimelineBuckets;
+      expect(
+        buckets.map((bucket) => bucket.year).toList(),
+        ['2010', '2022', '2023', PersonCombinedTimelineEntry.unknownYear],
+      );
+
+      final earlyBucket = buckets.firstWhere((bucket) => bucket.year == '2010');
+      expect(earlyBucket.actingCredits, 1);
+      expect(earlyBucket.crewCredits, 1);
+
+      final recentActing = buckets.firstWhere((bucket) => bucket.year == '2022');
+      expect(recentActing.actingCredits, 1);
+      expect(recentActing.crewCredits, 0);
+
+      final unknownBucket = buckets
+          .firstWhere((bucket) => bucket.year == PersonCombinedTimelineEntry.unknownYear);
+      expect(unknownBucket.total, 1);
+      expect(unknownBucket.crewCredits, 1);
+    });
   });
 }

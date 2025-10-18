@@ -5,13 +5,12 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/company_model.dart';
 import '../../../data/models/configuration_model.dart';
 import '../../../providers/companies_provider.dart';
-import '../../../providers/search_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
+import '../../widgets/virtualized_list_view.dart';
 import '../../../core/utils/media_image_helper.dart' as mih;
 import '../company_detail/company_detail_screen.dart';
 import '../../../core/utils/media_image_helper.dart';
-import '../search/search_screen.dart';
 
 class CompaniesScreen extends StatefulWidget {
   static const routeName = '/companies';
@@ -80,7 +79,6 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               },
             ),
           ),
-          const _CompanySearchShortcuts(),
           if (provider.isSearching) const LinearProgressIndicator(minHeight: 2),
           if (provider.errorMessage != null)
             Padding(
@@ -96,39 +94,34 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => _handleRefresh(provider),
-              child: CustomScrollView(
+              child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                slivers: [
-                  SliverPadding(
+                padding: EdgeInsets.zero,
+                children: [
+                  Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-                    sliver: SliverToBoxAdapter(
-                      child: _CountryFilter(
-                        countries: provider.countries,
-                        selectedCountry: provider.selectedCountry,
-                        isLoading: provider.isLoadingCountries,
-                        errorText: provider.countriesError,
-                        onChanged:
-                            context.read<CompaniesProvider>().setCountryFilter,
-                      ),
+                    child: _CountryFilter(
+                      countries: provider.countries,
+                      selectedCountry: provider.selectedCountry,
+                      isLoading: provider.isLoadingCountries,
+                      errorText: provider.countriesError,
+                      onChanged: context.read<CompaniesProvider>().setCountryFilter,
                     ),
                   ),
-                  SliverPadding(
+                  Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    sliver: SliverToBoxAdapter(
-                      child: _PopularCompaniesSection(
-                        companies: provider.popularCompanies,
-                        isLoading: provider.isLoadingPopular &&
-                            provider.popularCompanies.isEmpty,
-                        error: provider.popularError,
-                        onRefresh: provider.refreshPopularCompanies,
-                        onCompanySelected: (company) =>
-                            _handleCompanySelected(context, provider, company),
-                      ),
+                    child: _PopularCompaniesSection(
+                      companies: provider.popularCompanies,
+                      isLoading: provider.isLoadingPopular && provider.popularCompanies.isEmpty,
+                      error: provider.popularError,
+                      onRefresh: provider.refreshPopularCompanies,
+                      onCompanySelected: (company) =>
+                          _handleCompanySelected(context, provider, company),
                     ),
                   ),
-                  SliverPadding(
+                  Padding(
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 24),
-                    sliver: _CompanyResultsList(
+                    child: _CompanyResultsList(
                       companies: companies,
                       onCompanySelected: (company) =>
                           _handleCompanySelected(context, provider, company),
@@ -232,60 +225,6 @@ class _CompanyCard extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-/// Displays quick search shortcuts populated from the trending titles fetched
-/// via `GET /3/trending/movie/{time_window}` to encourage exploration.
-class _CompanySearchShortcuts extends StatelessWidget {
-  const _CompanySearchShortcuts();
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<SearchProvider>(
-      builder: (context, searchProvider, _) {
-        final queries = searchProvider.trendingSearches.take(6).toList();
-        if (queries.isEmpty) {
-          return const SizedBox.shrink();
-        }
-
-        final loc = AppLocalizations.of(context);
-        final label = loc.search['trending_searches'] ?? 'Trending searches';
-
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: queries
-                    .map(
-                      (query) => ActionChip(
-                        label: Text(query),
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            SearchScreen.routeName,
-                            arguments: query,
-                          );
-                        },
-                      ),
-                    )
-                    .toList(growable: false),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
@@ -584,47 +523,84 @@ class _CompanyResultsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final provider = context.watch<CompaniesProvider>();
     if (companies.isEmpty) {
       final loc = AppLocalizations.of(context);
       final theme = Theme.of(context);
-      return SliverToBoxAdapter(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 48),
-          child: Column(
-            children: [
-              Icon(
-                Icons.business_outlined,
-                size: 48,
-                color: theme.colorScheme.onSurfaceVariant,
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 48),
+        child: Column(
+          children: [
+            Icon(
+              Icons.business_outlined,
+              size: 48,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              loc.t('company.empty_prompt'),
+              style: theme.textTheme.titleMedium,
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    final trailingItems = <Widget>[];
+    if (provider.isSearching) {
+      trailingItems.add(
+        const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    final errorMessage = provider.errorMessage;
+    if (errorMessage != null && errorMessage.isNotEmpty) {
+      final theme = Theme.of(context);
+      trailingItems.add(
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(
+              errorMessage,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
               ),
-              const SizedBox(height: 16),
-              Text(
-                loc.t('company.empty_prompt'),
-                style: theme.textTheme.titleMedium,
-                textAlign: TextAlign.center,
-              ),
-            ],
+            ),
           ),
         ),
       );
     }
 
-    final itemCount = companies.length * 2 - 1;
-    return SliverList(
-      delegate: SliverChildBuilderDelegate(
-        (context, index) {
-          if (index.isEven) {
-            final companyIndex = index ~/ 2;
-            final company = companies[companyIndex];
-            return _CompanyCard(
-              company: company,
-              onTap: () => onCompanySelected(company),
-            );
-          }
+    final itemCount = companies.length + trailingItems.length;
+
+    return VirtualizedSeparatedListView(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: itemCount,
+      separatorBuilder: (context, index) {
+        final bool isBetweenCompanies = index < companies.length - 1;
+        if (isBetweenCompanies) {
           return const SizedBox(height: 12);
-        },
-        childCount: itemCount,
-      ),
+        }
+        return const SizedBox(height: 16);
+      },
+      itemBuilder: (context, index) {
+        if (index < companies.length) {
+          final company = companies[index];
+          return _CompanyCard(
+            company: company,
+            onTap: () => onCompanySelected(company),
+          );
+        }
+
+        final trailingIndex = index - companies.length;
+        return trailingItems[trailingIndex];
+      },
     );
   }
 }

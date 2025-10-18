@@ -315,6 +315,10 @@ class _PersonDetailBody extends StatelessWidget {
         List<PersonCombinedTimelineEntry>>(
       (provider) => provider.combinedCreditsTimeline,
     );
+    final careerTimelineBuckets = context.select<PersonDetailProvider,
+        List<PersonCareerTimelineBucket>>(
+      (provider) => provider.careerTimelineBuckets,
+    );
     final sections = <Widget>[
       _SectionPadding(child: _BiographySection(detail: detail)),
       _SectionPadding(child: _PersonalInfoSection(detail: detail)),
@@ -325,6 +329,7 @@ class _PersonDetailBody extends StatelessWidget {
           title: loc.t('person.combined_timeline'),
           emptyLabel: loc.t('person.combined_timeline_empty'),
           entries: timelineEntries,
+          careerStats: careerTimelineBuckets,
         ),
       ),
       _SectionPadding(

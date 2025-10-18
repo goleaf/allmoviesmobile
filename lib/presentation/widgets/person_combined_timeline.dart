@@ -10,11 +10,13 @@ class PersonCombinedTimeline extends StatelessWidget {
     required this.title,
     required this.emptyLabel,
     required this.entries,
+    this.careerStats = const <PersonCareerTimelineBucket>[],
   });
 
   final String title;
   final String emptyLabel;
   final List<PersonCombinedTimelineEntry> entries;
+  final List<PersonCareerTimelineBucket> careerStats;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +34,10 @@ class PersonCombinedTimeline extends StatelessWidget {
         else
           Column(
             children: [
+              if (careerStats.isNotEmpty) ...[
+                _CareerTimelineChart(stats: careerStats),
+                const SizedBox(height: 16),
+              ],
               for (var i = 0; i < entries.length; i++)
                 _TimelineYearTile(
                   entry: entries[i],
@@ -232,5 +238,210 @@ class _TimelineCreditTile extends StatelessWidget {
       return department;
     }
     return null;
+  }
+}
+
+class _CareerTimelineChart extends StatelessWidget {
+  const _CareerTimelineChart({required this.stats});
+
+  final List<PersonCareerTimelineBucket> stats;
+
+  @override
+  Widget build(BuildContext context) {
+    if (stats.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
+    final maxTotal = stats.map((stat) => stat.total).fold<int>(0, (a, b) => a > b ? a : b);
+
+    if (maxTotal == 0) {
+      return const SizedBox.shrink();
+    }
+
+    const chartHeight = 160.0;
+    const barWidth = 28.0;
+
+    final actingLabel = loc.t('people.departments.acting');
+    final crewLabel = loc.t('people.departments.crew');
+    final actingColor = theme.colorScheme.primary;
+    final crewColor = theme.colorScheme.secondary;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          height: chartHeight,
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const SizedBox(width: 8),
+                for (final stat in stats)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: _CareerTimelineBar(
+                      stat: stat,
+                      maxTotal: maxTotal,
+                      actingColor: actingColor,
+                      crewColor: crewColor,
+                      barWidth: barWidth,
+                      chartHeight: chartHeight,
+                    ),
+                  ),
+                const SizedBox(width: 8),
+              ],
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            _TimelineLegendEntry(label: actingLabel, color: actingColor),
+            _TimelineLegendEntry(label: crewLabel, color: crewColor),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _TimelineLegendEntry extends StatelessWidget {
+  const _TimelineLegendEntry({required this.label, required this.color});
+
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 12,
+          height: 12,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.circular(6),
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+      ],
+    );
+  }
+}
+
+class _CareerTimelineBar extends StatelessWidget {
+  const _CareerTimelineBar({
+    required this.stat,
+    required this.maxTotal,
+    required this.actingColor,
+    required this.crewColor,
+    required this.barWidth,
+    required this.chartHeight,
+  });
+
+  final PersonCareerTimelineBucket stat;
+  final int maxTotal;
+  final Color actingColor;
+  final Color crewColor;
+  final double barWidth;
+  final double chartHeight;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final loc = AppLocalizations.of(context);
+    final total = stat.total;
+
+    if (maxTotal <= 0) {
+      return SizedBox(width: barWidth);
+    }
+
+    final totalFraction = total <= 0 ? 0.0 : total / maxTotal;
+    final totalHeight = chartHeight * totalFraction;
+    final actingHeight = total == 0
+        ? 0.0
+        : totalHeight * (stat.actingCredits / total);
+    final crewHeight = total == 0
+        ? 0.0
+        : totalHeight * (stat.crewCredits / total);
+    final yearLabel = stat.hasKnownYear
+        ? stat.year
+        : loc.t('common.unknown');
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (total > 0)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              '$total',
+              style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
+          ),
+        Stack(
+          alignment: Alignment.bottomCenter,
+          children: [
+            Container(
+              width: barWidth,
+              height: chartHeight,
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceVariant.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            if (total > 0)
+              Align(
+                alignment: Alignment.bottomCenter,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: SizedBox(
+                    width: barWidth,
+                    height: totalHeight,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        if (stat.crewCredits > 0)
+                          Container(
+                            height: crewHeight,
+                            color: crewColor.withOpacity(0.85),
+                          ),
+                        if (stat.actingCredits > 0)
+                          Container(
+                            height: actingHeight,
+                            color: actingColor.withOpacity(0.9),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: barWidth + 12,
+          child: Text(
+            yearLabel,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodySmall,
+          ),
+        ),
+      ],
+    );
   }
 }

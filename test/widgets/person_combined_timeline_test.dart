@@ -54,6 +54,18 @@ void main() {
             title: 'Timeline',
             emptyLabel: 'No data',
             entries: entries,
+            careerStats: const [
+              PersonCareerTimelineBucket(
+                year: '2021',
+                actingCredits: 1,
+                crewCredits: 0,
+              ),
+              PersonCareerTimelineBucket(
+                year: '2023',
+                actingCredits: 1,
+                crewCredits: 1,
+              ),
+            ],
           ),
         ),
       ),
@@ -66,6 +78,8 @@ void main() {
     expect(find.text('Movie'), findsOneWidget);
     expect(find.text('TV'), findsOneWidget);
     expect(find.text('Unknown'), findsOneWidget);
+    expect(find.text('Acting'), findsOneWidget);
+    expect(find.text('Crew'), findsOneWidget);
   });
 
   testWidgets('shows empty state when entries are missing', (tester) async {
@@ -76,6 +90,7 @@ void main() {
           title: 'Timeline',
           emptyLabel: 'No data',
           entries: const [],
+          careerStats: const [],
         ),
       ),
     );

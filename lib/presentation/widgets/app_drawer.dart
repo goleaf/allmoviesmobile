@@ -4,15 +4,13 @@ import '../../core/constants/app_strings.dart';
 import '../../core/localization/app_localizations.dart';
 import '../screens/companies/companies_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
-import '../screens/explorer/tmdb_v4_reference_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
-import '../screens/auth/v4_login_screen.dart';
 import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/keywords/keyword_browser_screen.dart';
-import '../screens/genres/genres_screen.dart';
+import '../screens/certifications/certifications_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -88,22 +86,10 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, MoviesScreen.routeName),
           ),
           ListTile(
-            leading: const Icon(Icons.category_outlined),
-            title: Text(AppLocalizations.of(context).t('navigation.genres')),
-            selected: currentRoute == GenresScreen.routeName,
-            onTap: () => _navigateTo(context, GenresScreen.routeName),
-          ),
-          ListTile(
             leading: const Icon(Icons.live_tv_outlined),
             title: Text(AppLocalizations.of(context).t('navigation.series')),
             selected: currentRoute == SeriesScreen.routeName,
             onTap: () => _navigateTo(context, SeriesScreen.routeName),
-          ),
-          ListTile(
-            leading: const Icon(Icons.category_outlined),
-            title: Text(AppLocalizations.of(context).t('navigation.genres')),
-            selected: currentRoute == GenresScreen.routeName,
-            onTap: () => _navigateTo(context, GenresScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.people_alt_outlined),
@@ -118,6 +104,13 @@ class AppDrawer extends StatelessWidget {
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
           ),
           ListTile(
+            leading: const Icon(Icons.verified_user_outlined),
+            title:
+                Text(AppLocalizations.of(context).t('navigation.certifications')),
+            selected: currentRoute == CertificationsScreen.routeName,
+            onTap: () => _navigateTo(context, CertificationsScreen.routeName),
+          ),
+          ListTile(
             leading: const Icon(Icons.sell_outlined),
             title: Text(
               AppLocalizations.of(context).t('search.popular_searches'),
@@ -130,19 +123,6 @@ class AppDrawer extends StatelessWidget {
             title: Text(AppLocalizations.of(context).t('discover.title')),
             selected: currentRoute == ApiExplorerScreen.routeName,
             onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
-          ),
-          ListTile(
-            leading: const Icon(Icons.api_outlined),
-            title: const Text(AppStrings.tmdbV4Reference),
-            selected: currentRoute == TmdbV4ReferenceScreen.routeName,
-            onTap: () =>
-                _navigateTo(context, TmdbV4ReferenceScreen.routeName),
-          ),
-          ListTile(
-            leading: const Icon(Icons.key_outlined),
-            title: const Text('TMDB v4 Login'),
-            selected: currentRoute == V4LoginScreen.routeName,
-            onTap: () => _navigateTo(context, V4LoginScreen.routeName),
           ),
           const Divider(),
           ListTile(

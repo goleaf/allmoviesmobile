@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,91 +7,99 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/constants/app_strings.dart';
 import 'core/localization/app_localizations.dart';
-import 'core/navigation/deep_link_handler.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/foreground_refresh_observer.dart';
 import 'core/utils/memory_optimizer.dart';
-import 'data/models/company_model.dart';
-import 'data/models/movie.dart';
-import 'data/models/person_model.dart';
-import 'data/services/background_prefetch_service.dart';
+import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
+import 'data/services/background_sync_service.dart';
 import 'data/services/network_quality_service.dart';
-import 'data/services/offline_service.dart';
+import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
-import 'presentation/navigation/app_navigation_shell.dart';
-import 'presentation/navigation/episode_detail_args.dart';
-import 'presentation/navigation/season_detail_args.dart';
-import 'presentation/screens/collections/browse_collections_screen.dart';
-import 'presentation/screens/collections/collection_detail_screen.dart';
-import 'presentation/screens/companies/companies_screen.dart';
-import 'presentation/screens/company_detail/company_detail_screen.dart';
-import 'presentation/screens/episode_detail/episode_detail_screen.dart';
-import 'presentation/screens/explorer/api_explorer_screen.dart';
-import 'presentation/screens/favorites/favorites_screen.dart';
-import 'presentation/screens/home/home_screen.dart';
-import 'presentation/screens/keywords/keyword_browser_screen.dart';
-import 'presentation/screens/keywords/keyword_detail_screen.dart';
-import 'presentation/screens/lists/lists_screen.dart';
-import 'presentation/screens/movie_detail/movie_detail_screen.dart';
-import 'presentation/screens/movies/movies_filters_screen.dart';
-import 'presentation/screens/movies/movies_screen.dart';
-import 'presentation/screens/network_detail/network_detail_screen.dart';
-import 'presentation/screens/networks/networks_screen.dart';
-import 'presentation/screens/people/people_screen.dart';
-import 'presentation/screens/person_detail/person_detail_screen.dart';
-import 'presentation/screens/search/search_results_list_screen.dart';
-import 'presentation/screens/search/search_screen.dart';
-import 'presentation/screens/season_detail/season_detail_screen.dart';
-import 'presentation/screens/series/series_filters_screen.dart';
-import 'presentation/screens/series/series_screen.dart';
-import 'presentation/screens/settings/settings_screen.dart';
-import 'presentation/screens/tv_detail/tv_detail_screen.dart';
-import 'presentation/screens/video_player/video_player_screen.dart';
-import 'presentation/screens/videos/videos_screen.dart';
-import 'presentation/screens/watchlist/watchlist_screen.dart';
-import 'providers/accessibility_provider.dart';
-import 'providers/app_state_provider.dart';
-import 'providers/collections_provider.dart';
-import 'providers/companies_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
-import 'providers/lists_provider.dart';
 import 'providers/locale_provider.dart';
-import 'providers/movies_provider.dart';
-import 'providers/networks_provider.dart';
 import 'providers/offline_provider.dart';
-import 'providers/people_provider.dart';
-import 'providers/preferences_provider.dart';
-import 'providers/recommendations_provider.dart';
 import 'providers/search_provider.dart';
-import 'providers/series_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/accessibility_provider.dart';
 import 'providers/trending_titles_provider.dart';
-import 'providers/watch_region_provider.dart';
 import 'providers/watchlist_provider.dart';
+import 'presentation/navigation/app_navigation_shell.dart';
+import 'presentation/screens/explorer/api_explorer_screen.dart';
+import 'presentation/screens/keywords/keyword_browser_screen.dart';
+import 'presentation/screens/companies/companies_screen.dart';
+import 'presentation/screens/favorites/favorites_screen.dart';
+import 'presentation/screens/home/home_screen.dart';
+import 'presentation/screens/movie_detail/movie_detail_screen.dart';
+import 'presentation/screens/tv_detail/tv_detail_screen.dart';
+import 'presentation/screens/person_detail/person_detail_screen.dart';
+import 'presentation/screens/company_detail/company_detail_screen.dart';
+import 'presentation/screens/network_detail/network_detail_screen.dart';
+import 'presentation/screens/episode_detail/episode_detail_screen.dart';
+import 'presentation/screens/collections/collection_detail_screen.dart';
+import 'presentation/screens/keywords/keyword_detail_screen.dart';
+import 'presentation/navigation/season_detail_args.dart';
+import 'presentation/navigation/episode_detail_args.dart';
+import 'presentation/screens/season_detail/season_detail_screen.dart';
+import 'presentation/navigation/episode_detail_args.dart';
+import 'presentation/screens/collections/browse_collections_screen.dart';
+import 'presentation/screens/networks/networks_screen.dart';
+import 'presentation/screens/certifications/certifications_screen.dart';
+import 'presentation/screens/lists/lists_screen.dart';
+import 'presentation/screens/videos/videos_screen.dart';
+import 'presentation/screens/video_player/video_player_screen.dart';
+import 'presentation/screens/search/search_results_list_screen.dart';
+import 'data/models/movie.dart';
+import 'data/models/person_model.dart';
+import 'data/models/company_model.dart';
+import 'presentation/screens/movies/movies_screen.dart';
+import 'presentation/screens/movies/movies_filters_screen.dart';
+import 'presentation/screens/people/people_screen.dart';
+import 'presentation/screens/search/search_screen.dart';
+import 'presentation/screens/series/series_screen.dart';
+import 'presentation/screens/series/series_filters_screen.dart';
+import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/watchlist/watchlist_screen.dart';
+import 'providers/companies_provider.dart';
+import 'providers/movies_provider.dart';
+import 'providers/people_provider.dart';
+import 'providers/series_provider.dart';
+import 'providers/watch_region_provider.dart';
+import 'providers/networks_provider.dart';
+import 'providers/collections_provider.dart';
+import 'providers/certifications_provider.dart';
+import 'providers/lists_provider.dart';
+import 'providers/preferences_provider.dart';
+import 'core/navigation/deep_link_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   MemoryOptimizer.instance.initialize();
 
+  // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
   final offlineService = OfflineService(prefs: prefs);
-  final networkQualityNotifier = NetworkQualityNotifier();
-  await networkQualityNotifier.initialize();
 
   runApp(
     AllMoviesApp(
       storageService: storageService,
       prefs: prefs,
       offlineService: offlineService,
-      networkQualityNotifier: networkQualityNotifier,
     ),
   );
 }
+
+class AllMoviesApp extends StatelessWidget {
+  final LocalStorageService storageService;
+  final SharedPreferences prefs;
+  final TmdbRepository? tmdbRepository;
+  final OfflineService offlineService;
+  // Removed unused StaticCatalogService stub (no longer present)
 
 class AllMoviesApp extends StatefulWidget {
   const AllMoviesApp({
@@ -103,7 +113,6 @@ class AllMoviesApp extends StatefulWidget {
 
   final LocalStorageService storageService;
   final SharedPreferences prefs;
-  final OfflineService offlineService;
   final TmdbRepository? tmdbRepository;
   final NetworkQualityNotifier networkQualityNotifier;
 
@@ -113,9 +122,7 @@ class AllMoviesApp extends StatefulWidget {
 
 class _AllMoviesAppState extends State<AllMoviesApp> {
   late final TmdbRepository _repository;
-  late final DeepLinkHandler _deepLinkHandler;
   late final ForegroundRefreshObserver _foregroundObserver;
-  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _registeredRefreshCallbacks = false;
 
   @override
@@ -123,7 +130,29 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
     super.initState();
     _repository = widget.tmdbRepository ??
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
-    _foregroundObserver = ForegroundRefreshObserver()..attach();
+    _foregroundObserver = ForegroundRefreshObserver();
+    _foregroundObserver.attach();
+  }
+
+  @override
+  void dispose() {
+    _foregroundObserver.detach();
+    super.dispose();
+  }
+
+  @override
+  State<AllMoviesApp> createState() => _AllMoviesAppState();
+}
+
+class _AllMoviesAppState extends State<AllMoviesApp> {
+  late final TmdbRepository _repository;
+  late final DeepLinkHandler _deepLinkHandler;
+  final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
+
+  @override
+  void initState() {
+    super.initState();
+    _repository = widget.tmdbRepository ?? TmdbRepository();
     _deepLinkHandler = DeepLinkHandler(
       navigatorKey: _navigatorKey,
       repository: _repository,
@@ -133,8 +162,6 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   @override
   void dispose() {
     _deepLinkHandler.dispose();
-    _foregroundObserver.detach();
-    widget.networkQualityNotifier.dispose();
     super.dispose();
   }
 
@@ -142,28 +169,39 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<LocalStorageService>.value(value: widget.storageService),
-        Provider<SharedPreferences>.value(value: widget.prefs),
-        Provider<OfflineService>.value(value: widget.offlineService),
-        Provider<TmdbRepository>.value(value: _repository),
-        Provider<DeepLinkHandler>.value(value: _deepLinkHandler),
-        Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
-        ChangeNotifierProvider<NetworkQualityNotifier>.value(
-          value: widget.networkQualityNotifier,
-        ),
+        Provider<OfflineService>.value(value: offlineService),
         ChangeNotifierProvider(
-          create: (_) => OfflineProvider(widget.offlineService),
+          create: (_) => OfflineProvider(offlineService),
         ),
+        Provider<TmdbRepository>.value(value: repo),
+        Provider<BackgroundPrefetchService>(
+          create: (_) {
+            final service = BackgroundPrefetchService(
+              repository: repo,
+              networkQualityNotifier: networkQualityNotifier,
+            );
+            service.initialize();
+            return service;
+          },
+          dispose: (_, service) => service.dispose(),
+        ),
+        Provider<LocalStorageService>.value(value: storageService),
+        Provider<SharedPreferences>.value(value: prefs),
+        ChangeNotifierProvider<NetworkQualityNotifier>.value(
+          value: networkQualityNotifier,
+        ),
+        ChangeNotifierProvider(create: (_) => LocaleProvider(prefs)),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(prefs)),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(
-            widget.storageService,
-            offlineService: widget.offlineService,
+            storageService,
+            offlineService: offlineService,
           ),
         ),
         ChangeNotifierProvider(
           create: (_) => WatchlistProvider(
-            widget.storageService,
-            offlineService: widget.offlineService,
+            storageService,
+            offlineService: offlineService,
           ),
         ),
         ChangeNotifierProvider(
@@ -173,92 +211,58 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           create: (_) =>
               RecommendationsProvider(_repository, widget.storageService),
         ),
-        ChangeNotifierProvider(
-          create: (_) => TrendingTitlesProvider(_repository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => GenresProvider(_repository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => PeopleProvider(_repository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CompaniesProvider(_repository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => NetworksProvider(_repository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => CollectionsProvider(_repository),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ListsProvider(widget.storageService),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => WatchRegionProvider(widget.prefs),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => LocaleProvider(widget.prefs),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => ThemeProvider(widget.prefs),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => PreferencesProvider(widget.prefs),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AccessibilityProvider(widget.prefs),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => AppStateProvider(widget.prefs),
-        ),
+        ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => GenresProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => WatchRegionProvider(widget.prefs)),
         ChangeNotifierProxyProvider2<
-            WatchRegionProvider, PreferencesProvider, MoviesProvider>(
+          WatchRegionProvider,
+          PreferencesProvider,
+          MoviesProvider
+        >(
           create: (_) => MoviesProvider(
-            _repository,
-            storageService: widget.storageService,
-            offlineService: widget.offlineService,
+            repo,
+            storageService: storageService,
+            offlineService: offlineService,
           ),
           update: (_, watchRegion, preferences, movies) {
             movies ??= MoviesProvider(
-              _repository,
-              storageService: widget.storageService,
-              offlineService: widget.offlineService,
+              repo,
+              storageService: storageService,
+              offlineService: offlineService,
             );
-            movies
-              ..bindRegionProvider(watchRegion)
-              ..bindPreferencesProvider(preferences);
+            movies.bindRegionProvider(watchRegion);
+            movies.bindPreferencesProvider(preferences);
             return movies;
           },
         ),
         ChangeNotifierProxyProvider2<PreferencesProvider, OfflineService,
             SeriesProvider>(
           create: (_) => SeriesProvider(
-            _repository,
+            repo,
             preferencesProvider: null,
-            offlineService: widget.offlineService,
+            offlineService: offlineService,
           ),
-          update: (_, prefsProvider, offlineService, series) {
+          update: (_, prefsProvider, offline, series) {
             series ??= SeriesProvider(
-              _repository,
+              repo,
               preferencesProvider: prefsProvider,
-              offlineService: offlineService,
+              offlineService: offline,
             );
             series.bindPreferencesProvider(prefsProvider);
             return series;
           },
         ),
-        Provider<BackgroundPrefetchService>(
-          create: (_) {
-            final service = BackgroundPrefetchService(
-              repository: _repository,
-              networkQualityNotifier: widget.networkQualityNotifier,
-            );
-            service.initialize();
-            return service;
-          },
-          dispose: (_, service) => service.dispose(),
+        ChangeNotifierProvider(create: (_) => PeopleProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => CertificationsProvider(_repository)),
+        ChangeNotifierProvider(
+          create: (_) => ListsProvider(widget.storageService),
         ),
+        ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
+        ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
+        Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
       child: Builder(
         builder: (context) {
@@ -287,7 +291,6 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                   final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
 
                   return MaterialApp(
-                    navigatorKey: _navigatorKey,
                     title: AppLocalizations.of(context).t('app.name'),
                     theme: lightTheme,
                     darkTheme: darkTheme,
@@ -318,14 +321,15 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           const FavoritesScreen(),
                       WatchlistScreen.routeName: (context) =>
                           const WatchlistScreen(),
-                      SettingsScreen.routeName: (context) =>
-                          const SettingsScreen(),
+                      SettingsScreen.routeName: (context) => const SettingsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
                           const KeywordBrowserScreen(),
                       NetworksScreen.routeName: (context) =>
                           const NetworksScreen(),
+                      CertificationsScreen.routeName: (context) =>
+                          const CertificationsScreen(),
                       CollectionsBrowserScreen.routeName: (context) =>
                           const CollectionsBrowserScreen(),
                       SearchResultsListScreen.routeName: (context) =>
@@ -353,25 +357,10 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           }
                           return null;
                         case '/tv':
-                        case TVDetailScreen.routeName:
-                          final args = settings.arguments;
-                          if (args is Movie) {
-                            return MaterialPageRoute(
-                              builder: (_) => TVDetailScreen(tvShow: args),
-                              settings: settings,
-                              fullscreenDialog: true,
-                            );
-                          }
-                          if (args is int) {
-                            return MaterialPageRoute(
-                              builder: (_) => TVDetailScreen(
-                                tvShow: Movie(id: args, title: ''),
-                              ),
-                              settings: settings,
-                              fullscreenDialog: true,
-                            );
-                          }
-                          return null;
+                          settings = RouteSettings(
+                            name: TVDetailScreen.routeName,
+                            arguments: settings.arguments,
+                          );
                         case MovieDetailScreen.routeName:
                           final args = settings.arguments;
                           if (args is Movie) {
@@ -395,8 +384,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) =>
-                                  KeywordDetailScreen(keywordId: args),
+                              builder: (_) => KeywordDetailScreen(keywordId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -416,13 +404,35 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                             }
                           }
                           return null;
+                        case TVDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is Movie) {
+                            return MaterialPageRoute(
+                              builder: (_) => TVDetailScreen(tvShow: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          if (args is int) {
+                            return MaterialPageRoute(
+                              builder: (_) => TVDetailScreen(
+                                tvShow: Movie(id: args, title: ''),
+                              ),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
                         case '/person':
+                          settings = RouteSettings(
+                            name: PersonDetailScreen.routeName,
+                            arguments: settings.arguments,
+                          );
                         case PersonDetailScreen.routeName:
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) =>
-                                  PersonDetailScreen(personId: args),
+                              builder: (_) => PersonDetailScreen(personId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -453,8 +463,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) =>
-                                  NetworkDetailScreen(networkId: args),
+                              builder: (_) => NetworkDetailScreen(networkId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -462,51 +471,126 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           return null;
                         case EpisodeDetailScreen.routeName:
                           final args = settings.arguments;
-                          if (args is EpisodeDetailArgs) {
+                          if (args is Episode) {
                             return MaterialPageRoute(
-                              builder: (_) => EpisodeDetailScreen(
-                                episode: args.episode,
-                                tvId: args.tvId,
-                              ),
+                              builder: (_) => EpisodeDetailScreen(episode: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
-                          }
-                          return null;
-                        case CollectionDetailScreen.routeName:
-                          final args = settings.arguments;
-                          if (args is int) {
-                            return MaterialPageRoute(
-                              builder: (_) => CollectionDetailScreen(
-                                collectionId: args,
-                              ),
-                              settings: settings,
-                              fullscreenDialog: true,
-                            );
-                          }
-                          if (args is Map) {
-                            final id = args['id'];
-                            if (id is int) {
-                              return MaterialPageRoute(
-                                builder: (_) => CollectionDetailScreen(
-                                  collectionId: id,
-                                  initialName: args['name'] as String?,
-                                  initialPosterPath:
-                                      args['posterPath'] as String?,
-                                  initialBackdropPath:
-                                      args['backdropPath'] as String?,
-                                ),
-                                settings: settings,
-                                fullscreenDialog: true,
-                              );
-                            }
                           }
                           return null;
                         default:
                           return null;
                       }
-                    },
-                  );
+                      return null;
+                    case TVDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is Movie) {
+                        return MaterialPageRoute(
+                          builder: (_) => TVDetailScreen(tvShow: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) => TVDetailScreen(
+                            tvShow: Movie(id: args, title: ''),
+                          ),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case '/person':
+                      settings = RouteSettings(
+                        name: PersonDetailScreen.routeName,
+                        arguments: settings.arguments,
+                      );
+                    // fall through
+                    case PersonDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) => PersonDetailScreen(personId: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      if (args is Person) {
+                        return MaterialPageRoute(
+                          builder: (_) => PersonDetailScreen(
+                            personId: args.id,
+                            initialPerson: args,
+                          ),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case CompanyDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is Company) {
+                        return MaterialPageRoute(
+                          builder: (_) =>
+                              CompanyDetailScreen(initialCompany: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case NetworkDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) => NetworkDetailScreen(networkId: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case EpisodeDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is EpisodeDetailArgs) {
+                        return MaterialPageRoute(
+                          builder: (_) => EpisodeDetailScreen(
+                            episode: args.episode,
+                            tvId: args.tvId,
+                          ),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      return null;
+                    case CollectionDetailScreen.routeName:
+                      final args = settings.arguments;
+                      if (args is int) {
+                        return MaterialPageRoute(
+                          builder: (_) =>
+                              CollectionDetailScreen(collectionId: args),
+                          settings: settings,
+                          fullscreenDialog: true,
+                        );
+                      }
+                      if (args is Map) {
+                        final id = args['id'];
+                        if (id is int) {
+                          return MaterialPageRoute(
+                            builder: (_) => CollectionDetailScreen(
+                              collectionId: id,
+                              initialName: args['name'] as String?,
+                              initialPosterPath: args['posterPath'] as String?,
+                              initialBackdropPath:
+                                  args['backdropPath'] as String?,
+                            ),
+                            settings: settings,
+                            fullscreenDialog: true,
+                          );
+                        }
+                      }
+                      return null;
+                  }
+                  return null;
                 },
               );
             },

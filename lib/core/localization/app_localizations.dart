@@ -23,7 +23,7 @@ class AppLocalizations {
         'series': 'Series',
         'people': 'People',
         'companies': 'Companies',
-        'genres': 'Genres',
+        'certifications': 'Certifications',
       },
       'company': {
         'title': 'Company',
@@ -42,6 +42,28 @@ class AppLocalizations {
         'popular_subtitle': 'Studios making headlines this week',
         'popular_empty': 'Trending studios will appear here soon.',
         'logo_gallery': 'Logo gallery',
+      },
+      'certifications': {
+        'title': 'Content ratings',
+        'subtitle': 'Explore official age ratings by country.',
+        'instructions':
+            'Filter by country, switch between movies and TV, and review each rating.',
+        'search_hint': 'Search certifications or descriptions',
+        'filter_country': 'Country',
+        'filter_all_countries': 'All countries',
+        'media_movies': 'Movies',
+        'media_tv': 'TV',
+        'result_movies': '{count} movie ratings shown',
+        'result_tv': '{count} TV ratings shown',
+        'empty': 'No certifications match your filters yet.',
+        'age_template': 'Recommended for ages {age}+.',
+        'age_all': 'Suitable for all audiences',
+        'age_pg': 'Parental guidance suggested',
+        'age_restricted': 'Restricted — adult supervision required',
+        'age_no_children': 'Not appropriate for children',
+        'age_generic': 'Check local guidance before viewing',
+        'country_code': 'Country code: {code}',
+        'not_applicable': 'N/A',
       },
       'common': {
         'cancel': 'Cancel',
@@ -74,6 +96,7 @@ class AppLocalizations {
         'chooseLanguage': 'Choose Language',
         'region': 'Region',
         'chooseRegion': 'Choose Region',
+        'accessibility': 'Accessibility',
         'high_contrast': 'High contrast mode',
         'high_contrast_description':
             'Increase color contrast for better readability.',
@@ -95,45 +118,16 @@ class AppLocalizations {
         'continue_watching': 'Continue Watching',
         'personalized_recommendations': 'Recommended for you',
       },
-      'change_tracking': {
-        'banner_title': 'Latest updates available',
-        'banner_description_single': 'TMDB just refreshed 1 item.',
-        'banner_description_multiple':
-            'TMDB just refreshed {count} items.',
-        'view': 'View',
-        'mark_read': 'Mark as read',
-        'refresh': 'Refresh updates',
-        'sheet_title': 'Recent content changes',
-        'empty': 'You\'re all caught up. We\'ll let you know when TMDB updates.',
-        'updated_movie': 'Movie updated',
-        'updated_tv': 'Series updated',
-        'updated_person': 'Person updated',
-      },
       'tv': {
         'overview': 'Overview',
         'season': 'Season',
         'episodes': 'Episodes',
         'no_images': 'No images available for this season',
-        'no_details': 'No details available',
         'season_images_title': 'Season {seasonNumber} images',
         'no_episodes': 'No episodes available',
-        'episode_count': '{count} episodes',
-        'episode_numbered_title': 'E{episodeNumber}: {episodeTitle}',
         'episode_groups': 'Episode Groups',
         'episode_group_no_episodes': 'No episodes available for this group',
         'episode_group_order': 'Order {order}',
-        'episode_group_node_fallback': 'Group {order}',
-        'episode_group_group_count': '{count} collections',
-        'episode_group_episode_count': '{count} episodes',
-        'episode_group_network': 'Network: {network}',
-        'episode_group_type_unknown': 'Custom order',
-        'episode_group_type_1': 'Original air date order',
-        'episode_group_type_2': 'Absolute order',
-        'episode_group_type_3': 'DVD release order',
-        'episode_group_type_4': 'Digital release order',
-        'episode_group_type_5': 'Story arc order',
-        'episode_group_type_6': 'Production order',
-        'episode_group_type_7': 'TV order',
       },
       'movie': {
         'overview': 'Overview',
@@ -219,27 +213,6 @@ class AppLocalizations {
         'profile_label': 'Profile image for {name}',
         'collection_label': 'Collection poster for {title}',
       },
-      'genre_browser': {
-        'title': 'Genres',
-        'movies_tab': 'Movies',
-        'tv_tab': 'TV Shows',
-        'trending_title': 'Trending genres',
-        'trending_subtitle': "What's popular right now",
-        'selection_hint': 'Pick one or more genres to filter results.',
-        'clear_selection': 'Clear selection',
-        'no_selection': 'Select genres to explore matching titles.',
-        'loading': 'Loading genre data...',
-        'trending_count': '{count} trending titles',
-        'stats_title': 'Genre statistics',
-        'stats_rating': 'Avg rating',
-        'stats_popularity': 'Avg popularity',
-        'stats_votes': 'Avg votes',
-        'stats_years': 'Release span',
-        'stats_top_titles': 'Top titles',
-        'stats_empty': 'Select genres to see statistics.',
-        'load_more': 'Load more',
-        'no_results': 'No titles match this combination yet.',
-      },
     };
     return fallback;
   }
@@ -301,12 +274,9 @@ class AppLocalizations {
   Map<String, dynamic> get favorites => _localizedStrings['favorites'] ?? {};
   Map<String, dynamic> get watchlist => _localizedStrings['watchlist'] ?? {};
   Map<String, dynamic> get settings => _localizedStrings['settings'] ?? {};
-  Map<String, dynamic> get statistics => _localizedStrings['statistics'] ?? {};
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};
   Map<String, dynamic> get errors => _localizedStrings['errors'] ?? {};
   Map<String, dynamic> get genres => _localizedStrings['genres'] ?? {};
-  Map<String, dynamic> get genreBrowser =>
-      _localizedStrings['genre_browser'] ?? {};
   Map<String, dynamic> get accessibility =>
       _localizedStrings['accessibility'] ?? {};
 

@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 
 import '../../core/utils/media_image_helper.dart';
 import 'media_image.dart';
@@ -55,23 +58,34 @@ class ZoomableImage extends StatefulWidget {
   State<ZoomableImage> createState() => _ZoomableImageState();
 }
 
-class _ZoomableImageState extends State<ZoomableImage>
-    with SingleTickerProviderStateMixin {
-  late final TransformationController _controller;
-  AnimationController? _animationController;
-  Animation<Matrix4>? _zoomAnimation;
-  TapDownDetails? _doubleTapDetails;
+class _ZoomableImageState extends State<ZoomableImage> {
+  late final PhotoViewController _photoViewController;
+  late final PhotoViewScaleStateController _scaleStateController;
+  StreamSubscription<PhotoViewControllerValue>? _controllerSubscription;
+  PhotoViewControllerValue? _lastControllerValue;
+  PhotoViewScaleState? _lastScaleState;
+  bool _isInteracting = false;
+  bool _isControllerCoolingDown = false;
+  Timer? _cooldownTimer;
+  Timer? _doubleTapTimer;
 
   @override
   void initState() {
     super.initState();
-    _controller = TransformationController();
+    _photoViewController = PhotoViewController();
+    _scaleStateController = PhotoViewScaleStateController();
+    _lastScaleState = PhotoViewScaleState.initial;
+    _controllerSubscription =
+        _photoViewController.outputStateStream.listen(_handleControllerValue);
   }
 
   @override
   void dispose() {
-    _animationController?.dispose();
-    _controller.dispose();
+    _cooldownTimer?.cancel();
+    _doubleTapTimer?.cancel();
+    _controllerSubscription?.cancel();
+    _photoViewController.dispose();
+    _scaleStateController.dispose();
     super.dispose();
   }
 
@@ -89,90 +103,113 @@ class _ZoomableImageState extends State<ZoomableImage>
       enableProgress: false,
     );
 
-    if (widget.heroTag != null) {
-      image = Hero(tag: widget.heroTag!, child: image);
-    }
+    final heroAttributes = widget.heroTag == null
+        ? null
+        : PhotoViewHeroAttributes(tag: widget.heroTag!);
 
     return Padding(
       padding: widget.padding,
-      child: GestureDetector(
-        onDoubleTapDown: (details) => _doubleTapDetails = details,
-        onDoubleTap: _handleDoubleTap,
-        onTap: widget.onTap,
-        child: InteractiveViewer(
-          transformationController: _controller,
-          clipBehavior: Clip.none,
-          minScale: widget.minScale,
-          maxScale: widget.maxScale,
-          onInteractionStart: (_) => widget.onInteractionStart?.call(),
-          onInteractionEnd: (_) => widget.onInteractionEnd?.call(),
-          child: image,
-        ),
+      child: PhotoView.customChild(
+        controller: _photoViewController,
+        scaleStateController: _scaleStateController,
+        minScale: widget.minScale,
+        maxScale: widget.maxScale,
+        initialScale: widget.minScale,
+        basePosition: Alignment.center,
+        backgroundDecoration: const BoxDecoration(color: Colors.transparent),
+        heroAttributes: heroAttributes,
+        scaleStateChangedCallback: _handleScaleStateChange,
+        onScaleEnd: _handleScaleEnd,
+        onTapUp: (_, __, ___) => widget.onTap?.call(),
+        child: image,
       ),
     );
   }
 
-  /// Handles the double-tap gesture to quickly toggle between the identity
-  /// matrix and a zoomed-in transformation centered around the tap location.
-  ///
-  /// The assets still come from TMDB's `/images` endpoints, but zooming allows
-  /// the user to inspect the high-resolution JSON-provided artwork in detail.
-  void _handleDoubleTap() {
-    widget.onInteractionStart?.call();
-    final position = _doubleTapDetails?.localPosition;
-    final currentMatrix = _controller.value;
-    final isZoomed = !_isIdentityMatrix(currentMatrix);
-
-    _animationController?.dispose();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
-    );
-
-    final targetMatrix = isZoomed
-        ? Matrix4.identity()
-        : _zoomMatrix(position ?? Offset.zero, widget.maxScale);
-
-    _zoomAnimation = Matrix4Tween(begin: currentMatrix, end: targetMatrix)
-        .animate(CurvedAnimation(
-      parent: _animationController!,
-      curve: Curves.easeOut,
-    ))
-      ..addListener(() {
-        _controller.value = _zoomAnimation!.value;
-      });
-
-    _animationController!
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed ||
-            status == AnimationStatus.dismissed) {
-          widget.onInteractionEnd?.call();
-        }
-      })
-      ..forward();
-  }
-
-  /// Generates a zoom matrix that anchors the transformation around the
-  /// [focalPoint] reported by the gesture, ensuring the tapped area remains
-  /// under the user's finger during the animation.
-  Matrix4 _zoomMatrix(Offset focalPoint, double scale) {
-    final translation = Matrix4.identity()
-      ..translate(-focalPoint.dx * (scale - 1), -focalPoint.dy * (scale - 1));
-    return translation..scale(scale);
-  }
-
-  /// Utility that approximates whether the current transformation is the
-  /// identity matrix. The small epsilon avoids floating point jitter when the
-  /// controller animates back to rest.
-  bool _isIdentityMatrix(Matrix4 matrix) {
-    for (var row = 0; row < 4; row++) {
-      for (var column = 0; column < 4; column++) {
-        final expected = row == column ? 1.0 : 0.0;
-        if ((matrix.storage[row * 4 + column] - expected).abs() > 0.01) {
-          return false;
-        }
-      }
+  void _handleControllerValue(PhotoViewControllerValue value) {
+    if (_lastControllerValue == null) {
+      _lastControllerValue = value;
+      return;
     }
+
+    if (_isControllerCoolingDown) {
+      _lastControllerValue = value;
+      return;
+    }
+
+    if (!_isInteracting && value != _lastControllerValue) {
+      _notifyInteractionStart();
+    }
+
+    _lastControllerValue = value;
+  }
+
+  void _handleScaleStateChange(PhotoViewScaleState state) {
+    final previous = _lastScaleState;
+    _lastScaleState = state;
+
+    if (previous == null) {
+      return;
+    }
+
+    final startedFromInitial = previous == PhotoViewScaleState.initial &&
+        state != PhotoViewScaleState.initial;
+
+    final isDoubleTapTarget = state == PhotoViewScaleState.covering ||
+        state == PhotoViewScaleState.originalSize;
+
+    if (startedFromInitial && isDoubleTapTarget) {
+      final didStart = _notifyInteractionStart();
+      if (!didStart) {
+        return;
+      }
+      _doubleTapTimer?.cancel();
+      _doubleTapTimer = Timer(const Duration(milliseconds: 260), () {
+        _finishInteraction();
+      });
+      return;
+    }
+
+    if (state == PhotoViewScaleState.initial) {
+      _doubleTapTimer?.cancel();
+      _finishInteraction();
+    }
+  }
+
+  void _handleScaleEnd(
+    BuildContext context,
+    ScaleEndDetails details,
+    PhotoViewControllerValue controllerValue,
+  ) {
+    _doubleTapTimer?.cancel();
+    _finishInteraction();
+  }
+
+  bool _notifyInteractionStart() {
+    if (_isInteracting) {
+      return false;
+    }
+    _cooldownTimer?.cancel();
+    _isControllerCoolingDown = false;
+    _isInteracting = true;
+    widget.onInteractionStart?.call();
     return true;
+  }
+
+  void _finishInteraction() {
+    if (!_isInteracting) {
+      return;
+    }
+    _isInteracting = false;
+    widget.onInteractionEnd?.call();
+    _startCooldown();
+  }
+
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    _isControllerCoolingDown = true;
+    _cooldownTimer = Timer(const Duration(milliseconds: 180), () {
+      _isControllerCoolingDown = false;
+    });
   }
 }

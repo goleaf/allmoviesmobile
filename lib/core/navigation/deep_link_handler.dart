@@ -1,25 +1,39 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:uni_links/uni_links.dart';
 
 import 'deep_link_parser.dart';
+import '../../data/tmdb_repository.dart';
 
 /// Coordinates receiving and parsing deep links for the application.
 class DeepLinkHandler extends ChangeNotifier {
   DeepLinkHandler({
     Stream<Uri?>? uriStream,
     Future<Uri?> Function()? initialUriGetter,
-  }) : _uriStream = uriStream ?? uriLinkStream,
-       _initialUriGetter = initialUriGetter ?? getInitialUri;
+    GlobalKey<NavigatorState>? navigatorKey,
+    TmdbRepository? repository,
+  })  : _uriStream = uriStream ?? uriLinkStream,
+        _initialUriGetter = initialUriGetter ?? getInitialUri,
+        _navigatorKey = navigatorKey,
+        _repository = repository;
 
   final Stream<Uri?> _uriStream;
   final Future<Uri?> Function() _initialUriGetter;
+  final GlobalKey<NavigatorState>? _navigatorKey;
+  final TmdbRepository? _repository;
 
   StreamSubscription<Uri?>? _subscription;
   DeepLinkData? _pendingLink;
   Object? _lastError;
   bool _initialized = false;
+
+  /// Navigator exposed for routing from outside the widget tree.
+  GlobalKey<NavigatorState>? get navigatorKey => _navigatorKey;
+
+  /// Repository used for resolving deep-linked content when needed.
+  TmdbRepository? get repository => _repository;
 
   /// Pending deep link data awaiting consumption.
   DeepLinkData? get pendingLink => _pendingLink;
@@ -60,30 +74,11 @@ class DeepLinkHandler extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Manually queue a deep link event (used by push notifications).
-  void enqueueLink(DeepLinkData link) {
-    _pendingLink = link;
-    notifyListeners();
-  }
-
-  /// Parses the provided [uri] and queues it when valid.
-  void enqueueUri(Uri uri) => _setPendingFromUri(uri);
-
   /// Consumes the currently pending deep link, if any.
   DeepLinkData? consumePendingLink() {
     final link = _pendingLink;
     _pendingLink = null;
     return link;
-  }
-
-  /// Injects a deep link directly into the handler.
-  ///
-  /// This is primarily intended for tests where platform deep link
-  /// integrations are not available.
-  @visibleForTesting
-  void debugInjectPendingLink(DeepLinkData link) {
-    _pendingLink = link;
-    notifyListeners();
   }
 
   @override
@@ -92,19 +87,19 @@ class DeepLinkHandler extends ChangeNotifier {
     super.dispose();
   }
 
-  /// Builds a custom-scheme URI for a movie deep link.
+  /// Builds a movie deep link with either universal (HTTPS) or custom schemes.
   static Uri buildMovieUri(int movieId, {bool universal = false}) {
     final uri = DeepLinkBuilder.movie(movieId);
     return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 
-  /// Builds a custom-scheme URI for a TV show deep link.
+  /// Builds a TV show deep link.
   static Uri buildTvShowUri(int tvId, {bool universal = false}) {
     final uri = DeepLinkBuilder.tvShow(tvId);
     return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 
-  /// Builds a custom-scheme URI for a TV season deep link.
+  /// Builds a TV season deep link.
   static Uri buildSeasonUri(
     int tvId,
     int seasonNumber, {
@@ -114,7 +109,7 @@ class DeepLinkHandler extends ChangeNotifier {
     return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 
-  /// Builds a custom-scheme URI for a TV episode deep link.
+  /// Builds a TV episode deep link.
   static Uri buildEpisodeUri(
     int tvId,
     int seasonNumber,
@@ -125,27 +120,21 @@ class DeepLinkHandler extends ChangeNotifier {
     return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 
-  /// Builds a custom-scheme URI for a person deep link.
+  /// Builds a person deep link.
   static Uri buildPersonUri(int personId, {bool universal = false}) {
     final uri = DeepLinkBuilder.person(personId);
     return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 
-  /// Builds a custom-scheme URI for a company deep link.
+  /// Builds a company deep link.
   static Uri buildCompanyUri(int companyId, {bool universal = false}) {
     final uri = DeepLinkBuilder.company(companyId);
     return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 
-  /// Builds a custom-scheme URI for a collection deep link.
+  /// Builds a collection deep link.
   static Uri buildCollectionUri(int collectionId, {bool universal = false}) {
     final uri = DeepLinkBuilder.collection(collectionId);
-    return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
-  }
-
-  /// Builds a custom-scheme URI for a search deep link.
-  static Uri buildSearchUri(String query, {bool universal = false}) {
-    final uri = DeepLinkBuilder.search(query);
     return universal ? uri : DeepLinkBuilder.asCustomScheme(uri);
   }
 }

@@ -128,7 +128,11 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
     _repository = widget.tmdbRepository ??
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
     _foregroundObserver = ForegroundRefreshObserver()..attach();
-    _deepLinkHandler = DeepLinkHandler()..initialize();
+    _deepLinkHandler = DeepLinkHandler(
+      navigatorKey: _navigatorKey,
+      repository: _repository,
+    )
+      ..initialize();
   }
 
   @override
@@ -142,6 +146,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        ChangeNotifierProvider<DeepLinkHandler>.value(value: _deepLinkHandler),
         Provider<OfflineService>.value(value: widget.offlineService),
         ChangeNotifierProvider(
           create: (_) => OfflineProvider(widget.offlineService),

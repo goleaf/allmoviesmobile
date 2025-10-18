@@ -394,9 +394,10 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
   List<_GenreSegment> _buildGenreBreakdown(
     List<SavedMediaItem> items,
-    GenresProvider genresProvider,
-    {required String unknownLabel, required String otherLabel},
-  ) {
+    GenresProvider genresProvider, {
+    required String unknownLabel,
+    required String otherLabel,
+  }) {
     final totals = <String, double>{};
     for (final item in items) {
       final runtime = (item.totalRuntimeEstimate ?? item.runtimeMinutes ?? 0).toDouble();
@@ -1107,7 +1108,7 @@ class _ReleaseTimelineChart extends StatelessWidget {
         minX: minYear.toDouble(),
         maxX: maxYear.toDouble(),
         minY: 0,
-        maxY: maxValue,
+        maxY: maxValue.toDouble(),
         gridData: const FlGridData(show: false),
         borderData: FlBorderData(show: false),
         lineTouchData: LineTouchData(enabled: true),
@@ -1294,27 +1295,16 @@ class _BudgetRevenueScatterChart extends StatelessWidget {
         scatterTouchData: ScatterTouchData(
           enabled: true,
           handleBuiltInTouches: true,
-          touchTooltipData: ScatterTouchTooltipData(
-            getTooltipItems: (spots) {
-              return spots.map((spot) {
-                final point = points[spot.spotIndex];
-                return ScatterTooltipItem(
-                  '${point.label}
-Budget: USD ${point.x.toStringAsFixed(0)}M
-Revenue: USD ${point.y.toStringAsFixed(0)}M',
-                  textStyle: theme.textTheme.bodySmall,
-                );
-              }).toList();
-            },
-          ),
         ),
         scatterSpots: [
           for (var i = 0; i < points.length; i++)
             ScatterSpot(
               points[i].x,
               points[i].y,
-              color: theme.colorScheme.primary,
-              radius: 6,
+              dotPainter: FlDotCirclePainter(
+                radius: 6,
+                color: theme.colorScheme.primary,
+              ),
             ),
         ],
       ),

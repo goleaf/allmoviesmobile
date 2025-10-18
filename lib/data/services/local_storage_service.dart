@@ -256,13 +256,13 @@ class LocalStorageService {
       return raw
           .whereType<num>()
           .map((value) => value.toInt())
-          .toSet(growable: false);
+          .toSet();
     }
     if (raw is Iterable) {
       return raw
           .whereType<num>()
           .map((value) => value.toInt())
-          .toSet(growable: false);
+          .toSet();
     }
 
     return <int>{};

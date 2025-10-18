@@ -233,14 +233,13 @@ class PreferencesProvider extends ChangeNotifier {
   }) async {
     final sanitizedFilters = filters == null
         ? null
-        : Map<String, String>.fromEntries(
+        : (Map<String, String>.fromEntries(
             filters.entries.map(
               (entry) => MapEntry(entry.key.trim(), entry.value.trim()),
             ),
-          )
-            ..removeWhere(
+          )..removeWhere(
               (key, value) => key.isEmpty || value.isEmpty,
-            );
+            ));
 
     final normalizedName = presetName?.trim();
     final currentFilters = tvDiscoverFilterPreset;

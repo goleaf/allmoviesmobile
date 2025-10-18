@@ -70,7 +70,7 @@ class CacheService {
   int _maxEntryBytes = 256 * 1024;
   int _totalBytes = 0;
   Timer? _cleanupTimer;
-  final Map<String, Future<void>> _inflightPersistentWrites = {};
+  final Map<String, int> _inflightPersistentWrites = {};
 
   Stream<CacheEvent> get events => _events.stream;
 
@@ -135,6 +135,7 @@ class CacheService {
       value: value,
       createdAt: DateTime.now(),
       policy: resolvedPolicy,
+      estimatedSize: estimatedSize,
     );
     _emit(CacheEvent.set(key: key, valueType: value.runtimeType));
     _logger.d('Cache set: $key (TTL: ${resolvedPolicy.ttl.inSeconds}s)');
@@ -549,7 +550,7 @@ class CacheService {
       set<T>(key, value, policy: policy);
       _emit(CacheEvent.refreshCompleted(key: key));
     } catch (error, stackTrace) {
-      _logger.w('Failed to refresh cache for $key: $error', error, stackTrace);
+      _logger.w('Failed to refresh cache for $key: $error');
       _emit(CacheEvent.refreshFailed(key: key, error: error));
     } finally {
       _refreshing.remove(key);
@@ -611,12 +612,14 @@ class _CacheEntry {
   final dynamic value;
   final DateTime createdAt;
   final CachePolicy policy;
+  final int estimatedSize;
   DateTime lastAccessed;
 
   _CacheEntry({
     required this.value,
     required this.createdAt,
     required this.policy,
+    required this.estimatedSize,
   }) : lastAccessed = createdAt;
 
   DateTime get expiresAt => createdAt.add(policy.ttl);

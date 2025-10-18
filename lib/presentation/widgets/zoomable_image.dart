@@ -1,14 +1,19 @@
+import 'dart:async';
+
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:photo_view/photo_view.dart';
 
 import '../../core/utils/media_image_helper.dart';
-import 'media_image.dart';
+import '../../data/services/compressed_image_cache_manager.dart';
 
 /// Displays a TMDB image with pinch/zoom interactions.
 ///
 /// The widget is primarily used for assets fetched from the TMDB image CDN
 /// via endpoints such as `/3/movie/{id}/images` and `/3/tv/{id}/images`.
 /// The JSON response for those endpoints contains `file_path` values that
-/// are forwarded to [MediaImage] to resolve the image URLs.
+/// are converted to CDN URLs with [MediaImageHelper] and rendered with
+/// `photo_view` for smooth zooming.
 class ZoomableImage extends StatefulWidget {
   const ZoomableImage({
     super.key,
@@ -33,10 +38,10 @@ class ZoomableImage extends StatefulWidget {
   /// Optional hero tag to enable Hero transitions from thumbnails.
   final Object? heroTag;
 
-  /// Minimum zoom level supported by [InteractiveViewer].
+  /// Minimum zoom level supported by the underlying [PhotoView].
   final double minScale;
 
-  /// Maximum zoom level supported by [InteractiveViewer].
+  /// Maximum zoom level supported by [PhotoView].
   final double maxScale;
 
   /// Padding applied around the zoomable content.
@@ -55,124 +60,185 @@ class ZoomableImage extends StatefulWidget {
   State<ZoomableImage> createState() => _ZoomableImageState();
 }
 
-class _ZoomableImageState extends State<ZoomableImage>
-    with SingleTickerProviderStateMixin {
-  late final TransformationController _controller;
-  AnimationController? _animationController;
-  Animation<Matrix4>? _zoomAnimation;
-  TapDownDetails? _doubleTapDetails;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TransformationController();
-  }
+class _ZoomableImageState extends State<ZoomableImage> {
+  PhotoViewScaleState? _lastScaleState = PhotoViewScaleState.initial;
+  bool _isInteracting = false;
+  Timer? _interactionEndTimer;
+  int _activePointers = 0;
 
   @override
   void dispose() {
-    _animationController?.dispose();
-    _controller.dispose();
+    _interactionEndTimer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    Widget image = MediaImage(
-      path: widget.imagePath,
+    final imageUrl = MediaImageHelper.buildUrl(
+      widget.imagePath,
       type: widget.type,
       size: MediaImageSize.original,
-      fit: BoxFit.contain,
-      placeholder: const Center(child: CircularProgressIndicator()),
-      errorWidget: const Center(
-        child: Icon(Icons.broken_image_outlined, size: 48, color: Colors.white70),
-      ),
-      enableProgress: false,
     );
 
-    if (widget.heroTag != null) {
-      image = Hero(tag: widget.heroTag!, child: image);
+    if (imageUrl == null || imageUrl.isEmpty) {
+      return _buildFallbackPlaceholder();
     }
+
+    final imageProvider = CachedNetworkImageProvider(
+      imageUrl,
+      cacheManager: CompressedImageCacheManager.instance,
+    );
+
+    final heroAttributes = widget.heroTag != null
+        ? PhotoViewHeroAttributes(
+            tag: widget.heroTag!,
+            transitionOnUserGestures: true,
+          )
+        : null;
 
     return Padding(
       padding: widget.padding,
-      child: GestureDetector(
-        onDoubleTapDown: (details) => _doubleTapDetails = details,
-        onDoubleTap: _handleDoubleTap,
-        onTap: widget.onTap,
-        child: InteractiveViewer(
-          transformationController: _controller,
-          clipBehavior: Clip.none,
-          minScale: widget.minScale,
-          maxScale: widget.maxScale,
-          onInteractionStart: (_) => widget.onInteractionStart?.call(),
-          onInteractionEnd: (_) => widget.onInteractionEnd?.call(),
-          child: image,
+      child: Listener(
+        onPointerDown: (_) => _handlePointerDown(),
+        onPointerUp: (_) => _handlePointerUp(),
+        onPointerCancel: (_) => _handlePointerUp(),
+        child: PhotoView(
+          imageProvider: imageProvider,
+          backgroundDecoration:
+              const BoxDecoration(color: Colors.transparent),
+          minScale: PhotoViewComputedScale.contained * widget.minScale,
+          maxScale: PhotoViewComputedScale.contained * widget.maxScale,
+          initialScale: PhotoViewComputedScale.contained * widget.minScale,
+          heroAttributes: heroAttributes,
+          loadingBuilder: _buildLoadingIndicator,
+          errorBuilder: _buildErrorIndicator,
+          onTapUp: (_, __, ___) => widget.onTap?.call(),
+          onScaleEnd: _handleScaleEnd,
+          scaleStateChangedCallback: _handleScaleStateChanged,
+          filterQuality: FilterQuality.high,
         ),
       ),
     );
   }
 
-  /// Handles the double-tap gesture to quickly toggle between the identity
-  /// matrix and a zoomed-in transformation centered around the tap location.
-  ///
-  /// The assets still come from TMDB's `/images` endpoints, but zooming allows
-  /// the user to inspect the high-resolution JSON-provided artwork in detail.
-  void _handleDoubleTap() {
-    widget.onInteractionStart?.call();
-    final position = _doubleTapDetails?.localPosition;
-    final currentMatrix = _controller.value;
-    final isZoomed = !_isIdentityMatrix(currentMatrix);
-
-    _animationController?.dispose();
-    _animationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 250),
+  Widget _buildFallbackPlaceholder() {
+    return Padding(
+      padding: widget.padding,
+      child: const Center(
+        child: Icon(
+          Icons.broken_image_outlined,
+          size: 48,
+          color: Colors.white70,
+        ),
+      ),
     );
-
-    final targetMatrix = isZoomed
-        ? Matrix4.identity()
-        : _zoomMatrix(position ?? Offset.zero, widget.maxScale);
-
-    _zoomAnimation = Matrix4Tween(begin: currentMatrix, end: targetMatrix)
-        .animate(CurvedAnimation(
-      parent: _animationController!,
-      curve: Curves.easeOut,
-    ))
-      ..addListener(() {
-        _controller.value = _zoomAnimation!.value;
-      });
-
-    _animationController!
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed ||
-            status == AnimationStatus.dismissed) {
-          widget.onInteractionEnd?.call();
-        }
-      })
-      ..forward();
   }
 
-  /// Generates a zoom matrix that anchors the transformation around the
-  /// [focalPoint] reported by the gesture, ensuring the tapped area remains
-  /// under the user's finger during the animation.
-  Matrix4 _zoomMatrix(Offset focalPoint, double scale) {
-    final translation = Matrix4.identity()
-      ..translate(-focalPoint.dx * (scale - 1), -focalPoint.dy * (scale - 1));
-    return translation..scale(scale);
+  Widget _buildLoadingIndicator(BuildContext context, ImageChunkEvent? event) {
+    final total = event?.expectedTotalBytes;
+    final loaded = event?.cumulativeBytesLoaded ?? 0;
+    final progress = total != null && total > 0 ? loaded / total : null;
+
+    return Center(
+      child: SizedBox(
+        width: 42,
+        height: 42,
+        child: CircularProgressIndicator(value: progress),
+      ),
+    );
   }
 
-  /// Utility that approximates whether the current transformation is the
-  /// identity matrix. The small epsilon avoids floating point jitter when the
-  /// controller animates back to rest.
-  bool _isIdentityMatrix(Matrix4 matrix) {
-    for (var row = 0; row < 4; row++) {
-      for (var column = 0; column < 4; column++) {
-        final expected = row == column ? 1.0 : 0.0;
-        if ((matrix.storage[row * 4 + column] - expected).abs() > 0.01) {
-          return false;
-        }
-      }
+  Widget _buildErrorIndicator(
+    BuildContext context,
+    Object error,
+    StackTrace? stackTrace,
+  ) {
+    return const Center(
+      child: Icon(
+        Icons.broken_image_outlined,
+        size: 48,
+        color: Colors.white70,
+      ),
+    );
+  }
+
+  void _handleScaleStateChanged(PhotoViewScaleState state) {
+    if (_lastScaleState == state) {
+      return;
     }
-    return true;
+
+    if (state == PhotoViewScaleState.initial) {
+      _cancelInteractionEndTimer();
+      _notifyInteractionEnd();
+    } else if (_lastScaleState == PhotoViewScaleState.initial ||
+        _lastScaleState == null) {
+      _notifyInteractionStart();
+    }
+
+    if (state != PhotoViewScaleState.initial && _activePointers == 0) {
+      _scheduleInteractionEndDebounce();
+    }
+
+    _lastScaleState = state;
+  }
+
+  void _handleScaleEnd(
+    BuildContext context,
+    ScaleEndDetails details,
+    PhotoViewControllerValue controllerValue,
+  ) {
+    _cancelInteractionEndTimer();
+    _notifyInteractionEnd();
+  }
+
+  void _handlePointerDown() {
+    _activePointers++;
+    _cancelInteractionEndTimer();
+    if (_lastScaleState != PhotoViewScaleState.initial) {
+      _notifyInteractionStart();
+    }
+  }
+
+  void _handlePointerUp() {
+    if (_activePointers > 0) {
+      _activePointers--;
+    }
+
+    if (_activePointers == 0 && _lastScaleState != PhotoViewScaleState.initial) {
+      _scheduleInteractionEndDebounce();
+    }
+  }
+
+  void _scheduleInteractionEndDebounce() {
+    _cancelInteractionEndTimer();
+    _interactionEndTimer = Timer(
+      const Duration(milliseconds: 240),
+      () {
+        if (_activePointers == 0) {
+          _notifyInteractionEnd();
+        }
+      },
+    );
+  }
+
+  void _cancelInteractionEndTimer() {
+    _interactionEndTimer?.cancel();
+    _interactionEndTimer = null;
+  }
+
+  void _notifyInteractionStart() {
+    if (_isInteracting) {
+      return;
+    }
+    _isInteracting = true;
+    widget.onInteractionStart?.call();
+  }
+
+  void _notifyInteractionEnd() {
+    if (!_isInteracting) {
+      return;
+    }
+    _isInteracting = false;
+    widget.onInteractionEnd?.call();
   }
 }

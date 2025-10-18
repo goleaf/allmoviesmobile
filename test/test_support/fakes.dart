@@ -1,5 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,6 +17,35 @@ import 'package:allmovies_mobile/data/models/paginated_response.dart';
 import 'package:allmovies_mobile/data/models/search_result_model.dart';
 import 'package:allmovies_mobile/data/models/company_model.dart';
 import 'package:allmovies_mobile/data/models/person_model.dart';
+
+/// Lightweight fake for [Connectivity] that lets tests deterministically
+/// control connectivity changes without relying on platform channels.
+class FakeConnectivity extends Connectivity {
+  FakeConnectivity([this._result = ConnectivityResult.wifi]);
+
+  ConnectivityResult _result;
+  final StreamController<ConnectivityResult> _controller =
+      StreamController<ConnectivityResult>.broadcast();
+
+  @override
+  Future<ConnectivityResult> checkConnectivity() async => _result;
+
+  @override
+  Stream<ConnectivityResult> get onConnectivityChanged => _controller.stream;
+
+  /// Push a new [result] through the connectivity stream and update the
+  /// internally tracked state so subsequent [checkConnectivity] calls return
+  /// the most recent value.
+  void emit(ConnectivityResult result) {
+    _result = result;
+    _controller.add(result);
+  }
+
+  /// Close the stream controller to avoid pending async work between tests.
+  void dispose() {
+    _controller.close();
+  }
+}
 
 class FakeHttpClient extends http.BaseClient {
   FakeHttpClient({this.onSend});

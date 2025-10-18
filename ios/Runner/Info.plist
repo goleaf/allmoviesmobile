@@ -41,10 +41,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>CADisableMinimumFrameDurationOnPhone</key>
-	<true/>
+        <key>CADisableMinimumFrameDurationOnPhone</key>
+        <true/>
         <key>UIApplicationSupportsIndirectInputEvents</key>
         <true/>
+        <key>ITSAppUsesNonExemptEncryption</key>
+        <false/>
         <key>CFBundleURLTypes</key>
         <array>
                 <dict>

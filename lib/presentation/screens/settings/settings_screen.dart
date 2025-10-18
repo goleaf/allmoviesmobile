@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -13,6 +14,7 @@ import '../../../data/services/local_storage_service.dart';
 import '../../../data/services/offline_service.dart';
 import '../../../providers/preferences_provider.dart';
 import '../../../providers/offline_provider.dart';
+import '../../../providers/diagnostics_provider.dart';
 import '../statistics/statistics_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -53,6 +55,11 @@ class SettingsScreen extends StatelessWidget {
           _ClearCacheTile(),
           const _OfflineStorageTile(),
           _ClearSearchHistoryTile(),
+          _SettingsHeader(
+            title: l.settings['diagnostics'] ?? 'Diagnostics',
+          ),
+          const _PerformanceOverlayTile(),
+          const _PerformanceProfilerTile(),
           _SettingsHeader(title: l.settings['insights'] ?? 'Insights'),
           ListTile(
             leading: const Icon(Icons.query_stats_outlined),
@@ -67,11 +74,7 @@ class SettingsScreen extends StatelessWidget {
             ),
           ),
           _SettingsHeader(title: l.t('settings.about')),
-          _StaticInfoTile(
-            icon: Icons.info_outline,
-            title: l.t('settings.appVersion'),
-            value: '1.0.0',
-          ),
+          const _AppVersionTile(),
         ],
       ),
     );
@@ -97,23 +100,25 @@ class _SettingsHeader extends StatelessWidget {
   }
 }
 
-class _StaticInfoTile extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String value;
-
-  const _StaticInfoTile({
-    required this.icon,
-    required this.title,
-    required this.value,
-  });
+class _AppVersionTile extends StatelessWidget {
+  const _AppVersionTile();
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon),
-      title: Text(title),
-      subtitle: Text(value),
+    final l = AppLocalizations.of(context);
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        final data = snapshot.data;
+        final subtitle = data == null
+            ? l.t('common.loading')
+            : '${data.version} (${data.buildNumber})';
+        return ListTile(
+          leading: const Icon(Icons.info_outline),
+          title: Text(l.t('settings.appVersion')),
+          subtitle: Text(subtitle),
+        );
+      },
     );
   }
 }
@@ -194,6 +199,60 @@ class _OfflineStorageTile extends StatelessWidget {
       unitIndex++;
     }
     return '${value.toStringAsFixed(1)} ${units[unitIndex]}';
+  }
+}
+
+class _PerformanceOverlayTile extends StatelessWidget {
+  const _PerformanceOverlayTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final title = l.settings['show_performance_overlay'] ??
+        'Show Flutter performance overlay';
+    final subtitle = l.settings['show_performance_overlay_hint'] ??
+        'Displays the engine and widget layers FPS chart.';
+
+    return Consumer<DiagnosticsProvider>(
+      builder: (context, provider, _) {
+        return SwitchListTile.adaptive(
+          secondary: const Icon(Icons.speed_outlined),
+          title: Text(title),
+          subtitle: Text(subtitle),
+          value: provider.performanceOverlayEnabled,
+          onChanged: (value) {
+            provider.setPerformanceOverlayEnabled(value);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _PerformanceProfilerTile extends StatelessWidget {
+  const _PerformanceProfilerTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final title =
+        l.settings['frame_profiler'] ?? 'Enable frame timing profiler';
+    final subtitle = l.settings['frame_profiler_hint'] ??
+        'Collects rolling frame build/raster metrics for diagnostics.';
+
+    return Consumer<DiagnosticsProvider>(
+      builder: (context, provider, _) {
+        return SwitchListTile.adaptive(
+          secondary: const Icon(Icons.bar_chart_outlined),
+          title: Text(title),
+          subtitle: Text(subtitle),
+          value: provider.profilerEnabled,
+          onChanged: (value) {
+            provider.setProfilerEnabled(value);
+          },
+        );
+      },
+    );
   }
 }
 

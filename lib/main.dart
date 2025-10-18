@@ -71,6 +71,7 @@ import 'providers/certifications_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/app_state_provider.dart';
+import 'providers/diagnostics_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -159,6 +160,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         Provider<LocalStorageService>.value(value: widget.storageService),
         Provider<SharedPreferences>.value(value: widget.prefs),
+        ChangeNotifierProvider(create: (_) => DiagnosticsProvider(widget.prefs)),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
           value: widget.networkQualityNotifier,
         ),
@@ -254,8 +256,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
               });
           }
 
-          return Consumer2<LocaleProvider, ThemeProvider>(
-            builder: (context, localeProvider, themeProvider, _) {
+          return Consumer3<LocaleProvider, ThemeProvider, DiagnosticsProvider>(
+            builder:
+                (context, localeProvider, themeProvider, diagnosticsProvider, _) {
               return DynamicColorBuilder(
                 builder: (lightDynamic, darkDynamic) {
                   final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
@@ -268,6 +271,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                     darkTheme: darkTheme,
                     themeMode: themeProvider.materialThemeMode,
                     locale: localeProvider.locale,
+                    showPerformanceOverlay:
+                        diagnosticsProvider.performanceOverlayEnabled,
                     localizationsDelegates: const [
                       AppLocalizations.delegate,
                       GlobalMaterialLocalizations.delegate,

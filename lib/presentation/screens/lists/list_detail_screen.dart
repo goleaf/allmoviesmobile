@@ -100,6 +100,7 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
             isOwner: isOwner,
             canEdit: list.allowsEditsBy(provider.currentUserId),
             currentUserId: provider.currentUserId,
+            onRefresh: () => provider.refreshLists(),
             onSortChanged: (mode) =>
                 provider.updateListSortMode(list.id, mode),
             onRemoveItem: (entry) => provider.removeEntry(
@@ -243,6 +244,7 @@ class _ListDetailBody extends StatelessWidget {
     required this.isOwner,
     required this.canEdit,
     required this.currentUserId,
+    required this.onRefresh,
     required this.onSortChanged,
     required this.onRemoveItem,
     required this.onReorder,
@@ -256,6 +258,7 @@ class _ListDetailBody extends StatelessWidget {
   final bool isOwner;
   final bool canEdit;
   final String currentUserId;
+  final Future<void> Function() onRefresh;
   final ValueChanged<ListSortMode> onSortChanged;
   final ValueChanged<ListEntry> onRemoveItem;
   final void Function(int oldIndex, int newIndex) onReorder;
@@ -272,12 +275,15 @@ class _ListDetailBody extends StatelessWidget {
       onSortChanged: onSortChanged,
     );
 
-    return CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          sliver: SliverToBoxAdapter(child: header),
-        ),
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: CustomScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            sliver: SliverToBoxAdapter(child: header),
+          ),
         if (list.items.isEmpty)
           SliverFillRemaining(
             hasScrollBody: false,
@@ -337,7 +343,8 @@ class _ListDetailBody extends StatelessWidget {
             ),
           ),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

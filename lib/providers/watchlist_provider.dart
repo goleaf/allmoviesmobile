@@ -42,7 +42,7 @@ class WatchlistProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> refresh() async {
+  Future<void> refreshWatchlist() async {
     _loadWatchlist();
   }
 

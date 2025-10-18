@@ -20,8 +20,11 @@ import '../screens/home/home_screen.dart';
 import '../screens/movie_detail/movie_detail_screen.dart';
 import '../screens/movies/movies_filters_screen.dart';
 import '../screens/movies/movies_screen.dart';
+import '../screens/people/people_screen.dart';
 import '../screens/person_detail/person_detail_screen.dart';
 import '../screens/search/search_screen.dart';
+import '../screens/collections/browse_collections_screen.dart';
+import '../screens/companies/companies_screen.dart';
 import '../screens/season_detail/season_detail_screen.dart';
 import '../screens/series/series_filters_screen.dart';
 import '../screens/series/series_screen.dart';
@@ -53,6 +56,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
   late AppDestination _currentDestination;
   DeepLinkHandler? _deepLinkHandler;
   bool _isHandlingDeepLink = false;
+  DeepLinkBreadcrumbController? _breadcrumbController;
 
   @override
   void initState() {
@@ -71,6 +75,11 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       _deepLinkHandler?.addListener(_handlePendingDeepLink);
       WidgetsBinding.instance.addPostFrameCallback((_) => _handlePendingDeepLink());
     }
+
+    _breadcrumbController = Provider.of<DeepLinkBreadcrumbController>(
+      context,
+      listen: false,
+    );
   }
 
   @override
@@ -81,12 +90,20 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
   @override
   Widget build(BuildContext context) {
+    final breadcrumbs =
+        context.watch<DeepLinkBreadcrumbController>().items;
     return Consumer<DiagnosticsProvider>(
       builder: (context, diagnostics, child) {
         final shell = Scaffold(
           body: Column(
             children: [
               const OfflineBanner(),
+              if (breadcrumbs.isNotEmpty)
+                _DeepLinkBreadcrumbBar(
+                  items: breadcrumbs,
+                  onItemTap: _handleBreadcrumbTap,
+                  onClear: _clearBreadcrumbs,
+                ),
               Expanded(
                 child: IndexedStack(
                   index: _destinations.indexOf(_currentDestination),
@@ -153,6 +170,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
 
     _isHandlingDeepLink = true;
     try {
+      _updateBreadcrumbsForLink(link);
       await _openDeepLink(link);
     } finally {
       _isHandlingDeepLink = false;
@@ -286,6 +304,243 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     await Future<void>.delayed(Duration.zero);
   }
 
+  Future<void> _navigateToDestination(AppDestination destination) async {
+    await _popRootToShell();
+    if (_currentDestination != destination) {
+      setState(() {
+        _currentDestination = destination;
+      });
+      context.read<AppStateProvider>().updateDestination(destination);
+      await Future<void>.delayed(Duration.zero);
+    }
+    _navigatorKeys[destination]!.currentState?.popUntil((route) => route.isFirst);
+  }
+
+  Future<void> _popRootToShell() async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    navigator.popUntil((route) => route.isFirst);
+  }
+
+  void _clearBreadcrumbs() {
+    _breadcrumbController?.clear();
+  }
+
+  void _updateBreadcrumbsForLink(DeepLinkData link) {
+    final controller = _breadcrumbController;
+    if (controller == null) {
+      return;
+    }
+
+    final loc = AppLocalizations.of(context);
+    final List<DeepLinkBreadcrumbItem> items = <DeepLinkBreadcrumbItem>[
+      DeepLinkBreadcrumbItem(
+        label: loc.t('navigation.home'),
+        actionType: DeepLinkBreadcrumbActionType.destination,
+        destination: AppDestination.home,
+      ),
+    ];
+
+    switch (link.type) {
+      case DeepLinkType.movie:
+        if (link.id != null) {
+          items
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: loc.t('navigation.movies'),
+                actionType: DeepLinkBreadcrumbActionType.destination,
+                destination: AppDestination.movies,
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: 'Movie #${link.id}',
+              ),
+            );
+        }
+        break;
+      case DeepLinkType.tvShow:
+        if (link.id != null) {
+          items
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: loc.t('navigation.series'),
+                actionType: DeepLinkBreadcrumbActionType.destination,
+                destination: AppDestination.tv,
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: 'Series #${link.id}',
+              ),
+            );
+        }
+        break;
+      case DeepLinkType.season:
+        if (link.id != null && link.seasonNumber != null) {
+          items
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: loc.t('navigation.series'),
+                actionType: DeepLinkBreadcrumbActionType.destination,
+                destination: AppDestination.tv,
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: 'Series #${link.id}',
+                actionType: DeepLinkBreadcrumbActionType.deepLink,
+                deepLink: DeepLinkData.tvShow(link.id!),
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: '${loc.t('tv.season')} ${link.seasonNumber}',
+              ),
+            );
+        }
+        break;
+      case DeepLinkType.episode:
+        if (link.id != null &&
+            link.seasonNumber != null &&
+            link.episodeNumber != null) {
+          items
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: loc.t('navigation.series'),
+                actionType: DeepLinkBreadcrumbActionType.destination,
+                destination: AppDestination.tv,
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: 'Series #${link.id}',
+                actionType: DeepLinkBreadcrumbActionType.deepLink,
+                deepLink: DeepLinkData.tvShow(link.id!),
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: '${loc.t('tv.season')} ${link.seasonNumber}',
+                actionType: DeepLinkBreadcrumbActionType.deepLink,
+                deepLink: DeepLinkData.season(
+                  link.id!,
+                  link.seasonNumber!,
+                ),
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: '${loc.t('episode.title')} ${link.episodeNumber}',
+              ),
+            );
+        }
+        break;
+      case DeepLinkType.person:
+        if (link.id != null) {
+          items
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: loc.t('navigation.people'),
+                actionType: DeepLinkBreadcrumbActionType.route,
+                routeName: PeopleScreen.routeName,
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: 'Person #${link.id}',
+              ),
+            );
+        }
+        break;
+      case DeepLinkType.company:
+        if (link.id != null) {
+          items
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: loc.t('navigation.companies'),
+                actionType: DeepLinkBreadcrumbActionType.route,
+                routeName: CompaniesScreen.routeName,
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: 'Company #${link.id}',
+              ),
+            );
+        }
+        break;
+      case DeepLinkType.collection:
+        if (link.id != null) {
+          items
+            ..add(
+              const DeepLinkBreadcrumbItem(
+                label: 'Collections',
+                actionType: DeepLinkBreadcrumbActionType.route,
+                routeName: CollectionsBrowserScreen.routeName,
+              ),
+            )
+            ..add(
+              DeepLinkBreadcrumbItem(
+                label: 'Collection #${link.id}',
+              ),
+            );
+        }
+        break;
+      case DeepLinkType.search:
+        final query = link.searchQuery ?? '';
+        items.add(
+          DeepLinkBreadcrumbItem(
+            label: loc.t('navigation.search'),
+            actionType: DeepLinkBreadcrumbActionType.destination,
+            destination: AppDestination.search,
+          ),
+        );
+        if (query.isNotEmpty) {
+          items.add(DeepLinkBreadcrumbItem(label: '"$query"'));
+        }
+        break;
+    }
+
+    if (items.length <= 1) {
+      controller.clear();
+      return;
+    }
+
+    controller.setItems(items);
+  }
+
+  Future<void> _handleBreadcrumbTap(DeepLinkBreadcrumbItem item) async {
+    switch (item.actionType) {
+      case DeepLinkBreadcrumbActionType.none:
+        return;
+      case DeepLinkBreadcrumbActionType.destination:
+        final destination = item.destination;
+        if (destination == null) {
+          return;
+        }
+        await _navigateToDestination(destination);
+        break;
+      case DeepLinkBreadcrumbActionType.route:
+        final routeName = item.routeName;
+        if (routeName == null) {
+          return;
+        }
+        await _popRootToShell();
+        await Navigator.of(context, rootNavigator: true)
+            .pushNamed(routeName, arguments: item.arguments);
+        break;
+      case DeepLinkBreadcrumbActionType.deepLink:
+        final deepLink = item.deepLink;
+        if (deepLink == null) {
+          return;
+        }
+        await _popRootToShell();
+        _updateBreadcrumbsForLink(deepLink);
+        await _openDeepLink(deepLink);
+        break;
+    }
+  }
+
   /// Builds the Material 3 bottom navigation bar, wiring destinations to
   /// [AppStateProvider] so the selection persists across app restarts.
   Widget _buildBottomNavigationBar() {
@@ -305,6 +560,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
         setState(() {
           _currentDestination = selected;
         });
+        _clearBreadcrumbs();
         context.read<AppStateProvider>().updateDestination(selected);
       },
       destinations: [
@@ -329,6 +585,175 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           label: l.t('navigation.search'),
         ),
       ],
+    );
+  }
+}
+
+enum DeepLinkBreadcrumbActionType { none, destination, route, deepLink }
+
+@immutable
+class DeepLinkBreadcrumbItem {
+  const DeepLinkBreadcrumbItem({
+    required this.label,
+    this.actionType = DeepLinkBreadcrumbActionType.none,
+    this.destination,
+    this.routeName,
+    this.arguments,
+    this.deepLink,
+  });
+
+  final String label;
+  final DeepLinkBreadcrumbActionType actionType;
+  final AppDestination? destination;
+  final String? routeName;
+  final Object? arguments;
+  final DeepLinkData? deepLink;
+
+  bool get isInteractive => actionType != DeepLinkBreadcrumbActionType.none;
+}
+
+class DeepLinkBreadcrumbController extends ChangeNotifier {
+  List<DeepLinkBreadcrumbItem> _items = const <DeepLinkBreadcrumbItem>[];
+
+  List<DeepLinkBreadcrumbItem> get items => _items;
+
+  void setItems(List<DeepLinkBreadcrumbItem> items) {
+    _items = List<DeepLinkBreadcrumbItem>.unmodifiable(items);
+    notifyListeners();
+  }
+
+  void clear() {
+    if (_items.isEmpty) {
+      return;
+    }
+    _items = const <DeepLinkBreadcrumbItem>[];
+    notifyListeners();
+  }
+}
+
+class RootNavigatorBreadcrumbObserver extends NavigatorObserver {
+  RootNavigatorBreadcrumbObserver({required this.controller});
+
+  final DeepLinkBreadcrumbController controller;
+
+  void _maybeClearBreadcrumbs() {
+    final navigator = this.navigator;
+    if (navigator == null) {
+      return;
+    }
+    if (!navigator.canPop()) {
+      controller.clear();
+    }
+  }
+
+  @override
+  void didPop(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPop(route, previousRoute);
+    _maybeClearBreadcrumbs();
+  }
+
+  @override
+  void didRemove(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didRemove(route, previousRoute);
+    _maybeClearBreadcrumbs();
+  }
+}
+
+class _DeepLinkBreadcrumbBar extends StatelessWidget {
+  const _DeepLinkBreadcrumbBar({
+    required this.items,
+    required this.onItemTap,
+    required this.onClear,
+  });
+
+  final List<DeepLinkBreadcrumbItem> items;
+  final Future<void> Function(DeepLinkBreadcrumbItem) onItemTap;
+  final VoidCallback onClear;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final dividerColor = colorScheme.onSurfaceVariant.withOpacity(0.4);
+
+    return Material(
+      color: colorScheme.surface,
+      elevation: 1,
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (int index = 0; index < items.length; index++) ...[
+                        if (index > 0)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 4),
+                            child: Icon(
+                              Icons.chevron_right,
+                              size: 18,
+                              color: dividerColor,
+                            ),
+                          ),
+                        _BreadcrumbChip(
+                          item: items[index],
+                          onTap: onItemTap,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                onPressed: onClear,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BreadcrumbChip extends StatelessWidget {
+  const _BreadcrumbChip({required this.item, required this.onTap});
+
+  final DeepLinkBreadcrumbItem item;
+  final Future<void> Function(DeepLinkBreadcrumbItem) onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textStyle = theme.textTheme.bodyMedium;
+
+    if (!item.isInteractive) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Text(
+          item.label,
+          style: textStyle?.copyWith(
+            color: theme.colorScheme.onSurface,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: TextButton(
+        onPressed: () async {
+          await onTap(item);
+        },
+        child: Text(item.label, style: textStyle),
+      ),
     );
   }
 }

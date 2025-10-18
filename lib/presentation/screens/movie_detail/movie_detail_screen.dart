@@ -32,6 +32,7 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../widgets/watch_providers_section.dart';
 import '../../widgets/deep_link_share_sheet.dart';
+import '../../../data/services/review_service.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
@@ -807,25 +808,12 @@ class _MovieDetailView extends StatelessWidget {
     MovieDetailed details,
     AppLocalizations loc,
   ) {
-    // Reviews section temporarily stubbed until implementation exists
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            loc.t('movie.reviews'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            loc.t('common.comingSoon'),
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
+    return ChangeNotifierProvider<ReviewListProvider>(
+      create: (_) => ReviewListProvider(
+        mediaId: details.id,
+        mediaType: ReviewMediaType.movie,
       ),
+      child: const _MovieReviewsSection(),
     );
   }
 

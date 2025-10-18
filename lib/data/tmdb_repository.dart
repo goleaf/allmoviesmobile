@@ -43,8 +43,9 @@ class TmdbRepository {
     NetworkQualityNotifier? networkQualityNotifier,
     String? apiKey,
     String? language,
-  }) : _client = client ?? http.Client(),
-       _cache = cacheService,
+  })  : _client = client ?? http.Client(),
+        _cache = cacheService,
+        _networkQualityNotifier = networkQualityNotifier,
         _language = language ?? AppConfig.defaultLanguage,
         _apiKey = (() {
           final provided =
@@ -54,7 +55,7 @@ class TmdbRepository {
             return provided;
           }
           return AppConfig.tmdbApiKey;
-       })() {
+        })() {
     if (_cache != null) {
       MemoryOptimizer.instance.registerCacheService(_cache);
       _cache!
@@ -82,6 +83,9 @@ class TmdbRepository {
           policy: _policyFromSeconds(CacheService.searchTTL),
         );
     }
+
+    _networkQualityNotifier?.addListener(_handleNetworkQualityChange);
+    _handleNetworkQualityChange();
   }
 
   static const _host = 'api.themoviedb.org';
@@ -97,12 +101,38 @@ class TmdbRepository {
   );
   final Map<String, RateLimiter> _endpointLimiters = {};
   final Map<String, Future<Map<String, dynamic>>> _inFlight = {};
+  final Map<String, Future<void>> _pendingRevalidations = {};
+  Duration _networkAwareDelay = Duration.zero;
 
   CachePolicy _policyFromSeconds(int ttlSeconds) {
+    final resolvedSeconds = _resolveTtlSeconds(ttlSeconds);
+    var refreshSeconds = resolvedSeconds > 1
+        ? (resolvedSeconds * 0.6).round()
+        : 1;
+    if (refreshSeconds < 1) {
+      refreshSeconds = 1;
+    } else if (refreshSeconds > resolvedSeconds) {
+      refreshSeconds = resolvedSeconds;
+    }
+
     return CachePolicy(
-      ttl: Duration(seconds: ttlSeconds),
-      refreshAfter: Duration(seconds: (ttlSeconds * 0.6).round()),
+      ttl: Duration(seconds: resolvedSeconds),
+      refreshAfter: Duration(seconds: refreshSeconds),
     );
+  }
+
+  Duration _delayForQuality(NetworkQuality? quality) {
+    switch (quality) {
+      case NetworkQuality.offline:
+        return const Duration(seconds: 1);
+      case NetworkQuality.constrained:
+        return const Duration(milliseconds: 400);
+      case NetworkQuality.balanced:
+        return const Duration(milliseconds: 200);
+      case NetworkQuality.excellent:
+      case null:
+        return Duration.zero;
+    }
   }
 
   void _ensureApiKey() {
@@ -131,7 +161,7 @@ class TmdbRepository {
   }) async {
     _ensureApiKey();
     final uri = _buildUri(endpoint, query);
-    final quality = _networkQuality?.quality;
+    final quality = _networkQualityNotifier?.quality;
     if (quality == NetworkQuality.offline) {
       throw const TmdbException('No network connection available.');
     }
@@ -398,8 +428,25 @@ class TmdbRepository {
     await Future.wait<void>([
       fetchNowPlayingMoviesPaginated(page: 1),
       fetchPopularMoviesPaginated(page: 1),
-      fetchUpcomingMoviesPaginated(page: 1),
       fetchTopRatedMoviesPaginated(page: 1),
+      fetchUpcomingMoviesPaginated(page: 1),
+    ]);
+  }
+
+  Future<void> prefetchSeriesDashboard() async {
+    await Future.wait<void>([
+      fetchTrendingTv(page: 1),
+      fetchPopularTv(page: 1),
+      fetchTopRatedTv(page: 1),
+      fetchAiringTodayTv(page: 1),
+      fetchOnTheAirTv(page: 1),
+    ]);
+  }
+
+  Future<void> prefetchPeopleSpotlight() async {
+    await Future.wait<void>([
+      fetchTrendingPeople(),
+      fetchPopularPeople(page: 1),
     ]);
   }
 
@@ -442,20 +489,39 @@ class TmdbRepository {
   Future<PaginatedResponse<Movie>> fetchNowPlayingMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson(
-      '/movie/now_playing',
-      query: {'page': '$page'},
+  }) {
+    final cacheKey = 'movie_now_playing::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/movie/now_playing',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(payload, Movie.fromJson);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
     );
-    return _mapPaginated<Movie>(payload, Movie.fromJson);
   }
 
   Future<PaginatedResponse<Movie>> fetchUpcomingMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson('/movie/upcoming', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, Movie.fromJson);
+  }) {
+    final cacheKey = 'movie_upcoming::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/movie/upcoming',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(payload, Movie.fromJson);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
+    );
   }
 
   Future<PaginatedResponse<Movie>> discoverMovies({
@@ -688,49 +754,110 @@ class TmdbRepository {
     String timeWindow = 'day',
     int page = 1,
     bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson(
-      '/trending/tv/$timeWindow',
-      query: {'page': '$page'},
-    );
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
-    );
-  }
-
-  Future<PaginatedResponse<Movie>> fetchPopularTv({int page = 1}) async {
-    final payload = await _getJson('/tv/popular', query: {'page': '$page'});
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
-    );
-  }
-
-  Future<PaginatedResponse<Movie>> fetchTopRatedTv({int page = 1}) async {
-    final payload = await _getJson('/tv/top_rated', query: {'page': '$page'});
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+  }) {
+    final cacheKey = 'trending_tv::$timeWindow::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/trending/tv/$timeWindow',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.trendingTTL,
     );
   }
 
-  Future<PaginatedResponse<Movie>> fetchAiringTodayTv({int page = 1}) async {
-    final payload = await _getJson(
-      '/tv/airing_today',
-      query: {'page': '$page'},
-    );
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+  Future<PaginatedResponse<Movie>> fetchPopularTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_popular::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/popular',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
     );
   }
 
-  Future<PaginatedResponse<Movie>> fetchOnTheAirTv({int page = 1}) async {
-    final payload = await _getJson('/tv/on_the_air', query: {'page': '$page'});
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+  Future<PaginatedResponse<Movie>> fetchTopRatedTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_top_rated::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/top_rated',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchAiringTodayTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_airing_today::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/airing_today',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchOnTheAirTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_on_the_air::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/on_the_air',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
     );
   }
 
@@ -996,9 +1123,20 @@ class TmdbRepository {
   // People
   // ---------------------------------------------------------------------------
 
-  Future<List<Person>> fetchTrendingPeople({String timeWindow = 'day'}) async {
-    final payload = await _getJson('/trending/person/$timeWindow');
-    return _mapPaginated<Person>(payload, Person.fromJson).results;
+  Future<List<Person>> fetchTrendingPeople({
+    String timeWindow = 'day',
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'trending_people::$timeWindow';
+    return _cached<List<Person>>(
+      cacheKey,
+      () async {
+        final payload = await _getJson('/trending/person/$timeWindow');
+        return _mapPaginated<Person>(payload, Person.fromJson).results;
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.trendingTTL,
+    );
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({

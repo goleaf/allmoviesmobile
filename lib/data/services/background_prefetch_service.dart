@@ -70,6 +70,8 @@ class BackgroundPrefetchService with WidgetsBindingObserver {
       await Future.wait<void>([
         _repository.prefetchTrendingBundle(),
         _repository.prefetchMoviesDashboard(),
+        _repository.prefetchSeriesDashboard(),
+        _repository.prefetchPeopleSpotlight(),
       ]);
     } finally {
       _isPrefetching = false;

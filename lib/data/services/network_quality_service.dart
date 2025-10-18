@@ -28,6 +28,7 @@ class NetworkQualityNotifier extends ChangeNotifier {
   NetworkQuality _quality = NetworkQuality.excellent;
   StreamSubscription<ConnectivityResult>? _subscription;
   Duration? _lastLatency;
+  Timer? _probeTimer;
 
   NetworkQuality get quality => _quality;
   Duration? get lastLatency => _lastLatency;
@@ -38,7 +39,9 @@ class NetworkQualityNotifier extends ChangeNotifier {
     _updateQuality(result);
     _subscription ??=
         _connectivity.onConnectivityChanged.listen(_updateQuality);
-    await refreshQuality();
+    await refreshQuality(timeout: _probeTimeout);
+    _probeTimer ??=
+        Timer.periodic(_probeInterval, (_) => refreshQuality(timeout: _probeTimeout));
   }
 
   void _updateQuality(ConnectivityResult result) {
@@ -58,7 +61,8 @@ class NetworkQualityNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> refreshQuality({Duration timeout = const Duration(seconds: 3)}) async {
+  Future<void> refreshQuality({Duration? timeout}) async {
+    final effectiveTimeout = timeout ?? _probeTimeout;
     if (_quality == NetworkQuality.offline) {
       _lastLatency = null;
       return;
@@ -68,7 +72,7 @@ class NetworkQualityNotifier extends ChangeNotifier {
     try {
       final response = await http.get(
         Uri.parse('https://image.tmdb.org'),
-      ).timeout(timeout);
+      ).timeout(effectiveTimeout);
       stopwatch.stop();
       if (response.statusCode < 500) {
         _lastLatency = stopwatch.elapsed;

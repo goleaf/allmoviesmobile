@@ -57,41 +57,45 @@ class ListsScreen extends StatelessWidget {
             );
           }
 
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
-            children: [
-              const _SectionHeader(label: 'My lists'),
-              if (myLists.isNotEmpty)
-                ...myLists.map(
-                  (list) => _ListCard(
-                    list: list,
-                    isOwner: true,
-                    onEdit: () => _openEditorSheet(context, list: list),
+          return RefreshIndicator(
+            onRefresh: () => context.read<ListsProvider>().refreshLists(),
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 88),
+              children: [
+                const _SectionHeader(label: 'My lists'),
+                if (myLists.isNotEmpty)
+                  ...myLists.map(
+                    (list) => _ListCard(
+                      list: list,
+                      isOwner: true,
+                      onEdit: () => _openEditorSheet(context, list: list),
+                    ),
                   ),
-                ),
-              const SizedBox(height: 24),
-              const _SectionHeader(label: 'Following'),
-              if (following.isNotEmpty)
-                ...following.map(
-                  (list) => _ListCard(
-                    list: list,
-                    isOwner: false,
-                    onEdit: null,
+                const SizedBox(height: 24),
+                const _SectionHeader(label: 'Following'),
+                if (following.isNotEmpty)
+                  ...following.map(
+                    (list) => _ListCard(
+                      list: list,
+                      isOwner: false,
+                      onEdit: null,
+                    ),
                   ),
-                ),
-              if (following.isNotEmpty) const SizedBox(height: 24),
-              const _SectionHeader(label: 'Popular lists'),
-              if (discoverable.isNotEmpty)
-                ...discoverable.map(
-                  (list) => _ListCard(
-                    list: list,
-                    isOwner: list.ownerId == provider.currentUserId,
-                    onEdit: list.ownerId == provider.currentUserId
-                        ? () => _openEditorSheet(context, list: list)
-                        : null,
+                if (following.isNotEmpty) const SizedBox(height: 24),
+                const _SectionHeader(label: 'Popular lists'),
+                if (discoverable.isNotEmpty)
+                  ...discoverable.map(
+                    (list) => _ListCard(
+                      list: list,
+                      isOwner: list.ownerId == provider.currentUserId,
+                      onEdit: list.ownerId == provider.currentUserId
+                          ? () => _openEditorSheet(context, list: list)
+                          : null,
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           );
         },
       ),

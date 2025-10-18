@@ -225,4 +225,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get peopleDepartmentsVisualEffects => 'Visual Effects';
+
+  @override
+  String get genresTitle => 'Genres';
+
+  @override
+  String get genresMoviesTab => 'Movies';
+
+  @override
+  String get genresTvTab => 'TV Shows';
+
+  @override
+  String get genresEmptyMovies => "Movie genres will appear once we're synced with TMDB.";
+
+  @override
+  String get genresEmptyTv => "TV genres will appear once we're synced with TMDB.";
+
+  @override
+  String get genresDiscoverMovies => 'Discover movies';
+
+  @override
+  String get genresDiscoverTv => 'Discover series';
+
+  @override
+  String get genresAdjustFilters => 'Adjust filters';
+
+  @override
+  String get genresErrorFallback => "We're showing fallback genres until TMDB responds.";
 }

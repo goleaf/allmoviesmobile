@@ -163,6 +163,24 @@
   "peopleDepartmentsCostumeAndMakeUp": "Costume & Make-Up",
   "peopleDepartmentsCrew": "Crew",
   "peopleDepartmentsLighting": "Lighting",
-  "peopleDepartmentsVisualEffects": "Visual Effects"
+  "peopleDepartmentsVisualEffects": "Visual Effects",
+  "genresTitle": "Genres",
+  "@genresTitle": {"description": "Genres screen title"},
+  "genresMoviesTab": "Movies",
+  "@genresMoviesTab": {"description": "Movies tab label"},
+  "genresTvTab": "TV Shows",
+  "@genresTvTab": {"description": "TV tab label"},
+  "genresEmptyMovies": "Movie genres will appear once we're synced with TMDB.",
+  "@genresEmptyMovies": {"description": "Empty state message for movie genres"},
+  "genresEmptyTv": "TV genres will appear once we're synced with TMDB.",
+  "@genresEmptyTv": {"description": "Empty state message for TV genres"},
+  "genresDiscoverMovies": "Discover movies",
+  "@genresDiscoverMovies": {"description": "Button label to open movie discover"},
+  "genresDiscoverTv": "Discover series",
+  "@genresDiscoverTv": {"description": "Button label to open series discover"},
+  "genresAdjustFilters": "Adjust filters",
+  "@genresAdjustFilters": {"description": "Button label to open filters"},
+  "genresErrorFallback": "We're showing fallback genres until TMDB responds.",
+  "@genresErrorFallback": {"description": "Supporting text when showing fallback genres"}
 }
 

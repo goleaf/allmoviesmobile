@@ -224,4 +224,31 @@ class AppLocalizationsRu extends AppLocalizations {
 
   @override
   String get peopleDepartmentsVisualEffects => 'Визуальные эффекты';
+
+  @override
+  String get genresTitle => 'Жанры';
+
+  @override
+  String get genresMoviesTab => 'Фильмы';
+
+  @override
+  String get genresTvTab => 'Сериалы';
+
+  @override
+  String get genresEmptyMovies => 'Жанры фильмов появятся после синхронизации с TMDB.';
+
+  @override
+  String get genresEmptyTv => 'Жанры сериалов появятся после синхронизации с TMDB.';
+
+  @override
+  String get genresDiscoverMovies => 'Открыть подборку фильмов';
+
+  @override
+  String get genresDiscoverTv => 'Открыть подборку сериалов';
+
+  @override
+  String get genresAdjustFilters => 'Настроить фильтры';
+
+  @override
+  String get genresErrorFallback => 'Показываем резервный список жанров, пока TMDB недоступен.';
 }

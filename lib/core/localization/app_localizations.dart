@@ -23,6 +23,7 @@ class AppLocalizations {
       'app': {'name': 'AllMovies'},
       'navigation': {
         'movies': 'Movies',
+        'genres': 'Genres',
         'series': 'Series',
         'people': 'People',
         'companies': 'Companies',
@@ -110,6 +111,17 @@ class AppLocalizations {
         'new_releases': 'New Releases',
         'continue_watching': 'Continue Watching',
         'personalized_recommendations': 'Recommended for you',
+      },
+      'genres': {
+        'title': 'Genres',
+        'movies_tab': 'Movies',
+        'tv_tab': 'TV Shows',
+        'empty_movies': "Movie genres will appear once we're synced with TMDB.",
+        'empty_tv': "TV genres will appear once we're synced with TMDB.",
+        'discover_movies': 'Discover movies',
+        'discover_tv': 'Discover series',
+        'adjust_filters': 'Adjust filters',
+        'error_fallback': "We're showing fallback genres until TMDB responds.",
       },
       'tv': {
         'overview': 'Overview',

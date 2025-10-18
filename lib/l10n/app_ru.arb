@@ -71,7 +71,25 @@
   "peopleDepartmentsCostumeAndMakeUp": "Костюмы и грим",
   "peopleDepartmentsCrew": "Съемочная группа",
   "peopleDepartmentsLighting": "Освещение",
-  "peopleDepartmentsVisualEffects": "Визуальные эффекты"
+  "peopleDepartmentsVisualEffects": "Визуальные эффекты",
+  "genresTitle": "Жанры",
+  "@genresTitle": {"description": "Заголовок экрана жанров"},
+  "genresMoviesTab": "Фильмы",
+  "@genresMoviesTab": {"description": "Название вкладки фильмов"},
+  "genresTvTab": "Сериалы",
+  "@genresTvTab": {"description": "Название вкладки сериалов"},
+  "genresEmptyMovies": "Жанры фильмов появятся после синхронизации с TMDB.",
+  "@genresEmptyMovies": {"description": "Сообщение при отсутствии жанров фильмов"},
+  "genresEmptyTv": "Жанры сериалов появятся после синхронизации с TMDB.",
+  "@genresEmptyTv": {"description": "Сообщение при отсутствии жанров сериалов"},
+  "genresDiscoverMovies": "Открыть подборку фильмов",
+  "@genresDiscoverMovies": {"description": "Кнопка открытия подборки фильмов"},
+  "genresDiscoverTv": "Открыть подборку сериалов",
+  "@genresDiscoverTv": {"description": "Кнопка открытия подборки сериалов"},
+  "genresAdjustFilters": "Настроить фильтры",
+  "@genresAdjustFilters": {"description": "Кнопка для настройки фильтров"},
+  "genresErrorFallback": "Показываем резервный список жанров, пока TMDB недоступен.",
+  "@genresErrorFallback": {"description": "Текст при отображении резервных жанров"}
 }
 
 

@@ -71,6 +71,24 @@
   "peopleDepartmentsCostumeAndMakeUp": "Vestuario y maquillaje",
   "peopleDepartmentsCrew": "Equipo técnico",
   "peopleDepartmentsLighting": "Iluminación",
-  "peopleDepartmentsVisualEffects": "Efectos visuales"
+  "peopleDepartmentsVisualEffects": "Efectos visuales",
+  "genresTitle": "Géneros",
+  "@genresTitle": {"description": "Título de la pantalla de géneros"},
+  "genresMoviesTab": "Películas",
+  "@genresMoviesTab": {"description": "Etiqueta de la pestaña de películas"},
+  "genresTvTab": "Series",
+  "@genresTvTab": {"description": "Etiqueta de la pestaña de series"},
+  "genresEmptyMovies": "Los géneros de películas aparecerán cuando se sincronice con TMDB.",
+  "@genresEmptyMovies": {"description": "Mensaje vacío para los géneros de películas"},
+  "genresEmptyTv": "Los géneros de series aparecerán cuando se sincronice con TMDB.",
+  "@genresEmptyTv": {"description": "Mensaje vacío para los géneros de series"},
+  "genresDiscoverMovies": "Descubrir películas",
+  "@genresDiscoverMovies": {"description": "Botón para descubrir películas"},
+  "genresDiscoverTv": "Descubrir series",
+  "@genresDiscoverTv": {"description": "Botón para descubrir series"},
+  "genresAdjustFilters": "Ajustar filtros",
+  "@genresAdjustFilters": {"description": "Botón para abrir filtros"},
+  "genresErrorFallback": "Mostramos géneros de reserva hasta que TMDB responda.",
+  "@genresErrorFallback": {"description": "Texto de apoyo al mostrar géneros de reserva"}
 }
 

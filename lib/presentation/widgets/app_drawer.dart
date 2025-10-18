@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/localization/app_localizations.dart';
 import '../screens/companies/companies_screen.dart';
-import '../screens/certifications/certifications_screen.dart';
 import '../screens/explorer/api_explorer_screen.dart';
 import '../screens/home/home_screen.dart';
 import '../screens/movies/movies_screen.dart';
@@ -11,8 +10,7 @@ import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/keywords/keyword_browser_screen.dart';
-import '../screens/notifications/notifications_screen.dart';
-import '../screens/trending/trending_screen.dart';
+import '../screens/genres/genres_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -28,11 +26,10 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context);
     final currentRoute = ModalRoute.of(context)?.settings.name;
     final screenWidth = MediaQuery.of(context).size.width;
 
-    final accessibility = loc.accessibility;
+    final accessibility = AppLocalizations.of(context).accessibility;
     final navigationLabel =
         accessibility['navigation_drawer'] ?? 'Main navigation menu';
 
@@ -66,7 +63,7 @@ class AppDrawer extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    loc.t('app.name'),
+                    AppLocalizations.of(context).t('app.name'),
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
@@ -78,79 +75,69 @@ class AppDrawer extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.home),
-            title: Text(loc.t('navigation.home')),
+            title: Text(AppLocalizations.of(context).t('navigation.home')),
             selected: currentRoute == HomeScreen.routeName,
             onTap: () => _navigateTo(context, HomeScreen.routeName),
           ),
           ListTile(
-            leading: const Icon(Icons.trending_up),
-            title: Text(loc.home['trending'] ?? 'Trending'),
-            selected: currentRoute == TrendingScreen.routeName,
-            onTap: () => _navigateTo(context, TrendingScreen.routeName),
-          ),
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: Text(loc.t('notifications.title')),
-            selected: currentRoute == NotificationsScreen.routeName,
-            onTap: () => _navigateTo(context, NotificationsScreen.routeName),
-          ),
-          ListTile(
             leading: const Icon(Icons.movie_creation_outlined),
-            title: Text(loc.t('navigation.movies')),
+            title: Text(AppLocalizations.of(context).t('navigation.movies')),
             selected: currentRoute == MoviesScreen.routeName,
             onTap: () => _navigateTo(context, MoviesScreen.routeName),
           ),
           ListTile(
+            leading: const Icon(Icons.category_outlined),
+            title: Text(AppLocalizations.of(context).t('navigation.genres')),
+            selected: currentRoute == GenresScreen.routeName,
+            onTap: () => _navigateTo(context, GenresScreen.routeName),
+          ),
+          ListTile(
             leading: const Icon(Icons.live_tv_outlined),
-            title: Text(loc.t('navigation.series')),
+            title: Text(AppLocalizations.of(context).t('navigation.series')),
             selected: currentRoute == SeriesScreen.routeName,
             onTap: () => _navigateTo(context, SeriesScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.people_alt_outlined),
-            title: Text(loc.t('navigation.people')),
+            title: Text(AppLocalizations.of(context).t('navigation.people')),
             selected: currentRoute == PeopleScreen.routeName,
             onTap: () => _navigateTo(context, PeopleScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.business_outlined),
-            title: Text(loc.t('navigation.companies')),
+            title: Text(AppLocalizations.of(context).t('navigation.companies')),
             selected: currentRoute == CompaniesScreen.routeName,
             onTap: () => _navigateTo(context, CompaniesScreen.routeName),
           ),
           ListTile(
-            leading: const Icon(Icons.verified_user_outlined),
-            title: Text(loc.t('certifications.title')),
-            selected: currentRoute == CertificationsScreen.routeName,
-            onTap: () => _navigateTo(context, CertificationsScreen.routeName),
-          ),
-          ListTile(
             leading: const Icon(Icons.sell_outlined),
-            title: Text(loc.t('search.popular_searches')),
+            title: Text(
+              AppLocalizations.of(context).t('search.popular_searches'),
+            ),
             selected: currentRoute == KeywordBrowserScreen.routeName,
             onTap: () => _navigateTo(context, KeywordBrowserScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.explore_outlined),
-            title: Text(loc.t('discover.title')),
+            title: Text(AppLocalizations.of(context).t('discover.title')),
             selected: currentRoute == ApiExplorerScreen.routeName,
             onTap: () => _navigateTo(context, ApiExplorerScreen.routeName),
           ),
           const Divider(),
           ListTile(
             leading: const Icon(Icons.settings_outlined),
-            title: Text(loc.t('navigation.settings')),
+            title: Text(AppLocalizations.of(context).t('navigation.settings')),
             selected: currentRoute == SettingsScreen.routeName,
             onTap: () => _navigateTo(context, SettingsScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.info),
-            title: Text(loc.t('settings.about')),
+            title: Text(AppLocalizations.of(context).t('settings.about')),
             onTap: () {
               Navigator.pop(context);
               showAboutDialog(
                 context: context,
-                applicationName: loc.t('app.name'),
+                applicationName: AppLocalizations.of(context).t('app.name'),
                 applicationVersion: '1.0.0',
                 applicationIcon: const Icon(Icons.movie_outlined, size: 48),
               );

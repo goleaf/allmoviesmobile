@@ -154,7 +154,7 @@ dependencies:
   workmanager: ^0.5.2
 
   # Push notifications
-  firebase_messaging: ^15.1.0
+  firebase_messaging: ^16.0.3
   flutter_local_notifications: ^17.2.3
   
   # YouTube player

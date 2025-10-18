@@ -38,6 +38,8 @@ class SettingsScreen extends StatelessWidget {
           ),
           const _HighContrastTile(),
           const _ColorBlindTile(),
+          const _FocusIndicatorsTile(),
+          const _KeyboardNavigationTile(),
           const _TextScaleTile(),
           _SettingsHeader(title: l.t('settings.localization')),
           _LanguageTile(),
@@ -527,7 +529,9 @@ class _FocusIndicatorsTile extends StatelessWidget {
       title: Text(l.t('settings.focusIndicators')),
       subtitle: Text(l.t('settings.focusIndicatorsDescription')),
       value: provider.showFocusIndicators,
-      onChanged: (value) => provider.toggleFocusIndicators(value),
+      onChanged: (value) => context
+          .read<AccessibilityProvider>()
+          .setShowFocusIndicators(value),
     );
   }
 }
@@ -545,7 +549,9 @@ class _KeyboardNavigationTile extends StatelessWidget {
       title: Text(l.t('settings.keyboardNavigation')),
       subtitle: Text(l.t('settings.keyboardNavigationDescription')),
       value: provider.enableKeyboardNavigation,
-      onChanged: (value) => provider.toggleKeyboardNavigation(value),
+      onChanged: (value) => context
+          .read<AccessibilityProvider>()
+          .setEnableKeyboardNavigation(value),
     );
   }
 }

@@ -67,7 +67,7 @@ class SearchProvider with ChangeNotifier {
   bool get isLoadingCompanies => _isLoadingCompanies;
   String? get errorMessage => _errorMessage;
   bool get hasQuery => _query.trim().isNotEmpty;
-  bool get hasResults => results.isNotEmpty;
+  bool get hasResults => results.isNotEmpty || _companyResults.isNotEmpty;
   bool get hasCompanyResults => _companyResults.isNotEmpty;
   bool get canLoadMore => _currentPage < _totalPages;
   bool get canLoadMoreCompanies => _companyCurrentPage < _companyTotalPages;
@@ -75,6 +75,24 @@ class SearchProvider with ChangeNotifier {
       _mediaPagingControllers[type]!;
   PagingController<int, Company> get companyPagingController =>
       _companyPagingController;
+
+  /// Returns up to [limit] cached search results for the provided [mediaType].
+  ///
+  /// These results come from the first page returned by TMDB's
+  /// `GET /3/search/{media_type}` endpoints, which are cached in
+  /// [_groupedResults] after every multi-search invocation. The method is used
+  /// by the multi-search overview UI to render lightweight previews without
+  /// incurring any additional network traffic.
+  List<SearchResult> previewResults(
+    MediaType mediaType, {
+    int limit = 6,
+  }) {
+    final resultsForType = _groupedResults[mediaType] ?? const <SearchResult>[];
+    if (resultsForType.length <= limit) {
+      return resultsForType;
+    }
+    return resultsForType.take(limit).toList(growable: false);
+  }
 
   void _initializePagingControllers() {
     _mediaPagingControllers = {

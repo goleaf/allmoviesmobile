@@ -12,6 +12,7 @@ import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../widgets/virtualized_list_view.dart';
+import '../search/search_screen.dart';
 
 class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';
@@ -102,6 +103,9 @@ class _PeopleScreenState extends State<PeopleScreen>
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Curated chips for jumping into the global multi-search with a
+          // person pre-filled query.
+          const _PeopleSearchShortcuts(),
           // Client-side department filter applied to TMDB `/trending/person` and
           // `/person/popular` results that are cached by the provider.
           const _PeopleDepartmentSelector(),
@@ -330,6 +334,66 @@ class _PersonCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Displays a row of action chips that trigger multi-search queries for
+/// popular people fetched from `GET /3/person/popular`.
+class _PeopleSearchShortcuts extends StatelessWidget {
+  const _PeopleSearchShortcuts();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PeopleProvider>(
+      builder: (context, provider, _) {
+        final trending = provider.sectionState(PeopleSection.trending).items;
+        final names = trending
+            .map((person) => person.name.trim())
+            .where((name) => name.isNotEmpty)
+            .take(6)
+            .toList(growable: false);
+
+        if (names.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final loc = AppLocalizations.of(context);
+        final label = loc.search['quick_people'] ?? 'Quick people search';
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: names
+                    .map(
+                      (name) => ActionChip(
+                        label: Text(name),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            SearchScreen.routeName,
+                            arguments: name,
+                          );
+                        },
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

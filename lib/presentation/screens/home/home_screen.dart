@@ -12,6 +12,7 @@ import '../../../providers/movies_provider.dart';
 import '../../../providers/people_provider.dart';
 import '../../../providers/recommendations_provider.dart';
 import '../../../providers/series_provider.dart';
+import '../../../providers/search_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
@@ -147,6 +148,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     .pushNamed(MoviesFiltersScreen.routeName),
               ),
             ],
+          ),
+      (_) => _TrendingSearchesSection(
+            title: loc.search['trending_searches'] ?? 'Trending searches',
           ),
       (_) => const SizedBox(height: 24),
       (_) => _MoviesCarousel(
@@ -404,6 +408,60 @@ class _QuickAccessCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Displays the top trending multi-search queries sourced from
+/// `GET /3/trending/movie/{time_window}` so the user can jump straight into the
+/// universal search experience.
+class _TrendingSearchesSection extends StatelessWidget {
+  const _TrendingSearchesSection({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SearchProvider>(
+      builder: (context, provider, _) {
+        final queries = provider.trendingSearches.take(8).toList();
+        if (queries.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: queries
+                    .map(
+                      (query) => ActionChip(
+                        label: Text(query),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            SearchScreen.routeName,
+                            arguments: query,
+                          );
+                        },
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

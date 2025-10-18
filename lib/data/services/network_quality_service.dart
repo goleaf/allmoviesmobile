@@ -44,6 +44,11 @@ class NetworkQualityNotifier extends ChangeNotifier {
       await refreshQuality(timeout: _probeTimeout);
     });
     await refreshQuality();
+    _probeTimer?.cancel();
+    _probeTimer = Timer.periodic(
+      _probeInterval,
+      (_) => refreshQuality(timeout: _probeTimeout),
+    );
   }
 
   void _updateQuality(List<ConnectivityResult> results) {

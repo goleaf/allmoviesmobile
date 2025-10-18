@@ -140,11 +140,15 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  /// Builds the main body of the search screen.
+  ///
+  /// While the user is typing a query that differs from the last committed
+  /// search we switch into the autocomplete surface, which streams
+  /// suggestions from the TMDB `/3/search/multi` and `/3/search/company`
+  /// endpoints (see `_fetchSuggestions` in `SearchProvider`). Once the user
+  /// commits to a search we fall back to the standard result states.
   Widget _buildBody(SearchProvider provider) {
-    // Suggestions panel while typing before committing a search
-    final isTyping =
-        provider.inputQuery.trim().isNotEmpty && !provider.hasQuery;
-    if (isTyping) {
+    if (provider.shouldShowSuggestions) {
       return _buildSuggestions(provider);
     }
 
@@ -298,7 +302,10 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  /// Renders the autocomplete suggestion list sourced from the TMDB APIs.
   Widget _buildSuggestions(SearchProvider provider) {
+    final trimmedInput = provider.inputQuery.trim();
+
     if (provider.isFetchingSuggestions) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -320,10 +327,25 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      itemCount: suggestions.length,
+      itemCount: suggestions.length + 1,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        final text = suggestions[index];
+        if (index == 0) {
+          return ListTile(
+            leading: const Icon(Icons.arrow_outward),
+            title: Text(
+              AppLocalizations.of(context)
+                      .search['search_for']
+                      ?.replaceFirst('{query}', trimmedInput) ??
+                  'Search "$trimmedInput"',
+            ),
+            onTap: () {
+              _performSearch(provider, query: trimmedInput);
+            },
+          );
+        }
+
+        final text = suggestions[index - 1];
         return ListTile(
           leading: const Icon(Icons.search),
           title: Text(text),

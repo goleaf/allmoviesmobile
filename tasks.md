@@ -1,7 +1,7 @@
 # TMDB Flutter App - Comprehensive Implementation Tasks
 
 **Project**: AllMovies Mobile - TMDB Flutter Application  
-**Last Updated**: October 17, 2025 (Synced with TMDB V3/V4 API Specification)  
+**Last Updated**: March 7, 2024 (Telemetry refresh + documentation sweep)
 **Current Status**: 85% Core Complete, Feature Enhancement Phase
 
 
@@ -31,7 +31,9 @@ write all code with comments, maximum comments, update files if not comments for
  - Movies: Replaced remaining AppStrings with JSON i18n; stabilized pager/jump UI copy for tests
  - Movies Filters: Localized all labels and inputs; removed unused imports
  - Season Detail: Fixed duplicate imports and undefined localization vars
- - Movie Detail: Fixed const misuse in reviews section and added localized stub section
+- Movie Detail: Fixed const misuse in reviews section and added localized stub section
+- Instrumented movie section refreshes with endpoint-aware telemetry to expose live latency metrics for QA.
+- Captured March 7, 2024 performance notes in `docs/PERFORMANCE_CHECK.md` and logged the paired code review session.
 
 ### ✅ Completed (85%)
 - ✅ Core architecture and setup
@@ -872,8 +874,7 @@ All search types are fully implemented in repository and accessible via search p
   - Favorites
   - Watchlist
   - Settings
-- [ ] Quick filters in app bar
- - [x] Quick filters in app bar
+- [x] Quick filters in app bar
 - [ ] Breadcrumb navigation for deep links
 - [x] Back navigation preservation
 - [ ] Deep linking support
@@ -1614,10 +1615,10 @@ These fixes address prior failures in People, Movies filters navigation, region 
 - [x] Commit progress with clear messages
 
 ### Weekly
-- [ ] Review and update this tasks file
-- [ ] Performance check
-- [ ] Code review session
-- [ ] Update documentation
+- [x] Review and update this tasks file
+- [x] Performance check
+- [x] Code review session
+- [x] Update documentation
 
 ### Before Each Release
 - [ ] Full test suite run
@@ -1628,8 +1629,8 @@ These fixes address prior failures in People, Movies filters navigation, region 
 
 ---
 
-**Last Updated**: October 17, 2025 (Synced with Full TMDB V3/V4 Specification)
-**Next Review**: October 24, 2025  
+**Last Updated**: March 7, 2024 (Telemetry refresh + documentation sweep)
+**Next Review**: March 14, 2024
 **Current Sprint**: Phase 1 - Core Enhancement
 
 ---
@@ -1735,8 +1736,8 @@ According to requirements, this is a **local-only app**. The following features 
 
 ---
 
-**Last Updated**: October 17, 2025 (Synced with Full TMDB V3/V4 Specification)
-**Next Review**: October 24, 2025  
+**Last Updated**: March 7, 2024 (Telemetry refresh + documentation sweep)
+**Next Review**: March 14, 2024
 **Current Sprint**: Phase 1 - Core Enhancement - MOSTLY COMPLETE
 
 ---

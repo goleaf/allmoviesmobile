@@ -33,6 +33,8 @@ class LocalStorageService {
   static const String _peopleTabIndexKey = 'allmovies_people_tab_index';
   static const String _peopleScrollPositionsKey =
       'allmovies_people_scroll_positions';
+  static const String _peopleDepartmentFilterKey =
+      'allmovies_people_department_filter';
 
   static const String _favoritesSyncEnabledKey =
       'allmovies_favorites_sync_enabled';
@@ -472,6 +474,21 @@ class LocalStorageService {
       _peopleScrollPositionsKey,
       jsonEncode(map),
     );
+  }
+
+  String? getPeopleDepartmentFilter() {
+    final stored = _prefs.getString(_peopleDepartmentFilterKey);
+    if (stored == null || stored.isEmpty) {
+      return null;
+    }
+    return stored;
+  }
+
+  Future<bool> setPeopleDepartmentFilter(String? department) {
+    if (department == null || department.isEmpty) {
+      return _prefs.remove(_peopleDepartmentFilterKey);
+    }
+    return _prefs.setString(_peopleDepartmentFilterKey, department);
   }
 
   DateTime? getWatchlistLastSyncedAt() {

@@ -1356,7 +1356,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 - ✅ Combined credits (movies + TV)
 - ✅ Person search
 - ✅ External IDs
-- 🔄 Department filtering UI
+- ✅ Department filtering UI
 
 #### Additional Content: 85% Complete
 - ✅ Companies (search, details, movies, TV)

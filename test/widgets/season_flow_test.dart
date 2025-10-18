@@ -1,3 +1,4 @@
+import 'package:allmovies_mobile/core/localization/app_localizations.dart';
 import 'package:allmovies_mobile/data/models/episode_model.dart';
 import 'package:allmovies_mobile/data/models/season_model.dart';
 import 'package:allmovies_mobile/data/models/media_images.dart';
@@ -91,11 +92,19 @@ void main() {
     );
     await tester.pumpAndSettle();
 
+    final context = tester.element(find.byType(SeasonDetailScreen));
+    final loc = AppLocalizations.of(context);
+
     // Episodes section visible
-    expect(find.text('Episodes'), findsOneWidget);
+    expect(find.text(loc.t('tv.episodes')), findsOneWidget);
 
     // Tap the first episode tile
-    await tester.tap(find.textContaining('E1:'));
+    final episodeTitle = loc
+        .t('tv.episode_numbered_title')
+        .replaceFirst('{episodeNumber}', '${episode.episodeNumber}')
+        .replaceFirst('{episodeTitle}', episode.name);
+
+    await tester.tap(find.text(episodeTitle));
     await tester.pumpAndSettle();
 
     // Episode detail screen shows episode name

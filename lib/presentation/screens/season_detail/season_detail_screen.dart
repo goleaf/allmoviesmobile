@@ -50,15 +50,15 @@ class _SeasonDetailView extends StatelessWidget {
     final loc = AppLocalizations.of(context);
 
     if (provider.isLoading && provider.season == null) {
-      return const FullscreenModalScaffold(
-        title: Text('Season'),
-        body: Center(child: LoadingIndicator()),
+      return FullscreenModalScaffold(
+        title: Text(loc.t('tv.season')),
+        body: const Center(child: LoadingIndicator()),
       );
     }
 
     if (provider.errorMessage != null && provider.season == null) {
       return FullscreenModalScaffold(
-        title: const Text('Season'),
+        title: Text(loc.t('tv.season')),
         body: Center(
           child: ErrorDisplay(
             message: provider.errorMessage!,
@@ -70,9 +70,9 @@ class _SeasonDetailView extends StatelessWidget {
 
     final season = provider.season;
     if (season == null) {
-      return const FullscreenModalScaffold(
-        title: Text('Season'),
-        body: Center(child: Text('No details available')),
+      return FullscreenModalScaffold(
+        title: Text(loc.t('tv.season')),
+        body: Center(child: Text(loc.t('tv.no_details'))),
       );
     }
 
@@ -117,6 +117,7 @@ class _SeasonDetailView extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context, Season season) {
+    final loc = AppLocalizations.of(context);
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Row(
@@ -152,7 +153,11 @@ class _SeasonDetailView extends StatelessWidget {
                   ),
                 if (season.episodeCount != null) ...[
                   const SizedBox(height: 8),
-                  Text('${season.episodeCount} episodes'),
+                  Text(
+                    loc
+                        .t('tv.episode_count')
+                        .replaceFirst('{count}', '${season.episodeCount}'),
+                  ),
                 ],
               ],
             ),
@@ -200,7 +205,7 @@ class _SeasonDetailView extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocalizations.of(context).t('tv.episodes'),
+            loc.t('tv.episodes'),
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
@@ -546,6 +551,7 @@ class _EpisodeTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 4),
       leading: episode.stillPath != null
@@ -562,7 +568,10 @@ class _EpisodeTile extends StatelessWidget {
             )
           : const SizedBox(width: 120, height: 68),
       title: Text(
-        'E${episode.episodeNumber}: ${episode.name}',
+        loc
+            .t('tv.episode_numbered_title')
+            .replaceFirst('{episodeNumber}', '${episode.episodeNumber}')
+            .replaceFirst('{episodeTitle}', episode.name),
         maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),

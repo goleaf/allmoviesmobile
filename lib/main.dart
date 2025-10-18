@@ -24,6 +24,7 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/accessibility_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
@@ -165,6 +166,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
         ChangeNotifierProvider(
+          create: (_) => AccessibilityProvider(widget.prefs),
+        ),
+        ChangeNotifierProvider(
           create: (_) => FavoritesProvider(
             widget.storageService,
             offlineService: widget.offlineService,
@@ -254,12 +258,29 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
               });
           }
 
-          return Consumer2<LocaleProvider, ThemeProvider>(
-            builder: (context, localeProvider, themeProvider, _) {
+          return Consumer3<LocaleProvider, ThemeProvider,
+              AccessibilityProvider>(
+            builder: (context, localeProvider, themeProvider,
+                accessibilityProvider, _) {
               return DynamicColorBuilder(
                 builder: (lightDynamic, darkDynamic) {
-                  final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-                  final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+                  final baseLightTheme =
+                      AppTheme.light(dynamicScheme: lightDynamic);
+                  final baseDarkTheme =
+                      AppTheme.dark(dynamicScheme: darkDynamic);
+                  final focusTheme = FocusThemeData(
+                    glowFactor:
+                        accessibilityProvider.showFocusIndicators ? 1.0 : 0.0,
+                  );
+                  final lightTheme =
+                      baseLightTheme.copyWith(focusTheme: focusTheme);
+                  final darkTheme =
+                      baseDarkTheme.copyWith(focusTheme: focusTheme);
+                  final home = accessibilityProvider.enableKeyboardNavigation
+                      ? _DirectionalFocusWrapper(
+                          child: const AppNavigationShell(),
+                        )
+                      : const AppNavigationShell();
 
                   return MaterialApp(
                     navigatorKey: _navigatorKey,
@@ -276,7 +297,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                     ],
                     supportedLocales: AppLocalizations.supportedLocales,
                     debugShowCheckedModeBanner: false,
-                    home: const AppNavigationShell(),
+                    home: home,
                     routes: {
                       HomeScreen.routeName: (context) => const HomeScreen(),
                       MoviesScreen.routeName: (context) => const MoviesScreen(),

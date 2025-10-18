@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/preferences_keys.dart';
-import '../data/models/series_filter_preset.dart';
+import '../data/models/tv_filter_preset.dart';
 
 class PreferencesProvider extends ChangeNotifier {
   PreferencesProvider(this._prefs)
@@ -110,26 +110,26 @@ class PreferencesProvider extends ChangeNotifier {
   }
 
   /// Read all saved TV series filter presets from preferences.
-  List<SeriesFilterPreset> get seriesFilterPresets {
+  List<TvFilterPreset> get seriesFilterPresets {
     final raw =
         _prefs.getStringList(PreferenceKeys.seriesFilterPresets) ?? const [];
     return raw
-        .map(SeriesFilterPreset.fromJsonString)
-        .whereType<SeriesFilterPreset>()
+        .map(TvFilterPreset.fromJsonString)
+        .whereType<TvFilterPreset>()
         .toList(growable: false);
   }
 
   /// Persist the provided collection of presets to preferences.
   Future<void> _writeSeriesFilterPresets(
-    List<SeriesFilterPreset> presets,
+    List<TvFilterPreset> presets,
   ) async {
     final payload = presets.map((preset) => preset.toJsonString()).toList();
     await _prefs.setStringList(PreferenceKeys.seriesFilterPresets, payload);
   }
 
   /// Add or replace a preset (matched by name) and notify listeners.
-  Future<void> saveSeriesFilterPreset(SeriesFilterPreset preset) async {
-    final existing = List<SeriesFilterPreset>.from(seriesFilterPresets);
+  Future<void> saveSeriesFilterPreset(TvFilterPreset preset) async {
+    final existing = List<TvFilterPreset>.from(seriesFilterPresets);
     final index = existing.indexWhere(
       (element) => element.name.toLowerCase() == preset.name.toLowerCase(),
     );

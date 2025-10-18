@@ -11,6 +11,7 @@ import '../../../data/models/discover_filters_model.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../movies/movies_filters_screen.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/loading_indicator.dart';
 import '../../../data/services/local_storage_service.dart';
 
 class MoviesScreen extends StatefulWidget {
@@ -276,16 +277,26 @@ class _MoviesScreenState extends State<MoviesScreen>
               ),
             if (hasQuery)
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => _handleSearch(_searchController.text),
-                child: _MoviesList(
-                  movies: _searchResults,
-                  emptyMessage: l.t('search.no_results'),
-                  isLoadingMore: false,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  child: _isSearching
+                      ? const _MoviesListSkeleton(
+                          key: ValueKey('movies-search-skeleton'),
+                        )
+                      : RefreshIndicator(
+                          key: const ValueKey('movies-search-content'),
+                          onRefresh: () =>
+                              _handleSearch(_searchController.text),
+                          child: _MoviesList(
+                            key: const ValueKey('movies-search-list'),
+                            movies: _searchResults,
+                            emptyMessage: l.t('search.no_results'),
+                            isLoadingMore: false,
+                          ),
+                        ),
                 ),
-              ),
-            )
-          else
+              )
+            else
               Expanded(
                 child: TabBarView(
                   controller: _tabController,
@@ -381,6 +392,7 @@ class _MoviesSectionViewState extends State<_MoviesSectionView> {
     return Consumer<MoviesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(widget.section);
+        final isInitialLoading = state.isLoading && state.items.isEmpty;
 
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
@@ -393,19 +405,30 @@ class _MoviesSectionViewState extends State<_MoviesSectionView> {
 
         return Column(
           children: [
-            if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
+            if (state.isLoading && state.items.isNotEmpty)
+              const LinearProgressIndicator(minHeight: 2),
             Expanded(
-              child: RefreshIndicator(
-                onRefresh: () => widget.onRefreshAll(context),
-                child: _MoviesList(
-                  movies: state.items,
-                  emptyMessage:
-                      AppLocalizations.of(context).t('search.no_results'),
-                  scrollController: widget.scrollController,
-                  positionsListener: widget.positionsListener,
-                  section: widget.section,
-                  isLoadingMore: state.isLoadingMore,
-                ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: isInitialLoading
+                    ? const _MoviesListSkeleton(
+                        key: ValueKey('movies-section-skeleton'),
+                      )
+                    : RefreshIndicator(
+                        key: const ValueKey('movies-section-content'),
+                        onRefresh: () => widget.onRefreshAll(context),
+                        child: _MoviesList(
+                          key: ValueKey('movies-list-${widget.section.name}'),
+                          movies: state.items,
+                          emptyMessage: AppLocalizations.of(context)
+                              .t('search.no_results'),
+                          scrollController: widget.scrollController,
+                          positionsListener: widget.positionsListener,
+                          section: widget.section,
+                          isLoadingMore: state.isLoadingMore,
+                          isLoading: state.isLoading,
+                        ),
+                      ),
               ),
             ),
             _PagerControls(
@@ -451,6 +474,7 @@ class _MoviesList extends StatefulWidget {
     this.positionsListener,
     this.section,
     this.isLoadingMore = false,
+    this.isLoading = false,
   });
 
   final List<Movie> movies;
@@ -459,6 +483,7 @@ class _MoviesList extends StatefulWidget {
   final ItemPositionsListener? positionsListener;
   final MovieSection? section;
   final bool isLoadingMore;
+  final bool isLoading;
 
   @override
   State<_MoviesList> createState() => _MoviesListState();
@@ -524,6 +549,9 @@ class _MoviesListState extends State<_MoviesList> {
   @override
   Widget build(BuildContext context) {
     if (widget.movies.isEmpty) {
+      if (widget.isLoading) {
+        return const _MoviesListSkeleton();
+      }
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         children: [
@@ -564,6 +592,61 @@ class _MoviesListState extends State<_MoviesList> {
         }
         final movie = widget.movies[index];
         return _MovieCard(movie: movie);
+      },
+    );
+  }
+}
+
+class _MoviesListSkeleton extends StatelessWidget {
+  const _MoviesListSkeleton({super.key});
+
+  static const _placeholderCount = 6;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, _) {
+        return GridView.builder(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 12,
+            childAspectRatio: 0.65,
+          ),
+          itemCount: _placeholderCount,
+          itemBuilder: (context, index) {
+            return LayoutBuilder(
+              builder: (context, itemConstraints) {
+                final width = itemConstraints.maxWidth;
+                final posterHeight = width * 1.5;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerLoading(
+                      width: width,
+                      height: posterHeight,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    const SizedBox(height: 12),
+                    ShimmerLoading(
+                      width: width * 0.85,
+                      height: 16,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    const SizedBox(height: 8),
+                    ShimmerLoading(
+                      width: width * 0.6,
+                      height: 14,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ],
+                );
+              },
+            );
+          },
+        );
       },
     );
   }

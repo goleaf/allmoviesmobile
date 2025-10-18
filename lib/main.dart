@@ -25,7 +25,6 @@ import 'providers/offline_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/accessibility_provider.dart';
-import 'providers/deep_link_breadcrumbs_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
@@ -48,7 +47,6 @@ import 'presentation/screens/season_detail/season_detail_screen.dart';
 import 'presentation/navigation/episode_detail_args.dart';
 import 'presentation/screens/collections/browse_collections_screen.dart';
 import 'presentation/screens/networks/networks_screen.dart';
-import 'presentation/screens/certifications/certifications_screen.dart';
 import 'presentation/screens/lists/lists_screen.dart';
 import 'presentation/screens/videos/videos_screen.dart';
 import 'presentation/screens/video_player/video_player_screen.dart';
@@ -65,16 +63,17 @@ import 'presentation/screens/series/series_filters_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
+import 'providers/configuration_provider.dart';
 import 'providers/movies_provider.dart';
 import 'providers/people_provider.dart';
 import 'providers/series_provider.dart';
 import 'providers/watch_region_provider.dart';
 import 'providers/networks_provider.dart';
 import 'providers/collections_provider.dart';
-import 'providers/certifications_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'core/navigation/deep_link_handler.dart';
+import 'presentation/screens/config/config_info_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -257,15 +256,12 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
         ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
         ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
-        ChangeNotifierProvider(create: (_) => CertificationsProvider(_repository)),
+        ChangeNotifierProvider(create: (_) => ConfigurationProvider(_repository)),
         ChangeNotifierProvider(
           create: (_) => ListsProvider(widget.storageService),
         ),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
-        ChangeNotifierProvider(
-          create: (_) => DeepLinkBreadcrumbsProvider(),
-        ),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
       child: Builder(
@@ -328,12 +324,12 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       SettingsScreen.routeName: (context) => const SettingsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
+                      ConfigInfoScreen.routeName: (context) =>
+                          const ConfigInfoScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
                           const KeywordBrowserScreen(),
                       NetworksScreen.routeName: (context) =>
                           const NetworksScreen(),
-                      CertificationsScreen.routeName: (context) =>
-                          const CertificationsScreen(),
                       CollectionsBrowserScreen.routeName: (context) =>
                           const CollectionsBrowserScreen(),
                       SearchResultsListScreen.routeName: (context) =>

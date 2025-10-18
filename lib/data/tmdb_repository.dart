@@ -47,6 +47,7 @@ class TmdbRepository {
     String? language,
   }) : _client = client ?? http.Client(),
        _cache = cacheService,
+        _networkQualityNotifier = networkQualityNotifier,
         _language = language ?? AppConfig.defaultLanguage,
         _apiKey = (() {
           final provided =
@@ -107,6 +108,16 @@ class TmdbRepository {
       ttl: Duration(seconds: ttlSeconds),
       refreshAfter: Duration(seconds: (ttlSeconds * 0.6).round()),
     );
+  }
+
+  Duration _delayForQuality(NetworkQuality? quality) {
+    return switch (quality) {
+      NetworkQuality.offline => Duration.zero,
+      NetworkQuality.constrained => const Duration(milliseconds: 500),
+      NetworkQuality.balanced => const Duration(milliseconds: 100),
+      NetworkQuality.excellent => Duration.zero,
+      null => Duration.zero,
+    };
   }
 
   void _ensureApiKey() {

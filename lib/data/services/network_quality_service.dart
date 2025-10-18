@@ -26,7 +26,8 @@ class NetworkQualityNotifier extends ChangeNotifier {
   final Duration _probeInterval;
   final Duration _probeTimeout;
   NetworkQuality _quality = NetworkQuality.excellent;
-  StreamSubscription<ConnectivityResult>? _subscription;
+  StreamSubscription<List<ConnectivityResult>>? _subscription;
+  Timer? _probeTimer;
   Duration? _lastLatency;
 
   NetworkQuality get quality => _quality;
@@ -34,14 +35,15 @@ class NetworkQualityNotifier extends ChangeNotifier {
 
   /// Initialize connectivity listener and start TMDB latency probes.
   Future<void> initialize() async {
-    final result = await _connectivity.checkConnectivity();
-    _updateQuality(result);
+    final results = await _connectivity.checkConnectivity();
+    _updateQuality(results);
     _subscription ??=
         _connectivity.onConnectivityChanged.listen(_updateQuality);
     await refreshQuality();
   }
 
-  void _updateQuality(ConnectivityResult result) {
+  void _updateQuality(List<ConnectivityResult> results) {
+    final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
     final nextQuality = switch (result) {
       ConnectivityResult.none => NetworkQuality.offline,
       ConnectivityResult.bluetooth => NetworkQuality.constrained,
@@ -75,9 +77,9 @@ class NetworkQualityNotifier extends ChangeNotifier {
         _reconcileLatency(_lastLatency!);
       }
     } on SocketException {
-      _updateQuality(ConnectivityResult.none);
+      _updateQuality([ConnectivityResult.none]);
     } on TimeoutException {
-      _updateQuality(ConnectivityResult.other);
+      _updateQuality([ConnectivityResult.other]);
     } catch (_) {
       // Ignore, keep previous quality
     }

@@ -11,6 +11,7 @@ class Movie {
     required this.title,
     this.overview,
     this.posterPath,
+    this.profilePath,
     this.backdropPath,
     this.mediaType,
     this.releaseDate,
@@ -43,6 +44,7 @@ class Movie {
       title: title,
       overview: overview,
       posterPath: json['poster_path'] as String?,
+      profilePath: json['profile_path'] as String?,
       backdropPath: json['backdrop_path'] as String?,
       mediaType: resolvedMediaType,
       releaseDate: (json['release_date'] ?? json['first_air_date']) as String?,
@@ -63,6 +65,7 @@ class Movie {
   final String title;
   final String? overview;
   final String? posterPath;
+  final String? profilePath;
   final String? backdropPath;
   final String? mediaType;
   final String? releaseDate;

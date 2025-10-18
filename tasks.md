@@ -1831,7 +1831,7 @@ According to requirements, this is a **local-only app**. The following features 
 8. Offline mode enhancement ✅ (completed in current sprint)
 
 **Optional (Future)**:
-9. Change tracking notifications
+9. [x] Change tracking notifications
 10. Analytics integration
 11. Season/Episode dedicated screens (data exists, screens optional)
 12. Advanced statistics and visualizations

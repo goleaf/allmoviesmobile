@@ -94,6 +94,20 @@ class AppLocalizations {
         'continue_watching': 'Continue Watching',
         'personalized_recommendations': 'Recommended for you',
       },
+      'change_tracking': {
+        'banner_title': 'Latest updates available',
+        'banner_description_single': 'TMDB just refreshed 1 item.',
+        'banner_description_multiple':
+            'TMDB just refreshed {count} items.',
+        'view': 'View',
+        'mark_read': 'Mark as read',
+        'refresh': 'Refresh updates',
+        'sheet_title': 'Recent content changes',
+        'empty': 'You\'re all caught up. We\'ll let you know when TMDB updates.',
+        'updated_movie': 'Movie updated',
+        'updated_tv': 'Series updated',
+        'updated_person': 'Person updated',
+      },
       'tv': {
         'overview': 'Overview',
         'season': 'Season',

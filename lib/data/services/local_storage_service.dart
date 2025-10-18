@@ -20,6 +20,10 @@ class LocalStorageService {
   static const String _notificationsKey = 'allmovies_notifications';
   static const String _watchAvailabilityKey =
       'allmovies_watch_availability_snapshots';
+  static const String _changeTrackerCursorKey =
+      'allmovies_change_tracker_cursor';
+  static const String _changeTrackerSeenIdsKey =
+      'allmovies_change_tracker_seen_ids';
 
   // Movies browsing persistence
   static const String _discoverFiltersKey = 'allmovies_discover_filters';
@@ -628,6 +632,51 @@ class LocalStorageService {
   }
 
   Future<bool> clearNotifications() => _prefs.remove(_notificationsKey);
+
+  // ---------------------------------------------------------------------------
+  // Change tracking state
+  // ---------------------------------------------------------------------------
+
+  DateTime? getChangeTrackingCursor() {
+    final raw = _prefs.getString(_changeTrackerCursorKey);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    return DateTime.tryParse(raw);
+  }
+
+  Future<bool> setChangeTrackingCursor(DateTime cursor) {
+    return _prefs.setString(
+      _changeTrackerCursorKey,
+      cursor.toUtc().toIso8601String(),
+    );
+  }
+
+  Set<String> getChangeTrackerSeenIds() {
+    final raw = _prefs.getString(_changeTrackerSeenIdsKey);
+    if (raw == null || raw.isEmpty) {
+      return const <String>{};
+    }
+    try {
+      final decoded = json.decode(raw);
+      if (decoded is List) {
+        return decoded.whereType<String>().toSet();
+      }
+    } catch (_) {
+      // ignore malformed data
+    }
+    return const <String>{};
+  }
+
+  Future<bool> saveChangeTrackerSeenIds(Set<String> ids) {
+    final encoded = json.encode(ids.toList(growable: false));
+    return _prefs.setString(_changeTrackerSeenIdsKey, encoded);
+  }
+
+  Future<void> clearChangeTrackingState() async {
+    await _prefs.remove(_changeTrackerCursorKey);
+    await _prefs.remove(_changeTrackerSeenIdsKey);
+  }
 
   // ---------------------------------------------------------------------------
   // Recently viewed

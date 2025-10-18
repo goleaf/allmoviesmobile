@@ -36,6 +36,19 @@
     "featured_collections": "Добірки",
     "personalized_recommendations": "Рекомендації для вас"
   },
+  "change_tracking": {
+    "banner_title": "Доступні нові оновлення",
+    "banner_description_single": "TMDB щойно оновив 1 елемент.",
+    "banner_description_multiple": "TMDB щойно оновив {count} елементів.",
+    "view": "Переглянути",
+    "mark_read": "Позначити прочитаним",
+    "refresh": "Оновити дані",
+    "sheet_title": "Останні зміни контенту",
+    "empty": "Усе переглянуто. Ми повідомимо, коли TMDB оновить дані.",
+    "updated_movie": "Фільм оновлено",
+    "updated_tv": "Серіал оновлено",
+    "updated_person": "Персону оновлено"
+  },
   "movie": {
     "title": "Фільм",
     "movies": "Фільми",

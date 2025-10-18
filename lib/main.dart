@@ -71,6 +71,7 @@ import 'providers/certifications_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/app_state_provider.dart';
+import 'providers/change_tracking_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -233,6 +234,13 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
+        ChangeNotifierProvider(
+          create: (context) => ChangeTrackingProvider(
+            context.read<TmdbRepository>(),
+            context.read<LocalStorageService>(),
+            networkQualityNotifier: context.read<NetworkQualityNotifier>(),
+          ),
+        ),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
       child: Builder(

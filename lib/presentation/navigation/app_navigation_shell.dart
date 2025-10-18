@@ -26,6 +26,7 @@ import '../screens/series/series_filters_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/tv_detail/tv_detail_screen.dart';
 import '../widgets/offline_banner.dart';
+import '../widgets/change_updates_banner.dart';
 
 class AppNavigationShell extends StatefulWidget {
   const AppNavigationShell({super.key});
@@ -83,6 +84,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
       child: Scaffold(
         body: Column(
           children: [
+            const ChangeUpdatesBanner(),
             const OfflineBanner(),
             Expanded(
               child: IndexedStack(

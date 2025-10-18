@@ -288,7 +288,7 @@ class _SeriesSectionView extends StatelessWidget {
   }
 }
 
-class _SeriesList extends StatelessWidget {
+class _SeriesList extends StatefulWidget {
   const _SeriesList({required this.series, this.controller});
 
   final List<Movie> series;

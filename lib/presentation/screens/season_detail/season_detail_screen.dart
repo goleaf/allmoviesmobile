@@ -15,6 +15,7 @@ import '../../../presentation/widgets/fullscreen_modal_scaffold.dart';
 import '../../widgets/image_gallery.dart';
 import '../../navigation/season_detail_args.dart';
 import '../episode_detail/episode_detail_screen.dart';
+import '../video_player/video_player_screen.dart';
 import '../../../providers/season_detail_provider.dart';
 // duplicate import removed
 import '../../widgets/share_link_sheet.dart';
@@ -194,6 +195,8 @@ class _SeasonDetailView extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -330,20 +333,22 @@ class _SeasonDetailView extends StatelessWidget {
         )
         .toList();
     if (trailers.isEmpty) return const SizedBox.shrink();
+    final theme = Theme.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            AppLocalizations.of(context).t('movie.videos'),
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+            loc.t('movie.videos'),
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 12),
           SizedBox(
-            height: 140,
+            height: 190,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
               itemCount: trailers.length,
@@ -351,30 +356,71 @@ class _SeasonDetailView extends StatelessWidget {
                 final video = trailers[index];
                 final thumbnailUrl =
                     'https://img.youtube.com/vi/${video.key}/mqdefault.jpg';
+
                 return Container(
                   width: 240,
                   margin: const EdgeInsets.only(right: 12),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Image.network(
-                        thumbnailUrl,
-                        width: 240,
-                        height: 140,
-                        fit: BoxFit.cover,
-                      ),
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.3),
-                          shape: BoxShape.circle,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () {
+                      Navigator.of(context).pushNamed(
+                        VideoPlayerScreen.routeName,
+                        arguments: VideoPlayerScreenArgs(
+                          videos: trailers,
+                          initialVideoKey: video.key,
+                          title: season.name,
+                          autoPlay: true,
                         ),
-                        child: const Icon(
-                          Icons.play_arrow,
-                          color: Colors.white,
-                          size: 48,
+                      );
+                    },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Image.network(
+                                thumbnailUrl,
+                                width: 240,
+                                height: 135,
+                                fit: BoxFit.cover,
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withOpacity(0.3),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.white,
+                                  size: 48,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          video.name,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          video.type,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

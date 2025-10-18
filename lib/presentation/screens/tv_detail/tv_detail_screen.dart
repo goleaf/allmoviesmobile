@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/media_image_helper.dart';
 
 import '../../../core/localization/app_localizations.dart';
@@ -36,6 +35,7 @@ import '../season_detail/season_detail_screen.dart';
 import '../../widgets/watch_providers_section.dart';
 import '../../widgets/share_link_sheet.dart';
 import '../../../core/navigation/deep_link_parser.dart';
+import '../video_player/video_player_screen.dart';
 
 class TVDetailScreen extends StatelessWidget {
   static const routeName = '/tv-detail';
@@ -1004,6 +1004,10 @@ class _TVDetailView extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
+    final showTitle = details.name.isNotEmpty
+        ? details.name
+        : details.originalName;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1024,7 +1028,11 @@ class _TVDetailView extends StatelessWidget {
             itemCount: trailers.length,
             itemBuilder: (context, index) {
               final video = trailers[index];
-              return _VideoCard(video: video);
+              return _VideoCard(
+                video: video,
+                allVideos: trailers,
+                title: showTitle,
+              );
             },
           ),
         ),
@@ -2123,8 +2131,14 @@ class _CastCard extends StatelessWidget {
 
 class _VideoCard extends StatelessWidget {
   final Video video;
+  final List<Video> allVideos;
+  final String title;
 
-  const _VideoCard({required this.video});
+  const _VideoCard({
+    required this.video,
+    required this.allVideos,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -2136,7 +2150,18 @@ class _VideoCard extends StatelessWidget {
       width: 240,
       margin: const EdgeInsets.only(right: 12),
       child: InkWell(
-        onTap: () => _launchVideo(video),
+        borderRadius: BorderRadius.circular(8),
+        onTap: () {
+          Navigator.of(context).pushNamed(
+            VideoPlayerScreen.routeName,
+            arguments: VideoPlayerScreenArgs(
+              videos: allVideos,
+              initialVideoKey: video.key,
+              title: title,
+              autoPlay: true,
+            ),
+          );
+        },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -2184,16 +2209,6 @@ class _VideoCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _launchVideo(Video video) async {
-    if (video.site == 'YouTube') {
-      final url = 'https://www.youtube.com/watch?v=${video.key}';
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-    }
   }
 }
 

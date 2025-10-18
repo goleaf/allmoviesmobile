@@ -2,8 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-// Video player screen not available in this build; open external instead
-import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/share_link_sheet.dart';
 import '../../../core/navigation/deep_link_parser.dart';
 
@@ -32,6 +30,7 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../widgets/watch_providers_section.dart';
 import '../../widgets/deep_link_share_sheet.dart';
+import '../video_player/video_player_screen.dart';
 
 class MovieDetailScreen extends StatelessWidget {
   static const routeName = '/movie-detail';
@@ -753,7 +752,11 @@ class _MovieDetailView extends StatelessWidget {
             itemCount: trailers.length,
             itemBuilder: (context, index) {
               final video = trailers[index];
-              return _VideoCard(video: video);
+              return _VideoCard(
+                video: video,
+                allVideos: trailers,
+                title: details.title,
+              );
             },
           ),
         ),
@@ -1350,8 +1353,14 @@ class _CastCard extends StatelessWidget {
 
 class _VideoCard extends StatelessWidget {
   final Video video;
+  final List<Video> allVideos;
+  final String title;
 
-  const _VideoCard({required this.video});
+  const _VideoCard({
+    required this.video,
+    required this.allVideos,
+    required this.title,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -1363,28 +1372,17 @@ class _VideoCard extends StatelessWidget {
       width: 240,
       margin: const EdgeInsets.only(right: 12),
       child: InkWell(
+        borderRadius: BorderRadius.circular(8),
         onTap: () {
-          if (video.site == 'YouTube' && (video.key?.isNotEmpty ?? false)) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (_) => Scaffold(
-                  appBar: AppBar(title: Text(video.name)),
-                  body: Center(
-                    child: TextButton.icon(
-                      onPressed: () {
-                        _launchVideo(video);
-                      },
-                      icon: const Icon(Icons.open_in_new),
-                      label: const Text('Open on YouTube'),
-                    ),
-                  ),
-                ),
-                fullscreenDialog: true,
-              ),
-            );
-          } else {
-            _launchVideo(video);
-          }
+          Navigator.of(context).pushNamed(
+            VideoPlayerScreen.routeName,
+            arguments: VideoPlayerScreenArgs(
+              videos: allVideos,
+              initialVideoKey: video.key,
+              title: title,
+              autoPlay: true,
+            ),
+          );
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -1433,16 +1431,6 @@ class _VideoCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _launchVideo(Video video) async {
-    if (video.site == 'YouTube') {
-      final url = 'https://www.youtube.com/watch?v=${video.key}';
-      final uri = Uri.parse(url);
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
-      }
-    }
   }
 }
 

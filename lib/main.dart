@@ -51,6 +51,7 @@ import 'presentation/screens/videos/videos_screen.dart';
 import 'presentation/screens/video_player/video_player_screen.dart';
 import 'presentation/screens/search/search_results_list_screen.dart';
 import 'presentation/screens/notifications/notifications_screen.dart';
+import 'presentation/screens/trending/trending_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
 import 'data/models/company_model.dart';
@@ -338,6 +339,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       ListsScreen.routeName: (context) => const ListsScreen(),
                       NotificationsScreen.routeName: (context) =>
                           const NotificationsScreen(),
+                      TrendingScreen.routeName: (context) =>
+                          const TrendingScreen(),
                     },
                     onGenerateRoute: (settings) {
                       Route<dynamic>? buildMovieDetailRoute(Object? args) {

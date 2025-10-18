@@ -27,6 +27,7 @@ class TrendingState {
   const TrendingState({
     this.items = const <SearchResult>[],
     this.isLoading = false,
+    this.hasLoaded = false,
     this.errorMessage,
   });
 
@@ -34,16 +35,19 @@ class TrendingState {
 
   final List<SearchResult> items;
   final bool isLoading;
+  final bool hasLoaded;
   final String? errorMessage;
 
   TrendingState copyWith({
     List<SearchResult>? items,
     bool? isLoading,
+    bool? hasLoaded,
     Object? errorMessage = _sentinel,
   }) {
     return TrendingState(
       items: items ?? this.items,
       isLoading: isLoading ?? this.isLoading,
+      hasLoaded: hasLoaded ?? this.hasLoaded,
       errorMessage: errorMessage == _sentinel
           ? this.errorMessage
           : errorMessage as String?,
@@ -75,7 +79,7 @@ class TrendingTitlesProvider extends ChangeNotifier {
   }) async {
     final key = _TrendingKey(mediaType, window);
     final state = _states[key] ?? const TrendingState();
-    if (state.items.isEmpty && !state.isLoading) {
+    if (!state.hasLoaded && !state.isLoading) {
       await load(mediaType: mediaType, window: window);
     }
   }
@@ -92,11 +96,14 @@ class TrendingTitlesProvider extends ChangeNotifier {
       return;
     }
 
-    if (state.items.isNotEmpty && !forceRefresh) {
+    if (state.hasLoaded && !forceRefresh) {
       return;
     }
 
-    _states[key] = state.copyWith(isLoading: true, errorMessage: null);
+    _states[key] = state.copyWith(
+      isLoading: true,
+      errorMessage: null,
+    );
     notifyListeners();
 
     try {
@@ -108,38 +115,28 @@ class TrendingTitlesProvider extends ChangeNotifier {
       _states[key] = TrendingState(
         items: response.results
             .map(
-              (m) => SearchResult(
-                id: m.id,
-                mediaType: mediaType == TrendingMediaType.person
-                    ? MediaType.person
-                    : (mediaType == TrendingMediaType.tv
-                          ? MediaType.tv
-                          : MediaType.movie),
-                title: m.title,
-                name: m.title,
-                overview: m.overview,
-                posterPath: m.posterPath,
-                profilePath: m.posterPath,
-                backdropPath: m.backdropPath,
-                popularity: m.popularity,
-                voteAverage: m.voteAverage,
-                voteCount: m.voteCount,
-                releaseDate: m.releaseDate,
-              ),
+              (movie) => _mapToSearchResult(movie, mediaType),
             )
             .toList(),
+        hasLoaded: true,
       );
     } on TmdbException catch (error) {
       _states[key] = TrendingState(
         items: const <SearchResult>[],
+        hasLoaded: true,
         errorMessage: error.message,
       );
     } catch (error) {
       _states[key] = TrendingState(
         items: const <SearchResult>[],
+        hasLoaded: true,
         errorMessage: 'Failed to load trending titles: $error',
       );
     } finally {
+      final current = _states[key];
+      if (current != null) {
+        _states[key] = current.copyWith(isLoading: false);
+      }
       notifyListeners();
     }
   }
@@ -166,6 +163,97 @@ class TrendingTitlesProvider extends ChangeNotifier {
       _isRefreshing = false;
       notifyListeners();
     }
+  }
+
+  bool hasLoaded(TrendingMediaType mediaType, TrendingWindow window) {
+    return stateFor(mediaType, window).hasLoaded;
+  }
+
+  TrendingWindow alternateWindow(TrendingWindow window) {
+    return window == TrendingWindow.day ? TrendingWindow.week : TrendingWindow.day;
+  }
+
+  int? rankDelta({
+    required TrendingMediaType mediaType,
+    required TrendingWindow window,
+    required SearchResult item,
+  }) {
+    final currentState = stateFor(mediaType, window);
+    final otherWindow = alternateWindow(window);
+    final otherState = stateFor(mediaType, otherWindow);
+
+    if (!otherState.hasLoaded) {
+      return null;
+    }
+
+    final currentIndex = currentState.items.indexWhere(
+      (entry) => entry.id == item.id && entry.mediaType == item.mediaType,
+    );
+
+    if (currentIndex == -1) {
+      return null;
+    }
+
+    final otherIndex = otherState.items.indexWhere(
+      (entry) => entry.id == item.id && entry.mediaType == item.mediaType,
+    );
+
+    if (otherIndex == -1) {
+      return null;
+    }
+
+    final currentRank = currentIndex + 1;
+    final otherRank = otherIndex + 1;
+    return otherRank - currentRank;
+  }
+
+  bool containsItem({
+    required TrendingMediaType mediaType,
+    required TrendingWindow window,
+    required SearchResult item,
+  }) {
+    final state = stateFor(mediaType, window);
+    return state.items.any(
+      (entry) => entry.id == item.id && entry.mediaType == item.mediaType,
+    );
+  }
+
+  SearchResult _mapToSearchResult(Movie movie, TrendingMediaType bucket) {
+    final mediaType = switch (bucket) {
+      TrendingMediaType.movie => MediaType.movie,
+      TrendingMediaType.tv => MediaType.tv,
+      TrendingMediaType.person => MediaType.person,
+      TrendingMediaType.all => switch (movie.mediaType) {
+          'tv' => MediaType.tv,
+          'person' => MediaType.person,
+          _ => MediaType.movie,
+        },
+    };
+
+    final resolvedTitle = mediaType == MediaType.person ? null : movie.title;
+    final resolvedName = mediaType == MediaType.movie ? null : movie.title;
+    final resolvedPoster = mediaType == MediaType.person
+        ? movie.profilePath ?? movie.posterPath
+        : movie.posterPath ?? movie.backdropPath;
+    final resolvedProfile = mediaType == MediaType.person
+        ? movie.profilePath ?? movie.posterPath
+        : movie.posterPath;
+
+    return SearchResult(
+      id: movie.id,
+      mediaType: mediaType,
+      title: resolvedTitle,
+      name: resolvedName,
+      overview: movie.overview,
+      posterPath: resolvedPoster,
+      profilePath: resolvedProfile,
+      backdropPath: movie.backdropPath,
+      popularity: movie.popularity,
+      voteAverage: movie.voteAverage,
+      voteCount: movie.voteCount,
+      releaseDate: mediaType == MediaType.person ? null : movie.releaseDate,
+      firstAirDate: mediaType == MediaType.tv ? movie.releaseDate : null,
+    );
   }
 }
 

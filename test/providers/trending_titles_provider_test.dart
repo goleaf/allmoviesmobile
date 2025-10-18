@@ -56,6 +56,38 @@ class _ErrorRepo extends TmdbRepository {
   }
 }
 
+class _RankingRepo extends TmdbRepository {
+  @override
+  Future<PaginatedResponse<Movie>> fetchTrendingTitles({
+    String mediaType = 'all',
+    String timeWindow = 'day',
+    int page = 1,
+    bool forceRefresh = false,
+  }) async {
+    if (timeWindow == 'day') {
+      return PaginatedResponse<Movie>(
+        page: 1,
+        totalPages: 1,
+        totalResults: 2,
+        results: const [
+          Movie(id: 1, title: 'One', mediaType: 'movie'),
+          Movie(id: 3, title: 'Three', mediaType: 'movie'),
+        ],
+      );
+    }
+
+    return PaginatedResponse<Movie>(
+      page: 1,
+      totalPages: 1,
+      totalResults: 2,
+      results: const [
+        Movie(id: 2, title: 'Two', mediaType: 'movie'),
+        Movie(id: 1, title: 'One', mediaType: 'movie'),
+      ],
+    );
+  }
+}
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -65,6 +97,10 @@ void main() {
     expect(
       provider.stateFor(TrendingMediaType.all, TrendingWindow.day).items,
       isNotEmpty,
+    );
+    expect(
+      provider.stateFor(TrendingMediaType.all, TrendingWindow.day).hasLoaded,
+      isTrue,
     );
     await provider.refreshAll();
     expect(
@@ -98,5 +134,51 @@ void main() {
     final state = provider.stateFor(TrendingMediaType.movie, TrendingWindow.day);
     expect(state.items, isEmpty);
     expect(state.errorMessage, contains('kaput'));
+  });
+
+  test('rankDelta compares alternate window ordering', () async {
+    final provider = TrendingTitlesProvider(_RankingRepo());
+
+    await provider.load(
+      mediaType: TrendingMediaType.movie,
+      window: TrendingWindow.day,
+    );
+    await provider.load(
+      mediaType: TrendingMediaType.movie,
+      window: TrendingWindow.week,
+    );
+
+    final dayState = provider.stateFor(
+      TrendingMediaType.movie,
+      TrendingWindow.day,
+    );
+
+    final topEntry = dayState.items.first;
+    expect(
+      provider.rankDelta(
+        mediaType: TrendingMediaType.movie,
+        window: TrendingWindow.day,
+        item: topEntry,
+      ),
+      1,
+    );
+
+    final newEntry = dayState.items.last;
+    expect(
+      provider.rankDelta(
+        mediaType: TrendingMediaType.movie,
+        window: TrendingWindow.day,
+        item: newEntry,
+      ),
+      isNull,
+    );
+    expect(
+      provider.containsItem(
+        mediaType: TrendingMediaType.movie,
+        window: TrendingWindow.week,
+        item: newEntry,
+      ),
+      isFalse,
+    );
   });
 }

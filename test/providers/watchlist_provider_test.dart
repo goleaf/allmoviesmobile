@@ -3,7 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 
+import 'package:allmovies_mobile/core/constants/preferences_keys.dart';
+import 'package:allmovies_mobile/data/models/notification_item.dart';
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/data/services/notification_preferences_service.dart';
 import 'package:allmovies_mobile/providers/watchlist_provider.dart';
 
 void main() {
@@ -12,10 +15,15 @@ void main() {
     late LocalStorageService storage;
 
     setUp(() async {
-      SharedPreferences.setMockInitialValues(<String, Object>{});
+      SharedPreferences.setMockInitialValues(<String, Object>{
+        PreferenceKeys.notificationsWatchlistAlerts: true,
+      });
       final prefs = await SharedPreferences.getInstance();
       storage = LocalStorageService(prefs);
-      provider = WatchlistProvider(storage);
+      provider = WatchlistProvider(
+        storage,
+        notificationPreferences: NotificationPreferences(prefs),
+      );
     });
 
     test('exportToJson returns valid JSON array', () async {
@@ -31,7 +39,12 @@ void main() {
         return http.Response(mockResponse, 200);
       });
 
-      final p = WatchlistProvider(storage, httpClient: client);
+      final prefs = await SharedPreferences.getInstance();
+      final p = WatchlistProvider(
+        storage,
+        notificationPreferences: NotificationPreferences(prefs),
+        httpClient: client,
+      );
       await p.importFromRemoteJson(
         Uri.parse('https://example.com/watchlist.json'),
       );
@@ -45,6 +58,19 @@ void main() {
       expect(provider.isWatched(303), false);
       await provider.setWatched(303, watched: true);
       expect(provider.isWatched(303), true);
+    });
+
+    test('emits list notification on add/remove', () async {
+      await provider.addToWatchlist(444);
+      var notifications = storage.getNotifications();
+      expect(notifications.length, 1);
+      expect(notifications.first.category, NotificationCategory.list);
+      expect(notifications.first.metadata['action'], 'added');
+
+      await provider.removeFromWatchlist(444);
+      notifications = storage.getNotifications();
+      expect(notifications.first.category, NotificationCategory.list);
+      expect(notifications.first.metadata['action'], 'removed');
     });
   });
 }

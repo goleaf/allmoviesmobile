@@ -8,6 +8,12 @@
       "languageVersion": "2.17"
     },
     {
+      "name": "_flutterfire_internals",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/_flutterfire_internals-1.3.63",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "analyzer",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/analyzer-5.13.0",
       "packageUri": "lib/",
@@ -18,6 +24,12 @@
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/animations-2.1.0",
       "packageUri": "lib/",
       "languageVersion": "3.7"
+    },
+    {
+      "name": "archive",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/archive-4.0.7",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
     },
     {
       "name": "args",
@@ -254,6 +266,60 @@
       "languageVersion": "3.0"
     },
     {
+      "name": "firebase_analytics",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_analytics-12.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_analytics_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_analytics_platform_interface-5.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_analytics_web",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_analytics_web-0.6.0+3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "firebase_core",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_core-4.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_core_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_core_platform_interface-6.0.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_core_web",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_core_web-3.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "firebase_messaging",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_messaging-16.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_messaging_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_messaging_platform_interface-4.7.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "firebase_messaging_web",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/firebase_messaging_web-4.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "fixnum",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/fixnum-1.1.1",
       "packageUri": "lib/",
@@ -374,6 +440,24 @@
       "languageVersion": "3.8"
     },
     {
+      "name": "flutter_local_notifications",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_local_notifications-17.2.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "flutter_local_notifications_linux",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_local_notifications_linux-4.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "flutter_local_notifications_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_local_notifications_platform_interface-7.2.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
       "name": "flutter_localizations",
       "rootUri": "file:///usr/local/share/flutter/packages/flutter_localizations",
       "packageUri": "lib/",
@@ -386,10 +470,52 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "flutter_rating_bar",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_rating_bar-4.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.14"
+    },
+    {
       "name": "flutter_riverpod",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_riverpod-2.6.1",
       "packageUri": "lib/",
       "languageVersion": "2.17"
+    },
+    {
+      "name": "flutter_secure_storage",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_secure_storage-9.2.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_secure_storage_linux",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_secure_storage_linux-1.2.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_secure_storage_macos",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_secure_storage_macos-3.1.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_secure_storage_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_secure_storage_platform_interface-1.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_secure_storage_web",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_secure_storage_web-1.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_secure_storage_windows",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_secure_storage_windows-3.1.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "flutter_staggered_grid_view",
@@ -602,6 +728,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "lottie",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/lottie-3.3.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.9"
+    },
+    {
       "name": "markdown",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/markdown-7.3.0",
       "packageUri": "lib/",
@@ -752,6 +884,12 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "posix",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/posix-6.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "3.0"
+    },
+    {
       "name": "process",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/process-5.0.5",
       "packageUri": "lib/",
@@ -774,6 +912,12 @@
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/pubspec_parse-1.5.0",
       "packageUri": "lib/",
       "languageVersion": "3.6"
+    },
+    {
+      "name": "pull_to_refresh",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/pull_to_refresh-2.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "pull_to_refresh_flutter3",
@@ -816,6 +960,18 @@
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/scrollable_positioned_list-0.3.8",
       "packageUri": "lib/",
       "languageVersion": "2.15"
+    },
+    {
+      "name": "sentry",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/sentry-8.14.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
+    },
+    {
+      "name": "sentry_flutter",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/sentry_flutter-8.14.2",
+      "packageUri": "lib/",
+      "languageVersion": "2.17"
     },
     {
       "name": "share_plus",
@@ -1014,6 +1170,12 @@
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/time-2.1.5",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "timezone",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/timezone-0.9.4",
+      "packageUri": "lib/",
+      "languageVersion": "2.19"
     },
     {
       "name": "timing",

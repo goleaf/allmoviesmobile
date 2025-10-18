@@ -7,7 +7,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   dynamic_color
   firebase_core
   flutter_inappwebview_windows
+  flutter_secure_storage_windows
   isar_flutter_libs
+  sentry_flutter
   share_plus
   url_launcher_windows
 )

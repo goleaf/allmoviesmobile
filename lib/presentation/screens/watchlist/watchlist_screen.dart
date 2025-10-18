@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import '../../../data/models/movie_mappers.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -11,6 +10,7 @@ import '../../../data/models/movie_mappers.dart';
 import '../../../data/models/saved_media_item.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../widgets/empty_state.dart';
+import '../../widgets/loading_indicator.dart';
 
 class WatchlistScreen extends StatefulWidget {
   static const routeName = '/watchlist';
@@ -74,10 +74,19 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     AppLocalizations loc,
   ) {
     if (provider.watchlistItems.isEmpty) {
-      return EmptyState(
-        icon: Icons.bookmark_border,
-        title: loc.t('watchlist.empty'),
-        message: loc.t('watchlist.empty_message'),
+      return RefreshIndicator(
+        onRefresh: provider.refresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 16),
+          children: [
+            EmptyState(
+              icon: Icons.bookmark_border,
+              title: loc.t('watchlist.empty'),
+              message: loc.t('watchlist.empty_message'),
+            ),
+          ],
+        ),
       );
     }
 
@@ -96,10 +105,13 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
 
     final addedAtById = {for (final item in filtered) item.id: item.addedAt};
 
-    return _WatchlistList(
-      ids: filtered.map((e) => e.id).toList(growable: false),
-      sortMode: _sortMode,
-      addedAtById: addedAtById,
+    return RefreshIndicator(
+      onRefresh: provider.refresh,
+      child: _WatchlistList(
+        ids: filtered.map((e) => e.id).toList(growable: false),
+        sortMode: _sortMode,
+        addedAtById: addedAtById,
+      ),
     );
   }
 
@@ -359,7 +371,7 @@ class _WatchlistListState extends State<_WatchlistList> {
       future: _moviesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SavedListSkeleton();
         }
 
         final movies = snapshot.data ?? const <Movie>[];
@@ -380,6 +392,7 @@ class _WatchlistListState extends State<_WatchlistList> {
             const Divider(height: 1),
             Expanded(
               child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
                 itemCount: movies.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),

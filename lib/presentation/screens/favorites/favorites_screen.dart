@@ -8,9 +8,6 @@ import '../../../data/models/movie.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../data/models/movie_mappers.dart';
 import '../../../data/models/saved_media_item.dart';
-import '../../../data/models/movie_detailed_model.dart';
-import '../../../data/models/tv_detailed_model.dart';
-import '../../../data/models/movie_mappers.dart';
 import '../../../providers/favorites_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_indicator.dart';
@@ -78,10 +75,19 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
     AppLocalizations loc,
   ) {
     if (provider.favoriteItems.isEmpty) {
-      return EmptyState(
-        icon: Icons.favorite_border,
-        title: loc.t('favorites.empty'),
-        message: loc.t('favorites.empty_message'),
+      return RefreshIndicator(
+        onRefresh: provider.refresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 16),
+          children: [
+            EmptyState(
+              icon: Icons.favorite_border,
+              title: loc.t('favorites.empty'),
+              message: loc.t('favorites.empty_message'),
+            ),
+          ],
+        ),
       );
     }
     // Filter by type
@@ -100,10 +106,13 @@ class _FavoritesScreenState extends State<FavoritesScreen> {
 
     final addedAtById = {for (final item in filtered) item.id: item.addedAt};
 
-    return _FavoritesList(
-      ids: filtered.map((e) => e.id).toList(growable: false),
-      sortMode: _sortMode,
-      addedAtById: addedAtById,
+    return RefreshIndicator(
+      onRefresh: provider.refresh,
+      child: _FavoritesList(
+        ids: filtered.map((e) => e.id).toList(growable: false),
+        sortMode: _sortMode,
+        addedAtById: addedAtById,
+      ),
     );
   }
 
@@ -361,7 +370,7 @@ class _FavoritesListState extends State<_FavoritesList> {
       future: _moviesFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const SavedListSkeleton();
         }
 
         final movies = snapshot.data ?? const <Movie>[];
@@ -382,6 +391,7 @@ class _FavoritesListState extends State<_FavoritesList> {
             const Divider(height: 1),
             Expanded(
               child: ListView.separated(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(16),
                 itemCount: movies.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 12),

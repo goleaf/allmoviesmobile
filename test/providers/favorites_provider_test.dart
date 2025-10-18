@@ -46,5 +46,14 @@ void main() {
       await provider.setWatched(303, watched: true);
       expect(provider.isWatched(303), true);
     });
+
+    test('refresh reloads items from storage', () async {
+      expect(provider.favoriteItems, isEmpty);
+      await storage.addToFavorites(404);
+
+      await provider.refresh();
+
+      expect(provider.favoriteItems.map((item) => item.id), contains(404));
+    });
   });
 }

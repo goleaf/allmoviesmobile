@@ -4,6 +4,7 @@ import 'package:allmovies_mobile/presentation/widgets/image_gallery.dart';
 import 'package:allmovies_mobile/presentation/widgets/zoomable_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:photo_view/photo_view.dart';
 
 void main() {
   testWidgets('ImageGallery shows indicator and gradients', (tester) async {
@@ -110,6 +111,57 @@ void main() {
     expect(
       _findOpacity(const ValueKey('edgeGradient_top')).opacity,
       closeTo(1, 0.01),
+    );
+  });
+
+  testWidgets('ImageGallery hides chrome during double-tap zoom', (tester) async {
+    final images = [
+      const ImageModel(
+        filePath: '',
+        width: 500,
+        height: 281,
+        aspectRatio: 1.78,
+      ),
+    ];
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: ImageGallery(
+          images: images,
+          mediaType: MediaImageType.backdrop,
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(find.byType(PhotoView), findsOneWidget);
+
+    AnimatedOpacity _opacityByKey(Key key) =>
+        tester.widget<AnimatedOpacity>(find.byKey(key));
+
+    expect(
+      _opacityByKey(const ValueKey('galleryTopBarOpacity')).opacity,
+      closeTo(1, 0.01),
+    );
+
+    await tester.tap(find.byType(ZoomableImage));
+    await tester.pump(const Duration(milliseconds: 40));
+    await tester.tap(find.byType(ZoomableImage));
+
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 120));
+
+    expect(
+      _opacityByKey(const ValueKey('galleryTopBarOpacity')).opacity,
+      closeTo(0, 0.05),
+    );
+
+    await tester.pump(const Duration(milliseconds: 400));
+
+    expect(
+      _opacityByKey(const ValueKey('galleryTopBarOpacity')).opacity,
+      closeTo(1, 0.05),
     );
   });
 }

@@ -1,19 +1,17 @@
 import 'dart:async';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:photo_view/photo_view.dart';
 
 import '../../core/utils/media_image_helper.dart';
-import '../../data/services/compressed_image_cache_manager.dart';
+import 'media_image.dart';
 
 /// Displays a TMDB image with pinch/zoom interactions.
 ///
 /// The widget is primarily used for assets fetched from the TMDB image CDN
 /// via endpoints such as `/3/movie/{id}/images` and `/3/tv/{id}/images`.
 /// The JSON response for those endpoints contains `file_path` values that
-/// are converted to CDN URLs with [MediaImageHelper] and rendered with
-/// `photo_view` for smooth zooming.
+/// are forwarded to [MediaImage] to resolve the image URLs.
 class ZoomableImage extends StatefulWidget {
   const ZoomableImage({
     super.key,
@@ -38,10 +36,10 @@ class ZoomableImage extends StatefulWidget {
   /// Optional hero tag to enable Hero transitions from thumbnails.
   final Object? heroTag;
 
-  /// Minimum zoom level supported by the underlying [PhotoView].
+  /// Minimum zoom level supported by [InteractiveViewer].
   final double minScale;
 
-  /// Maximum zoom level supported by [PhotoView].
+  /// Maximum zoom level supported by [InteractiveViewer].
   final double maxScale;
 
   /// Padding applied around the zoomable content.
@@ -61,125 +59,121 @@ class ZoomableImage extends StatefulWidget {
 }
 
 class _ZoomableImageState extends State<ZoomableImage> {
-  PhotoViewScaleState? _lastScaleState = PhotoViewScaleState.initial;
+  late final PhotoViewController _photoViewController;
+  late final PhotoViewScaleStateController _scaleStateController;
+  StreamSubscription<PhotoViewControllerValue>? _controllerSubscription;
+  PhotoViewControllerValue? _lastControllerValue;
+  PhotoViewScaleState? _lastScaleState;
   bool _isInteracting = false;
-  Timer? _interactionEndTimer;
-  int _activePointers = 0;
+  bool _isControllerCoolingDown = false;
+  Timer? _cooldownTimer;
+  Timer? _doubleTapTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _photoViewController = PhotoViewController();
+    _scaleStateController = PhotoViewScaleStateController();
+    _lastScaleState = PhotoViewScaleState.initial;
+    _controllerSubscription =
+        _photoViewController.outputStateStream.listen(_handleControllerValue);
+  }
 
   @override
   void dispose() {
-    _interactionEndTimer?.cancel();
+    _cooldownTimer?.cancel();
+    _doubleTapTimer?.cancel();
+    _controllerSubscription?.cancel();
+    _photoViewController.dispose();
+    _scaleStateController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final imageUrl = MediaImageHelper.buildUrl(
-      widget.imagePath,
+    Widget image = MediaImage(
+      path: widget.imagePath,
       type: widget.type,
       size: MediaImageSize.original,
+      fit: BoxFit.contain,
+      placeholder: const Center(child: CircularProgressIndicator()),
+      errorWidget: const Center(
+        child: Icon(Icons.broken_image_outlined, size: 48, color: Colors.white70),
+      ),
+      enableProgress: false,
     );
 
-    if (imageUrl == null || imageUrl.isEmpty) {
-      return _buildFallbackPlaceholder();
+    final heroAttributes = widget.heroTag == null
+        ? null
+        : PhotoViewHeroAttributes(tag: widget.heroTag!);
+
+    return Padding(
+      padding: widget.padding,
+      child: PhotoView.customChild(
+        controller: _photoViewController,
+        scaleStateController: _scaleStateController,
+        minScale: widget.minScale,
+        maxScale: widget.maxScale,
+        initialScale: widget.minScale,
+        basePosition: Alignment.center,
+        backgroundDecoration: const BoxDecoration(color: Colors.transparent),
+        heroAttributes: heroAttributes,
+        scaleStateChangedCallback: _handleScaleStateChange,
+        onScaleEnd: _handleScaleEnd,
+        onTapUp: (_, __, ___) => widget.onTap?.call(),
+        child: image,
+      ),
+    );
+  }
+
+  void _handleControllerValue(PhotoViewControllerValue value) {
+    if (_lastControllerValue == null) {
+      _lastControllerValue = value;
+      return;
     }
 
-    final imageProvider = CachedNetworkImageProvider(
-      imageUrl,
-      cacheManager: CompressedImageCacheManager.instance,
-    );
+    if (_isControllerCoolingDown) {
+      _lastControllerValue = value;
+      return;
+    }
 
-    final heroAttributes = widget.heroTag != null
-        ? PhotoViewHeroAttributes(
-            tag: widget.heroTag!,
-            transitionOnUserGestures: true,
-          )
-        : null;
+    if (!_isInteracting && value != _lastControllerValue) {
+      _notifyInteractionStart();
+    }
 
-    return Padding(
-      padding: widget.padding,
-      child: Listener(
-        onPointerDown: (_) => _handlePointerDown(),
-        onPointerUp: (_) => _handlePointerUp(),
-        onPointerCancel: (_) => _handlePointerUp(),
-        child: PhotoView(
-          imageProvider: imageProvider,
-          backgroundDecoration:
-              const BoxDecoration(color: Colors.transparent),
-          minScale: PhotoViewComputedScale.contained * widget.minScale,
-          maxScale: PhotoViewComputedScale.contained * widget.maxScale,
-          initialScale: PhotoViewComputedScale.contained * widget.minScale,
-          heroAttributes: heroAttributes,
-          loadingBuilder: _buildLoadingIndicator,
-          errorBuilder: _buildErrorIndicator,
-          onTapUp: (_, __, ___) => widget.onTap?.call(),
-          onScaleEnd: _handleScaleEnd,
-          scaleStateChangedCallback: _handleScaleStateChanged,
-          filterQuality: FilterQuality.high,
-        ),
-      ),
-    );
+    _lastControllerValue = value;
   }
 
-  Widget _buildFallbackPlaceholder() {
-    return Padding(
-      padding: widget.padding,
-      child: const Center(
-        child: Icon(
-          Icons.broken_image_outlined,
-          size: 48,
-          color: Colors.white70,
-        ),
-      ),
-    );
-  }
+  void _handleScaleStateChange(PhotoViewScaleState state) {
+    final previous = _lastScaleState;
+    _lastScaleState = state;
 
-  Widget _buildLoadingIndicator(BuildContext context, ImageChunkEvent? event) {
-    final total = event?.expectedTotalBytes;
-    final loaded = event?.cumulativeBytesLoaded ?? 0;
-    final progress = total != null && total > 0 ? loaded / total : null;
+    if (previous == null) {
+      return;
+    }
 
-    return Center(
-      child: SizedBox(
-        width: 42,
-        height: 42,
-        child: CircularProgressIndicator(value: progress),
-      ),
-    );
-  }
+    final startedFromInitial = previous == PhotoViewScaleState.initial &&
+        state != PhotoViewScaleState.initial;
 
-  Widget _buildErrorIndicator(
-    BuildContext context,
-    Object error,
-    StackTrace? stackTrace,
-  ) {
-    return const Center(
-      child: Icon(
-        Icons.broken_image_outlined,
-        size: 48,
-        color: Colors.white70,
-      ),
-    );
-  }
+    final isDoubleTapTarget = state == PhotoViewScaleState.covering ||
+        state == PhotoViewScaleState.originalSize;
 
-  void _handleScaleStateChanged(PhotoViewScaleState state) {
-    if (_lastScaleState == state) {
+    if (startedFromInitial && isDoubleTapTarget) {
+      final didStart = _notifyInteractionStart();
+      if (!didStart) {
+        return;
+      }
+      _doubleTapTimer?.cancel();
+      _doubleTapTimer = Timer(const Duration(milliseconds: 260), () {
+        _finishInteraction();
+      });
       return;
     }
 
     if (state == PhotoViewScaleState.initial) {
-      _cancelInteractionEndTimer();
-      _notifyInteractionEnd();
-    } else if (_lastScaleState == PhotoViewScaleState.initial ||
-        _lastScaleState == null) {
-      _notifyInteractionStart();
+      _doubleTapTimer?.cancel();
+      _finishInteraction();
     }
-
-    if (state != PhotoViewScaleState.initial && _activePointers == 0) {
-      _scheduleInteractionEndDebounce();
-    }
-
-    _lastScaleState = state;
   }
 
   void _handleScaleEnd(
@@ -187,58 +181,35 @@ class _ZoomableImageState extends State<ZoomableImage> {
     ScaleEndDetails details,
     PhotoViewControllerValue controllerValue,
   ) {
-    _cancelInteractionEndTimer();
-    _notifyInteractionEnd();
+    _doubleTapTimer?.cancel();
+    _finishInteraction();
   }
 
-  void _handlePointerDown() {
-    _activePointers++;
-    _cancelInteractionEndTimer();
-    if (_lastScaleState != PhotoViewScaleState.initial) {
-      _notifyInteractionStart();
-    }
-  }
-
-  void _handlePointerUp() {
-    if (_activePointers > 0) {
-      _activePointers--;
-    }
-
-    if (_activePointers == 0 && _lastScaleState != PhotoViewScaleState.initial) {
-      _scheduleInteractionEndDebounce();
-    }
-  }
-
-  void _scheduleInteractionEndDebounce() {
-    _cancelInteractionEndTimer();
-    _interactionEndTimer = Timer(
-      const Duration(milliseconds: 240),
-      () {
-        if (_activePointers == 0) {
-          _notifyInteractionEnd();
-        }
-      },
-    );
-  }
-
-  void _cancelInteractionEndTimer() {
-    _interactionEndTimer?.cancel();
-    _interactionEndTimer = null;
-  }
-
-  void _notifyInteractionStart() {
+  bool _notifyInteractionStart() {
     if (_isInteracting) {
-      return;
+      return false;
     }
+    _cooldownTimer?.cancel();
+    _isControllerCoolingDown = false;
     _isInteracting = true;
     widget.onInteractionStart?.call();
+    return true;
   }
 
-  void _notifyInteractionEnd() {
+  void _finishInteraction() {
     if (!_isInteracting) {
       return;
     }
     _isInteracting = false;
     widget.onInteractionEnd?.call();
+    _startCooldown();
+  }
+
+  void _startCooldown() {
+    _cooldownTimer?.cancel();
+    _isControllerCoolingDown = true;
+    _cooldownTimer = Timer(const Duration(milliseconds: 180), () {
+      _isControllerCoolingDown = false;
+    });
   }
 }

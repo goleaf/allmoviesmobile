@@ -53,6 +53,12 @@ class MovieDetailScreen extends StatelessWidget {
           create: (_) =>
               MediaGalleryProvider(repository)..loadMovieImages(movie.id),
         ),
+        ChangeNotifierProvider(
+          create: (_) => ReviewListProvider(
+            mediaId: movie.id,
+            mediaType: ReviewMediaType.movie,
+          ),
+        ),
       ],
       child: const _MovieDetailView(),
     );
@@ -807,26 +813,7 @@ class _MovieDetailView extends StatelessWidget {
     MovieDetailed details,
     AppLocalizations loc,
   ) {
-    // Reviews section temporarily stubbed until implementation exists
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            loc.t('movie.reviews'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            loc.t('common.comingSoon'),
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ],
-      ),
-    );
+    return const _MovieReviewsSection();
   }
 
   Widget _buildReleaseDates(BuildContext context, MovieDetailed details) {
@@ -1468,6 +1455,7 @@ class _MovieReviewsSectionState extends State<_MovieReviewsSection> {
   Widget build(BuildContext context) {
     final provider = context.watch<ReviewListProvider>();
     final reviews = provider.visibleReviews;
+    final loc = AppLocalizations.of(context);
 
     if (provider.isLoading && !provider.hasLoadedInitial) {
       return const Padding(
@@ -1498,7 +1486,7 @@ class _MovieReviewsSectionState extends State<_MovieReviewsSection> {
               children: [
                 Expanded(
                   child: Text(
-                    'Reviews',
+                    loc.t('reviews.title'),
                     style: Theme.of(context)
                         .textTheme
                         .titleLarge
@@ -1508,11 +1496,13 @@ class _MovieReviewsSectionState extends State<_MovieReviewsSection> {
                 _SortMenu(
                   current: provider.sortOption,
                   onSelected: provider.setSortOption,
+                  loc: loc,
                 ),
                 const SizedBox(width: 8),
                 _RatingFilterMenu(
                   current: provider.ratingFilter,
                   onSelected: provider.setRatingFilter,
+                  loc: loc,
                 ),
                 const SizedBox(width: 8),
               ],
@@ -1526,8 +1516,8 @@ class _MovieReviewsSectionState extends State<_MovieReviewsSection> {
                 onPressed: provider.isLoadingMore ? null : provider.loadMore,
                 icon: const Icon(Icons.expand_more),
                 label: provider.isLoadingMore
-                    ? const Text('Loading...')
-                    : const Text('Load more'),
+                    ? Text(loc.t('common.loading'))
+                    : Text(loc.t('reviews.load_more')),
               ),
             ),
         ],
@@ -1537,33 +1527,38 @@ class _MovieReviewsSectionState extends State<_MovieReviewsSection> {
 }
 
 class _SortMenu extends StatelessWidget {
-  const _SortMenu({required this.current, required this.onSelected});
+  const _SortMenu({
+    required this.current,
+    required this.onSelected,
+    required this.loc,
+  });
 
   final ReviewSortOption current;
   final void Function(ReviewSortOption) onSelected;
+  final AppLocalizations loc;
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<ReviewSortOption>(
-      tooltip: 'Sort reviews',
+      tooltip: loc.t('reviews.sort_label'),
       initialValue: current,
       onSelected: onSelected,
-      itemBuilder: (context) => const [
+      itemBuilder: (context) => [
         PopupMenuItem(
           value: ReviewSortOption.newest,
-          child: Text('Newest'),
+          child: Text(loc.t('reviews.sort_newest')),
         ),
         PopupMenuItem(
           value: ReviewSortOption.highestRated,
-          child: Text('Highest rated'),
+          child: Text(loc.t('reviews.sort_highest')),
         ),
       ],
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.sort),
-          SizedBox(width: 4),
-          Text('Sort'),
+        children: [
+          const Icon(Icons.sort),
+          const SizedBox(width: 4),
+          Text(loc.t('reviews.sort_label')),
         ],
       ),
     );
@@ -1571,15 +1566,20 @@ class _SortMenu extends StatelessWidget {
 }
 
 class _RatingFilterMenu extends StatelessWidget {
-  const _RatingFilterMenu({required this.current, required this.onSelected});
+  const _RatingFilterMenu({
+    required this.current,
+    required this.onSelected,
+    required this.loc,
+  });
 
   final ReviewRatingFilter current;
   final void Function(ReviewRatingFilter) onSelected;
+  final AppLocalizations loc;
 
   @override
   Widget build(BuildContext context) {
     return PopupMenuButton<ReviewRatingFilter>(
-      tooltip: 'Filter by rating',
+      tooltip: loc.t('reviews.filter_label'),
       initialValue: current,
       onSelected: onSelected,
       itemBuilder: (context) => ReviewRatingFilter.values
@@ -1592,10 +1592,10 @@ class _RatingFilterMenu extends StatelessWidget {
           .toList(growable: false),
       child: Row(
         mainAxisSize: MainAxisSize.min,
-        children: const [
-          Icon(Icons.filter_alt_outlined),
-          SizedBox(width: 4),
-          Text('Filter'),
+        children: [
+          const Icon(Icons.filter_alt_outlined),
+          const SizedBox(width: 4),
+          Text(loc.t('reviews.filter_label')),
         ],
       ),
     );
@@ -1612,6 +1612,7 @@ class _ReviewCard extends StatelessWidget {
     final reviewsProvider = context.watch<ReviewListProvider>();
     final helpful = reviewsProvider.helpfulStateFor(review.id);
     final isReported = reviewsProvider.isReported(review.id);
+    final loc = AppLocalizations.of(context);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Padding(
@@ -1673,7 +1674,7 @@ class _ReviewCard extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: Text(
-                                      'Review by ${review.author}',
+                                      '${loc.t('reviews.title')} - ${review.author}',
                                       style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                                     ),
                                   ),
@@ -1704,13 +1705,13 @@ class _ReviewCard extends StatelessWidget {
                   },
                 );
               },
-              child: const Text('Read Full Review'),
+              child: Text(loc.t('reviews.read_full')),
             ),
             const SizedBox(height: 8),
             Row(
               children: [
                 Tooltip(
-                  message: 'Mark as helpful',
+                  message: loc.t('reviews.helpful'),
                   child: InkWell(
                     onTap: () => reviewsProvider.vote(review.id, ReviewVote.helpful),
                     child: Container(
@@ -1732,7 +1733,9 @@ class _ReviewCard extends StatelessWidget {
                             color: Theme.of(context).colorScheme.primary,
                           ),
                           const SizedBox(width: 6),
-                          Text('${helpful.helpfulCount}/${helpful.totalVotes}')
+                          Text(
+                            '${helpful.helpfulCount}/${helpful.totalVotes} ${loc.t('reviews.helpful_votes')}',
+                          )
                         ],
                       ),
                     ),
@@ -1746,7 +1749,11 @@ class _ReviewCard extends StatelessWidget {
                     size: 18,
                     color: isReported ? Colors.grey : Theme.of(context).colorScheme.error,
                   ),
-                  label: Text(isReported ? 'Reported' : 'Report'),
+                  label: Text(
+                    isReported
+                        ? loc.t('reviews.reported')
+                        : loc.t('reviews.report'),
+                  ),
                 ),
               ],
             ),

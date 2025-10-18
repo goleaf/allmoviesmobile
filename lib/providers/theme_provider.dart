@@ -1,15 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../core/analytics/app_analytics.dart';
 
 enum AppThemeMode { light, dark, system }
 
 class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'allmovies_theme_mode';
   final SharedPreferences _prefs;
+  final AppAnalytics? _analytics;
   AppThemeMode _themeMode = AppThemeMode.dark;
 
-  ThemeProvider(this._prefs) {
+  ThemeProvider(
+    this._prefs, {
+    AppAnalytics? analytics,
+  })  : _analytics = analytics {
     _loadThemeMode();
+    unawaited(_analytics?.setThemeMode(_themeMode.name));
   }
 
   AppThemeMode get themeMode => _themeMode;
@@ -33,6 +42,7 @@ class ThemeProvider extends ChangeNotifier {
         orElse: () => AppThemeMode.dark,
       );
       notifyListeners();
+      unawaited(_analytics?.setThemeMode(_themeMode.name));
     }
   }
 
@@ -40,6 +50,7 @@ class ThemeProvider extends ChangeNotifier {
     _themeMode = mode;
     await _prefs.setString(_themeKey, mode.name);
     notifyListeners();
+    unawaited(_analytics?.setThemeMode(mode.name));
   }
 
   String getThemeModeName(AppThemeMode mode) {

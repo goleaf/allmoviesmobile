@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/analytics/app_analytics.dart';
 import '../../core/localization/app_localizations.dart';
 import '../../core/navigation/deep_link_handler.dart';
 import '../../core/navigation/deep_link_parser.dart';
@@ -143,6 +146,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
     final rootNavigator = Navigator.of(context, rootNavigator: true);
     final repo = context.read<TmdbRepository>();
     final loc = AppLocalizations.of(context);
+    final analytics = context.read<AppAnalytics>();
 
     Future<void> showError(String message) async {
       if (!mounted) return;
@@ -157,6 +161,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           MovieDetailScreen.routeName,
           arguments: Movie(id: link.id!, title: 'Movie #${link.id}'),
         );
+        unawaited(
+          analytics.logDeepLink(type: DeepLinkType.movie.name, id: link.id),
+        );
         break;
       case DeepLinkType.tvShow:
         await _ensureDestination(AppDestination.tv);
@@ -168,6 +175,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
             mediaType: 'tv',
           ),
         );
+        unawaited(
+          analytics.logDeepLink(type: DeepLinkType.tvShow.name, id: link.id),
+        );
         break;
       case DeepLinkType.season:
         await _ensureDestination(AppDestination.tv);
@@ -177,6 +187,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
             tvId: link.id!,
             seasonNumber: link.seasonNumber!,
           ),
+        );
+        unawaited(
+          analytics.logDeepLink(type: DeepLinkType.season.name, id: link.id),
         );
         break;
       case DeepLinkType.episode:
@@ -192,6 +205,15 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
             EpisodeDetailScreen.routeName,
             arguments: EpisodeDetailArgs(tvId: link.id!, episode: episode),
           );
+          unawaited(
+            analytics.logDeepLink(
+              type: DeepLinkType.episode.name,
+              id: link.id,
+              label: link.seasonNumber != null && link.episodeNumber != null
+                  ? 'S${link.seasonNumber}E${link.episodeNumber}'
+                  : null,
+            ),
+          );
         } catch (error) {
           await showError(loc.t('errors.generic'));
         }
@@ -201,17 +223,26 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           PersonDetailScreen.routeName,
           arguments: link.id!,
         );
+        unawaited(
+          analytics.logDeepLink(type: DeepLinkType.person.name, id: link.id),
+        );
         break;
       case DeepLinkType.company:
         await rootNavigator.pushNamed(
           CompanyDetailScreen.routeName,
           arguments: Company(id: link.id!, name: 'Company #${link.id}'),
         );
+        unawaited(
+          analytics.logDeepLink(type: DeepLinkType.company.name, id: link.id),
+        );
         break;
       case DeepLinkType.collection:
         await rootNavigator.pushNamed(
           CollectionDetailScreen.routeName,
           arguments: link.id!,
+        );
+        unawaited(
+          analytics.logDeepLink(type: DeepLinkType.collection.name, id: link.id),
         );
         break;
       case DeepLinkType.search:
@@ -221,6 +252,12 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
         navigator?.pushNamed(
           SearchScreen.routeName,
           arguments: link.searchQuery,
+        );
+        unawaited(
+          analytics.logDeepLink(
+            type: DeepLinkType.search.name,
+            label: link.searchQuery ?? '',
+          ),
         );
         break;
     }
@@ -253,6 +290,7 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           _currentDestination = selected;
         });
         context.read<AppStateProvider>().updateDestination(selected);
+        unawaited(context.read<AppAnalytics>().logTabSelection(selected.name));
       },
       destinations: [
         NavigationDestination(

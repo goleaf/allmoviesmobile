@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -5,10 +7,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'core/analytics/analytics_initializer.dart';
+import 'core/analytics/analytics_route_observer.dart';
+import 'core/analytics/app_analytics.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/foreground_refresh_observer.dart';
 import 'core/utils/memory_optimizer.dart';
+import 'core/analytics/analytics_service.dart';
+import 'core/logging/app_logger.dart';
 import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/offline_service.dart';
@@ -71,10 +78,21 @@ import 'providers/certifications_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/app_state_provider.dart';
-import 'providers/change_tracking_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize the shared logger so debug analytics/crash services can emit
+  // diagnostics even when Firebase is unavailable.
+  final logger = AppLogger.instance;
+  await logger.init();
+
+  // Firebase Analytics is optional; the initializer gracefully falls back to
+  // a debug logger-based implementation when Firebase options are missing.
+  final analyticsInitializer = AnalyticsInitializer(logger: logger);
+  final AnalyticsService analyticsService =
+      await analyticsInitializer.initialize();
+  final appAnalytics = AppAnalytics(service: analyticsService, logger: logger);
 
   MemoryOptimizer.instance.initialize();
 
@@ -91,6 +109,8 @@ void main() async {
       prefs: prefs,
       offlineService: offlineService,
       networkQualityNotifier: networkQualityNotifier,
+      analyticsService: analyticsService,
+      analytics: appAnalytics,
     ),
   );
 }
@@ -103,13 +123,16 @@ class AllMoviesApp extends StatefulWidget {
     required this.offlineService,
     this.tmdbRepository,
     required this.networkQualityNotifier,
+    required this.analyticsService,
+    required this.analytics,
   });
 
   final LocalStorageService storageService;
   final SharedPreferences prefs;
-  final OfflineService offlineService;
   final TmdbRepository? tmdbRepository;
   final NetworkQualityNotifier networkQualityNotifier;
+  final AnalyticsService analyticsService;
+  final AppAnalytics analytics;
 
   @override
   State<AllMoviesApp> createState() => _AllMoviesAppState();
@@ -119,6 +142,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   late final TmdbRepository _repository;
   late final ForegroundRefreshObserver _foregroundObserver;
   late final DeepLinkHandler _deepLinkHandler;
+  late final AnalyticsRouteObserver _analyticsObserver;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _registeredRefreshCallbacks = false;
 
@@ -128,7 +152,12 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
     _repository = widget.tmdbRepository ??
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
     _foregroundObserver = ForegroundRefreshObserver()..attach();
-    _deepLinkHandler = DeepLinkHandler()..initialize();
+    _deepLinkHandler = DeepLinkHandler(
+      navigatorKey: _navigatorKey,
+      repository: _repository,
+    )..initialize();
+    _analyticsObserver = AnalyticsRouteObserver(widget.analytics);
+    unawaited(widget.analytics.logAppOpen());
   }
 
   @override
@@ -160,25 +189,43 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         Provider<LocalStorageService>.value(value: widget.storageService),
         Provider<SharedPreferences>.value(value: widget.prefs),
+        Provider<AppAnalytics>.value(value: widget.analytics),
+        Provider<AnalyticsService>.value(value: widget.analyticsService),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
           value: widget.networkQualityNotifier,
         ),
-        ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
-        ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
         ChangeNotifierProvider(
-          create: (_) => FavoritesProvider(
-            widget.storageService,
-            offlineService: widget.offlineService,
+          create: (context) => LocaleProvider(
+            widget.prefs,
+            analytics: context.read<AppAnalytics>(),
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => WatchlistProvider(
-            widget.storageService,
-            offlineService: widget.offlineService,
+          create: (context) => ThemeProvider(
+            widget.prefs,
+            analytics: context.read<AppAnalytics>(),
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => SearchProvider(_repository, widget.storageService),
+          create: (context) => FavoritesProvider(
+            widget.storageService,
+            offlineService: widget.offlineService,
+            analytics: context.read<AppAnalytics>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => WatchlistProvider(
+            widget.storageService,
+            offlineService: widget.offlineService,
+            analytics: context.read<AppAnalytics>(),
+          ),
+        ),
+        ChangeNotifierProvider(
+          create: (context) => SearchProvider(
+            _repository,
+            widget.storageService,
+            analytics: context.read<AppAnalytics>(),
+          ),
         ),
         ChangeNotifierProvider(
           create: (_) =>
@@ -234,13 +281,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
-        ChangeNotifierProvider(
-          create: (context) => ChangeTrackingProvider(
-            context.read<TmdbRepository>(),
-            context.read<LocalStorageService>(),
-            networkQualityNotifier: context.read<NetworkQualityNotifier>(),
-          ),
-        ),
+        ChangeNotifierProvider<DeepLinkHandler>.value(value: _deepLinkHandler),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
       child: Builder(
@@ -284,6 +325,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                     ],
                     supportedLocales: AppLocalizations.supportedLocales,
                     debugShowCheckedModeBanner: false,
+                    navigatorObservers: <NavigatorObserver>[_analyticsObserver],
                     home: const AppNavigationShell(),
                     routes: {
                       HomeScreen.routeName: (context) => const HomeScreen(),

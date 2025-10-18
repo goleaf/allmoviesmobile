@@ -50,10 +50,14 @@ dependencies:
   
   # SVG support
   flutter_svg: ^2.0.16
-    
+
   # Network images with caching
   cached_network_image: ^3.4.1
   flutter_image_compress: ^2.3.0
+
+  # Analytics
+  firebase_core: ^4.2.0
+  firebase_analytics: ^12.0.3
 
   # HTTP client
   http: ^1.2.2

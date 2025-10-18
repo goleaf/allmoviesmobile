@@ -9,10 +9,9 @@ class AccessibilityProvider extends ChangeNotifier {
   static const _highContrastKey = 'accessibility_high_contrast_enabled';
   static const _textScaleKey = 'accessibility_text_scale_factor';
   static const _colorBlindKey = 'accessibility_color_blind_palette';
-  static const _focusIndicatorsKey =
-      'accessibility_focus_indicators_enabled';
+  static const _focusIndicatorsKey = 'accessibility_show_focus_indicators';
   static const _keyboardNavigationKey =
-      'accessibility_keyboard_navigation_enabled';
+      'accessibility_enable_keyboard_navigation';
 
   final SharedPreferences _prefs;
 

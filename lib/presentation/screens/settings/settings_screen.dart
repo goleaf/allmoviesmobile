@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import '../../../core/localization/app_localizations.dart';
@@ -12,10 +11,8 @@ import '../../../core/utils/service_locator.dart';
 import '../../../data/services/cache_service.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../data/services/offline_service.dart';
-import '../../../data/services/push_notification_service.dart';
 import '../../../providers/preferences_provider.dart';
 import '../../../providers/offline_provider.dart';
-import '../../../providers/diagnostics_provider.dart';
 import '../statistics/statistics_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -39,9 +36,9 @@ class SettingsScreen extends StatelessWidget {
           ),
           const _HighContrastTile(),
           const _ColorBlindTile(),
+          const _TextScaleTile(),
           const _FocusIndicatorsTile(),
           const _KeyboardNavigationTile(),
-          const _TextScaleTile(),
           _SettingsHeader(title: l.t('settings.localization')),
           _LanguageTile(),
           _RegionTile(),
@@ -52,19 +49,12 @@ class SettingsScreen extends StatelessWidget {
           _MinVoteCountTile(),
           _CertificationCountryTile(),
           _CertificationValueTile(),
-          _SettingsHeader(title: l.t('settings.notifications')),
-          const _PushNotificationsSection(),
           _SettingsHeader(title: l.t('settings.media')),
           // _ImageQualityTile(),
           _SettingsHeader(title: l.t('settings.cache')),
           _ClearCacheTile(),
           const _OfflineStorageTile(),
           _ClearSearchHistoryTile(),
-          _SettingsHeader(
-            title: l.settings['diagnostics'] ?? 'Diagnostics',
-          ),
-          const _PerformanceOverlayTile(),
-          const _PerformanceProfilerTile(),
           _SettingsHeader(title: l.settings['insights'] ?? 'Insights'),
           ListTile(
             leading: const Icon(Icons.query_stats_outlined),
@@ -74,11 +64,16 @@ class SettingsScreen extends StatelessWidget {
                   'Understand your watch habits at a glance.',
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () =>
-                Navigator.of(context).pushNamed(StatisticsScreen.routeName),
+            onTap: () => Navigator.of(context).pushNamed(
+              StatisticsScreen.routeName,
+            ),
           ),
           _SettingsHeader(title: l.t('settings.about')),
-          const _AppVersionTile(),
+          _StaticInfoTile(
+            icon: Icons.info_outline,
+            title: l.t('settings.appVersion'),
+            value: '1.0.0',
+          ),
         ],
       ),
     );
@@ -104,199 +99,23 @@ class _SettingsHeader extends StatelessWidget {
   }
 }
 
-class _AppVersionTile extends StatelessWidget {
-  const _AppVersionTile();
+class _StaticInfoTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
 
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return FutureBuilder<PackageInfo>(
-      future: PackageInfo.fromPlatform(),
-      builder: (context, snapshot) {
-        final data = snapshot.data;
-        final subtitle = data == null
-            ? l.t('common.loading')
-            : '${data.version} (${data.buildNumber})';
-        return ListTile(
-          leading: const Icon(Icons.info_outline),
-          title: Text(l.t('settings.appVersion')),
-          subtitle: Text(subtitle),
-        );
-      },
-    );
-  }
-}
-
-class _PushNotificationsSection extends StatelessWidget {
-  const _PushNotificationsSection();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
-    return Consumer<PushNotificationService>(
-      builder: (context, service, _) {
-        if (!service.isInitialized) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(vertical: 16),
-            child: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (!service.isSupported) {
-          return ListTile(
-            leading: const Icon(Icons.notifications_off_outlined),
-            title: Text(l.t('settings.notifications_enable')),
-            subtitle: Text(l.t('settings.notifications_platform_unsupported')),
-            enabled: false,
-          );
-        }
-
-        final subtitle = service.isPermissionGranted
-            ? l.t('settings.notifications_description')
-            : l.t('settings.notifications_permission_rationale');
-
-        final children = <Widget>[
-          SwitchListTile(
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-            secondary: const Icon(Icons.notifications_active_outlined),
-            title: Text(l.t('settings.notifications_enable')),
-            subtitle: Text(subtitle),
-            value: service.isNotificationsEnabled,
-            onChanged: service.isBusy
-                ? null
-                : (value) {
-                    final messenger = ScaffoldMessenger.of(context);
-                    final operation = value
-                        ? service.enableNotifications()
-                        : service.disableNotifications();
-                    operation.then((success) {
-                      if (!success) {
-                        messenger.showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              l.t('settings.notifications_sync_error'),
-                            ),
-                          ),
-                        );
-                      }
-                    });
-                  },
-          ),
-        ];
-
-        if (service.isBusy) {
-          children.add(
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 16),
-              child: LinearProgressIndicator(minHeight: 2),
-            ),
-          );
-        }
-
-        if (service.isNotificationsEnabled) {
-          children.addAll([
-            _TopicToggleTile(
-              icon: Icons.new_releases_outlined,
-              title: l.t('settings.notifications_categories.new_releases'),
-              value: service.isTopicEnabled(NotificationTopic.newReleases),
-              onChanged: service.isBusy
-                  ? null
-                  : (value) {
-                      service.setTopicEnabled(
-                        NotificationTopic.newReleases,
-                        value,
-                      );
-                    },
-            ),
-            _TopicToggleTile(
-              icon: Icons.playlist_add_check_outlined,
-              title: l.t('settings.notifications_categories.watchlist'),
-              value: service.isTopicEnabled(NotificationTopic.watchlistAlerts),
-              onChanged: service.isBusy
-                  ? null
-                  : (value) {
-                      service.setTopicEnabled(
-                        NotificationTopic.watchlistAlerts,
-                        value,
-                      );
-                    },
-            ),
-            _TopicToggleTile(
-              icon: Icons.star_outline,
-              title: l.t('settings.notifications_categories.recommendations'),
-              value: service.isTopicEnabled(NotificationTopic.recommendations),
-              onChanged: service.isBusy
-                  ? null
-                  : (value) {
-                      service.setTopicEnabled(
-                        NotificationTopic.recommendations,
-                        value,
-                      );
-                    },
-            ),
-            _TopicToggleTile(
-              icon: Icons.campaign_outlined,
-              title: l.t('settings.notifications_categories.marketing'),
-              value: service.isTopicEnabled(NotificationTopic.marketing),
-              onChanged: service.isBusy
-                  ? null
-                  : (value) {
-                      service.setTopicEnabled(
-                        NotificationTopic.marketing,
-                        value,
-                      );
-                    },
-            ),
-          ]);
-        } else {
-          String messageKey;
-          if (service.isPermissionDenied) {
-            messageKey = 'settings.notifications_permission_denied';
-          } else if (service.isPermissionUndetermined) {
-            messageKey = 'settings.notifications_permission_pending';
-          } else if (service.isPermissionGranted) {
-            messageKey = 'settings.notifications_disabled';
-          } else {
-            messageKey = 'settings.notifications_permission_rationale';
-          }
-
-          children.add(
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Text(l.t(messageKey), style: theme.textTheme.bodySmall),
-            ),
-          );
-        }
-
-        return Column(children: children);
-      },
-    );
-  }
-}
-
-class _TopicToggleTile extends StatelessWidget {
-  const _TopicToggleTile({
+  const _StaticInfoTile({
     required this.icon,
     required this.title,
     required this.value,
-    required this.onChanged,
   });
-
-  final IconData icon;
-  final String title;
-  final bool value;
-  final ValueChanged<bool>? onChanged;
 
   @override
   Widget build(BuildContext context) {
-    return SwitchListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-      secondary: Icon(icon),
+    return ListTile(
+      leading: Icon(icon),
       title: Text(title),
-      value: value,
-      onChanged: onChanged,
+      subtitle: Text(value),
     );
   }
 }
@@ -328,13 +147,11 @@ class _OfflineStorageTile extends StatelessWidget {
               final lastSyncLabel = lastSync == null
                   ? l.t('offline.storage_last_sync_never')
                   : l
-                        .t('offline.storage_last_synced')
-                        .replaceFirst(
-                          '{date}',
-                          DateFormat.yMMMd().add_Hm().format(
-                            lastSync.toLocal(),
-                          ),
-                        );
+                      .t('offline.storage_last_synced')
+                      .replaceFirst(
+                        '{date}',
+                        DateFormat.yMMMd().add_Hm().format(lastSync.toLocal()),
+                      );
               final approx = l
                   .t('offline.storage_size')
                   .replaceFirst('{size}', _formatBytes(stats.approximateBytes));
@@ -379,60 +196,6 @@ class _OfflineStorageTile extends StatelessWidget {
       unitIndex++;
     }
     return '${value.toStringAsFixed(1)} ${units[unitIndex]}';
-  }
-}
-
-class _NotificationSettingsTiles extends StatelessWidget {
-  const _NotificationSettingsTiles();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return Consumer<PreferencesProvider>(
-      builder: (context, provider, _) {
-        return Column(
-          children: [
-            SwitchListTile.adaptive(
-              secondary: const Icon(Icons.new_releases_outlined),
-              title: Text(l.t('settings.notifications_new_releases')),
-              subtitle:
-                  Text(l.t('settings.notifications_new_releases_description')),
-              value: provider.notificationsNewReleases,
-              onChanged: (value) =>
-                  provider.setNotificationsNewReleases(value),
-            ),
-            SwitchListTile.adaptive(
-              secondary: const Icon(Icons.playlist_add_check_outlined),
-              title: Text(l.t('settings.notifications_watchlist_alerts')),
-              subtitle: Text(
-                l.t('settings.notifications_watchlist_alerts_description'),
-              ),
-              value: provider.notificationsWatchlistAlerts,
-              onChanged: (value) =>
-                  provider.setNotificationsWatchlistAlerts(value),
-            ),
-            SwitchListTile.adaptive(
-              secondary: const Icon(Icons.recommend_outlined),
-              title: Text(l.t('settings.notifications_recommendations')),
-              subtitle: Text(
-                l.t('settings.notifications_recommendations_description'),
-              ),
-              value: provider.notificationsRecommendations,
-              onChanged: (value) =>
-                  provider.setNotificationsRecommendations(value),
-            ),
-            SwitchListTile.adaptive(
-              secondary: const Icon(Icons.campaign_outlined),
-              title: Text(l.t('settings.notifications_marketing')),
-              subtitle:
-                  Text(l.t('settings.notifications_marketing_description')),
-              value: provider.notificationsMarketing,
-              onChanged: (value) => provider.setNotificationsMarketing(value),
-            ),
-          ],
-        );
-      },
-    );
   }
 }
 
@@ -530,8 +293,9 @@ class _TextScaleTile extends StatelessWidget {
             max: 1.6,
             divisions: 7,
             label: textScale.toStringAsFixed(2),
-            onChanged: (value) =>
-                context.read<AccessibilityProvider>().setTextScaleFactor(value),
+            onChanged: (value) => context
+                .read<AccessibilityProvider>()
+                .setTextScaleFactor(value),
           ),
         ],
       ),
@@ -568,121 +332,6 @@ class _ThemeDialog extends StatelessWidget {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: Text(l.t('common.cancel')),
-        ),
-      ],
-    );
-  }
-}
-
-class _HighContrastTile extends StatelessWidget {
-  const _HighContrastTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final provider = context.watch<AccessibilityProvider>();
-
-    return SwitchListTile.adaptive(
-      secondary: const Icon(Icons.contrast),
-      title: Text(l.t('settings.highContrast')),
-      subtitle: Text(
-        provider.highContrast
-            ? l.t('settings.highContrastEnabled')
-            : l.t('settings.highContrastDisabled'),
-      ),
-      value: provider.highContrast,
-      onChanged: (value) => provider.toggleHighContrast(value),
-    );
-  }
-}
-
-class _ColorBlindPaletteTile extends StatelessWidget {
-  const _ColorBlindPaletteTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final provider = context.watch<AccessibilityProvider>();
-
-    return SwitchListTile.adaptive(
-      secondary: const Icon(Icons.palette),
-      title: Text(l.t('settings.colorBlindFriendly')),
-      subtitle: Text(l.t('settings.colorBlindFriendlyDescription')),
-      value: provider.colorBlindFriendlyPalette,
-      onChanged: (value) => provider.toggleColorBlindFriendlyPalette(value),
-    );
-  }
-}
-
-class _TextScaleTile extends StatelessWidget {
-  const _TextScaleTile();
-
-  static const Map<double, String> _labels = {
-    0.9: 'settings.textScaleSmall',
-    1.0: 'settings.textScaleNormal',
-    1.2: 'settings.textScaleLarge',
-    1.35: 'settings.textScaleExtraLarge',
-  };
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final provider = context.watch<AccessibilityProvider>();
-    final currentLabelKey = _labels.entries
-        .firstWhere(
-          (entry) => (provider.textScaleFactor - entry.key).abs() < 0.01,
-          orElse: () => const MapEntry(1.0, 'settings.textScaleNormal'),
-        )
-        .value;
-
-    return ListTile(
-      leading: const Icon(Icons.text_increase),
-      title: Text(l.t('settings.textScale')),
-      subtitle: Text(l.t(currentLabelKey)),
-      onTap: () => showDialog(
-        context: context,
-        builder: (context) => _TextScaleDialog(
-          values: _labels,
-          currentFactor: provider.textScaleFactor,
-        ),
-      ),
-    );
-  }
-}
-
-class _TextScaleDialog extends StatelessWidget {
-  const _TextScaleDialog({required this.values, required this.currentFactor});
-
-  final Map<double, String> values;
-  final double currentFactor;
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final provider = context.watch<AccessibilityProvider>();
-
-    return AlertDialog(
-      title: Text(l.t('settings.chooseTextScale')),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: values.entries.map((entry) {
-          return RadioListTile<double>(
-            title: Text(l.t(entry.value)),
-            value: entry.key,
-            groupValue: currentFactor,
-            onChanged: (value) {
-              if (value != null) {
-                provider.setTextScaleFactor(value);
-                Navigator.of(context).pop();
-              }
-            },
-          );
-        }).toList(),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
           child: Text(l.t('common.cancel')),
         ),
       ],
@@ -741,7 +390,7 @@ class _LanguageTile extends StatelessWidget {
     return ListTile(
       leading: const Icon(Icons.language),
       title: Text(l.t('settings.language')),
-      subtitle: Text(localeProvider.languageName),
+      subtitle: Text(localeProvider.getLanguageName(localeProvider.locale)),
       onTap: () {
         showDialog(
           context: context,
@@ -760,21 +409,14 @@ class _LanguageDialog extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final localeProvider = context.watch<LocaleProvider>();
 
-    final languageOptions = LocaleProvider.supportedLanguages
-        .where((language) => language['code'] != null)
-        .toList();
-
     return AlertDialog(
       title: Text(l10n.t('settings.chooseLanguage')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: languageOptions.map((language) {
-          final code = language['code']!;
-          final optionLocale = localeProvider.localeForCode(code);
-
+        children: AppLocalizations.supportedLocales.map((locale) {
           return RadioListTile<Locale>(
-            title: Text(language['name'] ?? code),
-            value: optionLocale,
+            title: Text(localeProvider.getLanguageName(locale)),
+            value: locale,
             groupValue: localeProvider.locale,
             onChanged: (value) {
               if (value != null) {

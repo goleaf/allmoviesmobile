@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:allmovies_mobile/data/models/movie.dart';
 import 'package:allmovies_mobile/data/models/paginated_response.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
+import 'package:allmovies_mobile/data/models/tv_discover_filters.dart';
 import 'package:allmovies_mobile/providers/series_provider.dart';
 
 PaginatedResponse<Movie> _page(String prefix, int page, {int totalPages = 3}) {
@@ -175,7 +176,11 @@ void main() {
       final provider = SeriesProvider(_FakeRepo());
       await provider.initialized;
 
-      await provider.applyTvFilters({'sort_by': 'vote_average.desc'});
+      await provider.applyTvFilters(
+        TvDiscoverFilters.fromQueryParameters(
+          const {'sort_by': 'vote_average.desc'},
+        ),
+      );
 
       final state = provider.sectionState(SeriesSection.popular);
       expect(state.currentPage, 1);

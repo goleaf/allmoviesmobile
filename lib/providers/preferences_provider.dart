@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../core/constants/preferences_keys.dart';
-import '../data/models/series_filter_preset.dart';
+import '../data/models/tv_discover_filters.dart';
 
 class PreferencesProvider extends ChangeNotifier {
   PreferencesProvider(this._prefs)
@@ -147,26 +147,26 @@ class PreferencesProvider extends ChangeNotifier {
   }
 
   /// Read all saved TV series filter presets from preferences.
-  List<SeriesFilterPreset> get seriesFilterPresets {
+  List<TvDiscoverFilterPreset> get tvFilterPresets {
     final raw =
         _prefs.getStringList(PreferenceKeys.seriesFilterPresets) ?? const [];
     return raw
-        .map(SeriesFilterPreset.fromJsonString)
-        .whereType<SeriesFilterPreset>()
+        .map(TvDiscoverFilterPreset.fromJsonString)
+        .whereType<TvDiscoverFilterPreset>()
         .toList(growable: false);
   }
 
   /// Persist the provided collection of presets to preferences.
-  Future<void> _writeSeriesFilterPresets(
-    List<SeriesFilterPreset> presets,
+  Future<void> _writeTvFilterPresets(
+    List<TvDiscoverFilterPreset> presets,
   ) async {
     final payload = presets.map((preset) => preset.toJsonString()).toList();
     await _prefs.setStringList(PreferenceKeys.seriesFilterPresets, payload);
   }
 
   /// Add or replace a preset (matched by name) and notify listeners.
-  Future<void> saveSeriesFilterPreset(SeriesFilterPreset preset) async {
-    final existing = List<SeriesFilterPreset>.from(seriesFilterPresets);
+  Future<void> saveTvFilterPreset(TvDiscoverFilterPreset preset) async {
+    final existing = List<TvDiscoverFilterPreset>.from(tvFilterPresets);
     final index = existing.indexWhere(
       (element) => element.name.toLowerCase() == preset.name.toLowerCase(),
     );
@@ -175,16 +175,40 @@ class PreferencesProvider extends ChangeNotifier {
     } else {
       existing.add(preset);
     }
-    await _writeSeriesFilterPresets(existing);
+    await _writeTvFilterPresets(existing);
     notifyListeners();
   }
 
   /// Remove the preset with the specified [name], if present.
-  Future<void> deleteSeriesFilterPreset(String name) async {
-    final filtered = seriesFilterPresets
+  Future<void> deleteTvFilterPreset(String name) async {
+    final filtered = tvFilterPresets
         .where((preset) => preset.name.toLowerCase() != name.toLowerCase())
         .toList();
-    await _writeSeriesFilterPresets(filtered);
+    await _writeTvFilterPresets(filtered);
+    notifyListeners();
+  }
+
+  /// Retrieve the last applied TV discover filter preset, if present.
+  TvDiscoverFilterPreset? get tvDiscoverFilterPreset {
+    final raw = _prefs.getString(PreferenceKeys.tvActiveFilterPreset);
+    if (raw == null || raw.isEmpty) {
+      return null;
+    }
+    return TvDiscoverFilterPreset.fromJsonString(raw);
+  }
+
+  /// Persist the last applied TV discover filter preset for restoration.
+  Future<void> setTvDiscoverFilterPreset(
+    TvDiscoverFilterPreset? preset,
+  ) async {
+    if (preset == null) {
+      await _prefs.remove(PreferenceKeys.tvActiveFilterPreset);
+    } else {
+      await _prefs.setString(
+        PreferenceKeys.tvActiveFilterPreset,
+        preset.toJsonString(),
+      );
+    }
     notifyListeners();
   }
 

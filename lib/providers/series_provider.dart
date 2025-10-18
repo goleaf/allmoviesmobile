@@ -3,6 +3,7 @@ import 'dart:async';
 
 import '../data/models/movie.dart';
 import '../data/models/paginated_response.dart';
+import '../data/models/tv_discover_filters.dart';
 import '../data/models/tv_ref_model.dart';
 import '../data/services/offline_service.dart';
 import '../data/tmdb_repository.dart';
@@ -79,7 +80,7 @@ class SeriesProvider extends ChangeNotifier {
   bool _isRefreshing = false;
   String? _globalError;
   int? _activeNetworkId;
-  Map<String, String>? _activeFilters;
+  TvDiscoverFilters? _activeFilters;
   String? _activePresetName;
 
   final Completer<void> _initializedCompleter = Completer<void>();
@@ -89,7 +90,7 @@ class SeriesProvider extends ChangeNotifier {
   bool get isRefreshing => _isRefreshing;
   String? get globalError => _globalError;
   int? get activeNetworkId => _activeNetworkId;
-  Map<String, String>? get activeFilters => _activeFilters;
+  TvDiscoverFilters? get activeFilters => _activeFilters;
   String? get activePresetName => _activePresetName;
 
   /// Allows late binding of [PreferencesProvider] after the provider is
@@ -123,11 +124,11 @@ class SeriesProvider extends ChangeNotifier {
   /// Load any discover filters stored in preferences so pagination restarts
   /// from the same `/3/discover/tv` query the user last applied.
   void _restorePersistedFilters() {
-    final savedFilters = _preferences?.tvDiscoverFilterPreset;
-    final savedPresetName = _preferences?.tvDiscoverPresetName;
-    if (savedFilters != null && savedFilters.isNotEmpty) {
-      _activeFilters = Map<String, String>.from(savedFilters);
-      _activePresetName = savedPresetName;
+    final saved = _preferences?.tvDiscoverFilterPreset;
+    if (saved != null) {
+      _activeFilters = saved.filters;
+      final name = saved.name.trim();
+      _activePresetName = name.isEmpty ? null : name;
       _activeNetworkId = null;
     } else {
       _activeFilters = null;
@@ -241,7 +242,7 @@ class SeriesProvider extends ChangeNotifier {
         if (_activeFilters != null) {
           return _repository.discoverTvSeries(
             page: page,
-            filters: _activeFilters,
+            filters: _activeFilters!.toQueryParameters(),
           );
         }
         return _repository.fetchPopularTv(page: page);
@@ -412,10 +413,7 @@ class SeriesProvider extends ChangeNotifier {
     _activeNetworkId = networkId;
     _activeFilters = null;
     _activePresetName = null;
-    final prefs = _preferences;
-    if (prefs != null) {
-      await prefs.setTvDiscoverFilterPreset(null);
-    }
+    await _preferences?.setTvDiscoverFilterPreset(null);
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
       isLoading: true,
       errorMessage: null,
@@ -455,20 +453,12 @@ class SeriesProvider extends ChangeNotifier {
   /// Apply a custom set of TMDB `/3/discover/tv` parameters and optionally tag
   /// them with the preset the user selected from the sheet.
   Future<void> applyTvFilters(
-    Map<String, String> filters, {
+    TvDiscoverFilters filters, {
     String? presetName,
   }) async {
-    _activeFilters = Map<String, String>.from(filters);
+    _activeFilters = filters;
     _activeNetworkId = null;
-    final normalizedPreset = presetName?.trim();
-    _activePresetName = normalizedPreset?.isEmpty ?? true ? null : normalizedPreset;
-    final prefs = _preferences;
-    if (prefs != null) {
-      await prefs.setTvDiscoverFilterPreset(
-        _activeFilters,
-        presetName: _activePresetName,
-      );
-    }
+    _activePresetName = presetName;
     _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!.copyWith(
       isLoading: true,
       errorMessage: null,
@@ -477,7 +467,9 @@ class SeriesProvider extends ChangeNotifier {
     );
     notifyListeners();
     try {
-      final response = await _repository.discoverTvSeries(filters: filters);
+      final response = await _repository.discoverTvSeries(
+        filters: filters.toQueryParameters(),
+      );
       final pageItems = List<Movie>.unmodifiable(response.results);
       _sections[SeriesSection.popular] = SeriesSectionState(
         items: pageItems,
@@ -487,6 +479,13 @@ class SeriesProvider extends ChangeNotifier {
           response.page: pageItems,
         }),
       );
+      final prefs = _preferences;
+      if (prefs != null) {
+        final name = presetName ?? '';
+        await prefs.setTvDiscoverFilterPreset(
+          TvDiscoverFilterPreset(name: name, filters: filters),
+        );
+      }
     } catch (error) {
       _sections[SeriesSection.popular] = _sections[SeriesSection.popular]!
           .copyWith(
@@ -549,10 +548,7 @@ class SeriesProvider extends ChangeNotifier {
     _activeNetworkId = null;
     _activeFilters = null;
     _activePresetName = null;
-    final prefs = _preferences;
-    if (prefs != null) {
-      await prefs.setTvDiscoverFilterPreset(null);
-    }
+    await _preferences?.setTvDiscoverFilterPreset(null);
     await refresh(force: true);
   }
 }

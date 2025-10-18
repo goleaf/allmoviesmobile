@@ -26,6 +26,10 @@ After authentication, users land on a TMDB-backed home screen that fetches the l
 
 If the TMDB API key is missing or invalid, the grid falls back to an inline error state explaining that the key is not configured ("TMDB API key is not configured.") and offers a retry button. This is the expected behaviour until a valid `TMDB_API_KEY` dart-define is supplied.
 
+## TV series filter presets
+
+Use the filters icon on the Series tab to open the advanced discover sheet. After selecting genres, networks, providers, or any of the other options you can press **Save preset** to store the configuration locally. Saved presets are listed under the bookmark icon in the app bar where they can be renamed, applied, or deleted. The most recently applied preset is restored on the next launch, so you can quickly jump back into your preferred TV discovery view without re-entering each criterion.
+
 ## Running the app
 The repository includes a `macos_cursor_runner.sh` helper for launching Flutter builds from Cursor on macOS, but you can also run everything manually with the Flutter CLI.
 

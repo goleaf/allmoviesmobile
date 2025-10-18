@@ -163,11 +163,11 @@ class PeopleProvider extends ChangeNotifier {
 
   void _applyDepartmentFilter({bool notifyListeners = true}) {
     for (final section in PeopleSection.values) {
+      final previousState = _sections[section]!;
       final items = _allSectionItems[section] ?? const <Person>[];
       final filteredItems = _filterByDepartment(items);
-      _sections[section] = _sections[section]!.copyWith(
+      _sections[section] = previousState.copyWith(
         items: filteredItems,
-        isLoading: false,
       );
     }
     if (notifyListeners) {

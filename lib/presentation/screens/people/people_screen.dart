@@ -74,7 +74,29 @@ class _PeopleScreenState extends State<PeopleScreen>
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<PeopleProvider>().refresh();
+      final provider = context.read<PeopleProvider>();
+      provider.refresh();
+
+      final savedDepartment =
+          _storageService.getPeopleDepartmentFilter();
+      if (savedDepartment == null || savedDepartment.isEmpty) {
+        return;
+      }
+
+      unawaited(
+        provider.initialized.then((_) {
+          if (!mounted) {
+            return;
+          }
+          if (provider.availableDepartments.contains(savedDepartment)) {
+            provider.selectDepartment(savedDepartment);
+          } else {
+            unawaited(
+              _storageService.setPeopleDepartmentFilter(null),
+            );
+          }
+        }),
+      );
     });
   }
 
@@ -334,9 +356,10 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
-/// Dropdown-based selector that filters people lists by their known-for
+/// Chip-based selector that filters people lists by their known-for
 /// department. The widget listens to [PeopleProvider] updates so that it can
-/// show a localized department name for every available option.
+/// show a localized department name for every available option and persists
+/// the current selection via [LocalStorageService].
 class _PeopleDepartmentSelector extends StatelessWidget {
   const _PeopleDepartmentSelector();
 
@@ -351,17 +374,39 @@ class _PeopleDepartmentSelector extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final dropdownItems = <DropdownMenuItem<String?>>[
-          DropdownMenuItem<String?>(
-            value: null,
-            child: Text(loc.t('people.departments.all')),
-          ),
-          for (final department in departments)
-            DropdownMenuItem<String?>(
-              value: department,
-              child: Text(_localizedDepartmentLabel(loc, department)),
-            ),
-        ];
+        final storage = context.read<LocalStorageService>();
+        final selectedDepartment = provider.selectedDepartment;
+        final departmentEntries = departments
+            .map(
+              (department) => MapEntry(
+                department,
+                _localizedDepartmentLabel(loc, department),
+              ),
+            )
+            .toList()
+          ..sort(
+            (a, b) => a.value.toLowerCase().compareTo(b.value.toLowerCase()),
+          );
+
+        Widget buildChip(String? value, String label) {
+          final isSelected = value == null
+              ? selectedDepartment == null
+              : selectedDepartment == value;
+
+          return ChoiceChip(
+            label: Text(label),
+            selected: isSelected,
+            onSelected: (isSelectedTap) {
+              final newValue = isSelectedTap ? value : null;
+              if (provider.selectedDepartment == newValue) {
+                return;
+              }
+              provider.selectDepartment(newValue);
+              unawaited(storage.setPeopleDepartmentFilter(newValue));
+            },
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          );
+        }
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -370,14 +415,15 @@ class _PeopleDepartmentSelector extends StatelessWidget {
               labelText: loc.t('people.departments.label'),
               border: const OutlineInputBorder(),
             ),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<String?>(
-                key: const Key('peopleDepartmentDropdown'),
-                isExpanded: true,
-                value: provider.selectedDepartment,
-                items: dropdownItems,
-                onChanged: provider.selectDepartment,
-              ),
+            isEmpty: selectedDepartment == null,
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                buildChip(null, loc.t('people.departments.all')),
+                for (final entry in departmentEntries)
+                  buildChip(entry.key, entry.value),
+              ],
             ),
           ),
         );

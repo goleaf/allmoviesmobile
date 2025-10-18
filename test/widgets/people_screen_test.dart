@@ -193,20 +193,14 @@ void main() {
     expect(find.text('Actor One'), findsOneWidget);
     expect(find.text('Director One'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('peopleDepartmentDropdown')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Directing').last);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'Directing'));
     await tester.pumpAndSettle();
 
     expect(find.text('Actor One'), findsNothing);
     expect(find.text('Director One'), findsOneWidget);
     expect(find.text('Producer One'), findsNothing);
 
-    await tester.tap(find.byKey(const Key('peopleDepartmentDropdown')));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('All departments').last);
+    await tester.tap(find.widgetWithText(ChoiceChip, 'All departments'));
     await tester.pumpAndSettle();
 
     expect(find.text('Actor One'), findsOneWidget);

@@ -106,6 +106,7 @@ class AllMoviesApp extends StatefulWidget {
 
   final LocalStorageService storageService;
   final SharedPreferences prefs;
+  final OfflineService offlineService;
   final TmdbRepository? tmdbRepository;
   final NetworkQualityNotifier networkQualityNotifier;
 
@@ -126,10 +127,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
     _repository = widget.tmdbRepository ??
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
     _foregroundObserver = ForegroundRefreshObserver()..attach();
-    _deepLinkHandler = DeepLinkHandler(
-      navigatorKey: _navigatorKey,
-      repository: _repository,
-    )..initialize();
+    _deepLinkHandler = DeepLinkHandler()..initialize();
   }
 
   @override

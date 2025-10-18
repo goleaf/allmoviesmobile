@@ -31,6 +31,7 @@ class AppTheme {
     ColorScheme? dynamicScheme,
     bool highContrast = false,
     bool colorBlindFriendly = false,
+    bool emphasizeFocus = true,
   }) {
     final baseScheme = dynamicScheme ?? _fallbackLightScheme;
     final colorScheme = _applyAccessibility(
@@ -38,13 +39,14 @@ class AppTheme {
       highContrast: highContrast,
       colorBlindFriendly: colorBlindFriendly,
     );
-    return _buildTheme(colorScheme, highContrast: highContrast);
+    return _buildTheme(colorScheme, highContrast: highContrast, emphasizeFocus: emphasizeFocus);
   }
 
   static ThemeData dark({
     ColorScheme? dynamicScheme,
     bool highContrast = false,
     bool colorBlindFriendly = false,
+    bool emphasizeFocus = true,
   }) {
     final baseScheme = dynamicScheme ?? _fallbackDarkScheme;
     final colorScheme = _applyAccessibility(
@@ -52,7 +54,7 @@ class AppTheme {
       highContrast: highContrast,
       colorBlindFriendly: colorBlindFriendly,
     );
-    return _buildTheme(colorScheme, highContrast: highContrast);
+    return _buildTheme(colorScheme, highContrast: highContrast, emphasizeFocus: emphasizeFocus);
   }
 
   static ColorScheme _applyAccessibility(
@@ -130,7 +132,7 @@ class AppTheme {
     return scheme;
   }
 
-  static ThemeData _buildTheme(ColorScheme colorScheme, {bool highContrast = false}) {
+  static ThemeData _buildTheme(ColorScheme colorScheme, {bool highContrast = false, bool emphasizeFocus = true}) {
     final isDark = colorScheme.brightness == Brightness.dark;
     // Avoid runtime font fetching during tests or when fonts are unavailable
     final baseTextTheme = ThemeData(
@@ -154,7 +156,7 @@ class AppTheme {
     final surfaceElevated = surfaceTint(isDark ? 0.32 : 0.12);
     final surfaceHighest = surfaceTint(isDark ? 0.4 : 0.16);
 
-    final focusGlowColor = options.emphasizeFocus
+    final focusGlowColor = emphasizeFocus
         ? colorScheme.tertiary.withOpacity(isDark ? 0.85 : 0.7)
         : colorScheme.primary.withOpacity(0.4);
 
@@ -286,7 +288,6 @@ class AppTheme {
           textStyle: textTheme.titleMedium,
         ),
       ),
-      focusTheme: FocusThemeData(glowColor: focusGlowColor),
       pageTransitionsTheme: const PageTransitionsTheme(
         builders: {
           TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),

@@ -122,6 +122,12 @@
       "languageVersion": "3.8"
     },
     {
+      "name": "chewie",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/chewie-1.13.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.8"
+    },
+    {
       "name": "clock",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/clock-1.1.2",
       "packageUri": "lib/",
@@ -276,6 +282,42 @@
       "rootUri": "file:///usr/local/share/flutter/packages/flutter_driver",
       "packageUri": "lib/",
       "languageVersion": "3.8"
+    },
+    {
+      "name": "flutter_image_compress",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_image_compress-2.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_image_compress_common",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_image_compress_common-1.0.6",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_image_compress_macos",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_image_compress_macos-1.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_image_compress_ohos",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_image_compress_ohos-0.0.3",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_image_compress_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_image_compress_platform_interface-1.0.5",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
+    },
+    {
+      "name": "flutter_image_compress_web",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/flutter_image_compress_web-0.1.5",
+      "packageUri": "lib/",
+      "languageVersion": "2.12"
     },
     {
       "name": "flutter_inappwebview",
@@ -620,6 +662,18 @@
       "languageVersion": "3.4"
     },
     {
+      "name": "package_info_plus",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/package_info_plus-9.0.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.3"
+    },
+    {
+      "name": "package_info_plus_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/package_info_plus_platform_interface-3.2.1",
+      "packageUri": "lib/",
+      "languageVersion": "2.18"
+    },
+    {
       "name": "path",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/path-1.9.1",
       "packageUri": "lib/",
@@ -756,6 +810,12 @@
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/rxdart-0.28.0",
       "packageUri": "lib/",
       "languageVersion": "2.12"
+    },
+    {
+      "name": "scrollable_positioned_list",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/scrollable_positioned_list-0.3.8",
+      "packageUri": "lib/",
+      "languageVersion": "2.15"
     },
     {
       "name": "share_plus",
@@ -1094,10 +1154,28 @@
       "languageVersion": "3.6"
     },
     {
+      "name": "vimeo_video_player",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/vimeo_video_player-1.0.1",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
       "name": "vm_service",
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/vm_service-15.0.2",
       "packageUri": "lib/",
       "languageVersion": "3.5"
+    },
+    {
+      "name": "wakelock_plus",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/wakelock_plus-1.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
+      "name": "wakelock_plus_platform_interface",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/wakelock_plus_platform_interface-1.3.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
     },
     {
       "name": "watcher",
@@ -1134,6 +1212,12 @@
       "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/win32-5.15.0",
       "packageUri": "lib/",
       "languageVersion": "3.8"
+    },
+    {
+      "name": "workmanager",
+      "rootUri": "file:///Users/andrejprus/.pub-cache/hosted/pub.dev/workmanager-0.5.2",
+      "packageUri": "lib/",
+      "languageVersion": "3.1"
     },
     {
       "name": "xdg_directories",

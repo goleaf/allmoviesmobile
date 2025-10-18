@@ -8,9 +8,10 @@ import 'package:allmovies_mobile/presentation/screens/series/series_filters_scre
 import 'package:allmovies_mobile/presentation/widgets/media_image.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 // static_catalog_service removed from app; tests no longer inject it
-import 'package:isar/isar.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/data/services/network_quality_service.dart';
+import 'package:allmovies_mobile/data/services/offline_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
@@ -28,14 +29,18 @@ void main() {
     GoogleFonts.config.allowRuntimeFetching = false;
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final prefs = await SharedPreferences.getInstance();
+    final storageService = LocalStorageService(prefs);
+    final networkQualityNotifier = NetworkQualityNotifier();
+    final offlineService = OfflineService(prefs: prefs);
 
     // Boot app
     await tester.pumpWidget(
       AllMoviesApp(
-        storageService: LocalStorageService(prefs),
+        storageService: storageService,
         prefs: prefs,
         tmdbRepository: _FakeRepo(),
-        // catalogService no longer accepted
+        offlineService: offlineService,
+        networkQualityNotifier: networkQualityNotifier,
       ),
     );
 

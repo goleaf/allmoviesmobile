@@ -1,4 +1,6 @@
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/data/services/network_quality_service.dart';
+import 'package:allmovies_mobile/data/services/offline_service.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 // Use a minimal fake defined locally to avoid external test support imports
 // static_catalog_service removed from app; tests no longer inject it
@@ -8,7 +10,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:isar/isar.dart';
 
 class FakeRepo extends TmdbRepository {}
 
@@ -22,11 +23,15 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues(<String, Object>{});
     final prefs = await SharedPreferences.getInstance();
+    final storageService = LocalStorageService(prefs);
+    final networkQualityNotifier = NetworkQualityNotifier();
+    final offlineService = OfflineService(prefs: prefs);
     final app = AllMoviesApp(
-      storageService: LocalStorageService(prefs),
+      storageService: storageService,
       prefs: prefs,
       tmdbRepository: FakeRepo(),
-      // catalogService no longer accepted
+      offlineService: offlineService,
+      networkQualityNotifier: networkQualityNotifier,
     );
     await tester.pumpWidget(app);
     await _pumpUntilFound(

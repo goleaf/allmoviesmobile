@@ -73,7 +73,6 @@ class AppLocalizations {
         'chooseLanguage': 'Choose Language',
         'region': 'Region',
         'chooseRegion': 'Choose Region',
-        'accessibility': 'Accessibility',
         'high_contrast': 'High contrast mode',
         'high_contrast_description':
             'Increase color contrast for better readability.',

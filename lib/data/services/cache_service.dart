@@ -11,7 +11,7 @@ class CachePolicy {
   const CachePolicy({
     required this.ttl,
     this.refreshAfter,
-  }) : assert(!ttl.isNegative, 'TTL must be positive');
+  });
 
   factory CachePolicy.fromSeconds(int seconds) => CachePolicy(
         ttl: Duration(seconds: seconds),
@@ -67,6 +67,10 @@ class CacheService {
 
   SharedPreferences? _prefs;
   int _maxEntries = 400;
+  int _maxEntryBytes = 256 * 1024;
+  int _totalBytes = 0;
+  Timer? _cleanupTimer;
+  final Map<String, Future<void>> _inflightPersistentWrites = {};
 
   Stream<CacheEvent> get events => _events.stream;
 
@@ -122,7 +126,7 @@ class CacheService {
       policy ??
           (ttlSeconds != null
               ? CachePolicy.fromSeconds(ttlSeconds)
-              : const CachePolicy(ttl: Duration(seconds: defaultTTL))),
+              : CachePolicy(ttl: Duration(seconds: defaultTTL))),
     );
 
     final estimatedSize = _estimateSize(value);
@@ -289,7 +293,7 @@ class CacheService {
       policy ??
           (ttlSeconds != null
               ? CachePolicy.fromSeconds(ttlSeconds)
-              : const CachePolicy(ttl: Duration(seconds: defaultTTL))),
+              : CachePolicy(ttl: Duration(seconds: defaultTTL))),
     );
     final now = DateTime.now();
     final expiresAt = now.add(resolvedPolicy.ttl).millisecondsSinceEpoch;

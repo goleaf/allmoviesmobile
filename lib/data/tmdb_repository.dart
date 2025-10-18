@@ -35,6 +35,7 @@ import 'models/tv_ref_model.dart';
 import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
 import 'services/network_quality_service.dart';
+import 'services/rate_limiter.dart';
 import 'services/request_throttler.dart';
 
 class TmdbRepository {
@@ -93,6 +94,8 @@ class TmdbRepository {
   final NetworkQualityNotifier? _networkQualityNotifier;
   final String _apiKey;
   final String _language;
+  Duration _networkAwareDelay = Duration.zero;
+  final Map<String, Future<void>> _pendingRevalidations = {};
   final RateLimiter _globalRateLimiter = RateLimiter(
     const Duration(milliseconds: 250),
   );
@@ -132,7 +135,7 @@ class TmdbRepository {
   }) async {
     _ensureApiKey();
     final uri = _buildUri(endpoint, query);
-    final quality = _networkQuality?.quality;
+    final quality = _networkQualityNotifier?.quality;
     if (quality == NetworkQuality.offline) {
       throw const TmdbException('No network connection available.');
     }

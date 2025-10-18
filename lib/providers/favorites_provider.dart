@@ -42,6 +42,10 @@ class FavoritesProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> refresh() async {
+    _loadFavorites();
+  }
+
   Future<void> toggleFavorite(
     int id, {
     SavedMediaType type = SavedMediaType.movie,

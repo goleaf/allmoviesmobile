@@ -1819,10 +1819,10 @@ According to requirements, this is a **local-only app**. The following features 
 ### 🚀 Next Steps (Priority Order)
 
 **Immediate (1-2 weeks)**:
-1. Enhanced testing (40% → 80%)
-2. Video player integration (YouTube)
-3. Image gallery zoom (photo_view)
-4. UI polish (animations, skeletons, pull-to-refresh)
+- [ ] Enhanced testing (40% → 80%)
+- [ ] Video player integration (YouTube)
+- [x] Image gallery zoom (photo_view)
+- [ ] UI polish (animations, skeletons, pull-to-refresh)
 
 **Short-term (2-4 weeks)**:
 5. Performance optimization (virtual scrolling, background fetching)

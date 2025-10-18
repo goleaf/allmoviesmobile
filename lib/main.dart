@@ -63,6 +63,7 @@ import 'presentation/screens/search/search_screen.dart';
 import 'presentation/screens/series/series_screen.dart';
 import 'presentation/screens/series/series_filters_screen.dart';
 import 'presentation/screens/settings/settings_screen.dart';
+import 'presentation/screens/statistics/statistics_screen.dart';
 import 'presentation/screens/watchlist/watchlist_screen.dart';
 import 'providers/companies_provider.dart';
 import 'providers/configuration_provider.dart';
@@ -74,6 +75,7 @@ import 'providers/networks_provider.dart';
 import 'providers/collections_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
+import 'providers/statistics_provider.dart';
 import 'core/navigation/deep_link_handler.dart';
 import 'presentation/screens/config/config_info_screen.dart';
 
@@ -206,6 +208,18 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
             offlineService: offlineService,
           ),
         ),
+        ChangeNotifierProxyProvider2<FavoritesProvider, WatchlistProvider,
+            StatisticsProvider>(
+          create: (_) => StatisticsProvider(),
+          update: (_, favorites, watchlist, statistics) {
+            statistics ??= StatisticsProvider();
+            statistics.updateSources(
+              favorites: favorites.favoriteItems,
+              watchlist: watchlist.watchlistItems,
+            );
+            return statistics;
+          },
+        ),
         ChangeNotifierProvider(
           create: (_) => SearchProvider(_repository, widget.storageService),
         ),
@@ -329,6 +343,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       WatchlistScreen.routeName: (context) =>
                           const WatchlistScreen(),
                       SettingsScreen.routeName: (context) => const SettingsScreen(),
+                      StatisticsScreen.routeName: (context) => const StatisticsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
                       ConfigInfoScreen.routeName: (context) =>

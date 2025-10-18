@@ -10,8 +10,8 @@ class DeepLinkHandler extends ChangeNotifier {
   DeepLinkHandler({
     Stream<Uri?>? uriStream,
     Future<Uri?> Function()? initialUriGetter,
-  })  : _uriStream = uriStream ?? uriLinkStream,
-        _initialUriGetter = initialUriGetter ?? getInitialUri;
+  }) : _uriStream = uriStream ?? uriLinkStream,
+       _initialUriGetter = initialUriGetter ?? getInitialUri;
 
   final Stream<Uri?> _uriStream;
   final Future<Uri?> Function() _initialUriGetter;
@@ -59,6 +59,15 @@ class DeepLinkHandler extends ChangeNotifier {
     _pendingLink = data;
     notifyListeners();
   }
+
+  /// Manually queue a deep link event (used by push notifications).
+  void enqueueLink(DeepLinkData link) {
+    _pendingLink = link;
+    notifyListeners();
+  }
+
+  /// Parses the provided [uri] and queues it when valid.
+  void enqueueUri(Uri uri) => _setPendingFromUri(uri);
 
   /// Consumes the currently pending deep link, if any.
   DeepLinkData? consumePendingLink() {

@@ -29,4 +29,10 @@ class PreferenceKeys {
       'settings.notifications.recommendations';
   static const String notificationsMarketing =
       'settings.notifications.marketing';
+  static const String notificationsEnabled =
+      'settings.notifications.enabled';
+  static const String notificationsDeviceToken =
+      'settings.notifications.device_token';
+  static const String notificationsPermissionStatus =
+      'settings.notifications.permission_status';
 }

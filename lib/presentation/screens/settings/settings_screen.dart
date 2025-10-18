@@ -12,6 +12,7 @@ import '../../../core/utils/service_locator.dart';
 import '../../../data/services/cache_service.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../../data/services/offline_service.dart';
+import '../../../data/services/push_notification_service.dart';
 import '../../../providers/preferences_provider.dart';
 import '../../../providers/offline_provider.dart';
 import '../../../providers/diagnostics_provider.dart';
@@ -52,7 +53,7 @@ class SettingsScreen extends StatelessWidget {
           _CertificationCountryTile(),
           _CertificationValueTile(),
           _SettingsHeader(title: l.t('settings.notifications')),
-          const _NotificationSettingsTiles(),
+          const _PushNotificationsSection(),
           _SettingsHeader(title: l.t('settings.media')),
           // _ImageQualityTile(),
           _SettingsHeader(title: l.t('settings.cache')),
@@ -73,9 +74,8 @@ class SettingsScreen extends StatelessWidget {
                   'Understand your watch habits at a glance.',
             ),
             trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.of(context).pushNamed(
-              StatisticsScreen.routeName,
-            ),
+            onTap: () =>
+                Navigator.of(context).pushNamed(StatisticsScreen.routeName),
           ),
           _SettingsHeader(title: l.t('settings.about')),
           const _AppVersionTile(),
@@ -127,6 +127,180 @@ class _AppVersionTile extends StatelessWidget {
   }
 }
 
+class _PushNotificationsSection extends StatelessWidget {
+  const _PushNotificationsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Consumer<PushNotificationService>(
+      builder: (context, service, _) {
+        if (!service.isInitialized) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (!service.isSupported) {
+          return ListTile(
+            leading: const Icon(Icons.notifications_off_outlined),
+            title: Text(l.t('settings.notifications_enable')),
+            subtitle: Text(l.t('settings.notifications_platform_unsupported')),
+            enabled: false,
+          );
+        }
+
+        final subtitle = service.isPermissionGranted
+            ? l.t('settings.notifications_description')
+            : l.t('settings.notifications_permission_rationale');
+
+        final children = <Widget>[
+          SwitchListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+            secondary: const Icon(Icons.notifications_active_outlined),
+            title: Text(l.t('settings.notifications_enable')),
+            subtitle: Text(subtitle),
+            value: service.isNotificationsEnabled,
+            onChanged: service.isBusy
+                ? null
+                : (value) {
+                    final messenger = ScaffoldMessenger.of(context);
+                    final operation = value
+                        ? service.enableNotifications()
+                        : service.disableNotifications();
+                    operation.then((success) {
+                      if (!success) {
+                        messenger.showSnackBar(
+                          SnackBar(
+                            content: Text(
+                              l.t('settings.notifications_sync_error'),
+                            ),
+                          ),
+                        );
+                      }
+                    });
+                  },
+          ),
+        ];
+
+        if (service.isBusy) {
+          children.add(
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: LinearProgressIndicator(minHeight: 2),
+            ),
+          );
+        }
+
+        if (service.isNotificationsEnabled) {
+          children.addAll([
+            _TopicToggleTile(
+              icon: Icons.new_releases_outlined,
+              title: l.t('settings.notifications_categories.new_releases'),
+              value: service.isTopicEnabled(NotificationTopic.newReleases),
+              onChanged: service.isBusy
+                  ? null
+                  : (value) {
+                      service.setTopicEnabled(
+                        NotificationTopic.newReleases,
+                        value,
+                      );
+                    },
+            ),
+            _TopicToggleTile(
+              icon: Icons.playlist_add_check_outlined,
+              title: l.t('settings.notifications_categories.watchlist'),
+              value: service.isTopicEnabled(NotificationTopic.watchlistAlerts),
+              onChanged: service.isBusy
+                  ? null
+                  : (value) {
+                      service.setTopicEnabled(
+                        NotificationTopic.watchlistAlerts,
+                        value,
+                      );
+                    },
+            ),
+            _TopicToggleTile(
+              icon: Icons.star_outline,
+              title: l.t('settings.notifications_categories.recommendations'),
+              value: service.isTopicEnabled(NotificationTopic.recommendations),
+              onChanged: service.isBusy
+                  ? null
+                  : (value) {
+                      service.setTopicEnabled(
+                        NotificationTopic.recommendations,
+                        value,
+                      );
+                    },
+            ),
+            _TopicToggleTile(
+              icon: Icons.campaign_outlined,
+              title: l.t('settings.notifications_categories.marketing'),
+              value: service.isTopicEnabled(NotificationTopic.marketing),
+              onChanged: service.isBusy
+                  ? null
+                  : (value) {
+                      service.setTopicEnabled(
+                        NotificationTopic.marketing,
+                        value,
+                      );
+                    },
+            ),
+          ]);
+        } else {
+          String messageKey;
+          if (service.isPermissionDenied) {
+            messageKey = 'settings.notifications_permission_denied';
+          } else if (service.isPermissionUndetermined) {
+            messageKey = 'settings.notifications_permission_pending';
+          } else if (service.isPermissionGranted) {
+            messageKey = 'settings.notifications_disabled';
+          } else {
+            messageKey = 'settings.notifications_permission_rationale';
+          }
+
+          children.add(
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: Text(l.t(messageKey), style: theme.textTheme.bodySmall),
+            ),
+          );
+        }
+
+        return Column(children: children);
+      },
+    );
+  }
+}
+
+class _TopicToggleTile extends StatelessWidget {
+  const _TopicToggleTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final IconData icon;
+  final String title;
+  final bool value;
+  final ValueChanged<bool>? onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return SwitchListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+      secondary: Icon(icon),
+      title: Text(title),
+      value: value,
+      onChanged: onChanged,
+    );
+  }
+}
+
 class _OfflineStorageTile extends StatelessWidget {
   const _OfflineStorageTile();
 
@@ -154,11 +328,13 @@ class _OfflineStorageTile extends StatelessWidget {
               final lastSyncLabel = lastSync == null
                   ? l.t('offline.storage_last_sync_never')
                   : l
-                      .t('offline.storage_last_synced')
-                      .replaceFirst(
-                        '{date}',
-                        DateFormat.yMMMd().add_Hm().format(lastSync.toLocal()),
-                      );
+                        .t('offline.storage_last_synced')
+                        .replaceFirst(
+                          '{date}',
+                          DateFormat.yMMMd().add_Hm().format(
+                            lastSync.toLocal(),
+                          ),
+                        );
               final approx = l
                   .t('offline.storage_size')
                   .replaceFirst('{size}', _formatBytes(stats.approximateBytes));
@@ -354,9 +530,8 @@ class _TextScaleTile extends StatelessWidget {
             max: 1.6,
             divisions: 7,
             label: textScale.toStringAsFixed(2),
-            onChanged: (value) => context
-                .read<AccessibilityProvider>()
-                .setTextScaleFactor(value),
+            onChanged: (value) =>
+                context.read<AccessibilityProvider>().setTextScaleFactor(value),
           ),
         ],
       ),
@@ -477,10 +652,7 @@ class _TextScaleTile extends StatelessWidget {
 }
 
 class _TextScaleDialog extends StatelessWidget {
-  const _TextScaleDialog({
-    required this.values,
-    required this.currentFactor,
-  });
+  const _TextScaleDialog({required this.values, required this.currentFactor});
 
   final Map<double, String> values;
   final double currentFactor;

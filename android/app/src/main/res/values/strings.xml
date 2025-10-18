@@ -1,0 +1,4 @@
+<resources>
+    <string name="default_notification_channel_id">allmovies_default</string>
+    <string name="default_notification_channel_name">AllMovies updates</string>
+</resources>

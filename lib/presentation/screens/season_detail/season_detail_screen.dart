@@ -6,7 +6,6 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/episode_model.dart';
 import '../../../data/models/season_model.dart';
 import '../../../presentation/widgets/media_image.dart';
-import '../../../data/models/media_images.dart';
 import '../../../data/models/image_model.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../presentation/widgets/error_widget.dart';
@@ -110,7 +109,7 @@ class _SeasonDetailView extends StatelessWidget {
             _buildCast(context, season),
             _buildCrew(context, season),
             _buildVideos(context, season),
-            _buildImages(context),
+            _buildImages(context, season, provider),
           ],
         ),
       ),
@@ -431,150 +430,162 @@ class _SeasonDetailView extends StatelessWidget {
     );
   }
 
-  Widget _buildImages(BuildContext context) {
+  Widget _buildImages(
+    BuildContext context,
+    Season season,
+    SeasonDetailProvider provider,
+  ) {
     final loc = AppLocalizations.of(context);
-    final repository = context.read<TmdbRepository>();
-    final args =
-        (ModalRoute.of(context)?.settings.arguments) as SeasonDetailArgs?;
-    if (args == null) return const SizedBox.shrink();
-    return FutureBuilder<MediaImages>(
-      future: repository.fetchTvSeasonImages(args.tvId, args.seasonNumber),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: SizedBox(
-              height: 48,
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+    final images = provider.images;
+    final isLoading = provider.isImagesLoading;
+    final error = provider.imagesError;
+
+    if (isLoading && images == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: SizedBox(
+          height: 48,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+      );
+    }
+
+    if (error != null && images == null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: ErrorDisplay(
+          message: error,
+          onRetry: () => provider.loadImages(forceRefresh: true),
+        ),
+      );
+    }
+
+    if (images == null || !images.hasAny) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(
+          loc.t('tv.no_images'),
+          style: Theme.of(context).textTheme.bodyMedium,
+        ),
+      );
+    }
+
+    final posters = images.posters.take(10).toList();
+    final backdrops = images.backdrops.take(10).toList();
+
+    void openGallery(
+      List<ImageModel> items,
+      int initialIndex,
+      MediaImageType type,
+    ) {
+      showGeneralDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black.withOpacity(0.9),
+        transitionDuration: const Duration(milliseconds: 220),
+        pageBuilder: (context, animation, secondaryAnimation) {
+          return FadeTransition(
+            opacity: animation,
+            child: ImageGallery(
+              images: items,
+              mediaType: type,
+              initialIndex: initialIndex,
+              heroTagBuilder: (index, image) =>
+                  'season-${provider.tvId}-${season.seasonNumber}-${type.name}-$index',
             ),
           );
-        }
-        if (!snapshot.hasData || !snapshot.data!.hasAny) {
-          return Text(
-            AppLocalizations.of(context).t('tv.no_images'),
-            style: Theme.of(context).textTheme.bodyMedium,
-          );
-        }
+        },
+      );
+    }
 
-        final images = snapshot.data!;
-        final posters = images.posters.take(10).toList();
-        final backdrops = images.backdrops.take(10).toList();
-
-        void openGallery(
-          List<ImageModel> items,
-          int initialIndex,
-          MediaImageType type,
-        ) {
-          showGeneralDialog<void>(
-            context: context,
-            barrierDismissible: true,
-            barrierLabel:
-                MaterialLocalizations.of(context).modalBarrierDismissLabel,
-            barrierColor: Colors.black.withOpacity(0.9),
-            transitionDuration: const Duration(milliseconds: 220),
-            pageBuilder: (context, animation, secondaryAnimation) {
-              return FadeTransition(
-                opacity: animation,
-                child: ImageGallery(
-                  images: items,
-                  mediaType: type,
-                  initialIndex: initialIndex,
-                  heroTagBuilder: (index, image) =>
-                      'season-${args.seasonNumber}-${type.name}-$index',
-                ),
-              );
-            },
-          );
-        }
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocalizations.of(context).t('movie.images'),
-                style: Theme.of(
-                  context,
-                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              if (posters.isNotEmpty) ...[
-                SizedBox(
-                  height: 200,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: posters.length,
-                    itemBuilder: (context, index) {
-                      final img = posters[index];
-                      final heroTag =
-                          'season-${args.seasonNumber}-poster-$index';
-                      return Container(
-                        width: 140,
-                        margin: const EdgeInsets.only(right: 12),
-                        child: GestureDetector(
-                          onTap: () => openGallery(
-                            posters,
-                            index,
-                            MediaImageType.poster,
-                          ),
-                          child: Hero(
-                            tag: heroTag,
-                            child: MediaImage(
-                              path: img.filePath,
-                              type: MediaImageType.poster,
-                              size: MediaImageSize.w342,
-                              width: 140,
-                              height: 200,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (backdrops.isNotEmpty)
-                SizedBox(
-                  height: 140,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: backdrops.length,
-                    itemBuilder: (context, index) {
-                      final img = backdrops[index];
-                      final heroTag =
-                          'season-${args.seasonNumber}-backdrop-$index';
-                      return Container(
-                        width: 240,
-                        margin: const EdgeInsets.only(right: 12),
-                        child: GestureDetector(
-                          onTap: () => openGallery(
-                            backdrops,
-                            index,
-                            MediaImageType.backdrop,
-                          ),
-                          child: Hero(
-                            tag: heroTag,
-                            child: MediaImage(
-                              path: img.filePath,
-                              type: MediaImageType.backdrop,
-                              size: MediaImageSize.w780,
-                              width: 240,
-                              height: 140,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            loc.t('movie.images'),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
           ),
-        );
-      },
+          const SizedBox(height: 12),
+          if (posters.isNotEmpty) ...[
+            SizedBox(
+              height: 200,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: posters.length,
+                itemBuilder: (context, index) {
+                  final img = posters[index];
+                  final heroTag =
+                      'season-${provider.tvId}-${season.seasonNumber}-poster-$index';
+                  return Container(
+                    width: 140,
+                    margin: const EdgeInsets.only(right: 12),
+                    child: GestureDetector(
+                      onTap: () => openGallery(
+                        posters,
+                        index,
+                        MediaImageType.poster,
+                      ),
+                      child: Hero(
+                        tag: heroTag,
+                        child: MediaImage(
+                          path: img.filePath,
+                          type: MediaImageType.poster,
+                          size: MediaImageSize.w342,
+                          width: 140,
+                          height: 200,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          if (backdrops.isNotEmpty)
+            SizedBox(
+              height: 140,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                itemCount: backdrops.length,
+                itemBuilder: (context, index) {
+                  final img = backdrops[index];
+                  final heroTag =
+                      'season-${provider.tvId}-${season.seasonNumber}-backdrop-$index';
+                  return Container(
+                    width: 240,
+                    margin: const EdgeInsets.only(right: 12),
+                    child: GestureDetector(
+                      onTap: () => openGallery(
+                        backdrops,
+                        index,
+                        MediaImageType.backdrop,
+                      ),
+                      child: Hero(
+                        tag: heroTag,
+                        child: MediaImage(
+                          path: img.filePath,
+                          type: MediaImageType.backdrop,
+                          size: MediaImageSize.w780,
+                          width: 240,
+                          height: 140,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -71,6 +71,21 @@ class SearchProvider with ChangeNotifier {
   bool get hasCompanyResults => _companyResults.isNotEmpty;
   bool get canLoadMore => _currentPage < _totalPages;
   bool get canLoadMoreCompanies => _companyCurrentPage < _companyTotalPages;
+  /// Indicates whether the autocomplete panel should be visible.
+  ///
+  /// The panel becomes active whenever the user is typing a query that does
+  /// not match the last committed search. This mirrors the behaviour of a
+  /// traditional "type-ahead" field, allowing us to fetch suggestions from the
+  /// TMDB APIs before the user confirms their final query.
+  bool get shouldShowSuggestions {
+    final trimmedInput = _inputQuery.trim();
+    if (trimmedInput.isEmpty) {
+      return false;
+    }
+
+    final committedQuery = _query.trim();
+    return trimmedInput.toLowerCase() != committedQuery.toLowerCase();
+  }
   PagingController<int, SearchResult> mediaPagingController(MediaType type) =>
       _mediaPagingControllers[type]!;
   PagingController<int, Company> get companyPagingController =>
@@ -165,6 +180,27 @@ class SearchProvider with ChangeNotifier {
     });
   }
 
+  /// Pulls up to ten autocomplete suggestions from TMDB.
+  ///
+  /// Endpoints:
+  /// - `GET /3/search/multi`: returns mixed media matches with `results[].title`
+  ///   / `results[].name` fields.
+  /// - `GET /3/search/company`: returns company matches with
+  ///   `results[].name` fields.
+  ///
+  /// These endpoints both respond with JSON payloads that look similar to:
+  /// ```json
+  /// {
+  ///   "page": 1,
+  ///   "results": [
+  ///     { "title": "The Godfather", "media_type": "movie" }
+  ///   ],
+  ///   "total_pages": 1,
+  ///   "total_results": 1
+  /// }
+  /// ```
+  /// We flatten the returned names into a unique list to present in the
+  /// autocomplete panel.
   Future<void> _fetchSuggestions(String query) async {
     _isFetchingSuggestions = true;
     notifyListeners();

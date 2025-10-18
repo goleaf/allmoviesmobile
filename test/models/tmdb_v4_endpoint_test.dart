@@ -19,5 +19,20 @@ void main() {
       expect(uri.queryParameters['language'], 'en');
       expect(endpoint.props, contains('Lists'));
     });
+
+    test('buildUri replaces account placeholder when provided', () {
+      const endpoint = TmdbV4Endpoint(
+        id: 'account-favorites',
+        title: 'Favorites',
+        description: 'Account favorites',
+        category: 'Account',
+        path: '/account/{account_id}/favorites',
+        requiresUserToken: true,
+      );
+
+      final uri = endpoint.buildUri(accountId: '12345');
+
+      expect(uri.path, '/4/account/12345/favorites');
+    });
   });
 }

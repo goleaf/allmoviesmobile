@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/tmdb_v4_endpoint.dart';
 import '../../../data/tmdb_v4_repository.dart';
+import '../../../providers/tmdb_v4_auth_provider.dart';
 import '../../../providers/tmdb_v4_reference_provider.dart';
+import '../auth/v4_login_screen.dart';
 import '../../widgets/app_drawer.dart';
 
 class TmdbV4ReferenceScreen extends StatelessWidget {
@@ -14,8 +16,20 @@ class TmdbV4ReferenceScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => TmdbV4ReferenceProvider(context.read<TmdbV4Repository>()),
+    return ChangeNotifierProxyProvider<TmdbV4AuthProvider,
+        TmdbV4ReferenceProvider>(
+      create: (context) => TmdbV4ReferenceProvider(
+        context.read<TmdbV4Repository>(),
+        context.read<TmdbV4AuthProvider>(),
+      ),
+      update: (context, auth, provider) {
+        provider ??= TmdbV4ReferenceProvider(
+          context.read<TmdbV4Repository>(),
+          auth,
+        );
+        provider.updateAuthProvider(auth);
+        return provider;
+      },
       child: const _TmdbV4ReferenceView(),
     );
   }
@@ -27,18 +41,166 @@ class _TmdbV4ReferenceView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TmdbV4ReferenceProvider>();
+    final auth = context.watch<TmdbV4AuthProvider>();
     final groups = provider.groups;
 
     return Scaffold(
-      appBar: AppBar(title: const Text(AppStrings.tmdbV4Reference)),
+      appBar: AppBar(
+        title: const Text(AppStrings.tmdbV4Reference),
+        actions: [
+          if (!auth.hasRestoredSession ||
+              auth.isSigningIn ||
+              auth.isSigningOut)
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16),
+              child: Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            )
+          else
+            IconButton(
+              tooltip: auth.isAuthenticated
+                  ? 'Sign out of TMDB'
+                  : 'Sign in to TMDB',
+              onPressed: auth.isAuthenticated
+                  ? auth.signOut
+                  : () => Navigator.of(context)
+                      .pushNamed(V4LoginScreen.routeName),
+              icon: Icon(
+                auth.isAuthenticated ? Icons.logout : Icons.login,
+              ),
+            ),
+        ],
+      ),
       drawer: const AppDrawer(),
-      body: ListView.builder(
-        padding: const EdgeInsets.only(bottom: 24),
-        itemCount: groups.length,
-        itemBuilder: (context, index) {
-          final group = groups[index];
-          return _EndpointGroupCard(group: group);
-        },
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            child: _AuthStatusCard(auth: auth),
+          ),
+          if (auth.errorMessage != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: _AuthErrorBanner(message: auth.errorMessage!),
+            ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.only(bottom: 24, top: 12),
+              itemCount: groups.length,
+              itemBuilder: (context, index) {
+                final group = groups[index];
+                return _EndpointGroupCard(group: group);
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AuthStatusCard extends StatelessWidget {
+  const _AuthStatusCard({required this.auth});
+
+  final TmdbV4AuthProvider auth;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final isAuthenticated = auth.isAuthenticated;
+    final waitingApproval = auth.hasPendingAuthorization && auth.isSigningIn;
+    final icon = isAuthenticated
+        ? Icons.verified_user
+        : waitingApproval
+            ? Icons.hourglass_top
+            : Icons.lock_outline;
+    final backgroundColor = isAuthenticated
+        ? colorScheme.primaryContainer
+        : colorScheme.surfaceVariant;
+    final foregroundColor = isAuthenticated
+        ? colorScheme.onPrimaryContainer
+        : colorScheme.onSurfaceVariant;
+
+    final subtitle = waitingApproval
+        ? 'Waiting for TMDB approval...'
+        : isAuthenticated
+            ? 'Account ID: ${auth.accountId ?? 'Unknown'}'
+            : 'Sign in with TMDB to enable user-scoped endpoints.';
+
+    return Card(
+      color: backgroundColor,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(icon, color: foregroundColor),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isAuthenticated
+                        ? 'TMDB account connected'
+                        : 'TMDB account required',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: foregroundColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: foregroundColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AuthErrorBanner extends StatelessWidget {
+  const _AuthErrorBanner({required this.message});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: theme.colorScheme.errorContainer,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.error_outline, color: theme.colorScheme.onErrorContainer),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onErrorContainer,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -115,6 +277,13 @@ class _EndpointTile extends StatelessWidget {
     final theme = Theme.of(context);
     final provider = context.watch<TmdbV4ReferenceProvider>();
     final state = provider.stateFor(endpoint);
+    final canExecute = provider.canExecute(endpoint);
+    final auth = context.watch<TmdbV4AuthProvider>();
+    final actionLabel = !endpoint.supportsExecution
+        ? 'Docs only'
+        : endpoint.requiresUserToken && !auth.isAuthenticated
+            ? 'Sign in'
+            : 'Run';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -123,7 +292,7 @@ class _EndpointTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: InkWell(
           borderRadius: BorderRadius.circular(16),
-          onTap: endpoint.supportsExecution
+          onTap: canExecute
               ? () => provider.execute(endpoint)
               : null,
           child: Padding(
@@ -160,6 +329,16 @@ class _EndpointTile extends StatelessWidget {
                               ),
                             ),
                           ],
+                          if (endpoint.requiresUserToken &&
+                              !auth.isAuthenticated) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'Requires TMDB account authentication.',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.error,
+                              ),
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -179,7 +358,7 @@ class _EndpointTile extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     FilledButton.icon(
-                      onPressed: endpoint.supportsExecution
+                      onPressed: canExecute
                           ? () => provider.execute(endpoint)
                           : null,
                       icon: switch (state.status) {
@@ -199,7 +378,7 @@ class _EndpointTile extends StatelessWidget {
                         ),
                       },
                       label: Text(
-                        endpoint.supportsExecution ? 'Run' : 'Docs only',
+                        actionLabel,
                       ),
                     ),
                   ],

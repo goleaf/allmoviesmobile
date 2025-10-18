@@ -23,44 +23,64 @@ class TmdbV4ApiService {
 
   final http.Client _client;
   final String _apiKey;
+  String? _userAccessToken;
 
   Map<String, String> get _headers => {
-    'Authorization': 'Bearer $_apiKey',
+    'Authorization': 'Bearer ${_userAccessToken ?? _apiKey}',
     'Accept': 'application/json',
     'Content-Type': 'application/json;charset=utf-8',
   };
 
-  Future<dynamic> execute(TmdbV4Endpoint endpoint) async {
+  void setUserAccessToken(String? token) {
+    _userAccessToken = token?.isEmpty ?? true ? null : token;
+  }
+
+  Future<dynamic> execute(
+    TmdbV4Endpoint endpoint, {
+    String? accountId,
+  }) async {
     switch (endpoint.method) {
       case TmdbV4HttpMethod.get:
-        return _get(endpoint);
+        return _get(endpoint, accountId: accountId);
       case TmdbV4HttpMethod.post:
-        return _post(endpoint);
+        return _post(endpoint, accountId: accountId);
       case TmdbV4HttpMethod.delete:
-        return _delete(endpoint);
+        return _delete(endpoint, accountId: accountId);
     }
   }
 
-  Future<dynamic> _get(TmdbV4Endpoint endpoint) async {
-    final response = await _client.get(endpoint.buildUri(), headers: _headers);
+  Future<dynamic> _get(
+    TmdbV4Endpoint endpoint, {
+    String? accountId,
+  }) async {
+    final response = await _client.get(
+      endpoint.buildUri(accountId: accountId),
+      headers: _headers,
+    );
     return _handleResponse(response);
   }
 
-  Future<dynamic> _post(TmdbV4Endpoint endpoint) async {
+  Future<dynamic> _post(
+    TmdbV4Endpoint endpoint, {
+    String? accountId,
+  }) async {
     final body = endpoint.sampleBody == null
         ? null
         : jsonEncode(endpoint.sampleBody);
     final response = await _client.post(
-      endpoint.buildUri(),
+      endpoint.buildUri(accountId: accountId),
       headers: _headers,
       body: body,
     );
     return _handleResponse(response);
   }
 
-  Future<dynamic> _delete(TmdbV4Endpoint endpoint) async {
+  Future<dynamic> _delete(
+    TmdbV4Endpoint endpoint, {
+    String? accountId,
+  }) async {
     final response = await _client.delete(
-      endpoint.buildUri(),
+      endpoint.buildUri(accountId: accountId),
       headers: _headers,
     );
     return _handleResponse(response);

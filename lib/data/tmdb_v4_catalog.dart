@@ -228,9 +228,10 @@ class TmdbV4Catalog {
           category: 'Lists',
           path: '/list',
           method: TmdbV4HttpMethod.post,
-          supportsExecution: false,
+          supportsExecution: true,
+          requiresUserToken: true,
           notes:
-              'POST endpoints require user-scoped authentication and are showcased as documentation only.',
+              'Requires a TMDB v4 access token. Sign in from the v4 login screen before executing.',
         ),
         TmdbV4Endpoint(
           id: 'delete-list',
@@ -240,9 +241,10 @@ class TmdbV4Catalog {
           category: 'Lists',
           path: '/list/1',
           method: TmdbV4HttpMethod.delete,
-          supportsExecution: false,
+          supportsExecution: true,
+          requiresUserToken: true,
           notes:
-              'Requires write-scoped TMDB v4 token. Disabled in the in-app explorer.',
+              'Requires a write-scoped TMDB v4 token and a list owned by your account.',
         ),
       ],
     ),
@@ -258,9 +260,10 @@ class TmdbV4Catalog {
               'Fetches profile, language, and region preferences for the authenticated account.',
           category: 'Account',
           path: '/account',
-          supportsExecution: false,
+          supportsExecution: true,
+          requiresUserToken: true,
           notes:
-              'Requires a user-generated access token. Provide your own token via --dart-define to enable.',
+              'Requires a user-generated access token obtained from the v4 login screen.',
         ),
         TmdbV4Endpoint(
           id: 'account-lists',
@@ -268,9 +271,10 @@ class TmdbV4Catalog {
           description: 'Lists created by the authenticated account.',
           category: 'Account',
           path: '/account/{account_id}/lists',
-          supportsExecution: false,
+          supportsExecution: true,
+          requiresUserToken: true,
           notes:
-              'Account scoped endpoints need a valid account id and user token. Replace {account_id} manually if you override execution.',
+              'Account scoped endpoints need a valid account id. The explorer will inject your account id automatically after sign-in.',
         ),
         TmdbV4Endpoint(
           id: 'account-favorites',
@@ -278,7 +282,8 @@ class TmdbV4Catalog {
           description: 'Combined favorites for an authenticated account.',
           category: 'Account',
           path: '/account/{account_id}/favorites',
-          supportsExecution: false,
+          supportsExecution: true,
+          requiresUserToken: true,
         ),
         TmdbV4Endpoint(
           id: 'account-recommendations',
@@ -287,7 +292,8 @@ class TmdbV4Catalog {
               'Personalized recommendations generated from the account history.',
           category: 'Account',
           path: '/account/{account_id}/recommendations',
-          supportsExecution: false,
+          supportsExecution: true,
+          requiresUserToken: true,
         ),
       ],
     ),

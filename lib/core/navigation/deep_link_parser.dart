@@ -10,6 +10,7 @@ enum DeepLinkType {
   company,
   collection,
   search,
+  tmdbV4Auth,
 }
 
 /// Configuration values used when building or matching deep link URLs.
@@ -80,6 +81,8 @@ class DeepLinkData {
     this.seasonNumber,
     this.episodeNumber,
     this.searchQuery,
+    this.requestToken,
+    this.isApproved,
   });
 
   /// The destination content type.
@@ -101,6 +104,8 @@ class DeepLinkData {
 
   /// Search query for search deep links.
   final String? searchQuery;
+  final String? requestToken;
+  final bool? isApproved;
 
   factory DeepLinkData.movie(int movieId) =>
       DeepLinkData._(type: DeepLinkType.movie, id: movieId);
@@ -133,6 +138,16 @@ class DeepLinkData {
 
   factory DeepLinkData.search(String query) =>
       DeepLinkData._(type: DeepLinkType.search, searchQuery: query);
+
+  factory DeepLinkData.tmdbV4Auth({
+    required String requestToken,
+    required bool approved,
+  }) =>
+      DeepLinkData._(
+        type: DeepLinkType.tmdbV4Auth,
+        requestToken: requestToken,
+        isApproved: approved,
+      );
 }
 
 /// Parses incoming deep link URIs into strongly typed data.
@@ -198,6 +213,23 @@ class DeepLinkParser {
         return _parseSingleId(segments, DeepLinkData.collection);
       case 'search':
         return _matchSearch(uri, fallbackSegments: segments);
+      case 'auth':
+        if (segments.length >= 2 && segments[1] == 'tmdb_v4') {
+          final requestToken = uri.queryParameters['request_token'] ??
+              (segments.length >= 3 ? segments[2] : null);
+          if (requestToken == null || requestToken.isEmpty) {
+            return null;
+          }
+          final approvedParam = uri.queryParameters['approved'];
+          final approved = approvedParam == null
+              ? true
+              : approvedParam.toLowerCase() == 'true';
+          return DeepLinkData.tmdbV4Auth(
+            requestToken: requestToken,
+            approved: approved,
+          );
+        }
+        return null;
       default:
         return null;
     }

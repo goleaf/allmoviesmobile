@@ -9,6 +9,7 @@ import '../../data/models/episode_model.dart';
 import '../../data/models/movie.dart';
 import '../../data/tmdb_repository.dart';
 import '../../providers/app_state_provider.dart';
+import '../../providers/tmdb_v4_auth_provider.dart';
 import '../navigation/app_destination.dart';
 import '../navigation/episode_detail_args.dart';
 import '../navigation/season_detail_args.dart';
@@ -245,6 +246,17 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           SearchScreen.routeName,
           arguments: link.searchQuery,
         );
+        break;
+      case DeepLinkType.tmdbV4Auth:
+        final requestToken = link.requestToken;
+        if (requestToken == null) {
+          break;
+        }
+        final approved = link.isApproved ?? false;
+        await context.read<TmdbV4AuthProvider>().handleAuthorizationRedirect(
+              requestToken: requestToken,
+              approved: approved,
+            );
         break;
     }
   }

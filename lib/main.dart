@@ -15,6 +15,9 @@ import 'data/services/offline_service.dart';
 import 'data/services/network_quality_service.dart';
 import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
+import 'data/services/tmdb_v4_api_service.dart';
+import 'data/services/tmdb_v4_auth_service.dart';
+import 'data/tmdb_v4_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -24,8 +27,11 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/tmdb_v4_auth_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
+import 'presentation/screens/explorer/tmdb_v4_reference_screen.dart';
+import 'presentation/screens/auth/v4_login_screen.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/certifications/certifications_screen.dart';
@@ -118,6 +124,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   late final TmdbRepository _repository;
   late final ForegroundRefreshObserver _foregroundObserver;
   late final DeepLinkHandler _deepLinkHandler;
+  late final TmdbV4ApiService _tmdbV4ApiService;
+  late final TmdbV4Repository _tmdbV4Repository;
+  late final TmdbV4AuthService _tmdbV4AuthService;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _registeredRefreshCallbacks = false;
 
@@ -126,6 +135,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
     super.initState();
     _repository = widget.tmdbRepository ??
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
+    _tmdbV4ApiService = TmdbV4ApiService();
+    _tmdbV4Repository = TmdbV4Repository(service: _tmdbV4ApiService);
+    _tmdbV4AuthService = TmdbV4AuthService(apiService: _tmdbV4ApiService);
     _foregroundObserver = ForegroundRefreshObserver()..attach();
     _deepLinkHandler = DeepLinkHandler()..initialize();
   }
@@ -146,6 +158,13 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           create: (_) => OfflineProvider(widget.offlineService),
         ),
         Provider<TmdbRepository>.value(value: _repository),
+        Provider<TmdbV4Repository>.value(value: _tmdbV4Repository),
+        ChangeNotifierProvider(
+          create: (_) => TmdbV4AuthProvider(
+            authService: _tmdbV4AuthService,
+            repository: _tmdbV4Repository,
+          ),
+        ),
         Provider<BackgroundPrefetchService>(
           create: (_) {
             final service = BackgroundPrefetchService(
@@ -234,6 +253,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
+        ChangeNotifierProvider<DeepLinkHandler>.value(value: _deepLinkHandler),
       ],
       child: Builder(
         builder: (context) {
@@ -298,6 +318,10 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       SettingsScreen.routeName: (context) => const SettingsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
+                      TmdbV4ReferenceScreen.routeName: (context) =>
+                          const TmdbV4ReferenceScreen(),
+                      V4LoginScreen.routeName: (context) =>
+                          const V4LoginScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
                           const KeywordBrowserScreen(),
                       NetworksScreen.routeName: (context) =>

@@ -1,7 +1,7 @@
 # TMDB Flutter App - Comprehensive Implementation Tasks
 
 **Project**: AllMovies Mobile - TMDB Flutter Application  
-**Last Updated**: March 7, 2024 (Telemetry refresh + documentation sweep)
+**Last Updated**: October 17, 2025 (Synced with TMDB V3/V4 API Specification)  
 **Current Status**: 85% Core Complete, Feature Enhancement Phase
 
 
@@ -31,9 +31,7 @@ write all code with comments, maximum comments, update files if not comments for
  - Movies: Replaced remaining AppStrings with JSON i18n; stabilized pager/jump UI copy for tests
  - Movies Filters: Localized all labels and inputs; removed unused imports
  - Season Detail: Fixed duplicate imports and undefined localization vars
-- Movie Detail: Fixed const misuse in reviews section and added localized stub section
-- Instrumented movie section refreshes with endpoint-aware telemetry to expose live latency metrics for QA.
-- Captured March 7, 2024 performance notes in `docs/PERFORMANCE_CHECK.md` and logged the paired code review session.
+ - Movie Detail: Fixed const misuse in reviews section and added localized stub section
 
 ### ✅ Completed (85%)
 - ✅ Core architecture and setup
@@ -186,8 +184,8 @@ write all code with comments, maximum comments, update files if not comments for
 - [x] Infinite scroll pagination
 
 #### 🔄 Remaining Tasks
-- [x] Enhanced pagination with jump-to-page
-- [x] Filter presets save/load
+- [ ] Enhanced pagination with jump-to-page
+- [ ] Filter presets save/load
 
 **Files Implemented**:
 - ✅ `lib/presentation/screens/series/series_screen.dart`
@@ -247,7 +245,7 @@ write all code with comments, maximum comments, update files if not comments for
 - [x] Favorite/Watchlist buttons
 
 #### 🔄 Remaining Tasks
-- [x] Episode groups UI (alternative orderings like DVD order, Story arc)
+- [ ] Episode groups UI (alternative orderings like DVD order, Story arc)
 - [x] Content ratings display (all countries)
 - [ ] Season images in detail view
 
@@ -362,7 +360,7 @@ write all code with comments, maximum comments, update files if not comments for
 - [x] External links
 
 #### 🔄 Remaining Tasks
-- [x] People by department filter (Acting, Directing, Writing)
+- [ ] People by department filter (Acting, Directing, Writing)
 - [ ] Enhanced credits sorting (by year, popularity, rating)
 - [ ] Career timeline visualization
 
@@ -709,8 +707,8 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Sortable results
 
 #### 🔄 Enhancement Opportunities
-- [x] Keyword statistics (usage count, popularity)
-- [x] Related keywords suggestions
+- [ ] Keyword statistics (usage count, popularity)
+- [ ] Related keywords suggestions
 
 **Files Implemented**:
 - ✅ `lib/presentation/screens/keywords/keyword_browser_screen.dart`
@@ -766,7 +764,7 @@ All search types are fully implemented in repository and accessible via search p
 - [x] Provider logos and links
 - [x] "Where to Watch" section on all details pages
 - [x] Filter content by specific providers
-- [x] Notifications for new availability (future)
+- [ ] Notifications for new availability (future)
 
 **Settings & Region**:
 - [x] Region selector and normalization (fallback to US)
@@ -874,10 +872,11 @@ All search types are fully implemented in repository and accessible via search p
   - Favorites
   - Watchlist
   - Settings
-- [x] Quick filters in app bar
-- [ ] Breadcrumb navigation for deep links
+- [ ] Quick filters in app bar
+ - [x] Quick filters in app bar
+- [x] Breadcrumb navigation for deep links
 - [x] Back navigation preservation
-- [ ] Deep linking support
+- [x] Deep linking support
 
 **Files Updated**:
 - `lib/main.dart`
@@ -1035,14 +1034,14 @@ All search types are fully implemented in repository and accessible via search p
 ## 🎯 PRIORITY 7: Additional Content Screens (Week 8)
 
 ### 7.1 Certifications Screen
-**Status**: 🟢 100% Complete
+**Status**: 🔴 Not Started  
 **Priority**: LOW
 
-- [x] Movie certifications by country
-- [x] TV content ratings
-- [x] Certification explanations
-- [x] Filter by certification
-- [x] Age-appropriate content warnings
+- [ ] Movie certifications by country
+- [ ] TV content ratings
+- [ ] Certification explanations
+- [ ] Filter by certification
+- [ ] Age-appropriate content warnings
 
 **Files to Create**:
 - `lib/presentation/screens/certifications/certifications_screen.dart`
@@ -1128,7 +1127,7 @@ All search types are fully implemented in repository and accessible via search p
 **Status**: 🔴 Not Started  
 **Priority**: LOW
 
-- [x] Watch time statistics
+- [ ] Watch time statistics
 - [ ] Charts for:
   - Box office trends
   - Rating distributions
@@ -1251,13 +1250,13 @@ These fixes address prior failures in People, Movies filters navigation, region 
 **Status**: 🟡 60% Complete  
 **Priority**: HIGH
 
-- [x] Code review and refactoring
-- [x] Documentation (inline comments)
-- [x] README updates
-- [x] CHANGELOG creation
-- [x] Code style consistency check
-- [x] Remove unused imports
-- [x] Remove unused files
+- [ ] Code review and refactoring
+- [ ] Documentation (inline comments)
+- [ ] README updates
+- [ ] CHANGELOG creation
+- [ ] Code style consistency check
+- [ ] Remove unused imports
+- [ ] Remove unused files
 
 ---
 
@@ -1357,7 +1356,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 - ✅ Combined credits (movies + TV)
 - ✅ Person search
 - ✅ External IDs
-- ✅ Department filtering UI
+- 🔄 Department filtering UI
 
 #### Additional Content: 85% Complete
 - ✅ Companies (search, details, movies, TV)
@@ -1496,7 +1495,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 #### Search (V3 API) - 90% Complete
 ✅ **Multi-Search**: All media types simultaneously (movies, TV, people)
 ✅ **Dedicated Searches**: Movie, TV, Person, Company, Collection, Keyword
-✅ **Autocomplete**: Implemented
+🔄 **Autocomplete**: Not implemented
 
 #### Trending (V3 API) - 100% Complete
 ✅ **All trending endpoints**: Movies, TV, People, All media (day/week)
@@ -1521,7 +1520,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 ✅ **Image Sizes**: All sizes (w92 to original)
 ✅ **Progressive Loading**: Implemented
 ✅ **Caching**: Multi-layer cache system
-✅ **Image Gallery**: Zoom gestures powered by photo_view
+🔄 **Image Gallery**: Basic implementation, needs zoom enhancement
 
 #### Reviews - 80% Complete
 ✅ **Review Data**: Author, content, rating, timestamps
@@ -1568,7 +1567,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 
 #### UI/UX Features
 - 🔄 Video Player (YouTube embedding ready, full player not implemented)
-- ✅ Image Gallery with Zoom (photo_view integration complete)
+- 🔄 Image Gallery with Zoom (basic gallery, needs photo_view integration)
 - 🔄 Skeleton Loading States (partial implementation)
 - 🔄 Pull-to-Refresh (not implemented everywhere)
 - 🔄 Hero Animations (partial)
@@ -1576,7 +1575,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 
 #### Season & Episode Screens
 - 🔄 Season Detail Screen (data ready, dedicated screen not built)
-- ✅ Episode Detail Screen (enhanced detail view complete)
+- 🔄 Episode Detail Screen (basic screen exists, needs enhancement)
 
 #### Internationalization
 - ✅ 4 Languages (EN, ES, FR, RU) - working
@@ -1615,10 +1614,10 @@ These fixes address prior failures in People, Movies filters navigation, region 
 - [x] Commit progress with clear messages
 
 ### Weekly
-- [x] Review and update this tasks file
-- [x] Performance check
-- [x] Code review session
-- [x] Update documentation
+- [ ] Review and update this tasks file
+- [ ] Performance check
+- [ ] Code review session
+- [ ] Update documentation
 
 ### Before Each Release
 - [ ] Full test suite run
@@ -1629,8 +1628,8 @@ These fixes address prior failures in People, Movies filters navigation, region 
 
 ---
 
-**Last Updated**: March 7, 2024 (Telemetry refresh + documentation sweep)
-**Next Review**: March 14, 2024
+**Last Updated**: October 17, 2025 (Synced with Full TMDB V3/V4 Specification)
+**Next Review**: October 24, 2025  
 **Current Sprint**: Phase 1 - Core Enhancement
 
 ---
@@ -1673,7 +1672,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 | **Reviews** | 3 sub-features | 2/3 | 67% | 🟡 |
 | **Images** | 5 types × 4 sizes | 20/20 | 100% | ✅ |
 | **Videos** | 8 video types | 8/8 | 100% | ✅ |
-| **Change Tracking** | 5 endpoints | 5/5 | 100% | ✅ |
+| **Change Tracking** | 5 endpoints | 0/5 | 0% | ❌ |
 | **V4 Authentication** | N/A | N/A | N/A | ❌ Not Needed |
 | **V4 Lists** | N/A | N/A | N/A | ❌ Not Needed |
 | **V3 Account** | N/A | N/A | N/A | ❌ Not Needed |
@@ -1684,7 +1683,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 | **Accessibility** | 9 features | 3/9 | 33% | 🔄 |
 | **Notifications** | 4 types | 0/4 | 0% | ❌ Not Needed |
 | **Analytics** | 4 categories | 0/4 | 0% | ❌ Low Priority |
-| **Testing** | 90+ tests | 72/90 | 80% | 🟢 |
+| **Testing** | 90+ tests | 36/90 | 40% | 🟡 |
 
 ### Key Achievements ✨
 
@@ -1702,7 +1701,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 ### Remaining Work
 
 #### High Priority (3-4 weeks)
-1. ✅ **Enhanced Testing** (40% → 80%): Unit, widget, integration tests
+1. 🔄 **Enhanced Testing** (40% → 80%): Unit, widget, integration tests
 2. 🔄 **Video Player Integration**: Full YouTube player implementation
 3. 🔄 **Image Galleries**: Zoom, pinch, pan functionality
 4. ✅ **Performance**: Virtual scrolling, background fetching, cache tuning complete
@@ -1715,7 +1714,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 9. 🔄 **More Languages**: Add 36 more language .arb files
 
 #### Low Priority (Optional)
-10. 🔄 **Change Tracking**: Real-time content update notifications (endpoints implemented)
+10. ❌ **Change Tracking**: Real-time content update notifications
 11. ❌ **Analytics**: Firebase Analytics integration (optional)
 12. ❌ **Notifications**: Push notifications (optional, requires backend)
 
@@ -1736,8 +1735,8 @@ According to requirements, this is a **local-only app**. The following features 
 
 ---
 
-**Last Updated**: March 7, 2024 (Telemetry refresh + documentation sweep)
-**Next Review**: March 14, 2024
+**Last Updated**: October 17, 2025 (Synced with Full TMDB V3/V4 Specification)
+**Next Review**: October 24, 2025  
 **Current Sprint**: Phase 1 - Core Enhancement - MOSTLY COMPLETE
 
 ---
@@ -1781,7 +1780,7 @@ According to requirements, this is a **local-only app**. The following features 
 4. **Rating Submission** - Requires authentication
 5. **Account Sync** - Requires authentication
 6. **Push Notifications** - Requires backend
-7. ✅ **Change Tracking API** - Movie, TV, and person change endpoints implemented
+7. **Change Tracking API** - Low priority for local app
 8. **Analytics** - Optional feature
 
 ### 📊 Final Statistics
@@ -1820,9 +1819,9 @@ According to requirements, this is a **local-only app**. The following features 
 ### 🚀 Next Steps (Priority Order)
 
 **Immediate (1-2 weeks)**:
-1. [x] Enhanced testing (40% → 80%)
+1. Enhanced testing (40% → 80%)
 2. Video player integration (YouTube)
-3. [x] Image gallery zoom (photo_view)
+3. Image gallery zoom (photo_view)
 4. UI polish (animations, skeletons, pull-to-refresh)
 
 **Short-term (2-4 weeks)**:

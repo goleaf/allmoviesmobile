@@ -1,13 +1,18 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+import '../core/analytics/app_analytics.dart';
 import '../data/models/saved_media_item.dart';
 import '../data/services/local_storage_service.dart';
 import '../data/services/offline_service.dart';
-import 'package:http/http.dart' as http;
 
 class WatchlistProvider with ChangeNotifier {
   final LocalStorageService _storage;
   final http.Client _httpClient;
   final OfflineService? _offlineService;
+  final AppAnalytics? _analytics;
 
   Set<int> _watchlistIds = {};
   List<SavedMediaItem> _watchlistItems = const <SavedMediaItem>[];
@@ -16,8 +21,10 @@ class WatchlistProvider with ChangeNotifier {
     this._storage, {
     http.Client? httpClient,
     OfflineService? offlineService,
+    AppAnalytics? analytics,
   })  : _httpClient = httpClient ?? http.Client(),
-        _offlineService = offlineService {
+        _offlineService = offlineService,
+        _analytics = analytics {
     _loadWatchlist();
   }
 
@@ -47,6 +54,8 @@ class WatchlistProvider with ChangeNotifier {
     SavedMediaType type = SavedMediaType.movie,
   }) async {
     final wasInWatchlist = _watchlistIds.contains(id);
+    final existing = _findWatchlistItem(id, type);
+    final previousTitle = existing?.title ?? existing?.originalTitle;
     if (wasInWatchlist) {
       await _storage.removeFromWatchlist(id, type: type);
     } else {
@@ -68,6 +77,23 @@ class WatchlistProvider with ChangeNotifier {
             ),
     );
     _loadWatchlist();
+    if (wasInWatchlist) {
+      _trackWatchlistMutation(
+        id: id,
+        type: type,
+        added: false,
+        cachedTitle: previousTitle,
+      );
+    } else {
+      final current = _findWatchlistItem(id, type);
+      final newTitle = current?.title ?? current?.originalTitle;
+      _trackWatchlistMutation(
+        id: id,
+        type: type,
+        added: true,
+        cachedTitle: newTitle,
+      );
+    }
   }
 
   Future<void> addToWatchlist(
@@ -84,6 +110,16 @@ class WatchlistProvider with ChangeNotifier {
         snapshot: item,
       );
       _loadWatchlist();
+      final title = item?.title ??
+          item?.originalTitle ??
+          _findWatchlistItem(id, type)?.title ??
+          _findWatchlistItem(id, type)?.originalTitle;
+      _trackWatchlistMutation(
+        id: id,
+        type: type,
+        added: true,
+        cachedTitle: title,
+      );
     }
   }
 
@@ -92,6 +128,8 @@ class WatchlistProvider with ChangeNotifier {
     SavedMediaType type = SavedMediaType.movie,
   }) async {
     if (_watchlistIds.contains(id)) {
+      final existing = _findWatchlistItem(id, type);
+      final previousTitle = existing?.title ?? existing?.originalTitle;
       await _storage.removeFromWatchlist(id, type: type);
       await _offlineService?.recordWatchlistMutation(
         mediaId: id,
@@ -99,6 +137,12 @@ class WatchlistProvider with ChangeNotifier {
         added: false,
       );
       _loadWatchlist();
+      _trackWatchlistMutation(
+        id: id,
+        type: type,
+        added: false,
+        cachedTitle: previousTitle,
+      );
     }
   }
 
@@ -141,5 +185,38 @@ class WatchlistProvider with ChangeNotifier {
       return;
     }
     throw Exception('Failed to import watchlist: HTTP ${response.statusCode}');
+  }
+
+  /// Returns the cached [SavedMediaItem] if it exists in the watchlist.
+  SavedMediaItem? _findWatchlistItem(int id, SavedMediaType type) {
+    for (final item in _watchlistItems) {
+      if (item.id == id && item.type == type) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  /// Reports watchlist mutations so retention metrics can be monitored even
+  /// when Firebase Analytics falls back to the debug logger implementation.
+  void _trackWatchlistMutation({
+    required int id,
+    required SavedMediaType type,
+    required bool added,
+    String? cachedTitle,
+  }) {
+    final current = _findWatchlistItem(id, type);
+    final resolvedTitle = cachedTitle ??
+        current?.title ??
+        current?.originalTitle ??
+        (added ? 'Media #$id' : null);
+    unawaited(
+      _analytics?.logWatchlistChange(
+        mediaId: id,
+        mediaType: type.storageKey,
+        added: added,
+        title: resolvedTitle,
+      ),
+    );
   }
 }

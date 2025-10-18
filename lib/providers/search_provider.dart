@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
+import '../core/analytics/app_analytics.dart';
 import '../data/models/company_model.dart';
 import '../data/models/movie.dart';
 import '../data/models/paginated_response.dart';
@@ -12,7 +13,11 @@ import '../data/services/local_storage_service.dart';
 import '../data/tmdb_repository.dart';
 
 class SearchProvider with ChangeNotifier {
-  SearchProvider(this._repository, this._storage) {
+  SearchProvider(
+    this._repository,
+    this._storage, {
+    AppAnalytics? analytics,
+  })  : _analytics = analytics {
     _initializePagingControllers();
     _loadSearchHistory();
     _loadTrendingSearches();
@@ -20,6 +25,7 @@ class SearchProvider with ChangeNotifier {
 
   final TmdbRepository _repository;
   final LocalStorageService _storage;
+  final AppAnalytics? _analytics;
 
   String _query = '';
   String _inputQuery = '';
@@ -337,7 +343,11 @@ class SearchProvider with ChangeNotifier {
     );
   }
 
-  Future<void> search(String searchQuery, {bool forceRefresh = true}) async {
+  Future<void> search(
+    String searchQuery, {
+    bool forceRefresh = true,
+    String origin = 'manual',
+  }) async {
     final trimmed = searchQuery.trim();
     if (trimmed.isEmpty) {
       clearResults();
@@ -389,6 +399,11 @@ class SearchProvider with ChangeNotifier {
 
       await _storage.addToSearchHistory(trimmed);
       _searchHistory = _storage.getSearchHistory();
+      await _analytics?.logSearch(
+        query: trimmed,
+        origin: origin,
+        resultCount: response.totalResults,
+      );
     } catch (error) {
       _errorMessage = 'Failed to search: $error';
       _response = const SearchResponse();
@@ -399,6 +414,11 @@ class SearchProvider with ChangeNotifier {
       _companyCurrentPage = 0;
       _companyTotalPages = 1;
       _isLoadingCompanies = false;
+      await _analytics?.logSearchError(
+        query: trimmed,
+        origin: origin,
+        error: '$error',
+      );
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -462,7 +482,11 @@ class SearchProvider with ChangeNotifier {
   }
 
   Future<void> searchFromHistory(String query) async {
-    await search(query, forceRefresh: true);
+    await search(
+      query,
+      forceRefresh: true,
+      origin: 'history',
+    );
   }
 
   Future<void> reexecuteLastSearch({bool forceRefresh = false}) async {
@@ -470,7 +494,11 @@ class SearchProvider with ChangeNotifier {
     if (trimmed.isEmpty) {
       return;
     }
-    await search(trimmed, forceRefresh: forceRefresh);
+    await search(
+      trimmed,
+      forceRefresh: forceRefresh,
+      origin: 'retry',
+    );
   }
 
   Future<void> recordQuery(String searchQuery) async {

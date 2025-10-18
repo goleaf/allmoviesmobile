@@ -1,14 +1,24 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import '../core/analytics/app_analytics.dart';
 
 class LocaleProvider with ChangeNotifier {
   static const String _localeKey = 'selected_locale';
   final SharedPreferences _prefs;
+  final AppAnalytics? _analytics;
 
   Locale _locale;
 
-  LocaleProvider(this._prefs)
-    : _locale = Locale(_prefs.getString(_localeKey) ?? 'en');
+  LocaleProvider(
+    this._prefs, {
+    AppAnalytics? analytics,
+  })  : _analytics = analytics,
+        _locale = Locale(_prefs.getString(_localeKey) ?? 'en') {
+    unawaited(_analytics?.setPreferredLanguage(_locale.languageCode));
+  }
 
   Locale get locale => _locale;
 
@@ -46,6 +56,9 @@ class LocaleProvider with ChangeNotifier {
     _locale = locale;
     await _prefs.setString(_localeKey, locale.languageCode);
     notifyListeners();
+    unawaited(
+      _analytics?.setPreferredLanguage(locale.languageCode),
+    );
   }
 
   Future<void> setLanguageCode(String languageCode) async {

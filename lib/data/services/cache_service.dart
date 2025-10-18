@@ -11,7 +11,7 @@ class CachePolicy {
   const CachePolicy({
     required this.ttl,
     this.refreshAfter,
-  });
+  }) : assert(!ttl.isNegative, 'TTL must be positive');
 
   factory CachePolicy.fromSeconds(int seconds) => CachePolicy(
         ttl: Duration(seconds: seconds),
@@ -55,6 +55,8 @@ class CacheService {
   final List<_PolicyOverride> _policyOverrides = <_PolicyOverride>[];
   final StreamController<CacheEvent> _events =
       StreamController<CacheEvent>.broadcast();
+  final Map<String, int> _inflightPersistentWrites =
+      <String, int>{};
 
   // Default TTL values (in seconds)
   static const int defaultMaxEntries = 256;
@@ -67,10 +69,9 @@ class CacheService {
 
   SharedPreferences? _prefs;
   int _maxEntries = 400;
-  int _maxEntryBytes = 256 * 1024;
+  int _maxEntryBytes;
   int _totalBytes = 0;
   Timer? _cleanupTimer;
-  final Map<String, int> _inflightPersistentWrites = {};
 
   Stream<CacheEvent> get events => _events.stream;
 
@@ -126,25 +127,48 @@ class CacheService {
       policy ??
           (ttlSeconds != null
               ? CachePolicy.fromSeconds(ttlSeconds)
-              : CachePolicy(ttl: Duration(seconds: defaultTTL))),
+              : const CachePolicy(ttl: Duration(seconds: defaultTTL))),
     );
 
     final estimatedSize = _estimateSize(value);
 
-    _cache[key] = _CacheEntry(
+    if (estimatedSize > _maxEntryBytes) {
+      _logger.w(
+        'Cache entry for $key skipped: $estimatedSize bytes exceeds limit '
+        '($_maxEntryBytes).',
+      );
+      return;
+    }
+
+    final previous = _cache[key];
+    if (previous != null) {
+      _totalBytes -= previous.estimatedSize;
+      if (_totalBytes < 0) {
+        _totalBytes = 0;
+      }
+    }
+
+    final entry = _CacheEntry(
       value: value,
       createdAt: DateTime.now(),
       policy: resolvedPolicy,
       estimatedSize: estimatedSize,
     );
+    _cache[key] = entry;
+    _totalBytes += estimatedSize;
     _emit(CacheEvent.set(key: key, valueType: value.runtimeType));
     _logger.d('Cache set: $key (TTL: ${resolvedPolicy.ttl.inSeconds}s)');
-    _evictOverflow();
+    _evictIfNeeded();
   }
 
   /// Remove a specific key from cache
   void remove(String key) {
-    if (_cache.remove(key) != null) {
+    final removed = _cache.remove(key);
+    if (removed != null) {
+      _totalBytes -= removed.estimatedSize;
+      if (_totalBytes < 0) {
+        _totalBytes = 0;
+      }
       _emit(CacheEvent.evict(key: key));
       _logger.d('Cache removed: $key');
     }
@@ -289,12 +313,19 @@ class CacheService {
       return;
     }
 
+    if (_inflightPersistentWrites.containsKey(key)) {
+      _logger.d(
+        'Persistent cache write for $key skipped because a write is already in progress.',
+      );
+      return;
+    }
+
     final resolvedPolicy = _resolvePolicy(
       key,
       policy ??
           (ttlSeconds != null
               ? CachePolicy.fromSeconds(ttlSeconds)
-              : CachePolicy(ttl: Duration(seconds: defaultTTL))),
+              : const CachePolicy(ttl: Duration(seconds: defaultTTL))),
     );
     final now = DateTime.now();
     final expiresAt = now.add(resolvedPolicy.ttl).millisecondsSinceEpoch;
@@ -316,11 +347,18 @@ class CacheService {
     // metadata).
     final writeTicket = DateTime.now().millisecondsSinceEpoch;
     _inflightPersistentWrites[key] = writeTicket;
-    await prefs.setString(_persistentKey(key), payload);
-    _emit(CacheEvent.set(key: key, valueType: value.runtimeType));
-    _logger.d(
-      'Persistent cache set: $key (TTL: ${resolvedPolicy.ttl.inSeconds}s)',
-    );
+    try {
+      await prefs.setString(_persistentKey(key), payload);
+      _emit(CacheEvent.set(key: key, valueType: value.runtimeType));
+      _logger.d(
+        'Persistent cache set: $key (TTL: ${resolvedPolicy.ttl.inSeconds}s)',
+      );
+    } finally {
+      final currentTicket = _inflightPersistentWrites[key];
+      if (currentTicket == writeTicket) {
+        _inflightPersistentWrites.remove(key);
+      }
+    }
   }
 
   /// Retrieve value from persistent cache
@@ -403,6 +441,8 @@ class CacheService {
     if (keys.isNotEmpty) {
       _logger.d('Persistent cache cleared (${keys.length} keys)');
     }
+
+    _inflightPersistentWrites.clear();
   }
 
   String _persistentKey(String key) => '$_persistentPrefix$key';
@@ -412,6 +452,7 @@ class CacheService {
     _cleanupTimer?.cancel();
     _cache.clear();
     _totalBytes = 0;
+    _inflightPersistentWrites.clear();
     await clearPersistent();
     await _events.close();
   }
@@ -438,24 +479,7 @@ class CacheService {
     return base;
   }
 
-  void _evictOverflow() {
-    if (_cache.length <= _maxEntries) {
-      return;
-    }
-
-    final overflow = _cache.length - _maxEntries;
-    final entries = _cache.entries.toList()
-      ..sort(
-        (a, b) => a.value.lastAccessed.compareTo(b.value.lastAccessed),
-      );
-
-    for (var i = 0; i < overflow && i < entries.length; i++) {
-      final key = entries[i].key;
-      _cache.remove(key);
-      _emit(CacheEvent.evict(key: key));
-      _logger.d('Cache evicted (overflow): $key');
-    }
-  }
+  void _evictOverflow() => _evictIfNeeded();
 
   CacheLookupResult<T> lookup<T>(String key, {bool removeStale = false}) {
     final entry = _cache[key];
@@ -550,7 +574,7 @@ class CacheService {
       set<T>(key, value, policy: policy);
       _emit(CacheEvent.refreshCompleted(key: key));
     } catch (error, stackTrace) {
-      _logger.w('Failed to refresh cache for $key: $error');
+      _logger.w('Failed to refresh cache for $key: $error', error, stackTrace);
       _emit(CacheEvent.refreshFailed(key: key, error: error));
     } finally {
       _refreshing.remove(key);
@@ -583,6 +607,10 @@ class CacheService {
       final removed = _cache.remove(key);
       if (removed != null) {
         _totalBytes -= removed.estimatedSize;
+        if (_totalBytes < 0) {
+          _totalBytes = 0;
+        }
+        _emit(CacheEvent.evict(key: key));
       }
       index++;
     }

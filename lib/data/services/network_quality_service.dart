@@ -26,33 +26,25 @@ class NetworkQualityNotifier extends ChangeNotifier {
   final Duration _probeInterval;
   final Duration _probeTimeout;
   NetworkQuality _quality = NetworkQuality.excellent;
-  StreamSubscription<List<ConnectivityResult>>? _subscription;
-  Timer? _probeTimer;
+  StreamSubscription<ConnectivityResult>? _subscription;
   Duration? _lastLatency;
+  Timer? _probeTimer;
 
   NetworkQuality get quality => _quality;
   Duration? get lastLatency => _lastLatency;
 
   /// Initialize connectivity listener and start TMDB latency probes.
   Future<void> initialize() async {
-    final results = await _connectivity.checkConnectivity();
-    _updateQuality(results);
+    final result = await _connectivity.checkConnectivity();
+    _updateQuality(result);
     _subscription ??=
         _connectivity.onConnectivityChanged.listen(_updateQuality);
-    _probeTimer?.cancel();
-    _probeTimer = Timer.periodic(_probeInterval, (timer) async {
-      await refreshQuality(timeout: _probeTimeout);
-    });
-    await refreshQuality();
-    _probeTimer?.cancel();
-    _probeTimer = Timer.periodic(
-      _probeInterval,
-      (_) => refreshQuality(timeout: _probeTimeout),
-    );
+    await refreshQuality(timeout: _probeTimeout);
+    _probeTimer ??=
+        Timer.periodic(_probeInterval, (_) => refreshQuality(timeout: _probeTimeout));
   }
 
-  void _updateQuality(List<ConnectivityResult> results) {
-    final result = results.isNotEmpty ? results.first : ConnectivityResult.none;
+  void _updateQuality(ConnectivityResult result) {
     final nextQuality = switch (result) {
       ConnectivityResult.none => NetworkQuality.offline,
       ConnectivityResult.bluetooth => NetworkQuality.constrained,
@@ -69,7 +61,8 @@ class NetworkQualityNotifier extends ChangeNotifier {
     }
   }
 
-  Future<void> refreshQuality({Duration timeout = const Duration(seconds: 3)}) async {
+  Future<void> refreshQuality({Duration? timeout}) async {
+    final effectiveTimeout = timeout ?? _probeTimeout;
     if (_quality == NetworkQuality.offline) {
       _lastLatency = null;
       return;
@@ -79,16 +72,16 @@ class NetworkQualityNotifier extends ChangeNotifier {
     try {
       final response = await http.get(
         Uri.parse('https://image.tmdb.org'),
-      ).timeout(timeout);
+      ).timeout(effectiveTimeout);
       stopwatch.stop();
       if (response.statusCode < 500) {
         _lastLatency = stopwatch.elapsed;
         _reconcileLatency(_lastLatency!);
       }
     } on SocketException {
-      _updateQuality([ConnectivityResult.none]);
+      _updateQuality(ConnectivityResult.none);
     } on TimeoutException {
-      _updateQuality([ConnectivityResult.other]);
+      _updateQuality(ConnectivityResult.other);
     } catch (_) {
       // Ignore, keep previous quality
     }
@@ -115,7 +108,6 @@ class NetworkQualityNotifier extends ChangeNotifier {
   void dispose() {
     _subscription?.cancel();
     _probeTimer?.cancel();
-    _probeTimer = null;
     _client.close();
     super.dispose();
   }

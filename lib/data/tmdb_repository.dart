@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 import '../core/config/app_config.dart';
@@ -11,7 +10,6 @@ import 'models/certification_model.dart';
 import 'models/collection_model.dart';
 import 'models/company_model.dart';
 import 'models/configuration_model.dart';
-import 'models/change_model.dart';
 import 'models/discover_filters_model.dart';
 import 'models/episode_group_model.dart';
 import 'models/genre_model.dart';
@@ -36,7 +34,6 @@ import 'models/tv_ref_model.dart';
 import 'models/watch_provider_model.dart';
 import 'services/cache_service.dart';
 import 'services/network_quality_service.dart';
-import 'services/rate_limiter.dart';
 import 'services/request_throttler.dart';
 
 class TmdbRepository {
@@ -46,8 +43,8 @@ class TmdbRepository {
     NetworkQualityNotifier? networkQualityNotifier,
     String? apiKey,
     String? language,
-  }) : _client = client ?? http.Client(),
-       _cache = cacheService,
+  })  : _client = client ?? http.Client(),
+        _cache = cacheService,
         _networkQualityNotifier = networkQualityNotifier,
         _language = language ?? AppConfig.defaultLanguage,
         _apiKey = (() {
@@ -58,12 +55,7 @@ class TmdbRepository {
             return provided;
           }
           return AppConfig.tmdbApiKey;
-       })() {
-    if (_networkQualityNotifier != null) {
-      _networkQualityNotifier!.addListener(_handleNetworkQualityChange);
-      _handleNetworkQualityChange();
-    }
-
+        })() {
     if (_cache != null) {
       MemoryOptimizer.instance.registerCacheService(_cache);
       _cache!
@@ -91,6 +83,9 @@ class TmdbRepository {
           policy: _policyFromSeconds(CacheService.searchTTL),
         );
     }
+
+    _networkQualityNotifier?.addListener(_handleNetworkQualityChange);
+    _handleNetworkQualityChange();
   }
 
   static const _host = 'api.themoviedb.org';
@@ -101,29 +96,43 @@ class TmdbRepository {
   final NetworkQualityNotifier? _networkQualityNotifier;
   final String _apiKey;
   final String _language;
-  Duration _networkAwareDelay = Duration.zero;
-  final Map<String, Future<void>> _pendingRevalidations = {};
   final RateLimiter _globalRateLimiter = RateLimiter(
     const Duration(milliseconds: 250),
   );
   final Map<String, RateLimiter> _endpointLimiters = {};
   final Map<String, Future<Map<String, dynamic>>> _inFlight = {};
+  final Map<String, Future<void>> _pendingRevalidations = {};
+  Duration _networkAwareDelay = Duration.zero;
 
   CachePolicy _policyFromSeconds(int ttlSeconds) {
+    final resolvedSeconds = _resolveTtlSeconds(ttlSeconds);
+    var refreshSeconds = resolvedSeconds > 1
+        ? (resolvedSeconds * 0.6).round()
+        : 1;
+    if (refreshSeconds < 1) {
+      refreshSeconds = 1;
+    } else if (refreshSeconds > resolvedSeconds) {
+      refreshSeconds = resolvedSeconds;
+    }
+
     return CachePolicy(
-      ttl: Duration(seconds: ttlSeconds),
-      refreshAfter: Duration(seconds: (ttlSeconds * 0.6).round()),
+      ttl: Duration(seconds: resolvedSeconds),
+      refreshAfter: Duration(seconds: refreshSeconds),
     );
   }
 
   Duration _delayForQuality(NetworkQuality? quality) {
-    return switch (quality) {
-      NetworkQuality.offline => Duration.zero,
-      NetworkQuality.constrained => const Duration(milliseconds: 500),
-      NetworkQuality.balanced => const Duration(milliseconds: 100),
-      NetworkQuality.excellent => Duration.zero,
-      null => Duration.zero,
-    };
+    switch (quality) {
+      case NetworkQuality.offline:
+        return const Duration(seconds: 1);
+      case NetworkQuality.constrained:
+        return const Duration(milliseconds: 400);
+      case NetworkQuality.balanced:
+        return const Duration(milliseconds: 200);
+      case NetworkQuality.excellent:
+      case null:
+        return Duration.zero;
+    }
   }
 
   void _ensureApiKey() {
@@ -291,13 +300,6 @@ class TmdbRepository {
     }
   }
 
-  @visibleForTesting
-  Duration get networkAwareDelayForTesting => _networkAwareDelay;
-
-  @visibleForTesting
-  Duration delayForQualityForTesting(NetworkQuality? quality) =>
-      _delayForQuality(quality);
-
   void dispose() {
     _networkQualityNotifier?.removeListener(_handleNetworkQualityChange);
   }
@@ -307,23 +309,6 @@ class TmdbRepository {
     T Function(Map<String, dynamic>) mapper,
   ) {
     return PaginatedResponse<T>.fromJson(json, mapper);
-  }
-
-  /// Build a query map for change-tracking endpoints, normalizing dates.
-  Map<String, String> _buildChangeQuery({
-    required int page,
-    String? startDate,
-    String? endDate,
-  }) {
-    final normalizedStart = startDate?.trim();
-    final normalizedEnd = endDate?.trim();
-    return <String, String>{
-      'page': page <= 0 ? '1' : '$page',
-      if (normalizedStart != null && normalizedStart.isNotEmpty)
-        'start_date': normalizedStart,
-      if (normalizedEnd != null && normalizedEnd.isNotEmpty)
-        'end_date': normalizedEnd,
-    };
   }
 
   // ---------------------------------------------------------------------------
@@ -443,8 +428,25 @@ class TmdbRepository {
     await Future.wait<void>([
       fetchNowPlayingMoviesPaginated(page: 1),
       fetchPopularMoviesPaginated(page: 1),
-      fetchUpcomingMoviesPaginated(page: 1),
       fetchTopRatedMoviesPaginated(page: 1),
+      fetchUpcomingMoviesPaginated(page: 1),
+    ]);
+  }
+
+  Future<void> prefetchSeriesDashboard() async {
+    await Future.wait<void>([
+      fetchTrendingTv(page: 1),
+      fetchPopularTv(page: 1),
+      fetchTopRatedTv(page: 1),
+      fetchAiringTodayTv(page: 1),
+      fetchOnTheAirTv(page: 1),
+    ]);
+  }
+
+  Future<void> prefetchPeopleSpotlight() async {
+    await Future.wait<void>([
+      fetchTrendingPeople(),
+      fetchPopularPeople(page: 1),
     ]);
   }
 
@@ -487,20 +489,39 @@ class TmdbRepository {
   Future<PaginatedResponse<Movie>> fetchNowPlayingMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson(
-      '/movie/now_playing',
-      query: {'page': '$page'},
+  }) {
+    final cacheKey = 'movie_now_playing::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/movie/now_playing',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(payload, Movie.fromJson);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
     );
-    return _mapPaginated<Movie>(payload, Movie.fromJson);
   }
 
   Future<PaginatedResponse<Movie>> fetchUpcomingMoviesPaginated({
     int page = 1,
     bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson('/movie/upcoming', query: {'page': '$page'});
-    return _mapPaginated<Movie>(payload, Movie.fromJson);
+  }) {
+    final cacheKey = 'movie_upcoming::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/movie/upcoming',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(payload, Movie.fromJson);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
+    );
   }
 
   Future<PaginatedResponse<Movie>> discoverMovies({
@@ -733,49 +754,110 @@ class TmdbRepository {
     String timeWindow = 'day',
     int page = 1,
     bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson(
-      '/trending/tv/$timeWindow',
-      query: {'page': '$page'},
-    );
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
-    );
-  }
-
-  Future<PaginatedResponse<Movie>> fetchPopularTv({int page = 1}) async {
-    final payload = await _getJson('/tv/popular', query: {'page': '$page'});
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
-    );
-  }
-
-  Future<PaginatedResponse<Movie>> fetchTopRatedTv({int page = 1}) async {
-    final payload = await _getJson('/tv/top_rated', query: {'page': '$page'});
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+  }) {
+    final cacheKey = 'trending_tv::$timeWindow::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/trending/tv/$timeWindow',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.trendingTTL,
     );
   }
 
-  Future<PaginatedResponse<Movie>> fetchAiringTodayTv({int page = 1}) async {
-    final payload = await _getJson(
-      '/tv/airing_today',
-      query: {'page': '$page'},
-    );
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+  Future<PaginatedResponse<Movie>> fetchPopularTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_popular::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/popular',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
     );
   }
 
-  Future<PaginatedResponse<Movie>> fetchOnTheAirTv({int page = 1}) async {
-    final payload = await _getJson('/tv/on_the_air', query: {'page': '$page'});
-    return _mapPaginated<Movie>(
-      payload,
-      (json) => Movie.fromJson(json, mediaType: 'tv'),
+  Future<PaginatedResponse<Movie>> fetchTopRatedTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_top_rated::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/top_rated',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchAiringTodayTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_airing_today::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/airing_today',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
+    );
+  }
+
+  Future<PaginatedResponse<Movie>> fetchOnTheAirTv({
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'tv_on_the_air::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/tv/on_the_air',
+          query: {'page': '$page'},
+        );
+        return _mapPaginated<Movie>(
+          payload,
+          (json) => Movie.fromJson(json, mediaType: 'tv'),
+        );
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
     );
   }
 
@@ -873,33 +955,6 @@ class TmdbRepository {
   }) async {
     final payload = await _getJson(
       '/tv/$tvId/season/$seasonNumber/images',
-      query: {'include_image_language': 'en,null'},
-    );
-
-    List<ImageModel> _mapImages(String key) {
-      final list = payload[key];
-      if (list is! List) return const [];
-      return list
-          .whereType<Map<String, dynamic>>()
-          .map(ImageModel.fromJson)
-          .toList(growable: false);
-    }
-
-    return MediaImages(
-      posters: _mapImages('posters'),
-      backdrops: _mapImages('backdrops'),
-      stills: _mapImages('stills'),
-    );
-  }
-
-  Future<MediaImages> fetchTvEpisodeImages(
-    int tvId,
-    int seasonNumber,
-    int episodeNumber, {
-    bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson(
-      '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/images',
       query: {'include_image_language': 'en,null'},
     );
 
@@ -1068,9 +1123,20 @@ class TmdbRepository {
   // People
   // ---------------------------------------------------------------------------
 
-  Future<List<Person>> fetchTrendingPeople({String timeWindow = 'day'}) async {
-    final payload = await _getJson('/trending/person/$timeWindow');
-    return _mapPaginated<Person>(payload, Person.fromJson).results;
+  Future<List<Person>> fetchTrendingPeople({
+    String timeWindow = 'day',
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'trending_people::$timeWindow';
+    return _cached<List<Person>>(
+      cacheKey,
+      () async {
+        final payload = await _getJson('/trending/person/$timeWindow');
+        return _mapPaginated<Person>(payload, Person.fromJson).results;
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.trendingTTL,
+    );
   }
 
   Future<PaginatedResponse<Person>> fetchPopularPeople({
@@ -1895,306 +1961,6 @@ class TmdbRepository {
       },
       forceRefresh: forceRefresh,
       ttlSeconds: CacheService.movieDetailsTTL,
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Change Tracking
-  // ---------------------------------------------------------------------------
-
-  /// Fetches the chronological change history for a specific movie.
-  ///
-  /// TMDB endpoint: `GET /3/movie/{movie_id}/changes`.
-  /// Example payload:
-  /// ```json
-  /// {
-  ///   "changes": [
-  ///     {
-  ///       "key": "title",
-  ///       "items": [
-  ///         {
-  ///           "id": "533ec651c3a36854480003eb",
-  ///           "action": "updated",
-  ///           "time": "2013-04-03 23:00:45 UTC"
-  ///         }
-  ///       ]
-  ///     }
-  ///   ]
-  /// }
-  /// ```
-  Future<ChangesResponse> fetchMovieChanges(
-    int movieId, {
-    String? startDate,
-    String? endDate,
-    int page = 1,
-    bool forceRefresh = false,
-  }) {
-    final query = _buildChangeQuery(
-      page: page,
-      startDate: startDate,
-      endDate: endDate,
-    );
-    final cacheKey = [
-      'change',
-      'movie',
-      '$movieId',
-      query['page'] ?? '1',
-      query['start_date'] ?? '',
-      query['end_date'] ?? '',
-    ].join('::');
-    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
-
-    return _cached(
-      cacheKey,
-      () async {
-        final payload = await _getJson(
-          '/movie/$movieId/changes',
-          query: query,
-        );
-        return ChangesResponse.fromJson(payload);
-      },
-      forceRefresh: forceRefresh,
-      ttlSeconds: ttlSeconds,
-    );
-  }
-
-  /// Fetches the change history for a TV series.
-  ///
-  /// TMDB endpoint: `GET /3/tv/{series_id}/changes`.
-  /// Example response snippet:
-  /// ```json
-  /// {
-  ///   "changes": [
-  ///     { "key": "overview", "items": [ { "action": "updated" } ] }
-  ///   ]
-  /// }
-  /// ```
-  Future<ChangesResponse> fetchTvChanges(
-    int tvId, {
-    String? startDate,
-    String? endDate,
-    int page = 1,
-    bool forceRefresh = false,
-  }) {
-    final query = _buildChangeQuery(
-      page: page,
-      startDate: startDate,
-      endDate: endDate,
-    );
-    final cacheKey = [
-      'change',
-      'tv',
-      '$tvId',
-      query['page'] ?? '1',
-      query['start_date'] ?? '',
-      query['end_date'] ?? '',
-    ].join('::');
-    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
-
-    return _cached(
-      cacheKey,
-      () async {
-        final payload = await _getJson(
-          '/tv/$tvId/changes',
-          query: query,
-        );
-        return ChangesResponse.fromJson(payload);
-      },
-      forceRefresh: forceRefresh,
-      ttlSeconds: ttlSeconds,
-    );
-  }
-
-  /// Fetches the change history for a person profile (cast or crew).
-  ///
-  /// TMDB endpoint: `GET /3/person/{person_id}/changes`.
-  /// Example response snippet:
-  /// ```json
-  /// {
-  ///   "changes": [
-  ///     {
-  ///       "key": "biography",
-  ///       "items": [ { "action": "updated" } ]
-  ///     }
-  ///   ]
-  /// }
-  /// ```
-  Future<ChangesResponse> fetchPersonChanges(
-    int personId, {
-    String? startDate,
-    String? endDate,
-    int page = 1,
-    bool forceRefresh = false,
-  }) {
-    final query = _buildChangeQuery(
-      page: page,
-      startDate: startDate,
-      endDate: endDate,
-    );
-    final cacheKey = [
-      'change',
-      'person',
-      '$personId',
-      query['page'] ?? '1',
-      query['start_date'] ?? '',
-      query['end_date'] ?? '',
-    ].join('::');
-    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
-
-    return _cached(
-      cacheKey,
-      () async {
-        final payload = await _getJson(
-          '/person/$personId/changes',
-          query: query,
-        );
-        return ChangesResponse.fromJson(payload);
-      },
-      forceRefresh: forceRefresh,
-      ttlSeconds: ttlSeconds,
-    );
-  }
-
-  /// Retrieves IDs for movies that have changed recently.
-  ///
-  /// TMDB endpoint: `GET /3/movie/changes`.
-  /// Example payload:
-  /// ```json
-  /// {
-  ///   "results": [ { "id": 603, "adult": false } ]
-  /// }
-  /// ```
-  Future<PaginatedResponse<ChangeResource>> fetchMovieChangeList({
-    String? startDate,
-    String? endDate,
-    int page = 1,
-    bool forceRefresh = false,
-  }) {
-    final query = _buildChangeQuery(
-      page: page,
-      startDate: startDate,
-      endDate: endDate,
-    );
-    final cacheKey = [
-      'change_list',
-      'movie',
-      query['page'] ?? '1',
-      query['start_date'] ?? '',
-      query['end_date'] ?? '',
-    ].join('::');
-    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
-
-    return _cached(
-      cacheKey,
-      () async {
-        final payload = await _getJson(
-          '/movie/changes',
-          query: query,
-        );
-        return _mapPaginated<ChangeResource>(
-          payload,
-          ChangeResource.fromJson,
-        );
-      },
-      forceRefresh: forceRefresh,
-      ttlSeconds: ttlSeconds,
-    );
-  }
-
-  /// Retrieves IDs for TV series with recent metadata updates.
-  ///
-  /// TMDB endpoint: `GET /3/tv/changes`.
-  /// Example response snippet:
-  /// ```json
-  /// {
-  ///   "results": [ { "id": 1399 } ]
-  /// }
-  /// ```
-  Future<PaginatedResponse<ChangeResource>> fetchTvChangeList({
-    String? startDate,
-    String? endDate,
-    int page = 1,
-    bool forceRefresh = false,
-  }) {
-    final query = _buildChangeQuery(
-      page: page,
-      startDate: startDate,
-      endDate: endDate,
-    );
-    final cacheKey = [
-      'change_list',
-      'tv',
-      query['page'] ?? '1',
-      query['start_date'] ?? '',
-      query['end_date'] ?? '',
-    ].join('::');
-    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
-
-    return _cached(
-      cacheKey,
-      () async {
-        final payload = await _getJson(
-          '/tv/changes',
-          query: query,
-        );
-        return _mapPaginated<ChangeResource>(
-          payload,
-          ChangeResource.fromJson,
-        );
-      },
-      forceRefresh: forceRefresh,
-      ttlSeconds: ttlSeconds,
-    );
-  }
-
-  /// Retrieves IDs for people whose TMDB profiles changed recently.
-  ///
-  /// TMDB endpoint: `GET /3/person/changes`.
-  /// Example payload snippet:
-  /// ```json
-  /// {
-  ///   "results": [ { "id": 287, "adult": false } ]
-  /// }
-  /// ```
-  Future<PaginatedResponse<ChangeResource>> fetchPersonChangeList({
-    String? startDate,
-    String? endDate,
-    int page = 1,
-    bool includeAdult = false,
-    bool forceRefresh = false,
-  }) {
-    final query = _buildChangeQuery(
-      page: page,
-      startDate: startDate,
-      endDate: endDate,
-    );
-    if (includeAdult) {
-      query['include_adult'] = 'true';
-    }
-    final cacheKey = [
-      'change_list',
-      'person',
-      query['page'] ?? '1',
-      query['start_date'] ?? '',
-      query['end_date'] ?? '',
-      includeAdult ? 'adult' : 'safe',
-    ].join('::');
-    final ttlSeconds = _resolveTtlSeconds(CacheService.defaultTTL);
-
-    return _cached(
-      cacheKey,
-      () async {
-        final payload = await _getJson(
-          '/person/changes',
-          query: query,
-        );
-        return _mapPaginated<ChangeResource>(
-          payload,
-          ChangeResource.fromJson,
-        );
-      },
-      forceRefresh: forceRefresh,
-      ttlSeconds: ttlSeconds,
     );
   }
 

@@ -1475,7 +1475,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 ✅ **Seasons & Episodes**:
 - Season details, Episode details, Season credits, Season images/videos
 
-🔄 **Episode Groups UI**: Data available, UI not implemented
+- ✅ **Episode Groups UI**: Implemented (alternative orderings like DVD/story arcs available)
 
 #### People Section (V3 API) - 85% Complete
 ✅ **Browse & Search**:

@@ -1125,19 +1125,19 @@ All search types are fully implemented in repository and accessible via search p
 ---
 
 ### 8.2 Statistics & Visualization
-**Status**: 🔴 Not Started  
+**Status**: 🟢 100% Complete  
 **Priority**: LOW
 
 - [x] Watch time statistics
-- [ ] Charts for:
-  - Box office trends
-  - Rating distributions
-  - Release timelines
-  - Genre popularity
-  - Actor career timeline
-  - Budget vs revenue scatter
-  - Episode ratings graph
-  - Season comparison charts
+- [x] Charts for:
+  - [x] Box office trends
+  - [x] Rating distributions
+  - [x] Release timelines
+  - [x] Genre popularity
+  - [x] Actor career timeline
+  - [x] Budget vs revenue scatter
+  - [x] Episode ratings graph
+  - [x] Season comparison charts
 
 **Files to Create**:
 - `lib/presentation/screens/statistics/statistics_screen.dart`

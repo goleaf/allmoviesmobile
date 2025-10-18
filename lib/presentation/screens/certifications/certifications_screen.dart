@@ -6,304 +6,271 @@ import '../../../data/models/certification_model.dart';
 import '../../../providers/certifications_provider.dart';
 import '../../widgets/app_drawer.dart';
 
-/// Dedicated screen that visualizes TMDB certification catalogs for movies and TV.
+/// Screen that visualizes TMDB content ratings (certifications) for movies and
+/// television while also providing helper tools like filtering and quick age
+/// guidance cues.
 class CertificationsScreen extends StatefulWidget {
-  const CertificationsScreen({super.key});
-
-  /// Route identifier registered in `MaterialApp.routes`.
   static const routeName = '/certifications';
+
+  const CertificationsScreen({super.key});
 
   @override
   State<CertificationsScreen> createState() => _CertificationsScreenState();
 }
 
 class _CertificationsScreenState extends State<CertificationsScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  bool _didLoadInitialData = false;
+  late final TextEditingController _searchController;
+  String _searchTerm = '';
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_didLoadInitialData) {
-      return;
-    }
-
-    final provider = context.read<CertificationsProvider>();
-    _searchController
-      ..text = provider.searchQuery
-      ..addListener(() {
-        provider.updateSearchQuery(_searchController.text);
-      });
-
-    // Trigger the initial fetch after the first frame so the widget tree is ready.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      provider.loadAll();
+  void initState() {
+    super.initState();
+    _searchController = TextEditingController();
+    _searchController.addListener(_handleSearchChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      if (!mounted) return;
+      await context.read<CertificationsProvider>().ensureLoaded();
     });
-
-    _didLoadInitialData = true;
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_handleSearchChanged);
     _searchController.dispose();
     super.dispose();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final localizations = AppLocalizations.of(context);
+  /// Keeps local search state in sync with the text field so that filtering can
+  /// be performed efficiently without rebuilding the controller.
+  void _handleSearchChanged() {
+    final value = _searchController.text.trim().toLowerCase();
+    if (value == _searchTerm) {
+      return;
+    }
+    setState(() => _searchTerm = value);
+  }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(localizations.t('certifications.title')),
-      ),
-      drawer: const AppDrawer(),
-      body: Consumer<CertificationsProvider>(
-        builder: (context, provider, _) {
-          if (provider.isLoading && !provider.hasResults) {
-            return const Center(child: CircularProgressIndicator());
-          }
+  /// Builds the scaffold body with localized copy, loading indicators, filter
+  /// controls, and the tab views for movie and TV certifications.
+  Widget _buildBody(BuildContext context) {
+    final loc = AppLocalizations.of(context);
 
-          if (provider.errorMessage != null && !provider.hasResults) {
-            return _ErrorView(
-              message: provider.errorMessage!,
-              buttonLabel: localizations.t('common.retry'),
-              onRetry: provider.loadAll,
-            );
-          }
+    return Consumer<CertificationsProvider>(
+      builder: (context, provider, _) {
+        final movieEntries = _buildEntries(
+          provider.movieCertifications,
+          provider.selectedMovieCertification,
+          provider,
+        );
+        final tvEntries = _buildEntries(
+          provider.tvCertifications,
+          provider.selectedTvCertification,
+          provider,
+        );
+        final isLoading = provider.isLoadingMovies ||
+            provider.isLoadingTv ||
+            provider.isLoadingCountries;
 
-          return RefreshIndicator(
-            onRefresh: provider.refresh,
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
-              children: [
-                _HeaderSection(localizations: localizations),
-                const SizedBox(height: 12),
-                _SearchField(
-                  controller: _searchController,
-                  hintText: localizations.t('certifications.search_hint'),
-                ),
-                const SizedBox(height: 12),
-                _CountryDropdown(localizations: localizations),
-                const SizedBox(height: 12),
-                _MediaTypeSelector(localizations: localizations),
-                const SizedBox(height: 16),
-                _ResultsSummary(localizations: localizations),
-                const SizedBox(height: 12),
-                _CertificationsList(localizations: localizations),
-                if (provider.isLoading)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 24),
-                    child: Center(child: CircularProgressIndicator()),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _IntroBanner(message: loc.t('certifications.info_message')),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: TextField(
+                controller: _searchController,
+                textInputAction: TextInputAction.search,
+                decoration: InputDecoration(
+                  labelText: loc.t('certifications.search_hint'),
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: _searchTerm.isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.clear),
+                          onPressed: () => _searchController.clear(),
+                          tooltip: loc.t('common.clear'),
+                        ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-              ],
+                ),
+              ),
             ),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _HeaderSection extends StatelessWidget {
-  const _HeaderSection({required this.localizations});
-
-  final AppLocalizations localizations;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          localizations.t('certifications.subtitle'),
-          style: theme.textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 8),
-        Text(
-          localizations.t('certifications.instructions'),
-          style: theme.textTheme.bodySmall,
-        ),
-      ],
-    );
-  }
-}
-
-class _SearchField extends StatelessWidget {
-  const _SearchField({
-    required this.controller,
-    required this.hintText,
-  });
-
-  final TextEditingController controller;
-  final String hintText;
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<TextEditingValue>(
-      valueListenable: controller,
-      builder: (context, value, _) {
-        final hasQuery = value.text.isNotEmpty;
-        return TextField(
-          controller: controller,
-          textInputAction: TextInputAction.search,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search),
-            hintText: hintText,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-            suffixIcon: hasQuery
-                ? IconButton(
-                    tooltip: MaterialLocalizations.of(context).deleteButtonTooltip,
-                    icon: const Icon(Icons.clear),
-                    onPressed: controller.clear,
-                  )
-                : null,
-          ),
+            _FilterBar(
+              isLoading: isLoading,
+              movieOptions: provider.movieCertificationOptions(),
+              tvOptions: provider.tvCertificationOptions(),
+              movieSelection: provider.selectedMovieCertification,
+              tvSelection: provider.selectedTvCertification,
+              onMovieChanged: provider.setSelectedMovieCertification,
+              onTvChanged: provider.setSelectedTvCertification,
+            ),
+            if (provider.movieError != null ||
+                provider.tvError != null ||
+                provider.countryError != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                child: _ErrorBanner(
+                  messages: [
+                    if (provider.movieError != null) provider.movieError!,
+                    if (provider.tvError != null) provider.tvError!,
+                    if (provider.countryError != null) provider.countryError!,
+                  ],
+                ),
+              ),
+            Expanded(
+              child: DefaultTabController(
+                length: 2,
+                child: Column(
+                  children: [
+                    Material(
+                      color: Theme.of(context).colorScheme.surface,
+                      child: TabBar(
+                        tabs: [
+                          Tab(text: loc.t('certifications.movies_tab')),
+                          Tab(text: loc.t('certifications.tv_tab')),
+                        ],
+                      ),
+                    ),
+                    Expanded(
+                      child: TabBarView(
+                        children: [
+                          _CertificationList(
+                            entries: movieEntries,
+                            searchTerm: _searchTerm,
+                            emptyMessage: loc.t('certifications.empty_message'),
+                            onRefresh: () => provider.ensureLoaded(
+                              forceRefresh: true,
+                            ),
+                            loc: loc,
+                          ),
+                          _CertificationList(
+                            entries: tvEntries,
+                            searchTerm: _searchTerm,
+                            emptyMessage: loc.t('certifications.empty_message'),
+                            onRefresh: () => provider.ensureLoaded(
+                              forceRefresh: true,
+                            ),
+                            loc: loc,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
-}
 
-class _CountryDropdown extends StatelessWidget {
-  const _CountryDropdown({required this.localizations});
+  /// Transforms the raw certification map into a sorted list of country entries
+  /// while applying any active certification filter from the provider.
+  List<_CountryEntry> _buildEntries(
+    Map<String, List<Certification>> source,
+    String? selectedCertification,
+    CertificationsProvider provider,
+  ) {
+    final entries = <_CountryEntry>[];
+    final filterValue = selectedCertification?.toLowerCase();
 
-  final AppLocalizations localizations;
+    source.forEach((code, items) {
+      final filtered = filterValue == null
+          ? items
+          : items
+              .where((cert) =>
+                  (cert.certification.isEmpty ? 'nr' : cert.certification)
+                      .toLowerCase() ==
+                  filterValue)
+              .toList();
+      if (filtered.isEmpty) {
+        return;
+      }
+      entries.add(
+        _CountryEntry(
+          code: code.toUpperCase(),
+          name: provider.countryName(code),
+          certifications: filtered,
+        ),
+      );
+    });
+
+    entries.sort((a, b) => a.name.compareTo(b.name));
+    return entries;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CertificationsProvider>();
+    final loc = AppLocalizations.of(context);
 
-    final countries = provider.countries;
-    final items = countries
-        .map(
-          (country) => DropdownMenuItem<String?>(
-            value: country.code,
-            child: Text(country.englishName),
-          ),
-        )
-        .toList();
-
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: localizations.t('certifications.filter_country'),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<String?>(
-          value: provider.selectedCountryCode,
-          hint: Text(localizations.t('certifications.filter_all_countries')),
-          isExpanded: true,
-          items: [
-            DropdownMenuItem<String?>(
-              value: null,
-              child: Text(localizations.t('certifications.filter_all_countries')),
-            ),
-            ...items,
-          ],
-          onChanged: provider.selectCountry,
-        ),
-      ),
+    return Scaffold(
+      appBar: AppBar(title: Text(loc.t('certifications.title'))),
+      drawer: const AppDrawer(),
+      body: _buildBody(context),
     );
   }
 }
 
-class _MediaTypeSelector extends StatelessWidget {
-  const _MediaTypeSelector({required this.localizations});
+/// Presentation widget that renders the combined list of certifications per
+/// country with optional pull-to-refresh support.
+class _CertificationList extends StatelessWidget {
+  const _CertificationList({
+    required this.entries,
+    required this.searchTerm,
+    required this.emptyMessage,
+    required this.onRefresh,
+    required this.loc,
+  });
 
-  final AppLocalizations localizations;
+  final List<_CountryEntry> entries;
+  final String searchTerm;
+  final String emptyMessage;
+  final Future<void> Function() onRefresh;
+  final AppLocalizations loc;
+
+  /// Applies the free-text search filter against country names, ISO codes, and
+  /// certification labels/meanings.
+  List<_CountryEntry> _applySearchFilter() {
+    if (searchTerm.isEmpty) {
+      return entries;
+    }
+    final query = searchTerm.toLowerCase();
+    return entries.where((entry) {
+      if (entry.name.toLowerCase().contains(query) ||
+          entry.code.toLowerCase().contains(query)) {
+        return true;
+      }
+      return entry.certifications.any((cert) {
+        final label = cert.certification.isEmpty ? 'NR' : cert.certification;
+        return label.toLowerCase().contains(query) ||
+            cert.meaning.toLowerCase().contains(query);
+      });
+    }).toList();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<CertificationsProvider>();
+    final filtered = _applySearchFilter();
     final theme = Theme.of(context);
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ChoiceChip(
-          label: Text(localizations.t('certifications.media_movies')),
-          selected: provider.activeMediaType == CertificationMediaType.movie,
-          onSelected: (_) =>
-              context.read<CertificationsProvider>().updateMediaType(CertificationMediaType.movie),
-        ),
-        const SizedBox(width: 8),
-        ChoiceChip(
-          label: Text(localizations.t('certifications.media_tv')),
-          selected: provider.activeMediaType == CertificationMediaType.tv,
-          onSelected: (_) =>
-              context.read<CertificationsProvider>().updateMediaType(CertificationMediaType.tv),
-        ),
-        const SizedBox(width: 8),
-        if (provider.selectedCountryCode != null)
-          Chip(
-            avatar: const Icon(Icons.flag_outlined, size: 16),
-            label: Text(
-              provider.countryNameOf(provider.selectedCountryCode!),
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _ResultsSummary extends StatelessWidget {
-  const _ResultsSummary({required this.localizations});
-
-  final AppLocalizations localizations;
-
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<CertificationsProvider>();
-    final entries = provider.filteredEntries;
-    final total = entries.fold<int>(0, (sum, entry) => sum + entry.certifications.length);
-
-    final templateKey = provider.activeMediaType == CertificationMediaType.movie
-        ? 'certifications.result_movies'
-        : 'certifications.result_tv';
-    final summary = localizations.t(templateKey).replaceFirst('{count}', '$total');
-
-    return Row(
-      children: [
-        Icon(
-          Icons.verified_user_outlined,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            summary,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _CertificationsList extends StatelessWidget {
-  const _CertificationsList({required this.localizations});
-
-  final AppLocalizations localizations;
-
-  @override
-  Widget build(BuildContext context) {
-    final provider = context.watch<CertificationsProvider>();
-    final entries = provider.filteredEntries;
-
-    if (entries.isEmpty) {
-      return Padding(
-        padding: const EdgeInsets.only(top: 24),
-        child: Column(
+    if (filtered.isEmpty) {
+      return RefreshIndicator(
+        onRefresh: onRefresh,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(32),
           children: [
-            Icon(Icons.report_outlined, color: Theme.of(context).colorScheme.error),
-            const SizedBox(height: 8),
+            Icon(
+              Icons.info_outline,
+              size: 48,
+              color: theme.colorScheme.primary,
+            ),
+            const SizedBox(height: 12),
             Text(
-              localizations.t('certifications.empty'),
+              emptyMessage,
+              style: theme.textTheme.bodyLarge,
               textAlign: TextAlign.center,
             ),
           ],
@@ -311,205 +278,297 @@ class _CertificationsList extends StatelessWidget {
       );
     }
 
-    return Column(
-      children: [
-        for (final entry in entries)
-          _CertificationCountryCard(
-            data: entry,
-            localizations: localizations,
-          ),
-      ],
+    return RefreshIndicator(
+      onRefresh: onRefresh,
+      child: ListView.builder(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+        itemCount: filtered.length,
+        itemBuilder: (context, index) {
+          final entry = filtered[index];
+          return _CountryCard(entry: entry, loc: loc);
+        },
+      ),
     );
   }
 }
 
-class _CertificationCountryCard extends StatelessWidget {
-  const _CertificationCountryCard({
-    required this.data,
-    required this.localizations,
+/// Compact information card for a single country's certifications with clear
+/// age warnings based on the underlying rating labels.
+class _CountryCard extends StatelessWidget {
+  const _CountryCard({
+    required this.entry,
+    required this.loc,
   });
 
-  final CertificationCountryData data;
-  final AppLocalizations localizations;
-
-  /// Generates a short age guidance description by inspecting the rating label.
-  String _buildAgeGuidance(Certification certification) {
-    final rating = certification.certification.trim();
-    final meaning = certification.meaning.trim();
-    final digitsRegExp = RegExp(r'(\d{1,2})');
-    final digitMatch = digitsRegExp.firstMatch(rating) ?? digitsRegExp.firstMatch(meaning);
-
-    if (digitMatch != null) {
-      return localizations
-          .t('certifications.age_template')
-          .replaceFirst('{age}', digitMatch.group(0)!);
-    }
-
-    final lower = rating.toLowerCase();
-    if (lower == 'g' || lower.contains('general')) {
-      return localizations.t('certifications.age_all');
-    }
-    if (lower.contains('pg')) {
-      return localizations.t('certifications.age_pg');
-    }
-    if (lower.contains('r') || lower.contains('restricted')) {
-      return localizations.t('certifications.age_restricted');
-    }
-    if (lower.contains('nc') || lower.contains('x')) {
-      return localizations.t('certifications.age_no_children');
-    }
-
-    return localizations.t('certifications.age_generic');
-  }
+  final _CountryEntry entry;
+  final AppLocalizations loc;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      elevation: 2,
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.flag_outlined, color: theme.colorScheme.primary),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        data.countryName,
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      Text(
-                        localizations
-                            .t('certifications.country_code')
-                            .replaceFirst('{code}', data.countryCode),
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
+      child: ExpansionTile(
+        key: PageStorageKey('certifications-${entry.code}'),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16),
+        title: Text('${entry.name} (${entry.code})'),
+        subtitle: Text('${entry.certifications.length} ratings'),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+        children: entry.certifications.map((cert) {
+          final badge = _AgeBadge.fromCertification(cert, loc);
+          final label = cert.certification.isEmpty ? 'NR' : cert.certification;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: theme.colorScheme.surfaceVariant,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: badge.color.withOpacity(.18),
+                  child: Text(
+                    label,
+                    style: theme.textTheme.labelLarge?.copyWith(
+                      color: badge.color,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            for (final cert in data.certifications)
-              _CertificationTile(
-                certification: cert,
-                guidance: _buildAgeGuidance(cert),
-                localizations: localizations,
+                title: Text(cert.meaning),
+                subtitle: Text(badge.warning),
               ),
-          ],
-        ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 }
 
-class _CertificationTile extends StatelessWidget {
-  const _CertificationTile({
-    required this.certification,
-    required this.guidance,
-    required this.localizations,
+/// Simple value class used to keep a country's ISO code, human readable name,
+/// and associated certifications grouped together.
+class _CountryEntry {
+  const _CountryEntry({
+    required this.code,
+    required this.name,
+    required this.certifications,
   });
 
-  final Certification certification;
-  final String guidance;
-  final AppLocalizations localizations;
+  final String code;
+  final String name;
+  final List<Certification> certifications;
+}
+
+/// Represents the severity of a certification and the recommended warning text
+/// that should be shown alongside it.
+class _AgeBadge {
+  const _AgeBadge({required this.color, required this.warning});
+
+  final Color color;
+  final String warning;
+
+  /// Computes an appropriate warning level using common TMDB rating labels.
+  static _AgeBadge fromCertification(
+    Certification certification,
+    AppLocalizations loc,
+  ) {
+    final value = certification.certification.toUpperCase();
+    if (value.contains('NC') ||
+        value.contains('18') ||
+        value.contains('R') ||
+        value.contains('MA')) {
+      return _AgeBadge(
+        color: Colors.red.shade600,
+        warning: loc.t('certifications.warning_mature'),
+      );
+    }
+    if (value.contains('PG-13') ||
+        value.contains('TV-14') ||
+        value.contains('15')) {
+      return _AgeBadge(
+        color: Colors.orange.shade700,
+        warning: loc.t('certifications.warning_parental'),
+      );
+    }
+    if (value.trim().isEmpty || value == 'NR') {
+      return _AgeBadge(
+        color: Colors.blueGrey.shade600,
+        warning: loc.t('certifications.warning_unrated'),
+      );
+    }
+    return _AgeBadge(
+      color: Colors.green.shade700,
+      warning: loc.t('certifications.warning_general'),
+    );
+  }
+}
+
+/// Helper banner displayed at the top of the screen to provide quick context.
+class _IntroBanner extends StatelessWidget {
+  const _IntroBanner({required this.message});
+
+  final String message;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(12),
-              color: theme.colorScheme.primaryContainer,
-            ),
-            alignment: Alignment.center,
-            child: Text(
-              certification.certification.isEmpty
-                  ? localizations.t('certifications.not_applicable')
-                  : certification.certification,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.bold,
+    return Material(
+      color: theme.colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.verified_user_outlined,
+                color: theme.colorScheme.onPrimaryContainer),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
               ),
-              textAlign: TextAlign.center,
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  certification.meaning,
-                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  guidance,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.colorScheme.secondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-class _ErrorView extends StatelessWidget {
-  const _ErrorView({
-    required this.message,
-    required this.buttonLabel,
-    required this.onRetry,
-  });
+/// Displays a short, accessible error summary when certification fetches fail.
+class _ErrorBanner extends StatelessWidget {
+  const _ErrorBanner({required this.messages});
 
-  final String message;
-  final String buttonLabel;
-  final Future<void> Function({bool forceRefresh})? onRetry;
+  final List<String> messages;
 
   @override
   Widget build(BuildContext context) {
-    return Center(
+    final theme = Theme.of(context);
+    final color = theme.colorScheme.error;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: color.withOpacity(.08),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(12),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.wifi_off_outlined, color: Theme.of(context).colorScheme.error),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton.icon(
-              onPressed: () => onRetry?.call(forceRefresh: true),
-              icon: const Icon(Icons.refresh),
-              label: Text(buttonLabel),
-            ),
-          ],
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: messages
+              .where((message) => message.trim().isNotEmpty)
+              .map(
+                (message) => Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Text(
+                    message,
+                    style: theme.textTheme.bodySmall?.copyWith(color: color),
+                  ),
+                ),
+              )
+              .toList(),
         ),
+      ),
+    );
+  }
+}
+
+/// Reusable row of filter controls displayed under the search box.
+class _FilterBar extends StatelessWidget {
+  const _FilterBar({
+    required this.isLoading,
+    required this.movieOptions,
+    required this.tvOptions,
+    required this.movieSelection,
+    required this.tvSelection,
+    required this.onMovieChanged,
+    required this.onTvChanged,
+  });
+
+  final bool isLoading;
+  final List<String> movieOptions;
+  final List<String> tvOptions;
+  final String? movieSelection;
+  final String? tvSelection;
+  final ValueChanged<String?> onMovieChanged;
+  final ValueChanged<String?> onTvChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+
+    Widget buildDropdown({
+      required String label,
+      required List<String> items,
+      required String? selection,
+      required ValueChanged<String?> onChanged,
+    }) {
+      return Expanded(
+        child: InputDecorator(
+          decoration: InputDecoration(
+            labelText: label,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String?>(
+              isExpanded: true,
+              value: selection,
+              hint: Text(loc.t('certifications.filter_all')),
+              items: [
+                DropdownMenuItem<String?>(
+                  value: null,
+                  child: Text(loc.t('certifications.filter_all')),
+                ),
+                ...items.map(
+                  (value) => DropdownMenuItem<String?>(
+                    value: value,
+                    child: Text(value),
+                  ),
+                ),
+              ],
+              onChanged: onChanged,
+            ),
+          ),
+        ),
+      );
+      }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: Row(
+        children: [
+          if (isLoading)
+            const Padding(
+              padding: EdgeInsets.only(right: 12),
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+          buildDropdown(
+            label: loc.t('certifications.filter_label_movies'),
+            items: movieOptions,
+            selection: movieSelection,
+            onChanged: onMovieChanged,
+          ),
+          const SizedBox(width: 12),
+          buildDropdown(
+            label: loc.t('certifications.filter_label_tv'),
+            items: tvOptions,
+            selection: tvSelection,
+            onChanged: onTvChanged,
+          ),
+        ],
       ),
     );
   }

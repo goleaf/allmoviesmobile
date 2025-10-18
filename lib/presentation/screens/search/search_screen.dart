@@ -383,23 +383,34 @@ class _SearchScreenState extends State<SearchScreen> {
           final crossAxisCount = width >= 900 ? 3 : 2;
           final childAspectRatio = width >= 900 ? 0.65 : 0.7;
 
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: childAspectRatio,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
-            ),
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= provider.results.length) {
-                return const _SearchResultShimmerCard();
+          return RefreshIndicator(
+            onRefresh: () async {
+              final query = provider.query.trim();
+              if (query.isEmpty) {
+                return;
               }
 
-              final result = provider.results[index];
-              return _SearchResultCard(result: result);
+              await provider.search(query, forceRefresh: true);
             },
+            child: GridView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount,
+                childAspectRatio: childAspectRatio,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+              ),
+              itemCount: itemCount,
+              itemBuilder: (context, index) {
+                if (index >= provider.results.length) {
+                  return const _SearchResultShimmerCard();
+                }
+
+                final result = provider.results[index];
+                return _SearchResultCard(result: result);
+              },
+            ),
           );
         },
       ),

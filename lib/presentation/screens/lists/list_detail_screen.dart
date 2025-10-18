@@ -7,6 +7,7 @@ import '../../../data/models/user_list.dart';
 import '../../../providers/lists_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/media_image.dart';
+import '../../../core/utils/media_image_helper.dart';
 import 'widgets/list_editor_sheet.dart';
 
 class ListDetailScreen extends StatefulWidget {
@@ -47,8 +48,8 @@ class _ListDetailScreenState extends State<ListDetailScreen> {
               title: 'List unavailable',
               message:
                   'The list you are trying to open could not be found. It may have been deleted or you no longer have access.',
-              actionLabel: 'Go back',
-              onActionPressed: () => Navigator.of(context).pop(),
+            actionLabel: 'Go back',
+            onAction: () => Navigator.of(context).pop(),
             ),
           );
         }

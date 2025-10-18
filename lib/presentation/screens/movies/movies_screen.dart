@@ -454,7 +454,7 @@ class _MoviesSectionViewState extends State<_MoviesSectionView> {
                         key: const ValueKey('movies-section-content'),
                         onRefresh: () => widget.onRefreshAll(context),
                         child: _MoviesList(
-                          key: ValueKey('movies-list-${widget.section.name}'),
+                          // list key retained internally
                           movies: state.items,
                           emptyMessage: AppLocalizations.of(context)
                               .t('search.no_results'),
@@ -526,7 +526,7 @@ class _MoviesList extends StatefulWidget {
 }
 
 class _MoviesListSkeleton extends StatelessWidget {
-  const _MoviesListSkeleton();
+  const _MoviesListSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {

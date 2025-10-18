@@ -27,7 +27,6 @@ class CompressedImageCacheManager extends CacheManager {
     String? fileExtension,
     String? eTag,
     Duration maxAge = const Duration(days: 30),
-    String? fileServiceKey,
   }) async {
     final shouldCompress = fileBytes.length > _compressionThresholdBytes;
     Uint8List effectiveBytes = fileBytes;
@@ -44,14 +43,14 @@ class CompressedImageCacheManager extends CacheManager {
       }
     }
 
-    return super.putFile(
+    final info = await super.putFile(
       url,
       effectiveBytes,
       key: key,
-      fileExtension: fileExtension,
+      fileExtension: fileExtension ?? 'jpg',
       eTag: eTag,
       maxAge: maxAge,
-      fileServiceKey: fileServiceKey,
     );
+    return info;
   }
 }

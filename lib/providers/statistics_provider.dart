@@ -143,7 +143,7 @@ class StatisticsSnapshot {
     required this.seasonComparisons,
   });
 
-  factory StatisticsSnapshot.empty() => const StatisticsSnapshot(
+  factory StatisticsSnapshot.empty() => StatisticsSnapshot(
         generatedAt: DateTime.fromMillisecondsSinceEpoch(0),
         totalTitles: 0,
         watchTime: WatchTimeStatistics.empty(),

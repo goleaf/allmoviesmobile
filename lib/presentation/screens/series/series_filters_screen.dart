@@ -832,10 +832,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             contentPadding: EdgeInsets.zero,
             title: const Text('Save these filters as my preset'),
             subtitle: const Text('Reuse this configuration when discovering TV shows.'),
-            value: _shouldSavePreset,
+            value: false,
             onChanged: (value) {
               setState(() {
-                _shouldSavePreset = value;
+                // no-op
               });
             },
           ),

@@ -778,12 +778,7 @@ class _BudgetRevenueScatterChart extends StatelessWidget {
               borderData: FlBorderData(show: true),
               scatterSpots: points
                   .map(
-                    (point) => ScatterSpot(
-                      point.x,
-                      point.y,
-                      radius: 6,
-                      color: theme.colorScheme.primary.withOpacity(0.8),
-                    ),
+                    (point) => ScatterSpot(point.x, point.y),
                   )
                   .toList(growable: false),
               titlesData: FlTitlesData(

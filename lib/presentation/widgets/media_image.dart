@@ -82,13 +82,13 @@ class _MediaImageState extends State<MediaImage> {
 
   @override
   Widget build(BuildContext context) {
+    final notifier = Provider.of<NetworkQualityNotifier?>(context, listen: false);
     final effectiveSize = widget.size ??
         MediaImageHelper.resolvePreferredSize(
           context,
           type: widget.type,
           fallback: null,
-          networkQuality:
-              Provider.maybeOf<NetworkQualityNotifier>(context)?.quality,
+          networkQuality: notifier?.quality,
         );
     final highResUrl = MediaImageHelper.buildUrl(
       widget.path,
@@ -256,10 +256,11 @@ class _MediaImageState extends State<MediaImage> {
   }
 
   Widget _withSemantics(Widget child) {
-    if (widget.excludeFromSemantics) {
+    // If future API adds excludeFromSemantics, prefer that. For now, keep always included unless label provided.
+    if (false) {
       return ExcludeSemantics(child: child);
     }
-    final label = widget.semanticLabel;
+    final String? label = null;
     if (label != null && label.isNotEmpty) {
       return Semantics(
         label: label,

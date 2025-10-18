@@ -59,7 +59,13 @@ class FirebaseAnalyticsService implements AnalyticsService {
     String name, {
     Map<String, Object?> parameters = const <String, Object?>{},
   }) async {
-    final payload = parameters.isEmpty ? null : Map<String, Object?>.from(parameters);
+    final Map<String, Object>? payload = parameters.isEmpty
+        ? null
+        : Map<String, Object>.fromEntries(
+            parameters.entries.where((e) => e.value is Object).map(
+                  (e) => MapEntry<String, Object>(e.key, e.value as Object),
+                ),
+          );
     try {
       await _analytics.logEvent(name: name, parameters: payload);
     } catch (error, stackTrace) {

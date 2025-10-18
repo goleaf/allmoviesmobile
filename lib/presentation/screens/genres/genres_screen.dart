@@ -48,7 +48,7 @@ class _GenresScreenState extends State<GenresScreen> {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context);
-    final strings = localization.genreBrowser;
+    final strings = localization.genres;
 
     return DefaultTabController(
       length: 2,
@@ -84,7 +84,7 @@ class _GenreTab extends StatelessWidget {
     return Consumer<GenresProvider>(
       builder: (context, provider, _) {
         final localization = AppLocalizations.of(context);
-        final strings = localization.genreBrowser;
+        final strings = localization.genres;
         final genres = isTv ? provider.tvGenres : provider.movieGenres;
         final isLoading = isTv ? provider.isLoadingTv : provider.isLoadingMovies;
         final error = isTv ? provider.tvError : provider.movieError;
@@ -156,7 +156,7 @@ class _GenreTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context);
-    final strings = localization.genreBrowser;
+    final strings = localization.genres;
 
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 6),

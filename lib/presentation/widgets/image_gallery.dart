@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../core/utils/media_image_helper.dart';
@@ -111,12 +112,12 @@ class _ImageGalleryState extends State<ImageGallery> {
           _EdgeGradientOverlay(
             position: EdgeGradientPosition.top,
             isVisible: _showChrome,
-            safePadding: safePadding,
+                    safePadding: MediaQuery.of(context).padding,
           ),
           _EdgeGradientOverlay(
             position: EdgeGradientPosition.bottom,
             isVisible: _showChrome,
-            safePadding: safePadding,
+                    safePadding: MediaQuery.of(context).padding,
           ),
         ],
       ),

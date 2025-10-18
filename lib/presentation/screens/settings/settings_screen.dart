@@ -354,7 +354,7 @@ class _FocusIndicatorsTile extends StatelessWidget {
       value: provider.showFocusIndicators,
       onChanged: (value) => context
           .read<AccessibilityProvider>()
-          .setShowFocusIndicators(value),
+          .toggleFocusIndicators(value),
     );
   }
 }
@@ -374,7 +374,7 @@ class _KeyboardNavigationTile extends StatelessWidget {
       value: provider.enableKeyboardNavigation,
       onChanged: (value) => context
           .read<AccessibilityProvider>()
-          .setEnableKeyboardNavigation(value),
+          .toggleKeyboardNavigation(value),
     );
   }
 }

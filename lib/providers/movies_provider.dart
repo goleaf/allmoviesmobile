@@ -229,7 +229,7 @@ class MoviesProvider extends ChangeNotifier {
     _discoverFilters = _storage?.getDiscoverFilters();
     final savedPages = {
       for (final section in MovieSection.values)
-        section: _storage?.getMoviesPageIndex(section.name) ?? 1,
+        section: _storage?.getPageIndex('movies', section.name) ?? 1,
     };
     await refresh(force: true);
     for (final entry in savedPages.entries) {
@@ -703,7 +703,7 @@ class MoviesProvider extends ChangeNotifier {
       );
 
       if (persist && isForeground) {
-        _storage?.setMoviesPageIndex(section.name, page);
+        _storage?.setPageIndex('movies', section.name, page);
       }
     } catch (error) {
       final updatedInflight = {...inflight}..remove(page);

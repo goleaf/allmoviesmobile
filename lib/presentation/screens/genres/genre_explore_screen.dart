@@ -59,7 +59,7 @@ class _GenreExploreView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final localization = AppLocalizations.of(context);
-    final strings = localization.genreBrowser;
+    final strings = localization.genres;
     final mediaLabel = args.mediaType == MediaType.movie
         ? strings['movies_tab'] ?? localization.navigation['movies'] ?? 'Movies'
         : strings['tv_tab'] ?? localization.navigation['series'] ?? 'TV Shows';

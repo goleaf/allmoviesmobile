@@ -16,7 +16,7 @@ class AppLocalizations {
     if (instance != null) return instance;
     // Fallback instance for tests or contexts without Localizations
     final fallback = AppLocalizations(const Locale('en'));
-    fallback._localizedStrings = const <String, dynamic>{
+    fallback._localizedStrings = <String, dynamic>{
       'app': {'name': 'AllMovies'},
       'navigation': {
         'movies': 'Movies',

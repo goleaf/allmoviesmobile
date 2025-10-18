@@ -54,7 +54,8 @@ class TmdbRepository {
             return provided;
           }
           return AppConfig.tmdbApiKey;
-       })() {
+       })(),
+        _networkQualityNotifier = networkQualityNotifier {
     if (_cache != null) {
       MemoryOptimizer.instance.registerCacheService(_cache);
       _cache!
@@ -92,10 +93,11 @@ class TmdbRepository {
   final NetworkQualityNotifier? _networkQualityNotifier;
   final String _apiKey;
   final String _language;
-  final RateLimiter _globalRateLimiter = RateLimiter(
-    const Duration(milliseconds: 250),
+  final RequestThrottler _requestThrottler = RequestThrottler(
+    maxConcurrent: 6,
+    maxRequestsPerInterval: 12,
+    interval: const Duration(seconds: 1),
   );
-  final Map<String, RateLimiter> _endpointLimiters = {};
   final Map<String, Future<dynamic>> _inFlight = {};
   Duration _networkAwareDelay = Duration.zero;
   final Map<String, Future<void>> _pendingRevalidations = {};
@@ -185,19 +187,13 @@ class TmdbRepository {
       }
     }
 
-    final limiter = _endpointLimiters.putIfAbsent(
-      endpoint,
-      () => RateLimiter(const Duration(milliseconds: 250)),
-    );
     final key = uri.toString();
     final existing = _inFlight[key];
     if (existing != null) {
       return existing;
     }
 
-    final future = _globalRateLimiter.schedule(
-      () => limiter.schedule(request),
-    );
+    final future = _requestThrottler.schedule(request);
     _inFlight[key] = future;
 
     return future.whenComplete(() {

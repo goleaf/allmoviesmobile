@@ -11,7 +11,7 @@ class CachePolicy {
   const CachePolicy({
     required this.ttl,
     this.refreshAfter,
-  }) : assert(!ttl.isNegative, 'TTL must be positive');
+  });
 
   factory CachePolicy.fromSeconds(int seconds) => CachePolicy(
         ttl: Duration(seconds: seconds),

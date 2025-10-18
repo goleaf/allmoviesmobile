@@ -207,6 +207,9 @@ class _AppNavigationShellState extends State<AppNavigationShell> {
           arguments: link.searchQuery,
         );
         break;
+      case DeepLinkType.tmdbV4Auth:
+        // Auth callback handled elsewhere; ignore here
+        break;
     }
   }
 

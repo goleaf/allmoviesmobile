@@ -75,7 +75,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
   ) {
     if (provider.watchlistItems.isEmpty) {
       return RefreshIndicator(
-        onRefresh: provider.refresh,
+        onRefresh: () async => provider.loadFromStorage(),
         child: ListView(
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.symmetric(vertical: 64, horizontal: 16),
@@ -106,7 +106,7 @@ class _WatchlistScreenState extends State<WatchlistScreen> {
     final addedAtById = {for (final item in filtered) item.id: item.addedAt};
 
     return RefreshIndicator(
-      onRefresh: provider.refresh,
+      onRefresh: () async => provider.loadFromStorage(),
       child: _WatchlistList(
         ids: filtered.map((e) => e.id).toList(growable: false),
         sortMode: _sortMode,
@@ -392,7 +392,7 @@ class _WatchlistListState extends State<_WatchlistList> {
             const Divider(height: 1),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: provider.refreshWatchlist,
+                onRefresh: () async => provider.loadFromStorage(),
                 child: ListView.separated(
                   physics: const AlwaysScrollableScrollPhysics(),
                   padding: const EdgeInsets.all(16),

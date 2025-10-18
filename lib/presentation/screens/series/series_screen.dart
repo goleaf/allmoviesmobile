@@ -12,6 +12,7 @@ import '../../widgets/app_drawer.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../series/series_filters_screen.dart';
 import '../../widgets/virtualized_list_view.dart';
+import '../../widgets/loading_indicator.dart';
 
 class SeriesScreen extends StatefulWidget {
   static const routeName = '/series';
@@ -480,6 +481,9 @@ class _SeriesListSkeleton extends StatelessWidget {
     final theme = Theme.of(context);
     final cardColor = theme.colorScheme.surfaceVariant;
     final chipColor = theme.colorScheme.secondaryContainer;
+    final cardHighlight = Color.lerp(cardColor, theme.colorScheme.surface, 0.5)!;
+    final chipHighlight =
+        Color.lerp(chipColor, theme.colorScheme.surface, 0.5)!;
 
     return ListView.separated(
       physics: const AlwaysScrollableScrollPhysics(),
@@ -496,7 +500,13 @@ class _SeriesListSkeleton extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(radius: 20, backgroundColor: cardColor),
+                    ShimmerLoading(
+                      width: 40,
+                      height: 40,
+                      borderRadius: BorderRadius.circular(20),
+                      baseColor: Color.lerp(cardColor, Colors.black, 0.08)!,
+                      highlightColor: cardHighlight,
+                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
@@ -506,12 +516,14 @@ class _SeriesListSkeleton extends StatelessWidget {
                             width: double.infinity,
                             height: 16,
                             color: cardColor,
+                            highlightColor: cardHighlight,
                           ),
                           const SizedBox(height: 8),
                           _SkeletonBox(
                             width: 140,
                             height: 12,
                             color: cardColor,
+                            highlightColor: cardHighlight,
                           ),
                         ],
                       ),
@@ -529,7 +541,8 @@ class _SeriesListSkeleton extends StatelessWidget {
                       child: _SkeletonBox(
                         width: 28,
                         height: 12,
-                        color: chipColor.withOpacity(0.6),
+                        color: chipColor,
+                        highlightColor: chipHighlight,
                       ),
                     ),
                   ],
@@ -539,15 +552,22 @@ class _SeriesListSkeleton extends StatelessWidget {
                   width: double.infinity,
                   height: 12,
                   color: cardColor,
+                  highlightColor: cardHighlight,
                 ),
                 const SizedBox(height: 6),
                 _SkeletonBox(
                   width: double.infinity,
                   height: 12,
                   color: cardColor,
+                  highlightColor: cardHighlight,
                 ),
                 const SizedBox(height: 6),
-                _SkeletonBox(width: 180, height: 12, color: cardColor),
+                _SkeletonBox(
+                  width: 180,
+                  height: 12,
+                  color: cardColor,
+                  highlightColor: cardHighlight,
+                ),
               ],
             ),
           ),
@@ -562,21 +582,27 @@ class _SkeletonBox extends StatelessWidget {
     required this.width,
     required this.height,
     required this.color,
+    this.highlightColor,
+    this.borderRadius,
   });
 
   final double width;
   final double height;
   final Color color;
+  final Color? highlightColor;
+  final BorderRadius? borderRadius;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final baseColor = Color.lerp(color, Colors.black, 0.08)!;
+    final shimmerHighlight =
+        highlightColor ?? Color.lerp(color, Colors.white, 0.25)!;
+    return ShimmerLoading(
       width: width,
       height: height,
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(6),
-      ),
+      borderRadius: borderRadius ?? BorderRadius.circular(6),
+      baseColor: baseColor,
+      highlightColor: shimmerHighlight,
     );
   }
 }

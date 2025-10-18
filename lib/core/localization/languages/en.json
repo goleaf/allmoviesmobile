@@ -88,7 +88,9 @@
     "not_helpful": "Not helpful",
     "helpful_votes": "Helpful votes",
     "read_full": "Read full review",
-    "load_more": "Load more"
+    "load_more": "Load more",
+    "posted_on": "Posted {date}",
+    "updated_on": "Updated {date}"
   },
   "share": {
     "title": "Share link",

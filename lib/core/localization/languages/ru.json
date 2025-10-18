@@ -74,6 +74,24 @@
     "remove_from_watchlist": "Убрать из Списка Просмотра",
     "share": "Поделиться"
   },
+  "reviews": {
+    "title": "Отзывы пользователей",
+    "empty": "Отзывов пока нет",
+    "filter_label": "Рейтинг",
+    "sort_label": "Сортировать",
+    "sort_newest": "Сначала новые",
+    "sort_highest": "С наивысшей оценкой",
+    "report": "Пожаловаться",
+    "reported": "Жалоба отправлена",
+    "report_success": "Спасибо, мы это проверим.",
+    "helpful": "Полезно",
+    "not_helpful": "Не полезно",
+    "helpful_votes": "Полезные оценки",
+    "read_full": "Читать полностью",
+    "load_more": "Загрузить ещё",
+    "posted_on": "Опубликовано {date}",
+    "updated_on": "Обновлено {date}"
+  },
   "share": {
     "title": "Поделиться ссылкой",
     "copy_link": "Скопировать ссылку",

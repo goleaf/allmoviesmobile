@@ -74,6 +74,24 @@
     "remove_from_watchlist": "Прибрати зі Списку Перегляду",
     "share": "Поділитися"
   },
+  "reviews": {
+    "title": "Відгуки користувачів",
+    "empty": "Ще немає відгуків",
+    "filter_label": "Рейтинг",
+    "sort_label": "Сортувати",
+    "sort_newest": "Найновіші",
+    "sort_highest": "Найвища оцінка",
+    "report": "Поскаржитися",
+    "reported": "Скаргу надіслано",
+    "report_success": "Дякуємо, ми це переглянемо.",
+    "helpful": "Корисно",
+    "not_helpful": "Не корисно",
+    "helpful_votes": "Корисні оцінки",
+    "read_full": "Читати повністю",
+    "load_more": "Завантажити ще",
+    "posted_on": "Опубліковано {date}",
+    "updated_on": "Оновлено {date}"
+  },
   "share": {
     "title": "Поділитися посиланням",
     "copy_link": "Скопіювати посилання",

@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:intl/intl.dart';
 // Video player screen not available in this build; open external instead
 import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/share_link_sheet.dart';
@@ -1598,6 +1599,26 @@ class _ReviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reviewsProvider = context.watch<ReviewListProvider>();
+    final loc = AppLocalizations.of(context);
+    final localeName = Localizations.localeOf(context).toLanguageTag();
+    final createdAt = DateTime.tryParse(review.createdAt)?.toLocal();
+    final updatedAt =
+        review.updatedAt != null ? DateTime.tryParse(review.updatedAt!)?.toLocal() : null;
+    final dateFormat = DateFormat.yMMMd(localeName);
+    String? timestampLabel;
+    if (createdAt != null) {
+      final createdLabel = loc
+          .t('reviews.posted_on')
+          .replaceFirst('{date}', dateFormat.format(createdAt));
+      if (updatedAt != null && !updatedAt.isAtSameMomentAs(createdAt)) {
+        final updatedLabel = loc
+            .t('reviews.updated_on')
+            .replaceFirst('{date}', dateFormat.format(updatedAt));
+        timestampLabel = '$createdLabel · $updatedLabel';
+      } else {
+        timestampLabel = createdLabel;
+      }
+    }
     final helpful = reviewsProvider.helpfulStateFor(review.id);
     final isReported = reviewsProvider.isReported(review.id);
     return Card(
@@ -1608,11 +1629,27 @@ class _ReviewCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    review.author,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        review.author,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      if (timestampLabel != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          timestampLabel,
+                          style: Theme.of(context)
+                              .textTheme
+                              .bodySmall
+                              ?.copyWith(color: Theme.of(context).hintColor),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
                 if (review.authorDetails?.rating != null)

@@ -25,6 +25,7 @@ import 'providers/offline_provider.dart';
 import 'providers/search_provider.dart';
 import 'providers/theme_provider.dart';
 import 'providers/accessibility_provider.dart';
+import 'providers/deep_link_breadcrumbs_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
@@ -262,6 +263,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
+        ChangeNotifierProvider(
+          create: (_) => DeepLinkBreadcrumbsProvider(),
+        ),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
       child: Builder(

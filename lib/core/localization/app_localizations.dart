@@ -149,6 +149,7 @@ class AppLocalizations {
         'videos': 'Videos',
         'images': 'Images',
         'movies': 'Movies',
+        'share': 'Share',
       },
       'person': {
         'popularity': 'Popularity',

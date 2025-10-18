@@ -11,6 +11,7 @@ import '../../../core/utils/media_image_helper.dart';
 import '../../../providers/collections_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../collections/collection_detail_screen.dart';
+import '../search/search_screen.dart';
 
 class CollectionsBrowserScreen extends StatefulWidget {
   static const routeName = '/collections';
@@ -112,6 +113,7 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
                 onClear: _clearSearch,
               ),
             ),
+            const SliverToBoxAdapter(child: _CollectionSearchShortcuts()),
             if (provider.isSearching)
               const SliverToBoxAdapter(child: _SectionLoader()),
             if (!provider.isSearching && provider.hasSearchQuery)
@@ -346,6 +348,69 @@ class _CollectionsBrowserScreenState extends State<CollectionsBrowserScreen> {
     }
 
     return slivers;
+  }
+}
+
+/// Presents quick access chips that open the global search screen with the
+/// selected collection name using data from `GET /3/collection/{collection_id}`.
+class _CollectionSearchShortcuts extends StatelessWidget {
+  const _CollectionSearchShortcuts();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<CollectionsProvider>(
+      builder: (context, provider, _) {
+        final curatedNames = <String>{
+          ...provider.popularCollections.map((collection) => collection.name),
+          for (final entry in provider.collectionsByGenre.entries)
+            ...entry.value.map((collection) => collection.name),
+        }
+            .map((name) => name.trim())
+            .where((name) => name.isNotEmpty)
+            .take(8)
+            .toList(growable: false);
+
+        if (curatedNames.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final loc = AppLocalizations.of(context);
+        final label = loc.search['quick_collections'] ?? 'Featured searches';
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: curatedNames
+                    .map(
+                      (name) => ActionChip(
+                        label: Text(name),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            SearchScreen.routeName,
+                            arguments: name,
+                          );
+                        },
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }
 

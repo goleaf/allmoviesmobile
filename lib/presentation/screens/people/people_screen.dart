@@ -12,7 +12,7 @@ import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../widgets/virtualized_list_view.dart';
-import '../../widgets/loading_indicator.dart';
+import '../search/search_screen.dart';
 
 class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';
@@ -75,29 +75,7 @@ class _PeopleScreenState extends State<PeopleScreen>
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = context.read<PeopleProvider>();
-      provider.refresh();
-
-      final savedDepartment =
-          _storageService.getPeopleDepartmentFilter();
-      if (savedDepartment == null || savedDepartment.isEmpty) {
-        return;
-      }
-
-      unawaited(
-        provider.initialized.then((_) {
-          if (!mounted) {
-            return;
-          }
-          if (provider.availableDepartments.contains(savedDepartment)) {
-            provider.selectDepartment(savedDepartment);
-          } else {
-            unawaited(
-              _storageService.setPeopleDepartmentFilter(null),
-            );
-          }
-        }),
-      );
+      context.read<PeopleProvider>().refresh();
     });
   }
 
@@ -125,6 +103,9 @@ class _PeopleScreenState extends State<PeopleScreen>
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          // Curated chips for jumping into the global multi-search with a
+          // person pre-filled query.
+          const _PeopleSearchShortcuts(),
           // Client-side department filter applied to TMDB `/trending/person` and
           // `/person/popular` results that are cached by the provider.
           const _PeopleDepartmentSelector(),
@@ -194,7 +175,7 @@ class _PeopleSectionView extends StatelessWidget {
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
         if (state.isLoading && state.items.isEmpty) {
-          return const _PeopleListSkeleton();
+          return const Center(child: CircularProgressIndicator());
         }
 
         if (state.errorMessage != null && state.items.isEmpty) {
@@ -291,84 +272,6 @@ class _PeopleList extends StatelessWidget {
   }
 }
 
-class _PeopleListSkeleton extends StatelessWidget {
-  const _PeopleListSkeleton();
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final cardColor = theme.colorScheme.surfaceVariant;
-    final baseColor = Color.lerp(cardColor, Colors.black, 0.08)!;
-    final highlightColor = Color.lerp(cardColor, Colors.white, 0.35)!;
-
-    return ListView.separated(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      itemCount: 10,
-      separatorBuilder: (_, __) => const SizedBox(height: 12),
-      itemBuilder: (context, index) {
-        return Card(
-          clipBehavior: Clip.antiAlias,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ShimmerLoading(
-                  width: 64,
-                  height: 64,
-                  borderRadius: BorderRadius.circular(32),
-                  baseColor: baseColor,
-                  highlightColor: highlightColor,
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ShimmerLoading(
-                        width: double.infinity,
-                        height: 16,
-                        borderRadius: BorderRadius.circular(6),
-                        baseColor: baseColor,
-                        highlightColor: highlightColor,
-                      ),
-                      const SizedBox(height: 8),
-                      ShimmerLoading(
-                        width: 160,
-                        height: 12,
-                        borderRadius: BorderRadius.circular(6),
-                        baseColor: baseColor,
-                        highlightColor: highlightColor,
-                      ),
-                      const SizedBox(height: 8),
-                      ShimmerLoading(
-                        width: 120,
-                        height: 12,
-                        borderRadius: BorderRadius.circular(6),
-                        baseColor: baseColor,
-                        highlightColor: highlightColor,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 16),
-                ShimmerLoading(
-                  width: 24,
-                  height: 24,
-                  borderRadius: BorderRadius.circular(12),
-                  baseColor: baseColor,
-                  highlightColor: highlightColor,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
 class _PersonCard extends StatelessWidget {
   const _PersonCard({required this.person, required this.onTap});
 
@@ -435,10 +338,69 @@ class _PersonCard extends StatelessWidget {
   }
 }
 
-/// Chip-based selector that filters people lists by their known-for
+/// Displays a row of action chips that trigger multi-search queries for
+/// popular people fetched from `GET /3/person/popular`.
+class _PeopleSearchShortcuts extends StatelessWidget {
+  const _PeopleSearchShortcuts();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<PeopleProvider>(
+      builder: (context, provider, _) {
+        final trending = provider.sectionState(PeopleSection.trending).items;
+        final names = trending
+            .map((person) => person.name.trim())
+            .where((name) => name.isNotEmpty)
+            .take(6)
+            .toList(growable: false);
+
+        if (names.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final loc = AppLocalizations.of(context);
+        final label = loc.search['quick_people'] ?? 'Quick people search';
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: names
+                    .map(
+                      (name) => ActionChip(
+                        label: Text(name),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            SearchScreen.routeName,
+                            arguments: name,
+                          );
+                        },
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// Dropdown-based selector that filters people lists by their known-for
 /// department. The widget listens to [PeopleProvider] updates so that it can
-/// show a localized department name for every available option and persists
-/// the current selection via [LocalStorageService].
+/// show a localized department name for every available option.
 class _PeopleDepartmentSelector extends StatelessWidget {
   const _PeopleDepartmentSelector();
 
@@ -453,39 +415,17 @@ class _PeopleDepartmentSelector extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        final storage = context.read<LocalStorageService>();
-        final selectedDepartment = provider.selectedDepartment;
-        final departmentEntries = departments
-            .map(
-              (department) => MapEntry(
-                department,
-                _localizedDepartmentLabel(loc, department),
-              ),
-            )
-            .toList()
-          ..sort(
-            (a, b) => a.value.toLowerCase().compareTo(b.value.toLowerCase()),
-          );
-
-        Widget buildChip(String? value, String label) {
-          final isSelected = value == null
-              ? selectedDepartment == null
-              : selectedDepartment == value;
-
-          return ChoiceChip(
-            label: Text(label),
-            selected: isSelected,
-            onSelected: (isSelectedTap) {
-              final newValue = isSelectedTap ? value : null;
-              if (provider.selectedDepartment == newValue) {
-                return;
-              }
-              provider.selectDepartment(newValue);
-              unawaited(storage.setPeopleDepartmentFilter(newValue));
-            },
-            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          );
-        }
+        final dropdownItems = <DropdownMenuItem<String?>>[
+          DropdownMenuItem<String?>(
+            value: null,
+            child: Text(loc.t('people.departments.all')),
+          ),
+          for (final department in departments)
+            DropdownMenuItem<String?>(
+              value: department,
+              child: Text(_localizedDepartmentLabel(loc, department)),
+            ),
+        ];
 
         return Padding(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
@@ -494,15 +434,14 @@ class _PeopleDepartmentSelector extends StatelessWidget {
               labelText: loc.t('people.departments.label'),
               border: const OutlineInputBorder(),
             ),
-            isEmpty: selectedDepartment == null,
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                buildChip(null, loc.t('people.departments.all')),
-                for (final entry in departmentEntries)
-                  buildChip(entry.key, entry.value),
-              ],
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String?>(
+                key: const Key('peopleDepartmentDropdown'),
+                isExpanded: true,
+                value: provider.selectedDepartment,
+                items: dropdownItems,
+                onChanged: provider.selectDepartment,
+              ),
             ),
           ),
         );

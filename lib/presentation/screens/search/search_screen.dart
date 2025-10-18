@@ -1,17 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../data/models/search_result_model.dart';
-import '../../../providers/search_provider.dart';
-import '../movie_detail/movie_detail_screen.dart';
-import '../tv_detail/tv_detail_screen.dart';
-import '../person_detail/person_detail_screen.dart';
-import '../../widgets/media_image.dart';
-import '../../../core/utils/media_image_helper.dart';
-import '../../widgets/rating_display.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../widgets/app_scaffold.dart';
+import '../../../core/navigation/deep_link_parser.dart';
+import '../../../core/utils/media_image_helper.dart';
+import '../../../data/models/search_result_model.dart';
 import '../../../providers/app_state_provider.dart';
+import '../../../providers/search_provider.dart';
+import '../../widgets/app_scaffold.dart';
+import '../../widgets/media_image.dart';
+import '../../widgets/rating_display.dart';
+import '../../widgets/share/deep_link_share_sheet.dart';
+import '../../widgets/shimmer_loading.dart';
+import '../movie_detail/movie_detail_screen.dart';
+import '../person_detail/person_detail_screen.dart';
+import '../tv_detail/tv_detail_screen.dart';
+import 'search_results_list_screen.dart';
+import 'widgets/search_list_tiles.dart';
 
 class SearchScreen extends StatefulWidget {
   static const routeName = '/search';
@@ -25,8 +30,8 @@ class SearchScreen extends StatefulWidget {
 }
 
 class _SearchScreenState extends State<SearchScreen> {
-  final _searchController = TextEditingController();
-  final _focusNode = FocusNode();
+  final TextEditingController _searchController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
 
   @override
   void initState() {
@@ -58,18 +63,30 @@ class _SearchScreenState extends State<SearchScreen> {
     super.dispose();
   }
 
+  /// Executes a multi-search request through TMDB's
+  /// `GET /3/search/multi` endpoint and primes the companion company search via
+  /// `GET /3/search/company` so the overview screen can display quick previews.
   void _performSearch(SearchProvider provider, {String? query}) {
     final queryText = (query ?? _searchController.text).trim();
-    if (queryText.isNotEmpty) {
-      if (_searchController.text != queryText) {
-        _searchController.value = TextEditingValue(
-          text: queryText,
-          selection: TextSelection.collapsed(offset: queryText.length),
-        );
-      }
-      context.read<AppStateProvider>().saveSearchQuery(queryText);
-      provider.search(queryText, forceRefresh: true);
+    if (queryText.isEmpty) {
+      return;
     }
+    if (_searchController.text != queryText) {
+      _searchController.value = TextEditingValue(
+        text: queryText,
+        selection: TextSelection.collapsed(offset: queryText.length),
+      );
+    }
+    context.read<AppStateProvider>().saveSearchQuery(queryText);
+    provider.search(queryText, forceRefresh: true);
+  }
+
+  /// Opens the dedicated "view all" screen for the provided argument set.
+  void _openDedicatedResults(SearchResultsListArgs args) {
+    Navigator.of(context).pushNamed(
+      SearchResultsListScreen.routeName,
+      arguments: args,
+    );
   }
 
   @override
@@ -92,8 +109,7 @@ class _SearchScreenState extends State<SearchScreen> {
         controller: _searchController,
         focusNode: _focusNode,
         decoration: InputDecoration(
-          hintText:
-              localization.search['search_placeholder'] ??
+          hintText: localization.search['search_placeholder'] ??
               'Search movies, TV shows, people...',
           border: InputBorder.none,
           suffixIcon: _searchController.text.isNotEmpty
@@ -104,6 +120,7 @@ class _SearchScreenState extends State<SearchScreen> {
                     searchProvider.clearResults();
                     searchProvider.clearSuggestions();
                     context.read<AppStateProvider>().clearSearchQuery();
+                    setState(() {});
                   },
                 )
               : null,
@@ -118,17 +135,17 @@ class _SearchScreenState extends State<SearchScreen> {
       actions: [
         IconButton(
           icon: const Icon(Icons.share),
-          tooltip: 'Share',
+          tooltip: localization.movie['share'] ?? 'Share',
           onPressed: _searchController.text.trim().isEmpty
               ? null
               : () {
                   final query = _searchController.text.trim();
-                  final link = DeepLinkBuilder.search(query);
+                  final httpLink = DeepLinkBuilder.search(query);
                   showDeepLinkShareSheet(
                     context,
                     title: query,
-                    httpLink: link,
-                    customSchemeLink: DeepLinkBuilder.asCustomScheme(link),
+                    httpLink: httpLink,
+                    customSchemeLink: DeepLinkBuilder.asCustomScheme(httpLink),
                   );
                 },
         ),
@@ -140,15 +157,10 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  /// Builds the main body of the search screen.
-  ///
-  /// While the user is typing a query that differs from the last committed
-  /// search we switch into the autocomplete surface, which streams
-  /// suggestions from the TMDB `/3/search/multi` and `/3/search/company`
-  /// endpoints (see `_fetchSuggestions` in `SearchProvider`). Once the user
-  /// commits to a search we fall back to the standard result states.
   Widget _buildBody(SearchProvider provider) {
-    if (provider.shouldShowSuggestions) {
+    final bool isTyping =
+        provider.inputQuery.trim().isNotEmpty && !provider.hasQuery;
+    if (isTyping) {
       return _buildSuggestions(provider);
     }
 
@@ -180,15 +192,14 @@ class _SearchScreenState extends State<SearchScreen> {
             Icon(
               Icons.search,
               size: 64,
-              color: Theme.of(
-                context,
-              ).colorScheme.primary.withValues(alpha: 0.5),
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 16),
             Text(
               AppLocalizations.of(context).search['search_placeholder'] ??
                   'Search movies, TV shows, people...',
               style: Theme.of(context).textTheme.titleMedium,
+              textAlign: TextAlign.center,
             ),
             if (provider.trendingSearches.isNotEmpty) ...[
               const SizedBox(height: 24),
@@ -200,8 +211,8 @@ class _SearchScreenState extends State<SearchScreen> {
                     AppLocalizations.of(context).search['trending_searches'] ??
                         'Trending searches',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                          fontWeight: FontWeight.bold,
+                        ),
                   ),
                 ),
               ),
@@ -212,16 +223,14 @@ class _SearchScreenState extends State<SearchScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: provider.trendingSearches
-                      .map((q) {
-                        return ActionChip(
-                          avatar: const Icon(Icons.trending_up, size: 18),
-                          label: Text(q),
-                          onPressed: () {
-                            _searchController.text = q;
-                            _performSearch(provider, query: q);
-                          },
-                        );
-                      })
+                      .map((q) => ActionChip(
+                            avatar: const Icon(Icons.trending_up, size: 18),
+                            label: Text(q),
+                            onPressed: () {
+                              _searchController.text = q;
+                              _performSearch(provider, query: q);
+                            },
+                          ))
                       .toList(growable: false),
                 ),
               ),
@@ -240,14 +249,13 @@ class _SearchScreenState extends State<SearchScreen> {
             Text(
               AppLocalizations.of(context).search['recent_searches'] ??
                   'Recent Searches',
-              style: Theme.of(
-                context,
-              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton(
-              onPressed: () {
-                provider.clearHistory();
-              },
+              onPressed: provider.clearHistory,
               child: Text(
                 AppLocalizations.of(context).search['clear_history'] ??
                     'Clear History',
@@ -262,9 +270,7 @@ class _SearchScreenState extends State<SearchScreen> {
             title: Text(query),
             trailing: IconButton(
               icon: const Icon(Icons.close, size: 20),
-              onPressed: () {
-                provider.removeFromHistory(query);
-              },
+              onPressed: () => provider.removeFromHistory(query),
             ),
             onTap: () {
               _searchController.text = query;
@@ -277,24 +283,23 @@ class _SearchScreenState extends State<SearchScreen> {
           Text(
             AppLocalizations.of(context).search['trending_searches'] ??
                 'Trending searches',
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: provider.trendingSearches
-                .map((q) {
-                  return InputChip(
-                    label: Text(q),
-                    onPressed: () {
-                      _searchController.text = q;
-                      _performSearch(provider, query: q);
-                    },
-                  );
-                })
+                .map((q) => InputChip(
+                      label: Text(q),
+                      onPressed: () {
+                        _searchController.text = q;
+                        _performSearch(provider, query: q);
+                      },
+                    ))
                 .toList(growable: false),
           ),
         ],
@@ -302,10 +307,9 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
-  /// Renders the autocomplete suggestion list sourced from the TMDB APIs.
+  /// Displays server-side autocomplete suggestions generated from the first
+  /// page of TMDB's `GET /3/search/multi` and `GET /3/search/company` calls.
   Widget _buildSuggestions(SearchProvider provider) {
-    final trimmedInput = provider.inputQuery.trim();
-
     if (provider.isFetchingSuggestions) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -327,25 +331,10 @@ class _SearchScreenState extends State<SearchScreen> {
 
     return ListView.separated(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
-      itemCount: suggestions.length + 1,
+      itemCount: suggestions.length,
       separatorBuilder: (_, __) => const Divider(height: 1),
       itemBuilder: (context, index) {
-        if (index == 0) {
-          return ListTile(
-            leading: const Icon(Icons.arrow_outward),
-            title: Text(
-              AppLocalizations.of(context)
-                      .search['search_for']
-                      ?.replaceFirst('{query}', trimmedInput) ??
-                  'Search "$trimmedInput"',
-            ),
-            onTap: () {
-              _performSearch(provider, query: trimmedInput);
-            },
-          );
-        }
-
-        final text = suggestions[index - 1];
+        final text = suggestions[index];
         return ListTile(
           leading: const Icon(Icons.search),
           title: Text(text),
@@ -359,50 +348,112 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Widget _buildResults(SearchProvider provider) {
-    final itemCount =
-        provider.results.length + (provider.isLoadingMore ? 1 : 0);
+    final localization = AppLocalizations.of(context);
+    final movies = provider.previewResults(MediaType.movie, limit: 6);
+    final tvShows = provider.previewResults(MediaType.tv, limit: 6);
+    final people = provider.previewResults(MediaType.person, limit: 6);
+    final companies = provider.companyResults.take(6).toList(growable: false);
 
-    return NotificationListener<ScrollNotification>(
-      onNotification: (notification) {
-        final metrics = notification.metrics;
-        final shouldLoadMore =
-            metrics.pixels >= metrics.maxScrollExtent - 200 &&
-            provider.canLoadMore &&
-            !provider.isLoadingMore &&
-            !provider.isLoading;
+    final bool hasAnySection =
+        movies.isNotEmpty || tvShows.isNotEmpty || people.isNotEmpty ||
+            companies.isNotEmpty;
 
-        if (shouldLoadMore) {
-          provider.loadMore();
-        }
+    if (!hasAnySection) {
+      return _buildNoResults();
+    }
 
-        return false;
-      },
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth;
-          final crossAxisCount = width >= 900 ? 3 : 2;
-          final childAspectRatio = width >= 900 ? 0.65 : 0.7;
-
-          return GridView.builder(
-            padding: const EdgeInsets.all(16),
-            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: crossAxisCount,
-              childAspectRatio: childAspectRatio,
-              crossAxisSpacing: 16,
-              mainAxisSpacing: 16,
+    return ListView(
+      padding: const EdgeInsets.only(bottom: 24),
+      children: [
+        if (movies.isNotEmpty)
+          _PreviewSection(
+            title: localization.movie['title'] ?? 'Movies',
+            subtitle: localization.search['multi_movies_subtitle'] ??
+                'Top movie matches',
+            onViewAll: () => _openDedicatedResults(
+              const SearchResultsListArgs(mediaType: MediaType.movie),
             ),
-            itemCount: itemCount,
-            itemBuilder: (context, index) {
-              if (index >= provider.results.length) {
-                return const _SearchResultShimmerCard();
-              }
-
-              final result = provider.results[index];
-              return _SearchResultCard(result: result);
-            },
-          );
-        },
-      ),
+            child: SizedBox(
+              height: 320,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: movies.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) => SizedBox(
+                  width: 220,
+                  child: _SearchResultCard(result: movies[index]),
+                ),
+              ),
+            ),
+          ),
+        if (tvShows.isNotEmpty)
+          _PreviewSection(
+            title: localization.tv['title'] ?? 'TV Shows',
+            subtitle: localization.search['multi_tv_subtitle'] ??
+                'Top TV show matches',
+            onViewAll: () => _openDedicatedResults(
+              const SearchResultsListArgs(mediaType: MediaType.tv),
+            ),
+            child: SizedBox(
+              height: 320,
+              child: ListView.separated(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: tvShows.length,
+                separatorBuilder: (_, __) => const SizedBox(width: 12),
+                itemBuilder: (context, index) => SizedBox(
+                  width: 220,
+                  child: _SearchResultCard(result: tvShows[index]),
+                ),
+              ),
+            ),
+          ),
+        if (people.isNotEmpty)
+          _PreviewSection(
+            title: localization.person['title'] ?? 'People',
+            subtitle: localization.search['multi_people_subtitle'] ??
+                'Popular personalities related to your search',
+            onViewAll: () => _openDedicatedResults(
+              const SearchResultsListArgs(mediaType: MediaType.person),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  for (var i = 0; i < people.length; i++) ...[
+                    SearchResultListTile(
+                      result: people[i],
+                      showDivider: i < people.length - 1,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        if (companies.isNotEmpty)
+          _PreviewSection(
+            title: localization.company['companies'] ?? 'Companies',
+            subtitle: localization.search['multi_companies_subtitle'] ??
+                'Production companies that match your query',
+            onViewAll: () => _openDedicatedResults(
+              const SearchResultsListArgs(showCompanies: true),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Column(
+                children: [
+                  for (var i = 0; i < companies.length; i++) ...[
+                    CompanyResultTile(
+                      company: companies[i],
+                      showDivider: i < companies.length - 1,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -469,6 +520,70 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 }
 
+class _PreviewSection extends StatelessWidget {
+  const _PreviewSection({
+    required this.title,
+    required this.child,
+    this.subtitle,
+    this.onViewAll,
+  });
+
+  final String title;
+  final String? subtitle;
+  final VoidCallback? onViewAll;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final viewAllLabel =
+        AppLocalizations.of(context).search['view_all'] ?? 'View all';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      if (subtitle != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          subtitle!,
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (onViewAll != null)
+                  TextButton(
+                    onPressed: onViewAll,
+                    child: Text(viewAllLabel),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          child,
+        ],
+      ),
+    );
+  }
+}
+
 class _SearchResultCard extends StatelessWidget {
   const _SearchResultCard({required this.result});
 
@@ -497,26 +612,26 @@ class _SearchResultCard extends StatelessWidget {
       child: InkWell(
         onTap: switch (result.mediaType) {
           MediaType.movie => () {
-            Navigator.pushNamed(
-              context,
-              MovieDetailScreen.routeName,
-              arguments: result.id,
-            );
-          },
+              Navigator.pushNamed(
+                context,
+                MovieDetailScreen.routeName,
+                arguments: result.id,
+              );
+            },
           MediaType.tv => () {
-            Navigator.pushNamed(
-              context,
-              TVDetailScreen.routeName,
-              arguments: result.id,
-            );
-          },
+              Navigator.pushNamed(
+                context,
+                TVDetailScreen.routeName,
+                arguments: result.id,
+              );
+            },
           MediaType.person => () {
-            Navigator.pushNamed(
-              context,
-              PersonDetailScreen.routeName,
-              arguments: result.id,
-            );
-          },
+              Navigator.pushNamed(
+                context,
+                PersonDetailScreen.routeName,
+                arguments: result.id,
+              );
+            },
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -542,6 +657,16 @@ class _SearchResultCard extends StatelessWidget {
                     _mediaLabel(context, result.mediaType),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
+                  if (result.voteAverage != null &&
+                      result.voteAverage! > 0 &&
+                      result.voteCount != null &&
+                      result.voteCount! > 0) ...[
+                    const SizedBox(height: 8),
+                    RatingDisplay(
+                      rating: result.voteAverage! / 2,
+                      voteCount: result.voteCount!,
+                    ),
+                  ],
                   if (overview.isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(

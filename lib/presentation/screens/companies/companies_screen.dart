@@ -5,11 +5,13 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/company_model.dart';
 import '../../../data/models/configuration_model.dart';
 import '../../../providers/companies_provider.dart';
+import '../../../providers/search_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart' as mih;
 import '../company_detail/company_detail_screen.dart';
 import '../../../core/utils/media_image_helper.dart';
+import '../search/search_screen.dart';
 
 class CompaniesScreen extends StatefulWidget {
   static const routeName = '/companies';
@@ -78,6 +80,7 @@ class _CompaniesScreenState extends State<CompaniesScreen> {
               },
             ),
           ),
+          const _CompanySearchShortcuts(),
           if (provider.isSearching) const LinearProgressIndicator(minHeight: 2),
           if (provider.errorMessage != null)
             Padding(
@@ -224,6 +227,60 @@ class _CompanyCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Displays quick search shortcuts populated from the trending titles fetched
+/// via `GET /3/trending/movie/{time_window}` to encourage exploration.
+class _CompanySearchShortcuts extends StatelessWidget {
+  const _CompanySearchShortcuts();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<SearchProvider>(
+      builder: (context, searchProvider, _) {
+        final queries = searchProvider.trendingSearches.take(6).toList();
+        if (queries.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final loc = AppLocalizations.of(context);
+        final label = loc.search['trending_searches'] ?? 'Trending searches';
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: queries
+                    .map(
+                      (query) => ActionChip(
+                        label: Text(query),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            SearchScreen.routeName,
+                            arguments: query,
+                          );
+                        },
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

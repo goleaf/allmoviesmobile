@@ -11,15 +11,13 @@ import '../../../providers/collections_provider.dart';
 import '../../../providers/movies_provider.dart';
 import '../../../providers/people_provider.dart';
 import '../../../providers/recommendations_provider.dart';
-import '../../../providers/notifications_provider.dart';
 import '../../../providers/series_provider.dart';
+import '../../../providers/search_provider.dart';
 import '../../../providers/watchlist_provider.dart';
-import '../../../core/layout/device_breakpoints.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/error_widget.dart';
-import '../notifications/notifications_screen.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../person_detail/person_detail_screen.dart';
 import '../tv_detail/tv_detail_screen.dart';
@@ -151,6 +149,9 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ],
           ),
+      (_) => _TrendingSearchesSection(
+            title: loc.search['trending_searches'] ?? 'Trending searches',
+          ),
       (_) => const SizedBox(height: 24),
       (_) => _MoviesCarousel(
             title: loc.home['of_the_moment_movies'] ?? 'Of the moment movies',
@@ -208,9 +209,6 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         toolbarHeight: 112,
-        actions: const [
-          _NotificationsButton(),
-        ],
       ),
       drawer: const AppDrawer(),
       body: RefreshIndicator(
@@ -297,12 +295,8 @@ class _QuickAccessSection extends StatelessWidget {
     final navLabel =
         accessibility['quick_access_navigation'] ?? 'Quick actions';
 
-    final width = MediaQuery.of(context).size.width;
-    final horizontalPadding =
-        DeviceBreakpoints.horizontalPaddingForWidth(width);
-
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Semantics(
         container: true,
         label: navLabel,
@@ -319,12 +313,11 @@ class _QuickAccessSection extends StatelessWidget {
             const SizedBox(height: 12),
             LayoutBuilder(
               builder: (context, constraints) {
-                final columns = DeviceBreakpoints.columnsForWidth(
-                  constraints.maxWidth,
-                  phone: 1,
-                  tablet: 2,
-                  desktop: 3,
-                );
+                final columns = constraints.maxWidth > 720
+                    ? 3
+                    : constraints.maxWidth > 480
+                        ? 2
+                        : 1;
                 final spacing = 12.0;
                 final totalSpacing = spacing * (columns - 1);
                 final itemWidth = (constraints.maxWidth - totalSpacing) /
@@ -419,60 +412,56 @@ class _QuickAccessCard extends StatelessWidget {
   }
 }
 
-class _NotificationsButton extends StatelessWidget {
-  const _NotificationsButton();
+/// Displays the top trending multi-search queries sourced from
+/// `GET /3/trending/movie/{time_window}` so the user can jump straight into the
+/// universal search experience.
+class _TrendingSearchesSection extends StatelessWidget {
+  const _TrendingSearchesSection({required this.title});
+
+  final String title;
 
   @override
   Widget build(BuildContext context) {
-    final loc = AppLocalizations.of(context);
-    return Consumer<NotificationsProvider>(
+    return Consumer<SearchProvider>(
       builder: (context, provider, _) {
-        final unread = provider.unreadCount;
-        return IconButton(
-          icon: Stack(
-            clipBehavior: Clip.none,
+        final queries = provider.trendingSearches.take(8).toList();
+        if (queries.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.notifications_outlined),
-              if (unread > 0)
-                Positioned(
-                  right: -2,
-                  top: -2,
-                  child: _NotificationBadge(count: unread),
-                ),
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: queries
+                    .map(
+                      (query) => ActionChip(
+                        label: Text(query),
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                            SearchScreen.routeName,
+                            arguments: query,
+                          );
+                        },
+                      ),
+                    )
+                    .toList(growable: false),
+              ),
             ],
           ),
-          tooltip: loc.t('notifications.title'),
-          onPressed: () {
-            Navigator.of(context).pushNamed(NotificationsScreen.routeName);
-          },
         );
       },
-    );
-  }
-}
-
-class _NotificationBadge extends StatelessWidget {
-  const _NotificationBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final display = count > 9 ? '9+' : '$count';
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: colorScheme.error,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        display,
-        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-              color: colorScheme.onError,
-              fontWeight: FontWeight.bold,
-            ),
-      ),
     );
   }
 }

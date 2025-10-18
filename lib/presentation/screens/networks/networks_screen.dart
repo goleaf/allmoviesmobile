@@ -8,6 +8,7 @@ import '../../../data/models/network_model.dart';
 import '../../../data/services/api_config.dart';
 import '../../../providers/networks_provider.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/virtualized_list_view.dart';
 
 class NetworksScreen extends StatefulWidget {
   const NetworksScreen({super.key});
@@ -343,7 +344,15 @@ class _SearchResultsSection extends StatelessWidget {
         if (results.isEmpty)
           _EmptyView(message: localization.t('network.empty'))
         else ...[
-          ...results.map((network) => _NetworkCard(network: network)),
+          VirtualizedSeparatedListView(
+            itemCount: results.length,
+            itemBuilder: (context, index) =>
+                _NetworkCard(network: results[index]),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            addAutomaticKeepAlives: true,
+          ),
           if (provider.errorMessage != null)
             Padding(
               padding: const EdgeInsets.only(top: 8),

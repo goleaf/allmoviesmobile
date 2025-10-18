@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/notification_item.dart';
 import '../../data/models/watch_provider_model.dart';
 import '../../data/services/local_storage_service.dart';
+import '../../providers/notifications_provider.dart';
 import 'media_image.dart';
 
 /// Displays watch providers for a media item and raises in-app plus persisted
@@ -264,7 +265,18 @@ class _WatchProvidersAvailabilitySectionState
       },
     );
 
-    await storage.upsertNotification(notification);
+    NotificationsProvider? notificationsProvider;
+    try {
+      notificationsProvider = context.read<NotificationsProvider>();
+    } catch (_) {
+      notificationsProvider = null;
+    }
+
+    if (notificationsProvider != null) {
+      await notificationsProvider.upsert(notification);
+    } else {
+      await storage.upsertNotification(notification);
+    }
   }
 }
 

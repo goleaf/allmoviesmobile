@@ -44,6 +44,7 @@ class AppLocalizations {
       },
       'common': {
         'cancel': 'Cancel',
+        'confirm': 'Confirm',
         'retry': 'Retry',
         'refresh': 'Refresh',
         'from': 'From',
@@ -209,6 +210,21 @@ class AppLocalizations {
         'profile_label': 'Profile image for {name}',
         'collection_label': 'Collection poster for {title}',
       },
+      'notifications': {
+        'title': 'Notifications',
+        'empty': "You're all caught up.",
+        'mark_all_read': 'Mark all read',
+        'clear_all': 'Clear all',
+        'clear_all_confirm': 'This will remove all notifications. Continue?',
+        'view': 'View',
+        'mark_read': 'Mark read',
+        'category': {
+          'system': 'Updates',
+          'social': 'Community',
+          'list': 'Lists & Watchlist',
+          'recommendation': 'Suggestions',
+        }
+      },
     };
     return fallback;
   }
@@ -270,6 +286,8 @@ class AppLocalizations {
   Map<String, dynamic> get discover => _localizedStrings['discover'] ?? {};
   Map<String, dynamic> get favorites => _localizedStrings['favorites'] ?? {};
   Map<String, dynamic> get watchlist => _localizedStrings['watchlist'] ?? {};
+  Map<String, dynamic> get notifications =>
+      _localizedStrings['notifications'] ?? {};
   Map<String, dynamic> get settings => _localizedStrings['settings'] ?? {};
   Map<String, dynamic> get statistics => _localizedStrings['statistics'] ?? {};
   Map<String, dynamic> get common => _localizedStrings['common'] ?? {};

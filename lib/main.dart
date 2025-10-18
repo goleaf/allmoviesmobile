@@ -24,6 +24,7 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/notifications_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
@@ -48,6 +49,7 @@ import 'presentation/screens/lists/lists_screen.dart';
 import 'presentation/screens/videos/videos_screen.dart';
 import 'presentation/screens/video_player/video_player_screen.dart';
 import 'presentation/screens/search/search_results_list_screen.dart';
+import 'presentation/screens/notifications/notifications_screen.dart';
 import 'data/models/movie.dart';
 import 'data/models/person_model.dart';
 import 'data/models/company_model.dart';
@@ -232,6 +234,15 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           create: (_) => ListsProvider(widget.storageService),
         ),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
+        ChangeNotifierProxyProvider<PreferencesProvider, NotificationsProvider>(
+          create: (_) => NotificationsProvider(storage: widget.storageService),
+          update: (_, preferences, provider) {
+            provider ??=
+                NotificationsProvider(storage: widget.storageService);
+            provider.bindPreferences(preferences);
+            return provider;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
@@ -317,6 +328,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                         );
                       },
                       ListsScreen.routeName: (context) => const ListsScreen(),
+                      NotificationsScreen.routeName: (context) =>
+                          const NotificationsScreen(),
                     },
                     onGenerateRoute: (settings) {
                       Route<dynamic>? buildMovieDetailRoute(Object? args) {

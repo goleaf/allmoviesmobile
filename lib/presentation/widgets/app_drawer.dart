@@ -11,6 +11,7 @@ import '../screens/people/people_screen.dart';
 import '../screens/series/series_screen.dart';
 import '../screens/settings/settings_screen.dart';
 import '../screens/keywords/keyword_browser_screen.dart';
+import '../screens/notifications/notifications_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -79,6 +80,12 @@ class AppDrawer extends StatelessWidget {
             title: Text(loc.t('navigation.home')),
             selected: currentRoute == HomeScreen.routeName,
             onTap: () => _navigateTo(context, HomeScreen.routeName),
+          ),
+          ListTile(
+            leading: const Icon(Icons.notifications_outlined),
+            title: Text(loc.t('notifications.title')),
+            selected: currentRoute == NotificationsScreen.routeName,
+            onTap: () => _navigateTo(context, NotificationsScreen.routeName),
           ),
           ListTile(
             leading: const Icon(Icons.movie_creation_outlined),

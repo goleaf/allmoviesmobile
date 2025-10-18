@@ -11,12 +11,14 @@ import '../../../providers/collections_provider.dart';
 import '../../../providers/movies_provider.dart';
 import '../../../providers/people_provider.dart';
 import '../../../providers/recommendations_provider.dart';
+import '../../../providers/notifications_provider.dart';
 import '../../../providers/series_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../widgets/app_drawer.dart';
 import '../../widgets/media_image.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/error_widget.dart';
+import '../notifications/notifications_screen.dart';
 import '../movie_detail/movie_detail_screen.dart';
 import '../person_detail/person_detail_screen.dart';
 import '../tv_detail/tv_detail_screen.dart';
@@ -205,6 +207,9 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
         ),
         toolbarHeight: 112,
+        actions: const [
+          _NotificationsButton(),
+        ],
       ),
       drawer: const AppDrawer(),
       body: RefreshIndicator(
@@ -403,6 +408,64 @@ class _QuickAccessCard extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _NotificationsButton extends StatelessWidget {
+  const _NotificationsButton();
+
+  @override
+  Widget build(BuildContext context) {
+    final loc = AppLocalizations.of(context);
+    return Consumer<NotificationsProvider>(
+      builder: (context, provider, _) {
+        final unread = provider.unreadCount;
+        return IconButton(
+          icon: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              const Icon(Icons.notifications_outlined),
+              if (unread > 0)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: _NotificationBadge(count: unread),
+                ),
+            ],
+          ),
+          tooltip: loc.t('notifications.title'),
+          onPressed: () {
+            Navigator.of(context).pushNamed(NotificationsScreen.routeName);
+          },
+        );
+      },
+    );
+  }
+}
+
+class _NotificationBadge extends StatelessWidget {
+  const _NotificationBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final display = count > 9 ? '9+' : '$count';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      decoration: BoxDecoration(
+        color: colorScheme.error,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        display,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+              color: colorScheme.onError,
+              fontWeight: FontWeight.bold,
+            ),
       ),
     );
   }

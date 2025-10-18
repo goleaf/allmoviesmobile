@@ -14,6 +14,7 @@ import 'data/services/local_storage_service.dart';
 import 'data/services/offline_service.dart';
 import 'data/services/network_quality_service.dart';
 import 'data/services/background_prefetch_service.dart';
+import 'data/services/push_notification_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -75,6 +76,8 @@ import 'providers/app_state_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  PushNotificationService.registerBackgroundHandler();
+
   MemoryOptimizer.instance.initialize();
 
   // Initialize SharedPreferences
@@ -123,7 +126,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   @override
   void initState() {
     super.initState();
-    _repository = widget.tmdbRepository ??
+    _repository =
+        widget.tmdbRepository ??
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
     _foregroundObserver = ForegroundRefreshObserver()..attach();
     _deepLinkHandler = DeepLinkHandler(
@@ -164,6 +168,18 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
           value: widget.networkQualityNotifier,
         ),
+        ChangeNotifierProvider<DeepLinkHandler>.value(value: _deepLinkHandler),
+        ChangeNotifierProvider(
+          create: (_) {
+            final service = PushNotificationService(
+              storageService: widget.storageService,
+              preferences: widget.prefs,
+              deepLinkHandler: _deepLinkHandler,
+            );
+            service.initialize();
+            return service;
+          },
+        ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
         ChangeNotifierProvider(
@@ -185,13 +201,18 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           create: (_) =>
               RecommendationsProvider(_repository, widget.storageService),
         ),
-        ChangeNotifierProvider(create: (_) => TrendingTitlesProvider(_repository)),
+        ChangeNotifierProvider(
+          create: (_) => TrendingTitlesProvider(_repository),
+        ),
         ChangeNotifierProvider(create: (_) => GenresProvider(_repository)),
-        ChangeNotifierProvider(create: (_) => WatchRegionProvider(widget.prefs)),
+        ChangeNotifierProvider(
+          create: (_) => WatchRegionProvider(widget.prefs),
+        ),
         ChangeNotifierProxyProvider2<
-            WatchRegionProvider,
-            PreferencesProvider,
-            MoviesProvider>(
+          WatchRegionProvider,
+          PreferencesProvider,
+          MoviesProvider
+        >(
           create: (_) => MoviesProvider(
             _repository,
             storageService: widget.storageService,
@@ -208,8 +229,11 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
             return movies;
           },
         ),
-        ChangeNotifierProxyProvider2<PreferencesProvider, OfflineService,
-            SeriesProvider>(
+        ChangeNotifierProxyProvider2<
+          PreferencesProvider,
+          OfflineService,
+          SeriesProvider
+        >(
           create: (_) => SeriesProvider(
             _repository,
             preferencesProvider: null,
@@ -229,11 +253,15 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
         ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
         ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
-        ChangeNotifierProvider(create: (_) => CertificationsProvider(_repository)),
+        ChangeNotifierProvider(
+          create: (_) => CertificationsProvider(_repository),
+        ),
         ChangeNotifierProvider(
           create: (_) => ListsProvider(widget.storageService),
         ),
-        ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
+        ChangeNotifierProvider(
+          create: (_) => PreferencesProvider(widget.prefs),
+        ),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
@@ -250,9 +278,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                 await context.read<TrendingTitlesProvider>().refreshAll();
               })
               ..registerCallback(() async {
-                await context
-                    .read<SearchProvider>()
-                    .reexecuteLastSearch(forceRefresh: true);
+                await context.read<SearchProvider>().reexecuteLastSearch(
+                  forceRefresh: true,
+                );
               });
           }
 
@@ -260,7 +288,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
             builder: (context, localeProvider, themeProvider, _) {
               return DynamicColorBuilder(
                 builder: (lightDynamic, darkDynamic) {
-                  final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
+                  final lightTheme = AppTheme.light(
+                    dynamicScheme: lightDynamic,
+                  );
                   final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
 
                   return MaterialApp(
@@ -297,7 +327,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           const FavoritesScreen(),
                       WatchlistScreen.routeName: (context) =>
                           const WatchlistScreen(),
-                      SettingsScreen.routeName: (context) => const SettingsScreen(),
+                      SettingsScreen.routeName: (context) =>
+                          const SettingsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
@@ -312,8 +343,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       StatisticsScreen.routeName: (context) =>
                           const StatisticsScreen(),
                       VideoPlayerScreen.routeName: (context) {
-                        final args =
-                            ModalRoute.of(context)?.settings.arguments;
+                        final args = ModalRoute.of(context)?.settings.arguments;
                         return VideoPlayerScreen(
                           args: args is VideoPlayerScreenArgs ? args : null,
                         );
@@ -403,7 +433,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) => KeywordDetailScreen(keywordId: args),
+                              builder: (_) =>
+                                  KeywordDetailScreen(keywordId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -442,7 +473,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) => NetworkDetailScreen(networkId: args),
+                              builder: (_) =>
+                                  NetworkDetailScreen(networkId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -478,7 +510,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                                 builder: (_) => CollectionDetailScreen(
                                   collectionId: id,
                                   initialName: args['name'] as String?,
-                                  initialPosterPath: args['posterPath'] as String?,
+                                  initialPosterPath:
+                                      args['posterPath'] as String?,
                                   initialBackdropPath:
                                       args['backdropPath'] as String?,
                                 ),
@@ -502,6 +535,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
     );
   }
 }
+
 class _DirectionalFocusWrapper extends StatelessWidget {
   const _DirectionalFocusWrapper({required this.child});
 
@@ -513,8 +547,9 @@ class _DirectionalFocusWrapper extends StatelessWidget {
       shortcuts: <LogicalKeySet, Intent>{
         LogicalKeySet(LogicalKeyboardKey.arrowDown):
             const DirectionalFocusIntent(TraversalDirection.down),
-        LogicalKeySet(LogicalKeyboardKey.arrowUp):
-            const DirectionalFocusIntent(TraversalDirection.up),
+        LogicalKeySet(LogicalKeyboardKey.arrowUp): const DirectionalFocusIntent(
+          TraversalDirection.up,
+        ),
         LogicalKeySet(LogicalKeyboardKey.arrowLeft):
             const DirectionalFocusIntent(TraversalDirection.left),
         LogicalKeySet(LogicalKeyboardKey.arrowRight):

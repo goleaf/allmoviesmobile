@@ -379,7 +379,22 @@
     "color_blind_friendly": "Палитра для дальтоников",
     "color_blind_friendly_description": "Использовать цвета, различимые при распространённых формах дальтонизма.",
     "text_size": "Размер текста",
-    "text_size_description": "Настройка масштаба текста интерфейса."
+    "text_size_description": "Настройка масштаба текста интерфейса.",
+    "notifications": "Уведомления",
+    "notifications_enable": "Push-уведомления",
+    "notifications_description": "Получайте оповещения о новых релизах, изменениях в списке и персональных рекомендациях.",
+    "notifications_permission_rationale": "Включите push-уведомления, чтобы узнавать о новых релизах и появлении контента в стриминге.",
+    "notifications_permission_denied": "Уведомления отключены в системных настройках. Включите их, чтобы получать оповещения.",
+    "notifications_permission_pending": "Нажмите на переключатель выше, чтобы включить уведомления.",
+    "notifications_disabled": "Push-уведомления отключены.",
+    "notifications_platform_unsupported": "Push-уведомления доступны только на Android и iOS.",
+    "notifications_sync_error": "Не удалось обновить настройки уведомлений.",
+    "notifications_categories": {
+      "new_releases": "Новые релизы",
+      "watchlist": "Оповещения списка отслеживания",
+      "recommendations": "Персональные рекомендации",
+      "marketing": "Новости и обновления продукта"
+    }
   },
   "statistics": {
     "title": "Статистика просмотров",

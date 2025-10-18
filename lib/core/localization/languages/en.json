@@ -395,7 +395,22 @@
     "color_blind_friendly": "Color-blind friendly palette",
     "color_blind_friendly_description": "Use palettes that remain legible for common color blindness.",
     "text_size": "Text size",
-    "text_size_description": "Adjust interface text scale."
+    "text_size_description": "Adjust interface text scale.",
+    "notifications": "Notifications",
+    "notifications_enable": "Push notifications",
+    "notifications_description": "Get alerts about new releases, watchlist updates, and personalized picks.",
+    "notifications_permission_rationale": "Enable push notifications to stay informed about new releases and streaming availability.",
+    "notifications_permission_denied": "Notifications are disabled in system settings. Enable them to receive alerts.",
+    "notifications_permission_pending": "Tap the switch above to enable notifications.",
+    "notifications_disabled": "Push notifications are turned off.",
+    "notifications_platform_unsupported": "Push notifications are only available on Android and iOS.",
+    "notifications_sync_error": "Unable to update notification preferences right now.",
+    "notifications_categories": {
+      "new_releases": "New releases",
+      "watchlist": "Watchlist alerts",
+      "recommendations": "Personalized recommendations",
+      "marketing": "Product updates & announcements"
+    }
   },
   "statistics": {
     "title": "Viewing statistics",

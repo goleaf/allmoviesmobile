@@ -1571,7 +1571,7 @@ These fixes address prior failures in People, Movies filters navigation, region 
 - 🔄 Image Gallery with Zoom (basic gallery, needs photo_view integration)
 - [x] Skeleton Loading States (complete)
 - 🔄 Pull-to-Refresh (not implemented everywhere)
-- 🔄 Hero Animations (partial)
+- [x] Hero Animations
 - 🔄 Deep Linking (not implemented)
 
 #### Season & Episode Screens

@@ -7,8 +7,9 @@ import '../../../core/localization/app_localizations.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../data/models/movie.dart';
 import '../../../providers/series_provider.dart';
-import '../../screens/movie_detail/movie_detail_screen.dart';
+import '../tv_detail/tv_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/media_image.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../series/series_filters_screen.dart';
 import '../../widgets/virtualized_list_view.dart';
@@ -615,13 +616,18 @@ class _SeriesCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final heroTag = 'tv-poster-${show.id}';
 
     return Card(
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () {
+          // Navigate to the TV detail view which fetches `GET /3/tv/{id}` so
+          // the hero animation can land on the same poster widget.
           Navigator.of(context).push(
-            MaterialPageRoute(builder: (_) => MovieDetailScreen(movie: show)),
+            MaterialPageRoute(
+              builder: (_) => TVDetailScreen(tvShow: show),
+            ),
           );
         },
         child: Padding(
@@ -631,11 +637,15 @@ class _SeriesCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Icon(
-                      Icons.live_tv_outlined,
-                      color: colorScheme.primary,
+                  Hero(
+                    tag: heroTag,
+                    flightShuttleBuilder: _buildFadeHeroFlight,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: _buildPosterPreview(
+                        colorScheme,
+                        show.posterPath,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -690,6 +700,51 @@ class _SeriesCard extends StatelessWidget {
     }
     return buffer.join(' • ');
   }
+
+  /// Matches the movie list preview dimensions so shared heroes animate
+  /// smoothly even when the TMDB list endpoints return missing artwork.
+  Widget _buildPosterPreview(ColorScheme colorScheme, String? posterPath) {
+    const double width = 72;
+    const double height = 108;
+    if (posterPath != null && posterPath.isNotEmpty) {
+      return SizedBox(
+        width: width,
+        height: height,
+        child: MediaImage(
+          path: posterPath,
+          type: MediaImageType.poster,
+          size: MediaImageSize.w185,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return Container(
+      width: width,
+      height: height,
+      alignment: Alignment.center,
+      color: colorScheme.surfaceVariant,
+      child: Icon(
+        Icons.live_tv,
+        color: colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
+/// Shares the same fade animation used elsewhere so poster heroes smoothly
+/// transition between list and detail widgets that expose `GET /3/tv/{id}`.
+Widget _buildFadeHeroFlight(
+  BuildContext context,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromHeroContext,
+  BuildContext toHeroContext,
+) {
+  return FadeTransition(
+    opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
+    child: toHeroContext.widget,
+  );
 }
 
 class _ErrorView extends StatelessWidget {

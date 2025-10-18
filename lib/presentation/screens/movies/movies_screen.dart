@@ -11,6 +11,7 @@ import '../../../data/models/discover_filters_model.dart';
 import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../movies/movies_filters_screen.dart';
 import '../../widgets/app_drawer.dart';
+import '../../widgets/media_image.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../../widgets/loading_indicator.dart';
 
@@ -694,6 +695,7 @@ class _MovieCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final heroTag = 'movie-poster-${movie.id}';
 
     return Card(
       clipBehavior: Clip.antiAlias,
@@ -710,11 +712,19 @@ class _MovieCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  CircleAvatar(
-                    backgroundColor: colorScheme.primaryContainer,
-                    child: Icon(
-                      Icons.movie_creation_outlined,
-                      color: colorScheme.primary,
+                  // The hero widget ties the list item poster to the detail
+                  // screen's poster. Both widgets use the same tag so Flutter
+                  // can build a shared element transition as we navigate to
+                  // the movie detail view that sources `GET /3/movie/{id}`.
+                  Hero(
+                    tag: heroTag,
+                    flightShuttleBuilder: _buildFadeHeroFlight,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: _buildPosterPreview(
+                        colorScheme,
+                        movie.posterPath,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -759,6 +769,37 @@ class _MovieCard extends StatelessWidget {
     );
   }
 
+  /// Builds a small preview for the poster art returned by list endpoints such
+  /// as `GET /3/movie/popular`. When no image is available we show a generic
+  /// placeholder so the hero transition still has a surface to animate.
+  Widget _buildPosterPreview(ColorScheme colorScheme, String? posterPath) {
+    const double width = 72;
+    const double height = 108;
+    if (posterPath != null && posterPath.isNotEmpty) {
+      return SizedBox(
+        width: width,
+        height: height,
+        child: MediaImage(
+          path: posterPath,
+          type: MediaImageType.poster,
+          size: MediaImageSize.w185,
+          fit: BoxFit.cover,
+        ),
+      );
+    }
+
+    return Container(
+      width: width,
+      height: height,
+      alignment: Alignment.center,
+      color: colorScheme.surfaceVariant,
+      child: Icon(
+        Icons.movie,
+        color: colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+
   String _buildSubtitle(BuildContext context, Movie movie) {
     final buffer = <String>[];
     if (movie.releaseYear != null && movie.releaseYear!.isNotEmpty) {
@@ -774,6 +815,21 @@ class _MovieCard extends StatelessWidget {
     }
     return buffer.join(' • ');
   }
+}
+
+/// Provides a gentle fade between list and detail posters when Flutter runs
+/// the hero animation for any endpoint that shares the `movie-poster-{id}` tag.
+Widget _buildFadeHeroFlight(
+  BuildContext context,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromHeroContext,
+  BuildContext toHeroContext,
+) {
+  return FadeTransition(
+    opacity: animation.drive(CurveTween(curve: Curves.easeInOut)),
+    child: toHeroContext.widget,
+  );
 }
 
 class _PagerControls extends StatelessWidget {

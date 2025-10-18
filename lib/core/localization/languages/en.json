@@ -129,6 +129,14 @@
     "episode_group_type_6": "Production order",
     "episode_group_type_7": "TV order"
   },
+  "episode": {
+    "title": "Episode",
+    "cast": "Cast",
+    "guest_stars": "Guest Stars",
+    "crew": "Crew",
+    "videos": "Videos & Trailers",
+    "images": "Episode Images"
+  },
   "person": {
     "title": "Person",
     "people": "People",

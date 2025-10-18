@@ -847,6 +847,33 @@ class TmdbRepository {
     );
   }
 
+  Future<MediaImages> fetchTvEpisodeImages(
+    int tvId,
+    int seasonNumber,
+    int episodeNumber, {
+    bool forceRefresh = false,
+  }) async {
+    final payload = await _getJson(
+      '/tv/$tvId/season/$seasonNumber/episode/$episodeNumber/images',
+      query: {'include_image_language': 'en,null'},
+    );
+
+    List<ImageModel> _mapImages(String key) {
+      final list = payload[key];
+      if (list is! List) return const [];
+      return list
+          .whereType<Map<String, dynamic>>()
+          .map(ImageModel.fromJson)
+          .toList(growable: false);
+    }
+
+    return MediaImages(
+      posters: _mapImages('posters'),
+      backdrops: _mapImages('backdrops'),
+      stills: _mapImages('stills'),
+    );
+  }
+
   Future<List<EpisodeGroup>> fetchTvEpisodeGroups(
     int tvId, {
     bool forceRefresh = false,

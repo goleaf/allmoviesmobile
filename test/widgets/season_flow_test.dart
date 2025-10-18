@@ -2,6 +2,7 @@ import 'package:allmovies_mobile/data/models/episode_model.dart';
 import 'package:allmovies_mobile/data/models/season_model.dart';
 import 'package:allmovies_mobile/data/models/media_images.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
+import 'package:allmovies_mobile/presentation/navigation/episode_detail_args.dart';
 import 'package:allmovies_mobile/presentation/navigation/season_detail_args.dart';
 import 'package:allmovies_mobile/presentation/screens/episode_detail/episode_detail_screen.dart';
 import 'package:allmovies_mobile/presentation/screens/season_detail/season_detail_screen.dart';

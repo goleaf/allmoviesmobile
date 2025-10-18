@@ -118,6 +118,14 @@ class AppLocalizations {
         'episode_group_type_6': 'Production order',
         'episode_group_type_7': 'TV order',
       },
+      'episode': {
+        'title': 'Episode',
+        'cast': 'Cast',
+        'guest_stars': 'Guest stars',
+        'crew': 'Crew',
+        'videos': 'Videos & trailers',
+        'images': 'Episode images',
+      },
       'movie': {
         'overview': 'Overview',
         'cast': 'Cast',
@@ -255,6 +263,7 @@ class AppLocalizations {
   Map<String, dynamic> get home => _localizedStrings['home'] ?? {};
   Map<String, dynamic> get movie => _localizedStrings['movie'] ?? {};
   Map<String, dynamic> get tv => _localizedStrings['tv'] ?? {};
+  Map<String, dynamic> get episode => _localizedStrings['episode'] ?? {};
   Map<String, dynamic> get person => _localizedStrings['person'] ?? {};
   Map<String, dynamic> get company => _localizedStrings['company'] ?? {};
   Map<String, dynamic> get network => _localizedStrings['network'] ?? {};

@@ -6,7 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../data/models/notification_item.dart';
 import '../../data/models/watch_provider_model.dart';
 import '../../data/services/local_storage_service.dart';
-import '../../providers/notifications_provider.dart';
+import '../../data/services/notification_preferences_service.dart';
 import 'media_image.dart';
 
 /// Displays watch providers for a media item and raises in-app plus persisted
@@ -137,6 +137,8 @@ class _WatchProvidersAvailabilitySectionState
 
   Future<void> _checkAvailability() async {
     final storage = context.read<LocalStorageService>();
+    final notificationPrefs = context.read<NotificationPreferences>();
+    final recommendationsEnabled = notificationPrefs.recommendationsEnabled;
     final normalizedRegion = widget.region.toUpperCase();
     final currentIds = _collectProviderIds(widget.providers);
 
@@ -168,13 +170,14 @@ class _WatchProvidersAvailabilitySectionState
     }
 
     final newIds = currentIds.difference(previousIds);
-    final shouldHighlight = hadSnapshot && newIds.isNotEmpty;
+    final shouldHighlight =
+        recommendationsEnabled && hadSnapshot && newIds.isNotEmpty;
     final newProviders = shouldHighlight
         ? _extractProviders(widget.providers, newIds)
         : const <WatchProvider>[];
 
     setState(() {
-      _newProviders = newProviders;
+      _newProviders = recommendationsEnabled ? newProviders : const [];
     });
 
     if (shouldHighlight && newProviders.isNotEmpty) {
@@ -265,18 +268,7 @@ class _WatchProvidersAvailabilitySectionState
       },
     );
 
-    NotificationsProvider? notificationsProvider;
-    try {
-      notificationsProvider = context.read<NotificationsProvider>();
-    } catch (_) {
-      notificationsProvider = null;
-    }
-
-    if (notificationsProvider != null) {
-      await notificationsProvider.upsert(notification);
-    } else {
-      await storage.upsertNotification(notification);
-    }
+    await storage.upsertNotification(notification);
   }
 }
 

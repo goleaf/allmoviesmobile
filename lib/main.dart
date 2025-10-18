@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,6 +15,9 @@ import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/offline_service.dart';
 import 'data/services/network_quality_service.dart';
+import 'data/services/notification_preferences_service.dart';
+import 'data/services/release_notification_service.dart';
+import 'data/services/marketing_announcement_service.dart';
 import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
@@ -161,6 +166,21 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         Provider<LocalStorageService>.value(value: widget.storageService),
         Provider<SharedPreferences>.value(value: widget.prefs),
+        Provider<NotificationPreferences>(
+          create: (_) => NotificationPreferences(widget.prefs),
+        ),
+        Provider<ReleaseNotificationService>(
+          create: (context) => ReleaseNotificationService(
+            storage: widget.storageService,
+            preferences: context.read<NotificationPreferences>(),
+          ),
+        ),
+        Provider<MarketingAnnouncementService>(
+          create: (context) => MarketingAnnouncementService(
+            storage: widget.storageService,
+            preferences: context.read<NotificationPreferences>(),
+          ),
+        ),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
           value: widget.networkQualityNotifier,
         ),
@@ -176,8 +196,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           ),
         ),
         ChangeNotifierProvider(
-          create: (_) => WatchlistProvider(
+          create: (context) => WatchlistProvider(
             widget.storageService,
+            notificationPreferences: context.read<NotificationPreferences>(),
             offlineService: widget.offlineService,
           ),
         ),
@@ -245,6 +266,12 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           if (!_registeredRefreshCallbacks) {
             _registeredRefreshCallbacks = true;
             final observer = context.read<ForegroundRefreshObserver>();
+            final releaseNotifications =
+                context.read<ReleaseNotificationService>();
+            final marketingAnnouncements =
+                context.read<MarketingAnnouncementService>();
+            unawaited(releaseNotifications.runDailyCheck());
+            unawaited(marketingAnnouncements.publishAvailableAnnouncements());
             observer
               ..registerCallback(() async {
                 await context.read<MoviesProvider>().refresh(force: true);
@@ -256,6 +283,12 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                 await context
                     .read<SearchProvider>()
                     .reexecuteLastSearch(forceRefresh: true);
+              })
+              ..registerCallback(() async {
+                await releaseNotifications.runDailyCheck();
+              })
+              ..registerCallback(() async {
+                await marketingAnnouncements.publishAvailableAnnouncements();
               });
           }
 

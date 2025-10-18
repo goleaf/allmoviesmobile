@@ -8,6 +8,7 @@ import 'package:allmovies_mobile/data/models/season_model.dart';
 import 'package:allmovies_mobile/data/models/tv_detailed_model.dart';
 import 'package:allmovies_mobile/data/models/watch_provider_model.dart';
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/data/services/notification_preferences_service.dart';
 import 'package:allmovies_mobile/data/tmdb_repository.dart';
 import 'package:allmovies_mobile/presentation/screens/tv_detail/tv_detail_screen.dart';
 import 'package:allmovies_mobile/providers/favorites_provider.dart';
@@ -83,13 +84,19 @@ Future<void> _pumpDetailScreen(
   SharedPreferences.setMockInitialValues({});
   final prefs = await SharedPreferences.getInstance();
   final storage = LocalStorageService(prefs);
+  final notificationPrefs = NotificationPreferences(prefs);
 
   await tester.pumpWidget(
     MultiProvider(
       providers: [
         Provider<TmdbRepository>.value(value: repository),
         ChangeNotifierProvider(create: (_) => FavoritesProvider(storage)),
-        ChangeNotifierProvider(create: (_) => WatchlistProvider(storage)),
+        ChangeNotifierProvider(
+          create: (_) => WatchlistProvider(
+            storage,
+            notificationPreferences: notificationPrefs,
+          ),
+        ),
         ChangeNotifierProvider(create: (_) => WatchRegionProvider(prefs)),
       ],
       child: MaterialApp(

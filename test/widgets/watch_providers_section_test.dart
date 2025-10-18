@@ -4,7 +4,10 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:allmovies_mobile/data/models/watch_provider_model.dart';
+import 'package:allmovies_mobile/core/constants/preferences_keys.dart';
 import 'package:allmovies_mobile/data/services/local_storage_service.dart';
+import 'package:allmovies_mobile/data/models/notification_item.dart';
+import 'package:allmovies_mobile/data/services/notification_preferences_service.dart';
 import 'package:allmovies_mobile/presentation/widgets/watch_providers_section.dart';
 
 void main() {
@@ -66,6 +69,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final storage = LocalStorageService(prefs);
+      final notificationPrefs = NotificationPreferences(prefs);
 
       final providers = WatchProviderResults(
         flatrate: const [
@@ -82,6 +86,9 @@ void main() {
         MultiProvider(
           providers: [
             Provider<LocalStorageService>.value(value: storage),
+            Provider<NotificationPreferences>.value(
+              value: notificationPrefs,
+            ),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -107,6 +114,7 @@ void main() {
       SharedPreferences.setMockInitialValues({});
       final prefs = await SharedPreferences.getInstance();
       final storage = LocalStorageService(prefs);
+      final notificationPrefs = NotificationPreferences(prefs);
       await storage.saveWatchProviderSnapshot('movie', 1, 'US', const <int>{8});
 
       final providers = WatchProviderResults(
@@ -130,6 +138,9 @@ void main() {
         MultiProvider(
           providers: [
             Provider<LocalStorageService>.value(value: storage),
+            Provider<NotificationPreferences>.value(
+              value: notificationPrefs,
+            ),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -152,6 +163,112 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('Where to Watch (US)'), findsOneWidget);
+    });
+
+    testWidgets('does not surface alerts when recommendations preference off',
+        (tester) async {
+      SharedPreferences.setMockInitialValues({
+        PreferenceKeys.notificationsRecommendations: false,
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final storage = LocalStorageService(prefs);
+      final notificationPrefs = NotificationPreferences(prefs);
+      await storage.saveWatchProviderSnapshot('movie', 1, 'US', const <int>{8});
+
+      final providers = WatchProviderResults(
+        flatrate: const [
+          WatchProvider(
+            id: 1,
+            providerId: 8,
+            providerName: 'Netflix',
+            logoPath: '/netflix.png',
+          ),
+          WatchProvider(
+            id: 2,
+            providerId: 9,
+            providerName: 'Hulu',
+            logoPath: '/hulu.png',
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<LocalStorageService>.value(value: storage),
+            Provider<NotificationPreferences>.value(
+              value: notificationPrefs,
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: WatchProvidersAvailabilitySection(
+                mediaType: 'movie',
+                mediaId: 1,
+                region: 'US',
+                providers: providers,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      expect(find.textContaining('available to stream'), findsNothing);
+      expect(storage.getNotifications(), isEmpty);
+    });
+
+    testWidgets('persists recommendation notifications with metadata',
+        (tester) async {
+      SharedPreferences.setMockInitialValues({
+        PreferenceKeys.notificationsRecommendations: true,
+      });
+      final prefs = await SharedPreferences.getInstance();
+      final storage = LocalStorageService(prefs);
+      final notificationPrefs = NotificationPreferences(prefs);
+      await storage.saveWatchProviderSnapshot('movie', 99, 'US', const <int>{});
+
+      final providers = WatchProviderResults(
+        flatrate: const [
+          WatchProvider(
+            id: 1,
+            providerId: 20,
+            providerName: 'Disney+',
+            logoPath: '/disney.png',
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<LocalStorageService>.value(value: storage),
+            Provider<NotificationPreferences>.value(
+              value: notificationPrefs,
+            ),
+          ],
+          child: MaterialApp(
+            home: Scaffold(
+              body: WatchProvidersAvailabilitySection(
+                mediaType: 'movie',
+                mediaId: 99,
+                region: 'US',
+                providers: providers,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+
+      final notifications = storage.getNotifications();
+      expect(notifications, isNotEmpty);
+      expect(notifications.first.category, NotificationCategory.recommendation);
+      expect(notifications.first.metadata['mediaId'], 99);
     });
   });
 }

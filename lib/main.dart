@@ -14,6 +14,7 @@ import 'data/services/local_storage_service.dart';
 import 'data/services/offline_service.dart';
 import 'data/services/network_quality_service.dart';
 import 'data/services/background_prefetch_service.dart';
+import 'data/services/background_sync_service.dart';
 import 'data/tmdb_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
@@ -83,6 +84,8 @@ void main() async {
   final offlineService = OfflineService(prefs: prefs);
   final networkQualityNotifier = NetworkQualityNotifier();
   await networkQualityNotifier.initialize();
+  await BackgroundSyncService.initialize();
+  await BackgroundSyncService.registerTrendingWarmup();
 
   runApp(
     AllMoviesApp(

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:workmanager/workmanager.dart';
 
@@ -5,6 +6,21 @@ import 'cache_service.dart';
 import '../tmdb_repository.dart';
 
 const String _trendingWarmupTask = 'tmdb_trending_warmup';
+
+bool get _isBackgroundSyncSupported {
+  if (kIsWeb) return false;
+  switch (defaultTargetPlatform) {
+    case TargetPlatform.android:
+    case TargetPlatform.iOS:
+      return true;
+    case TargetPlatform.macOS:
+    case TargetPlatform.windows:
+    case TargetPlatform.linux:
+    case TargetPlatform.fuchsia:
+      return false;
+  }
+  return false;
+}
 
 @pragma('vm:entry-point')
 void backgroundSyncDispatcher() {
@@ -28,10 +44,22 @@ class BackgroundSyncService {
   const BackgroundSyncService._();
 
   static Future<void> initialize() async {
-    await Workmanager().initialize(backgroundSyncDispatcher, isInDebugMode: false);
+    if (!_isBackgroundSyncSupported) {
+      return;
+    }
+    if (_initialized) {
+      return;
+    }
+    await Workmanager()
+        .initialize(backgroundSyncDispatcher, isInDebugMode: false);
+    _initialized = true;
   }
 
   static Future<void> registerTrendingWarmup() async {
+    if (!_isBackgroundSyncSupported) {
+      return;
+    }
+    await initialize();
     await Workmanager().cancelByUniqueName(_trendingWarmupTask);
     await Workmanager().registerPeriodicTask(
       _trendingWarmupTask,
@@ -45,4 +73,6 @@ class BackgroundSyncService {
       ),
     );
   }
+
+  static bool _initialized = false;
 }

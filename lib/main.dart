@@ -124,6 +124,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   late final TmdbRepository _repository;
   late final ForegroundRefreshObserver _foregroundObserver;
   late final DeepLinkHandler _deepLinkHandler;
+  late final DeepLinkBreadcrumbController _breadcrumbController;
+  late final RootNavigatorBreadcrumbObserver _breadcrumbObserver;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _registeredRefreshCallbacks = false;
 
@@ -134,12 +136,16 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
     _foregroundObserver = ForegroundRefreshObserver()..attach();
     _deepLinkHandler = DeepLinkHandler()..initialize();
+    _breadcrumbController = DeepLinkBreadcrumbController();
+    _breadcrumbObserver =
+        RootNavigatorBreadcrumbObserver(controller: _breadcrumbController);
   }
 
   @override
   void dispose() {
     _deepLinkHandler.dispose();
     _foregroundObserver.detach();
+    _breadcrumbController.dispose();
     super.dispose();
   }
 
@@ -171,6 +177,12 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
+        ChangeNotifierProvider<DeepLinkHandler>.value(
+          value: _deepLinkHandler,
+        ),
+        ChangeNotifierProvider<DeepLinkBreadcrumbController>.value(
+          value: _breadcrumbController,
+        ),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(
             widget.storageService,
@@ -295,6 +307,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                     ],
                     supportedLocales: AppLocalizations.supportedLocales,
                     debugShowCheckedModeBanner: false,
+                    navigatorObservers: <NavigatorObserver>[
+                      _breadcrumbObserver,
+                    ],
                     home: const AppNavigationShell(),
                     routes: {
                       HomeScreen.routeName: (context) => const HomeScreen(),

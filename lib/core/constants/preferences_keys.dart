@@ -16,7 +16,7 @@ class PreferenceKeys {
       'settings.series.filter_presets';
   static const String seriesActiveFilters =
       'settings.series.active_filters';
-  static const String seriesActivePreset =
+  static const String seriesActivePresetName =
       'settings.series.active_preset';
 
   // Presentation

@@ -502,7 +502,7 @@ class _LanguageTile extends StatelessWidget {
     return ListTile(
       leading: const Icon(Icons.language),
       title: Text(l.t('settings.language')),
-      subtitle: Text(localeProvider.getLanguageName(localeProvider.locale)),
+      subtitle: Text(localeProvider.languageName),
       onTap: () {
         showDialog(
           context: context,
@@ -521,14 +521,21 @@ class _LanguageDialog extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final localeProvider = context.watch<LocaleProvider>();
 
+    final languageOptions = LocaleProvider.supportedLanguages
+        .where((language) => language['code'] != null)
+        .toList();
+
     return AlertDialog(
       title: Text(l10n.t('settings.chooseLanguage')),
       content: Column(
         mainAxisSize: MainAxisSize.min,
-        children: AppLocalizations.supportedLocales.map((locale) {
+        children: languageOptions.map((language) {
+          final code = language['code']!;
+          final optionLocale = localeProvider.localeForCode(code);
+
           return RadioListTile<Locale>(
-            title: Text(localeProvider.getLanguageName(locale)),
-            value: locale,
+            title: Text(language['name'] ?? code),
+            value: optionLocale,
             groupValue: localeProvider.locale,
             onChanged: (value) {
               if (value != null) {

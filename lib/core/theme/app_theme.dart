@@ -169,9 +169,7 @@ class AppTheme {
       scaffoldBackgroundColor: colorScheme.surface,
       textTheme: textTheme,
       iconTheme: IconThemeData(color: colorScheme.onSurfaceVariant),
-      focusColor: highContrast
-          ? colorScheme.secondary.withOpacity(0.45)
-          : colorScheme.primary.withOpacity(0.24),
+      focusColor: focusGlowColor,
       hoverColor: colorScheme.primary.withOpacity(0.08),
       highlightColor: colorScheme.primary.withOpacity(0.12),
       splashColor: colorScheme.primary.withOpacity(0.16),

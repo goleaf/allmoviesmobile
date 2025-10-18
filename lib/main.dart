@@ -75,7 +75,7 @@ import 'providers/certifications_provider.dart';
 import 'providers/lists_provider.dart';
 import 'providers/preferences_provider.dart';
 import 'providers/app_state_provider.dart';
-import 'providers/diagnostics_provider.dart';
+import 'providers/accessibility_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -172,7 +172,6 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         Provider<LocalStorageService>.value(value: widget.storageService),
         Provider<SharedPreferences>.value(value: widget.prefs),
-        ChangeNotifierProvider(create: (_) => DiagnosticsProvider(widget.prefs)),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
           value: widget.networkQualityNotifier,
         ),
@@ -262,6 +261,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           },
         ),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
+        ChangeNotifierProvider(
+          create: (_) => AccessibilityProvider(widget.prefs),
+        ),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
       ],
       child: Builder(
@@ -283,36 +285,59 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
               });
           }
 
-          return Consumer3<LocaleProvider, ThemeProvider, DiagnosticsProvider>(
-            builder:
-                (context, localeProvider, themeProvider, diagnosticsProvider, _) {
-              return DynamicColorBuilder(
-                builder: (lightDynamic, darkDynamic) {
-                  final lightTheme = AppTheme.light(dynamicScheme: lightDynamic);
-                  final darkTheme = AppTheme.dark(dynamicScheme: darkDynamic);
+          return Consumer2<LocaleProvider, ThemeProvider>(
+            builder: (context, localeProvider, themeProvider, _) {
+              return Consumer<AccessibilityProvider>(
+                builder: (context, accessibilityProvider, __) {
+                  return DynamicColorBuilder(
+                    builder: (lightDynamic, darkDynamic) {
+                      final highContrast =
+                          accessibilityProvider.highContrastEnabled;
+                      final colorBlindFriendly =
+                          accessibilityProvider.colorBlindFriendlyPalette;
 
-                  return MaterialApp(
-                    navigatorKey: _navigatorKey,
-                    title: AppLocalizations.of(context).t('app.name'),
-                    theme: lightTheme,
-                    darkTheme: darkTheme,
-                    themeMode: themeProvider.materialThemeMode,
-                    locale: localeProvider.locale,
-                    showPerformanceOverlay:
-                        diagnosticsProvider.performanceOverlayEnabled,
-                    localizationsDelegates: const [
-                      AppLocalizations.delegate,
-                      GlobalMaterialLocalizations.delegate,
-                      GlobalWidgetsLocalizations.delegate,
-                      GlobalCupertinoLocalizations.delegate,
-                    ],
-                    supportedLocales: AppLocalizations.supportedLocales,
-                    debugShowCheckedModeBanner: false,
-                    navigatorObservers: <NavigatorObserver>[
-                      _breadcrumbObserver,
-                    ],
-                    home: const AppNavigationShell(),
-                    routes: {
+                      final lightTheme = AppTheme.light(
+                        dynamicScheme: lightDynamic,
+                        highContrast: highContrast,
+                        colorBlindFriendly: colorBlindFriendly,
+                        emphasizeFocus: highContrast,
+                      );
+                      final darkTheme = AppTheme.dark(
+                        dynamicScheme: darkDynamic,
+                        highContrast: highContrast,
+                        colorBlindFriendly: colorBlindFriendly,
+                        emphasizeFocus: highContrast,
+                      );
+
+                      return MaterialApp(
+                        navigatorKey: _navigatorKey,
+                        title: AppLocalizations.of(context).t('app.name'),
+                        theme: lightTheme,
+                        darkTheme: darkTheme,
+                        themeMode: themeProvider.materialThemeMode,
+                        locale: localeProvider.locale,
+                        builder: (context, child) {
+                          final mediaQuery = MediaQuery.of(context);
+                          final textScale =
+                              accessibilityProvider.textScaleFactor;
+
+                          return MediaQuery(
+                            data: mediaQuery.copyWith(
+                              textScaleFactor: textScale,
+                            ),
+                            child: child ?? const SizedBox.shrink(),
+                          );
+                        },
+                        localizationsDelegates: const [
+                          AppLocalizations.delegate,
+                          GlobalMaterialLocalizations.delegate,
+                          GlobalWidgetsLocalizations.delegate,
+                          GlobalCupertinoLocalizations.delegate,
+                        ],
+                        supportedLocales: AppLocalizations.supportedLocales,
+                        debugShowCheckedModeBanner: false,
+                        home: const AppNavigationShell(),
+                        routes: {
                       HomeScreen.routeName: (context) => const HomeScreen(),
                       MoviesScreen.routeName: (context) => const MoviesScreen(),
                       MoviesFiltersScreen.routeName: (context) =>

@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
@@ -14,6 +12,7 @@ import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../../data/services/local_storage_service.dart';
 import '../series/series_filters_screen.dart';
+import '../../../data/services/local_storage_service.dart';
 import '../../widgets/virtualized_list_view.dart';
 
 class SeriesScreen extends StatefulWidget {
@@ -88,8 +87,15 @@ class _SeriesScreenState extends State<SeriesScreen>
     return context.read<SeriesProvider>().refreshSection(section);
   }
 
-  Future<void> _refreshAll(BuildContext context) {
-    return context.read<SeriesProvider>().refresh(force: true);
+  @override
+  void dispose() {
+    for (final entry in _positionCallbacks.entries) {
+      _positionsListeners[entry.key]!
+          .itemPositions
+          .removeListener(entry.value);
+    }
+    _tabController.dispose();
+    super.dispose();
   }
 
   @override
@@ -236,10 +242,10 @@ class _SeriesSectionView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
     return Consumer<SeriesProvider>(
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
+        Future<void> refreshSection() => onRefreshSection(context, section);
         if (state.isLoading && state.items.isEmpty) {
           return const _SeriesListSkeleton();
         }
@@ -247,20 +253,22 @@ class _SeriesSectionView extends StatelessWidget {
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
-            onRetry: () => provider.refreshSection(section),
+            onRetry: refreshSection,
           );
         }
 
+        _maybeRestore(state.items.length);
+
         return Column(
           children: [
-            if (state.isLoading) const LinearProgressIndicator(minHeight: 2),
+            if (state.isLoading)
+              const LinearProgressIndicator(minHeight: 2),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () => onRefreshAll(context),
                 child: _SeriesList(
                   series: state.items,
                   controller: controller,
-                  emptyMessage: l.t('search.no_results'),
                 ),
               ),
             ),
@@ -272,15 +280,16 @@ class _SeriesSectionView extends StatelessWidget {
                   alignment: Alignment.centerLeft,
                   child: Text(
                     state.errorMessage!,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.error,
-                        ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
+                        ?.copyWith(color: Theme.of(context).colorScheme.error),
                   ),
                 ),
               ),
             if (state.totalPages > 1)
               _PaginationControls(
-                section: section,
+                section: widget.section,
                 state: state,
               ),
           ],
@@ -288,22 +297,46 @@ class _SeriesSectionView extends StatelessWidget {
       },
     );
   }
+
+  void _maybeRestore(int itemCount) {
+    if (_restored) {
+      return;
+    }
+
+    final targetIndex = widget.initialScrollIndex;
+    if (targetIndex == null) {
+      _restored = true;
+      return;
+    }
+    if (itemCount <= targetIndex) {
+      return;
+    }
+    if (!widget.scrollController.isAttached) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted || _restored) return;
+        _maybeRestore(itemCount);
+      });
+      return;
+    }
+    widget.scrollController.jumpTo(index: targetIndex, alignment: 0);
+    _restored = true;
+  }
 }
 
 class _SeriesList extends StatelessWidget {
-  const _SeriesList({
-    required this.series,
-    required this.emptyMessage,
-    this.controller,
-  });
+  const _SeriesList({required this.series, this.controller});
 
   final List<Movie> series;
-  final String emptyMessage;
   final ScrollController? controller;
 
   @override
+  State<_SeriesList> createState() => _SeriesListState();
+}
+
+class _SeriesListState extends State<_SeriesList> {
+  @override
   Widget build(BuildContext context) {
-    if (series.isEmpty) {
+    if (widget.series.isEmpty) {
       return ListView(
         controller: controller,
         physics: const AlwaysScrollableScrollPhysics(),
@@ -317,7 +350,7 @@ class _SeriesList extends StatelessWidget {
           const SizedBox(height: 12),
           Center(
             child: Text(
-              emptyMessage,
+              widget.emptyMessage,
               style: Theme.of(context).textTheme.titleMedium,
             ),
           ),
@@ -329,10 +362,10 @@ class _SeriesList extends StatelessWidget {
       controller: controller,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       physics: const AlwaysScrollableScrollPhysics(),
-      itemCount: series.length,
+      itemCount: widget.series.length,
       separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
-        final show = series[index];
+        final show = widget.series[index];
         return _SeriesCard(show: show);
       },
       cacheExtent: 720,
@@ -341,7 +374,6 @@ class _SeriesList extends StatelessWidget {
   }
 }
 
-/// Pagination footer that exposes sequential controls plus a jump-to-page sheet.
 class _PaginationControls extends StatelessWidget {
   const _PaginationControls({required this.section, required this.state});
 
@@ -358,130 +390,65 @@ class _PaginationControls extends StatelessWidget {
       final previousPage = provider.sectionState(section).currentPage;
       await action();
       final nextState = provider.sectionState(section);
-      if (nextState.errorMessage != null &&
-          nextState.currentPage == previousPage) {
+      if (nextState.errorMessage != null && nextState.currentPage == previousPage) {
         messenger.showSnackBar(
           SnackBar(content: Text(nextState.errorMessage!)),
         );
       }
     }
 
-    Future<void> showJumpSheet() async {
-      if (state.totalPages <= 0) {
-        return;
-      }
-      final totalPages = state.totalPages;
-      final controller =
-          TextEditingController(text: state.currentPage.toString());
-      final selected = await showModalBottomSheet<int>(
+    Future<void> showJumpDialog() async {
+      final controller = TextEditingController(text: state.currentPage.toString());
+      final selected = await showDialog<int>(
         context: context,
-        isScrollControlled: true,
-        showDragHandle: true,
-        builder: (sheetContext) {
-          var tempPage = state.currentPage;
-          return StatefulBuilder(
-            builder: (sheetContext, setModalState) {
-              void updateTempPage(int value) {
-                final clamped = value.clamp(1, totalPages);
-                if (tempPage != clamped) {
-                  tempPage = clamped;
-                  controller.text = '$clamped';
-                  controller.selection = TextSelection.collapsed(
-                    offset: controller.text.length,
-                  );
-                  setModalState(() {});
-                }
-              }
-
-              return Padding(
-                padding: EdgeInsets.only(
-                  left: 24,
-                  right: 24,
-                  top: 16,
-                  bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      AppStrings.jumpToPage,
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: controller,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: AppStrings.page,
-                        helperText:
-                            '${AppStrings.page} 1 ${AppStrings.of} $totalPages',
+        builder: (dialogContext) {
+          return AlertDialog(
+            title: const Text(AppStrings.jumpToPage),
+            content: TextField(
+              controller: controller,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: AppStrings.page,
+                helperText: AppStrings.enterPageNumber,
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: const Text(AppStrings.cancel),
+              ),
+              FilledButton(
+                onPressed: () {
+                  final value = int.tryParse(controller.text.trim());
+                  if (value == null) {
+                    messenger.showSnackBar(
+                      const SnackBar(
+                        content: Text(AppStrings.enterPageNumber),
                       ),
-                      onChanged: (value) {
-                        final parsed = int.tryParse(value.trim());
-                        if (parsed != null) {
-                          final clamped = parsed.clamp(1, totalPages);
-                          setModalState(() {
-                            tempPage = clamped;
-                          });
-                          if (clamped != parsed) {
-                            controller.text = '$clamped';
-                            controller.selection = TextSelection.collapsed(
-                              offset: controller.text.length,
-                            );
-                          }
-                        }
-                      },
-                    ),
-                    if (totalPages > 1) ...[
-                      const SizedBox(height: 12),
-                      Slider(
-                        min: 1,
-                        max: totalPages.toDouble(),
-                        divisions: math.min(totalPages - 1, 200).toInt(),
-                        value: tempPage.toDouble(),
-                        label: tempPage.toString(),
-                        onChanged: (value) => updateTempPage(value.round()),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        TextButton(
-                          onPressed: () => Navigator.of(sheetContext).pop(),
-                          child: const Text(AppStrings.cancel),
-                        ),
-                        const SizedBox(width: 12),
-                        FilledButton.icon(
-                          onPressed: () =>
-                              Navigator.of(sheetContext).pop(tempPage),
-                          icon: const Icon(Icons.check),
-                          label: const Text(AppStrings.go),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
+                    );
+                    return;
+                  }
+                  Navigator.of(dialogContext).pop(value);
+                },
+                child: const Text(AppStrings.go),
+              ),
+            ],
           );
         },
       );
 
       if (selected != null) {
-        if (selected < 1 || selected > totalPages) {
+        final success = await provider.jumpToPage(section, selected);
+        if (!success) {
+          final message =
+              provider.sectionState(section).errorMessage ??
+                  'Unable to load page $selected.';
           messenger.showSnackBar(
-            SnackBar(
-              content: Text(
-                '${AppStrings.page} must be between 1 and $totalPages.',
-              ),
-            ),
+            SnackBar(content: Text(message)),
           );
-          return;
         }
-        await handleAction(() => provider.jumpToPage(section, selected));
       }
+      controller.dispose();
     }
 
     return Padding(
@@ -513,7 +480,7 @@ class _PaginationControls extends StatelessWidget {
                   onPressed: state.isLoading
                       ? null
                       : () async {
-                          await showJumpSheet();
+                          await showJumpDialog();
                         },
                   icon: const Icon(Icons.input),
                   label: const Text(AppStrings.jump),

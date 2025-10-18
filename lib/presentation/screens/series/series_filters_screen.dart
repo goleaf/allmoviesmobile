@@ -3,8 +3,8 @@ import 'package:provider/provider.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../core/localization/app_localizations.dart';
-import '../../../data/models/tv_discover_filters.dart';
-import '../../../providers/preferences_provider.dart';
+import '../../../data/models/tv_filter_preset.dart';
+import '../../../data/tv_filter_presets_repository.dart';
 
 /// Arguments passed when navigating to [SeriesFiltersScreen].
 class SeriesFiltersScreenArguments {
@@ -13,7 +13,7 @@ class SeriesFiltersScreenArguments {
     this.initialPresetName,
   });
 
-  final TvDiscoverFilters? initialFilters;
+  final Map<String, String>? initialFilters;
   final String? initialPresetName;
 }
 
@@ -21,7 +21,7 @@ class SeriesFiltersScreenArguments {
 class SeriesFilterResult {
   const SeriesFilterResult({required this.filters, this.presetName});
 
-  final TvDiscoverFilters filters;
+  final Map<String, String> filters;
   final String? presetName;
 }
 
@@ -34,7 +34,7 @@ class SeriesFiltersScreen extends StatefulWidget {
     this.presetSaved = false,
   });
 
-  final TvDiscoverFilters? initialFilters;
+  final Map<String, String>? initialFilters;
   final bool presetSaved;
 
   @override
@@ -60,7 +60,6 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   int runtimeMin = 20;
   int runtimeMax = 90;
   int voteCountMin = 50;
-  bool _shouldSavePreset = false;
 
   final TextEditingController _timezoneController = TextEditingController();
   final TextEditingController _watchProvidersController =
@@ -95,11 +94,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
     final parsedArgs =
         args is SeriesFiltersScreenArguments ? args : null;
 
-    final initialFilters = parsedArgs?.initialFilters;
-    if (initialFilters != null) {
-      _loadFromFilterModel(
-        initialFilters,
-        presetName: parsedArgs?.initialPresetName,
+    if (parsedArgs?.initialFilters != null) {
+      _loadFromFilters(
+        parsedArgs!.initialFilters!,
+        presetName: parsedArgs.initialPresetName,
       );
     }
   }
@@ -177,17 +175,13 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
     return filters;
   }
 
-  TvDiscoverFilters _buildFilterModel() {
-    return TvDiscoverFilters.fromQueryParameters(_buildFilters());
-  }
-
   void _apply() {
-    final filters = _buildFilterModel();
+    final filters = _buildFilters();
     _submitWithFilters(filters, presetName: _currentPresetName);
   }
 
   void _submitWithFilters(
-    TvDiscoverFilters filters, {
+    Map<String, String> filters, {
     String? presetName,
   }) {
     Navigator.pop(
@@ -201,16 +195,6 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
     _timezoneController.text = timezoneValue;
     _watchProvidersController.text = providersValue;
     _suspendTextNotifications = false;
-  }
-
-  void _loadFromFilterModel(
-    TvDiscoverFilters filters, {
-    String? presetName,
-  }) {
-    _loadFromFilters(
-      filters.toQueryParameters(),
-      presetName: presetName,
-    );
   }
 
   void _loadFromFilters(
@@ -258,8 +242,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }
 
   Future<void> _savePreset() async {
-    final filters = _buildFilterModel();
-    if (filters.toQueryParameters().isEmpty) {
+    final filters = _buildFilters();
+    if (filters.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Add at least one filter first.')),
       );
@@ -274,9 +258,9 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       return;
     }
 
-    final prefs = context.read<PreferencesProvider>();
-    await prefs.saveTvFilterPreset(
-      TvDiscoverFilterPreset(name: trimmed, filters: filters),
+    final repository = context.read<TvFilterPresetsRepository>();
+    await repository.savePreset(
+      TvFilterPreset(name: trimmed, filters: filters),
     );
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -290,8 +274,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }
 
   Future<String?> _promptPresetName() async {
-    final prefs = context.read<PreferencesProvider>();
-    final existing = prefs.tvFilterPresets;
+    final repository = context.read<TvFilterPresetsRepository>();
+    final existing = await repository.loadPresets();
     final defaultName = _currentPresetName ??
         'Preset ${existing.length + 1}';
     final controller = TextEditingController(text: defaultName);
@@ -329,8 +313,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }
 
   Future<void> _showPresetsSheet() async {
-    final prefs = context.read<PreferencesProvider>();
-    final presets = prefs.tvFilterPresets;
+    final repository = context.read<TvFilterPresetsRepository>();
+    final presets = await repository.loadPresets();
     if (presets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('No saved presets yet.')),
@@ -348,11 +332,13 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             final preset = presets[index];
             return ListTile(
               title: Text(preset.name),
-              subtitle:
-                  Text('${preset.filters.toQueryParameters().length} filters'),
+              subtitle: Text('${preset.filters.length} filters'),
               onTap: () {
                 Navigator.of(sheetContext).pop();
-                _loadFromFilterModel(preset.filters, presetName: preset.name);
+                _loadFromFilters(
+                  preset.filters,
+                  presetName: preset.name,
+                );
               },
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -416,8 +402,8 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }
 
   Future<void> _deletePreset(String name) async {
-    final prefs = context.read<PreferencesProvider>();
-    await prefs.deleteTvFilterPreset(name);
+    final repository = context.read<TvFilterPresetsRepository>();
+    await repository.deletePreset(name);
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Deleted preset "$name".')),

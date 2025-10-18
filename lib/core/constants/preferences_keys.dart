@@ -14,8 +14,10 @@ class PreferenceKeys {
   static const String releaseYear = 'settings.release_year';
   static const String seriesFilterPresets =
       'settings.series.filter_presets';
-  static const String tvActiveFilterPreset =
-      'settings.series.active_filter_preset';
+  static const String seriesActiveFilters =
+      'settings.series.active_filters';
+  static const String seriesActivePreset =
+      'settings.series.active_preset';
 
   // Presentation
   static const String imageQuality = 'settings.image_quality';
@@ -29,10 +31,4 @@ class PreferenceKeys {
       'settings.notifications.recommendations';
   static const String notificationsMarketing =
       'settings.notifications.marketing';
-  static const String notificationsEnabled =
-      'settings.notifications.enabled';
-  static const String notificationsDeviceToken =
-      'settings.notifications.device_token';
-  static const String notificationsPermissionStatus =
-      'settings.notifications.permission_status';
 }

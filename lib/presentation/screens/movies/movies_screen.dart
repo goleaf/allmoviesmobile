@@ -12,6 +12,7 @@ import '../../screens/movie_detail/movie_detail_screen.dart';
 import '../movies/movies_filters_screen.dart';
 import '../../widgets/app_drawer.dart';
 import '../../../data/services/local_storage_service.dart';
+import '../../widgets/loading_indicator.dart';
 
 class MoviesScreen extends StatefulWidget {
   static const routeName = '/movies';
@@ -382,6 +383,10 @@ class _MoviesSectionViewState extends State<_MoviesSectionView> {
       builder: (context, provider, _) {
         final state = provider.sectionState(widget.section);
 
+        if (state.isLoading && state.items.isEmpty) {
+          return const _MoviesListSkeleton();
+        }
+
         if (state.errorMessage != null && state.items.isEmpty) {
           return _ErrorView(
             message: state.errorMessage!,
@@ -462,6 +467,118 @@ class _MoviesList extends StatefulWidget {
 
   @override
   State<_MoviesList> createState() => _MoviesListState();
+}
+
+class _MoviesListSkeleton extends StatelessWidget {
+  const _MoviesListSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardColor = theme.colorScheme.surfaceVariant;
+    final chipColor = theme.colorScheme.secondaryContainer;
+    final cardBase = Color.lerp(cardColor, Colors.black, 0.08)!;
+    final cardHighlight = Color.lerp(cardColor, Colors.white, 0.35)!;
+    final chipBase = Color.lerp(chipColor, Colors.black, 0.05)!;
+    final chipHighlight = Color.lerp(chipColor, Colors.white, 0.4)!;
+
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: 8,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ShimmerLoading(
+                      width: 44,
+                      height: 44,
+                      borderRadius: BorderRadius.circular(22),
+                      baseColor: cardBase,
+                      highlightColor: cardHighlight,
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ShimmerLoading(
+                            width: double.infinity,
+                            height: 16,
+                            borderRadius: BorderRadius.circular(6),
+                            baseColor: cardBase,
+                            highlightColor: cardHighlight,
+                          ),
+                          const SizedBox(height: 8),
+                          ShimmerLoading(
+                            width: 140,
+                            height: 12,
+                            borderRadius: BorderRadius.circular(6),
+                            baseColor: cardBase,
+                            highlightColor: cardHighlight,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: chipColor.withOpacity(0.35),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      child: ShimmerLoading(
+                        width: 34,
+                        height: 12,
+                        borderRadius: BorderRadius.circular(8),
+                        baseColor: chipBase,
+                        highlightColor: chipHighlight,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                ShimmerLoading(
+                  width: double.infinity,
+                  height: 12,
+                  borderRadius: BorderRadius.circular(6),
+                  baseColor: cardBase,
+                  highlightColor: cardHighlight,
+                ),
+                const SizedBox(height: 6),
+                ShimmerLoading(
+                  width: double.infinity,
+                  height: 12,
+                  borderRadius: BorderRadius.circular(6),
+                  baseColor: cardBase,
+                  highlightColor: cardHighlight,
+                ),
+                const SizedBox(height: 6),
+                ShimmerLoading(
+                  width: 180,
+                  height: 12,
+                  borderRadius: BorderRadius.circular(6),
+                  baseColor: cardBase,
+                  highlightColor: cardHighlight,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _MoviesListState extends State<_MoviesList> {

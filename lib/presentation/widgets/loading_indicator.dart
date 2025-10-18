@@ -26,12 +26,16 @@ class ShimmerLoading extends StatefulWidget {
   final double width;
   final double height;
   final BorderRadius? borderRadius;
+  final Color? baseColor;
+  final Color? highlightColor;
 
   const ShimmerLoading({
     super.key,
     required this.width,
     required this.height,
     this.borderRadius,
+    this.baseColor,
+    this.highlightColor,
   });
 
   @override
@@ -65,6 +69,8 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
 
   @override
   Widget build(BuildContext context) {
+    final baseColor = widget.baseColor ?? Colors.grey[300]!;
+    final highlightColor = widget.highlightColor ?? Colors.grey[100]!;
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -76,7 +82,7 @@ class _ShimmerLoadingState extends State<ShimmerLoading>
             gradient: LinearGradient(
               begin: Alignment.centerLeft,
               end: Alignment.centerRight,
-              colors: [Colors.grey[300]!, Colors.grey[100]!, Colors.grey[300]!],
+              colors: [baseColor, highlightColor, baseColor],
               stops: [
                 _animation.value - 0.3,
                 _animation.value,

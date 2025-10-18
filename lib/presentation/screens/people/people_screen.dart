@@ -12,6 +12,7 @@ import '../../widgets/media_image.dart';
 import '../../../core/utils/media_image_helper.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../widgets/virtualized_list_view.dart';
+import '../../widgets/loading_indicator.dart';
 
 class PeopleScreen extends StatefulWidget {
   static const routeName = '/people';
@@ -193,7 +194,7 @@ class _PeopleSectionView extends StatelessWidget {
       builder: (context, provider, _) {
         final state = provider.sectionState(section);
         if (state.isLoading && state.items.isEmpty) {
-          return const Center(child: CircularProgressIndicator());
+          return const _PeopleListSkeleton();
         }
 
         if (state.errorMessage != null && state.items.isEmpty) {
@@ -286,6 +287,84 @@ class _PeopleList extends StatelessWidget {
       },
       cacheExtent: 640,
       addAutomaticKeepAlives: true,
+    );
+  }
+}
+
+class _PeopleListSkeleton extends StatelessWidget {
+  const _PeopleListSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardColor = theme.colorScheme.surfaceVariant;
+    final baseColor = Color.lerp(cardColor, Colors.black, 0.08)!;
+    final highlightColor = Color.lerp(cardColor, Colors.white, 0.35)!;
+
+    return ListView.separated(
+      physics: const AlwaysScrollableScrollPhysics(),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      itemCount: 10,
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ShimmerLoading(
+                  width: 64,
+                  height: 64,
+                  borderRadius: BorderRadius.circular(32),
+                  baseColor: baseColor,
+                  highlightColor: highlightColor,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ShimmerLoading(
+                        width: double.infinity,
+                        height: 16,
+                        borderRadius: BorderRadius.circular(6),
+                        baseColor: baseColor,
+                        highlightColor: highlightColor,
+                      ),
+                      const SizedBox(height: 8),
+                      ShimmerLoading(
+                        width: 160,
+                        height: 12,
+                        borderRadius: BorderRadius.circular(6),
+                        baseColor: baseColor,
+                        highlightColor: highlightColor,
+                      ),
+                      const SizedBox(height: 8),
+                      ShimmerLoading(
+                        width: 120,
+                        height: 12,
+                        borderRadius: BorderRadius.circular(6),
+                        baseColor: baseColor,
+                        highlightColor: highlightColor,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                ShimmerLoading(
+                  width: 24,
+                  height: 24,
+                  borderRadius: BorderRadius.circular(12),
+                  baseColor: baseColor,
+                  highlightColor: highlightColor,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -25,6 +25,7 @@ import 'presentation/screens/collections/browse_collections_screen.dart';
 import 'presentation/screens/collections/collection_detail_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/company_detail/company_detail_screen.dart';
+import 'presentation/screens/episode_detail/episode_detail_screen.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
 import 'presentation/screens/favorites/favorites_screen.dart';
 import 'presentation/screens/home/home_screen.dart';
@@ -74,7 +75,6 @@ void main() async {
 
   MemoryOptimizer.instance.initialize();
 
-  // Initialize SharedPreferences
   final prefs = await SharedPreferences.getInstance();
   final storageService = LocalStorageService(prefs);
   final offlineService = OfflineService(prefs: prefs);
@@ -113,8 +113,8 @@ class AllMoviesApp extends StatefulWidget {
 
 class _AllMoviesAppState extends State<AllMoviesApp> {
   late final TmdbRepository _repository;
-  late final ForegroundRefreshObserver _foregroundObserver;
   late final DeepLinkHandler _deepLinkHandler;
+  late final ForegroundRefreshObserver _foregroundObserver;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _registeredRefreshCallbacks = false;
 
@@ -134,6 +134,7 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   void dispose() {
     _deepLinkHandler.dispose();
     _foregroundObserver.detach();
+    widget.networkQualityNotifier.dispose();
     super.dispose();
   }
 
@@ -141,29 +142,18 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        Provider<OfflineService>.value(value: widget.offlineService),
-        ChangeNotifierProvider(
-          create: (_) => OfflineProvider(widget.offlineService),
-        ),
-        Provider<TmdbRepository>.value(value: _repository),
-        Provider<BackgroundPrefetchService>(
-          create: (_) {
-            final service = BackgroundPrefetchService(
-              repository: _repository,
-              networkQualityNotifier: widget.networkQualityNotifier,
-            );
-            service.initialize();
-            return service;
-          },
-          dispose: (_, service) => service.dispose(),
-        ),
         Provider<LocalStorageService>.value(value: widget.storageService),
         Provider<SharedPreferences>.value(value: widget.prefs),
+        Provider<OfflineService>.value(value: widget.offlineService),
+        Provider<TmdbRepository>.value(value: _repository),
+        Provider<DeepLinkHandler>.value(value: _deepLinkHandler),
+        Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
           value: widget.networkQualityNotifier,
         ),
-        ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
-        ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
+        ChangeNotifierProvider(
+          create: (_) => OfflineProvider(widget.offlineService),
+        ),
         ChangeNotifierProvider(
           create: (_) => FavoritesProvider(
             widget.storageService,
@@ -186,28 +176,44 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ChangeNotifierProvider(
           create: (_) => TrendingTitlesProvider(_repository),
         ),
-        ChangeNotifierProvider(create: (_) => GenresProvider(_repository)),
+        ChangeNotifierProvider(
+          create: (_) => GenresProvider(_repository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => PeopleProvider(_repository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CompaniesProvider(_repository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => NetworksProvider(_repository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => CollectionsProvider(_repository),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ListsProvider(widget.storageService),
+        ),
         ChangeNotifierProvider(
           create: (_) => WatchRegionProvider(widget.prefs),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => LocaleProvider(widget.prefs),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => ThemeProvider(widget.prefs),
         ),
         ChangeNotifierProvider(
           create: (_) => PreferencesProvider(widget.prefs),
         ),
         ChangeNotifierProvider(
-          create: (_) => AppStateProvider(widget.prefs),
-        ),
-        ChangeNotifierProvider(
           create: (_) => AccessibilityProvider(widget.prefs),
         ),
-        ChangeNotifierProvider(create: (_) => PeopleProvider(_repository)),
-        ChangeNotifierProvider(create: (_) => CompaniesProvider(_repository)),
-        ChangeNotifierProvider(create: (_) => NetworksProvider(_repository)),
-        ChangeNotifierProvider(create: (_) => CollectionsProvider(_repository)),
         ChangeNotifierProvider(
-          create: (_) => ListsProvider(widget.storageService),
+          create: (_) => AppStateProvider(widget.prefs),
         ),
-        ChangeNotifierProxyProvider2<WatchRegionProvider, PreferencesProvider,
-            MoviesProvider>(
+        ChangeNotifierProxyProvider2<
+            WatchRegionProvider, PreferencesProvider, MoviesProvider>(
           create: (_) => MoviesProvider(
             _repository,
             storageService: widget.storageService,
@@ -219,8 +225,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
               storageService: widget.storageService,
               offlineService: widget.offlineService,
             );
-            movies.bindRegionProvider(watchRegion);
-            movies.bindPreferencesProvider(preferences);
+            movies
+              ..bindRegionProvider(watchRegion)
+              ..bindPreferencesProvider(preferences);
             return movies;
           },
         ),
@@ -231,17 +238,27 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
             preferencesProvider: null,
             offlineService: widget.offlineService,
           ),
-          update: (_, prefsProvider, offline, series) {
+          update: (_, prefsProvider, offlineService, series) {
             series ??= SeriesProvider(
               _repository,
               preferencesProvider: prefsProvider,
-              offlineService: offline,
+              offlineService: offlineService,
             );
             series.bindPreferencesProvider(prefsProvider);
             return series;
           },
         ),
-        Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
+        Provider<BackgroundPrefetchService>(
+          create: (_) {
+            final service = BackgroundPrefetchService(
+              repository: _repository,
+              networkQualityNotifier: widget.networkQualityNotifier,
+            );
+            service.initialize();
+            return service;
+          },
+          dispose: (_, service) => service.dispose(),
+        ),
       ],
       child: Builder(
         builder: (context) {
@@ -301,7 +318,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           const FavoritesScreen(),
                       WatchlistScreen.routeName: (context) =>
                           const WatchlistScreen(),
-                      SettingsScreen.routeName: (context) => const SettingsScreen(),
+                      SettingsScreen.routeName: (context) =>
+                          const SettingsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
@@ -334,6 +352,26 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                             );
                           }
                           return null;
+                        case '/tv':
+                        case TVDetailScreen.routeName:
+                          final args = settings.arguments;
+                          if (args is Movie) {
+                            return MaterialPageRoute(
+                              builder: (_) => TVDetailScreen(tvShow: args),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          if (args is int) {
+                            return MaterialPageRoute(
+                              builder: (_) => TVDetailScreen(
+                                tvShow: Movie(id: args, title: ''),
+                              ),
+                              settings: settings,
+                              fullscreenDialog: true,
+                            );
+                          }
+                          return null;
                         case MovieDetailScreen.routeName:
                           final args = settings.arguments;
                           if (args is Movie) {
@@ -353,32 +391,38 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                             );
                           }
                           return null;
-                        case TVDetailScreen.routeName:
-                        case '/tv':
+                        case KeywordDetailScreen.routeName:
                           final args = settings.arguments;
-                          if (args is Movie) {
+                          if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) => TVDetailScreen(tvShow: args),
+                              builder: (_) =>
+                                  KeywordDetailScreen(keywordId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
                           }
-                          if (args is int) {
-                            return MaterialPageRoute(
-                              builder: (_) => TVDetailScreen(
-                                tvShow: Movie(id: args, title: ''),
-                              ),
-                              settings: settings,
-                              fullscreenDialog: true,
-                            );
+                          if (args is Map) {
+                            final id = args['id'];
+                            final name = args['name'];
+                            if (id is int) {
+                              return MaterialPageRoute(
+                                builder: (_) => KeywordDetailScreen(
+                                  keywordId: id,
+                                  keywordName: name is String ? name : null,
+                                ),
+                                settings: settings,
+                                fullscreenDialog: true,
+                              );
+                            }
                           }
                           return null;
-                        case PersonDetailScreen.routeName:
                         case '/person':
+                        case PersonDetailScreen.routeName:
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) => PersonDetailScreen(personId: args),
+                              builder: (_) =>
+                                  PersonDetailScreen(personId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -409,7 +453,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) => NetworkDetailScreen(networkId: args),
+                              builder: (_) =>
+                                  NetworkDetailScreen(networkId: args),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -432,8 +477,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                           final args = settings.arguments;
                           if (args is int) {
                             return MaterialPageRoute(
-                              builder: (_) =>
-                                  CollectionDetailScreen(collectionId: args),
+                              builder: (_) => CollectionDetailScreen(
+                                collectionId: args,
+                              ),
                               settings: settings,
                               fullscreenDialog: true,
                             );
@@ -445,33 +491,10 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                                 builder: (_) => CollectionDetailScreen(
                                   collectionId: id,
                                   initialName: args['name'] as String?,
-                                  initialPosterPath: args['posterPath'] as String?,
+                                  initialPosterPath:
+                                      args['posterPath'] as String?,
                                   initialBackdropPath:
                                       args['backdropPath'] as String?,
-                                ),
-                                settings: settings,
-                                fullscreenDialog: true,
-                              );
-                            }
-                          }
-                          return null;
-                        case KeywordDetailScreen.routeName:
-                          final args = settings.arguments;
-                          if (args is int) {
-                            return MaterialPageRoute(
-                              builder: (_) => KeywordDetailScreen(keywordId: args),
-                              settings: settings,
-                              fullscreenDialog: true,
-                            );
-                          }
-                          if (args is Map) {
-                            final id = args['id'];
-                            final name = args['name'];
-                            if (id is int) {
-                              return MaterialPageRoute(
-                                builder: (_) => KeywordDetailScreen(
-                                  keywordId: id,
-                                  keywordName: name is String ? name : null,
                                 ),
                                 settings: settings,
                                 fullscreenDialog: true,

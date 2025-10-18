@@ -45,9 +45,11 @@ class TmdbRepository {
     NetworkQualityNotifier? networkQualityNotifier,
     String? apiKey,
     String? language,
-  }) : _client = client ?? http.Client(),
-       _cache = cacheService,
+  })  : _client = client ?? http.Client(),
+        _cache = cacheService,
         _networkQualityNotifier = networkQualityNotifier,
+        _pendingRevalidations = <String, Future<void>>{},
+        _networkAwareDelay = Duration.zero,
         _language = language ?? AppConfig.defaultLanguage,
         _apiKey = (() {
           final provided =
@@ -57,7 +59,7 @@ class TmdbRepository {
             return provided;
           }
           return AppConfig.tmdbApiKey;
-       })() {
+        })() {
     if (_cache != null) {
       MemoryOptimizer.instance.registerCacheService(_cache);
       _cache!
@@ -85,6 +87,9 @@ class TmdbRepository {
           policy: _policyFromSeconds(CacheService.searchTTL),
         );
     }
+
+    _networkQualityNotifier?.addListener(_handleNetworkQualityChange);
+    _handleNetworkQualityChange();
   }
 
   static const _host = 'api.themoviedb.org';
@@ -93,10 +98,10 @@ class TmdbRepository {
   final http.Client _client;
   final CacheService? _cache;
   final NetworkQualityNotifier? _networkQualityNotifier;
+  final Map<String, Future<void>> _pendingRevalidations;
   final String _apiKey;
   final String _language;
-  Duration _networkAwareDelay = Duration.zero;
-  final Map<String, Future<void>> _pendingRevalidations = {};
+  Duration _networkAwareDelay;
   final RateLimiter _globalRateLimiter = RateLimiter(
     const Duration(milliseconds: 250),
   );
@@ -112,10 +117,10 @@ class TmdbRepository {
 
   Duration _delayForQuality(NetworkQuality? quality) {
     return switch (quality) {
-      NetworkQuality.offline => Duration.zero,
-      NetworkQuality.constrained => const Duration(milliseconds: 500),
-      NetworkQuality.balanced => const Duration(milliseconds: 100),
+      NetworkQuality.constrained => const Duration(milliseconds: 350),
+      NetworkQuality.balanced => const Duration(milliseconds: 150),
       NetworkQuality.excellent => Duration.zero,
+      NetworkQuality.offline => Duration.zero,
       null => Duration.zero,
     };
   }

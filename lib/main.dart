@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:dynamic_color/dynamic_color.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,21 +5,19 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'core/analytics/analytics_initializer.dart';
-import 'core/analytics/analytics_route_observer.dart';
-import 'core/analytics/app_analytics.dart';
 import 'core/localization/app_localizations.dart';
 import 'core/theme/app_theme.dart';
 import 'core/utils/foreground_refresh_observer.dart';
 import 'core/utils/memory_optimizer.dart';
-import 'core/analytics/analytics_service.dart';
-import 'core/logging/app_logger.dart';
 import 'core/navigation/deep_link_handler.dart';
 import 'data/services/local_storage_service.dart';
 import 'data/services/offline_service.dart';
 import 'data/services/network_quality_service.dart';
 import 'data/services/background_prefetch_service.dart';
 import 'data/tmdb_repository.dart';
+import 'data/services/tmdb_v4_api_service.dart';
+import 'data/services/tmdb_v4_auth_service.dart';
+import 'data/tmdb_v4_repository.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/genres_provider.dart';
 import 'providers/locale_provider.dart';
@@ -31,8 +27,11 @@ import 'providers/theme_provider.dart';
 import 'providers/trending_titles_provider.dart';
 import 'providers/watchlist_provider.dart';
 import 'providers/recommendations_provider.dart';
+import 'providers/tmdb_v4_auth_provider.dart';
 import 'presentation/navigation/app_navigation_shell.dart';
 import 'presentation/screens/explorer/api_explorer_screen.dart';
+import 'presentation/screens/explorer/tmdb_v4_reference_screen.dart';
+import 'presentation/screens/auth/v4_login_screen.dart';
 import 'presentation/screens/keywords/keyword_browser_screen.dart';
 import 'presentation/screens/companies/companies_screen.dart';
 import 'presentation/screens/certifications/certifications_screen.dart';
@@ -82,18 +81,6 @@ import 'providers/app_state_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize the shared logger so debug analytics/crash services can emit
-  // diagnostics even when Firebase is unavailable.
-  final logger = AppLogger.instance;
-  await logger.init();
-
-  // Firebase Analytics is optional; the initializer gracefully falls back to
-  // a debug logger-based implementation when Firebase options are missing.
-  final analyticsInitializer = AnalyticsInitializer(logger: logger);
-  final AnalyticsService analyticsService =
-      await analyticsInitializer.initialize();
-  final appAnalytics = AppAnalytics(service: analyticsService, logger: logger);
-
   MemoryOptimizer.instance.initialize();
 
   // Initialize SharedPreferences
@@ -109,8 +96,6 @@ void main() async {
       prefs: prefs,
       offlineService: offlineService,
       networkQualityNotifier: networkQualityNotifier,
-      analyticsService: analyticsService,
-      analytics: appAnalytics,
     ),
   );
 }
@@ -123,16 +108,13 @@ class AllMoviesApp extends StatefulWidget {
     required this.offlineService,
     this.tmdbRepository,
     required this.networkQualityNotifier,
-    required this.analyticsService,
-    required this.analytics,
   });
 
   final LocalStorageService storageService;
   final SharedPreferences prefs;
+  final OfflineService offlineService;
   final TmdbRepository? tmdbRepository;
   final NetworkQualityNotifier networkQualityNotifier;
-  final AnalyticsService analyticsService;
-  final AppAnalytics analytics;
 
   @override
   State<AllMoviesApp> createState() => _AllMoviesAppState();
@@ -142,7 +124,9 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
   late final TmdbRepository _repository;
   late final ForegroundRefreshObserver _foregroundObserver;
   late final DeepLinkHandler _deepLinkHandler;
-  late final AnalyticsRouteObserver _analyticsObserver;
+  late final TmdbV4ApiService _tmdbV4ApiService;
+  late final TmdbV4Repository _tmdbV4Repository;
+  late final TmdbV4AuthService _tmdbV4AuthService;
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   bool _registeredRefreshCallbacks = false;
 
@@ -151,13 +135,11 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
     super.initState();
     _repository = widget.tmdbRepository ??
         TmdbRepository(networkQualityNotifier: widget.networkQualityNotifier);
+    _tmdbV4ApiService = TmdbV4ApiService();
+    _tmdbV4Repository = TmdbV4Repository(service: _tmdbV4ApiService);
+    _tmdbV4AuthService = TmdbV4AuthService(apiService: _tmdbV4ApiService);
     _foregroundObserver = ForegroundRefreshObserver()..attach();
-    _deepLinkHandler = DeepLinkHandler(
-      navigatorKey: _navigatorKey,
-      repository: _repository,
-    )..initialize();
-    _analyticsObserver = AnalyticsRouteObserver(widget.analytics);
-    unawaited(widget.analytics.logAppOpen());
+    _deepLinkHandler = DeepLinkHandler()..initialize();
   }
 
   @override
@@ -176,6 +158,13 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
           create: (_) => OfflineProvider(widget.offlineService),
         ),
         Provider<TmdbRepository>.value(value: _repository),
+        Provider<TmdbV4Repository>.value(value: _tmdbV4Repository),
+        ChangeNotifierProvider(
+          create: (_) => TmdbV4AuthProvider(
+            authService: _tmdbV4AuthService,
+            repository: _tmdbV4Repository,
+          ),
+        ),
         Provider<BackgroundPrefetchService>(
           create: (_) {
             final service = BackgroundPrefetchService(
@@ -189,43 +178,25 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         Provider<LocalStorageService>.value(value: widget.storageService),
         Provider<SharedPreferences>.value(value: widget.prefs),
-        Provider<AppAnalytics>.value(value: widget.analytics),
-        Provider<AnalyticsService>.value(value: widget.analyticsService),
         ChangeNotifierProvider<NetworkQualityNotifier>.value(
           value: widget.networkQualityNotifier,
         ),
+        ChangeNotifierProvider(create: (_) => LocaleProvider(widget.prefs)),
+        ChangeNotifierProvider(create: (_) => ThemeProvider(widget.prefs)),
         ChangeNotifierProvider(
-          create: (context) => LocaleProvider(
-            widget.prefs,
-            analytics: context.read<AppAnalytics>(),
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => ThemeProvider(
-            widget.prefs,
-            analytics: context.read<AppAnalytics>(),
-          ),
-        ),
-        ChangeNotifierProvider(
-          create: (context) => FavoritesProvider(
+          create: (_) => FavoritesProvider(
             widget.storageService,
             offlineService: widget.offlineService,
-            analytics: context.read<AppAnalytics>(),
           ),
         ),
         ChangeNotifierProvider(
-          create: (context) => WatchlistProvider(
+          create: (_) => WatchlistProvider(
             widget.storageService,
             offlineService: widget.offlineService,
-            analytics: context.read<AppAnalytics>(),
           ),
         ),
         ChangeNotifierProvider(
-          create: (context) => SearchProvider(
-            _repository,
-            widget.storageService,
-            analytics: context.read<AppAnalytics>(),
-          ),
+          create: (_) => SearchProvider(_repository, widget.storageService),
         ),
         ChangeNotifierProvider(
           create: (_) =>
@@ -281,8 +252,8 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
         ),
         ChangeNotifierProvider(create: (_) => PreferencesProvider(widget.prefs)),
         ChangeNotifierProvider(create: (_) => AppStateProvider(widget.prefs)),
-        ChangeNotifierProvider<DeepLinkHandler>.value(value: _deepLinkHandler),
         Provider<ForegroundRefreshObserver>.value(value: _foregroundObserver),
+        ChangeNotifierProvider<DeepLinkHandler>.value(value: _deepLinkHandler),
       ],
       child: Builder(
         builder: (context) {
@@ -325,7 +296,6 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                     ],
                     supportedLocales: AppLocalizations.supportedLocales,
                     debugShowCheckedModeBanner: false,
-                    navigatorObservers: <NavigatorObserver>[_analyticsObserver],
                     home: const AppNavigationShell(),
                     routes: {
                       HomeScreen.routeName: (context) => const HomeScreen(),
@@ -348,6 +318,10 @@ class _AllMoviesAppState extends State<AllMoviesApp> {
                       SettingsScreen.routeName: (context) => const SettingsScreen(),
                       ApiExplorerScreen.routeName: (context) =>
                           const ApiExplorerScreen(),
+                      TmdbV4ReferenceScreen.routeName: (context) =>
+                          const TmdbV4ReferenceScreen(),
+                      V4LoginScreen.routeName: (context) =>
+                          const V4LoginScreen(),
                       KeywordBrowserScreen.routeName: (context) =>
                           const KeywordBrowserScreen(),
                       NetworksScreen.routeName: (context) =>

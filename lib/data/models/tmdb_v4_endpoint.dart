@@ -22,6 +22,7 @@ class TmdbV4Endpoint extends Equatable {
     this.sampleBody,
     this.supportsExecution = true,
     this.notes,
+    this.requiresUserToken = false,
   });
 
   final String id;
@@ -34,8 +35,15 @@ class TmdbV4Endpoint extends Equatable {
   final Map<String, dynamic>? sampleBody;
   final bool supportsExecution;
   final String? notes;
+  final bool requiresUserToken;
 
-  Uri buildUri({Map<String, dynamic>? overrideQuery}) {
+  Uri buildUri({
+    Map<String, dynamic>? overrideQuery,
+    String? accountId,
+  }) {
+    final resolvedPath = accountId == null
+        ? path
+        : path.replaceAll('{account_id}', accountId);
     final effectiveQuery = <String, dynamic>{
       if (sampleQuery != null) ...sampleQuery!,
       if (overrideQuery != null) ...overrideQuery,
@@ -47,13 +55,44 @@ class TmdbV4Endpoint extends Equatable {
 
     return Uri.https(
       'api.themoviedb.org',
-      '/4$path',
+      '/4$resolvedPath',
       filtered.isEmpty ? null : filtered,
     );
   }
 
+  TmdbV4Endpoint copyWith({
+    String? path,
+    Map<String, dynamic>? sampleQuery,
+    Map<String, dynamic>? sampleBody,
+    bool? supportsExecution,
+    String? notes,
+    bool? requiresUserToken,
+  }) {
+    return TmdbV4Endpoint(
+      id: id,
+      title: title,
+      description: description,
+      category: category,
+      path: path ?? this.path,
+      method: method,
+      sampleQuery: sampleQuery ?? this.sampleQuery,
+      sampleBody: sampleBody ?? this.sampleBody,
+      supportsExecution: supportsExecution ?? this.supportsExecution,
+      notes: notes ?? this.notes,
+      requiresUserToken: requiresUserToken ?? this.requiresUserToken,
+    );
+  }
+
   @override
-  List<Object?> get props => [id, title, path, method, category];
+  List<Object?> get props => [
+        id,
+        title,
+        path,
+        method,
+        category,
+        supportsExecution,
+        requiresUserToken,
+      ];
 }
 
 class TmdbV4EndpointGroup extends Equatable {

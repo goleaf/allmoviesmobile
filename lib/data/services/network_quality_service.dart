@@ -39,6 +39,10 @@ class NetworkQualityNotifier extends ChangeNotifier {
     _updateQuality(results);
     _subscription ??=
         _connectivity.onConnectivityChanged.listen(_updateQuality);
+    _probeTimer?.cancel();
+    _probeTimer = Timer.periodic(_probeInterval, (timer) async {
+      await refreshQuality(timeout: _probeTimeout);
+    });
     await refreshQuality();
   }
 
@@ -106,6 +110,7 @@ class NetworkQualityNotifier extends ChangeNotifier {
   void dispose() {
     _subscription?.cancel();
     _probeTimer?.cancel();
+    _probeTimer = null;
     _client.close();
     super.dispose();
   }

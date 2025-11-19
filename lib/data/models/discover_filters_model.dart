@@ -28,6 +28,14 @@ enum SortBy {
   titleAsc,
   @JsonValue('title.desc')
   titleDesc,
+  @JsonValue('first_air_date.desc')
+  firstAirDateDesc,
+  @JsonValue('first_air_date.asc')
+  firstAirDateAsc,
+  @JsonValue('name.asc')
+  nameAsc,
+  @JsonValue('name.desc')
+  nameDesc,
 }
 
 @freezed
@@ -96,5 +104,52 @@ extension DiscoverFiltersQuery on DiscoverFilters {
     }
 
     return parameters;
+  }
+}
+
+extension SortByExtension on SortBy {
+  String get value {
+    switch (this) {
+      case SortBy.popularityDesc:
+        return 'popularity.desc';
+      case SortBy.popularityAsc:
+        return 'popularity.asc';
+      case SortBy.revenueDesc:
+        return 'revenue.desc';
+      case SortBy.revenueAsc:
+        return 'revenue.asc';
+      case SortBy.ratingDesc:
+        return 'vote_average.desc';
+      case SortBy.ratingAsc:
+        return 'vote_average.asc';
+      case SortBy.voteCountDesc:
+        return 'vote_count.desc';
+      case SortBy.voteCountAsc:
+        return 'vote_count.asc';
+      case SortBy.releaseDateDesc:
+        return 'release_date.desc';
+      case SortBy.releaseDateAsc:
+        return 'release_date.asc';
+      case SortBy.titleAsc:
+        return 'title.asc';
+      case SortBy.titleDesc:
+        return 'title.desc';
+      case SortBy.firstAirDateDesc:
+        return 'first_air_date.desc';
+      case SortBy.firstAirDateAsc:
+        return 'first_air_date.asc';
+      case SortBy.nameAsc:
+        return 'name.asc';
+      case SortBy.nameDesc:
+        return 'name.desc';
+    }
+  }
+
+  static SortBy fromString(String? value) {
+    if (value == null) return SortBy.popularityDesc;
+    return SortBy.values.firstWhere(
+      (e) => e.value == value,
+      orElse: () => SortBy.popularityDesc,
+    );
   }
 }

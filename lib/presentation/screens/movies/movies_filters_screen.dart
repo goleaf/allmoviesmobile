@@ -4,7 +4,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/discover_filters_model.dart';
-import '../../../data/models/watch_provider_model.dart';
+import '../../widgets/filters/sort_by_dropdown.dart';
+import '../../widgets/filters/watch_provider_selector.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/watch_region_provider.dart';
 
@@ -38,9 +39,6 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
   String withCompanies = '';
   String withKeywords = '';
 
-  // Watch Providers State
-  List<WatchProvider> _availableProviders = [];
-  bool _isLoadingProviders = false;
 
   @override
   void initState() {
@@ -80,38 +78,6 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
     withCompanies = init?.withCompanies ?? '';
     withKeywords = init?.withKeywords ?? '';
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadWatchProviders();
-    });
-  }
-
-  Future<void> _loadWatchProviders() async {
-    if (!mounted) return;
-    setState(() => _isLoadingProviders = true);
-
-    try {
-      final region = context.read<WatchRegionProvider?>()?.region ?? 'US';
-      final repo = context.read<TmdbRepository>();
-      final providers = await repo.fetchAvailableWatchProviders(
-        mediaType: 'movie',
-        region: region,
-      );
-      
-      // Filter to only show popular/major providers to avoid clutter
-      // or sort by display priority
-      providers.sort((a, b) => (a.displayPriority ?? 999).compareTo(b.displayPriority ?? 999));
-
-      if (mounted) {
-        setState(() {
-          _availableProviders = providers;
-          _isLoadingProviders = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() => _isLoadingProviders = false);
-      }
-    }
   }
 
   void _reset() {
@@ -210,57 +176,10 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          DropdownButtonFormField<SortBy>(
+          const SizedBox(height: 8),
+          SortByDropdown(
             value: sortBy,
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            ),
-            items: [
-              DropdownMenuItem(
-                value: SortBy.popularityDesc,
-                child: Text(l.t('discover.sort.popularityDesc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.popularityAsc,
-                child: Text(l.t('discover.sort.popularityAsc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.revenueDesc,
-                child: Text(l.t('discover.sort.revenueDesc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.revenueAsc,
-                child: Text(l.t('discover.sort.revenueAsc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.ratingDesc,
-                child: Text(l.t('discover.sort.ratingDesc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.ratingAsc,
-                child: Text(l.t('discover.sort.ratingAsc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.releaseDateDesc,
-                child: Text(l.t('discover.sort.releaseDateDesc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.releaseDateAsc,
-                child: Text(l.t('discover.sort.releaseDateAsc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.titleAsc,
-                child: Text(l.t('discover.sort.titleAsc')),
-              ),
-              DropdownMenuItem(
-                value: SortBy.titleDesc,
-                child: Text(l.t('discover.sort.titleDesc')),
-              ),
-            ],
-            onChanged: (v) {
-              if (v != null) setState(() => sortBy = v);
-            },
+            onChanged: (v) => setState(() => sortBy = v),
           ),
           const SizedBox(height: 16),
           Text(
@@ -549,7 +468,20 @@ class _MoviesFiltersScreenState extends State<MoviesFiltersScreen> {
             value: includeAdult,
             onChanged: (v) => setState(() => includeAdult = v),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
+          Text(
+            l.t('discover.watchProvidersIds'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          WatchProviderSelector(
+            mediaType: 'movie',
+            selectedProviderIds: selectedProviderIds,
+            onProvidersChanged: (newSelection) {
+              setState(() => selectedProviderIds = newSelection);
+            },
+          ),
+          const SizedBox(height: 8),
           Text(
             l.t('discover.peopleCompaniesKeywords'),
             style: Theme.of(context).textTheme.titleMedium,

@@ -1997,18 +1997,18 @@ class TmdbRepository {
   }
 
   // Returns the catalog of watch providers for a media type localized by language
-  Future<List<WatchProvider>> fetchProvidersCatalog({
+  Future<List<WatchProvider>> fetchAvailableWatchProviders({
     required String mediaType, // 'movie' | 'tv'
-    required String language,
+    required String region,
     bool forceRefresh = false,
   }) async {
-    final key = 'providers_catalog::$mediaType::$language';
+    final key = 'providers_catalog::$mediaType::$region';
     return _cached(
       key,
       () async {
         final payload = await _getJson(
           '/watch/providers/$mediaType',
-          query: {'language': language},
+          query: {'watch_region': region},
         );
         final results = payload['results'];
         if (results is! List) return const [];
@@ -2094,27 +2094,6 @@ class TmdbRepository {
     bool forceRefresh = false,
   }) async {
     final payload = await _getJson('/certification/movie/list');
-    final results = payload['certifications'];
-    if (results is! Map<String, dynamic>) {
-      return const {};
-    }
-
-    return results.map((key, value) {
-      if (value is List) {
-        final items = value
-            .whereType<Map<String, dynamic>>()
-            .map(Certification.fromJson)
-            .toList(growable: false);
-        return MapEntry(key, items);
-      }
-      return MapEntry(key, const <Certification>[]);
-    });
-  }
-
-  Future<Map<String, List<Certification>>> fetchTvCertifications({
-    bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson('/certification/tv/list');
     final results = payload['certifications'];
     if (results is! Map<String, dynamic>) {
       return const {};

@@ -18,6 +18,8 @@ class PreferenceKeys {
       'settings.series.active_filters';
   static const String seriesActivePreset =
       'settings.series.active_preset';
+  static const String seriesActivePresetName =
+      'settings.series.active_preset_name';
 
   // Presentation
   static const String imageQuality = 'settings.image_quality';

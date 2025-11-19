@@ -1053,7 +1053,7 @@ class TmdbRepository {
     );
   }
 
-  Future<PersonDetailed> fetchPersonDetails(
+  Future<PersonDetail> fetchPersonDetails(
     int personId, {
     bool forceRefresh = false,
   }) {
@@ -1065,19 +1065,9 @@ class TmdbRepository {
           '/person/$personId',
           query: {
             'append_to_response':
-                'combined_credits,images,external_ids,translations',
+                'images,tagged_images,combined_credits,movie_credits,tv_credits,translations,external_ids',
           },
         );
-
-        final normalized = Map<String, dynamic>.from(payload);
-
-        // Process combined credits to separate cast and crew
-        final credits = payload['combined_credits'];
-        if (credits is Map<String, dynamic>) {
-          final cast = credits['cast'];
-          if (cast is List) {
-            normalized['cast_credits'] = cast
-                .whereType<Map<String, dynamic>>()
                 .map((item) {
                   // Ensure media_type is present
                   if (item['media_type'] == null) {
@@ -2104,6 +2094,27 @@ class TmdbRepository {
     bool forceRefresh = false,
   }) async {
     final payload = await _getJson('/certification/movie/list');
+    final results = payload['certifications'];
+    if (results is! Map<String, dynamic>) {
+      return const {};
+    }
+
+    return results.map((key, value) {
+      if (value is List) {
+        final items = value
+            .whereType<Map<String, dynamic>>()
+            .map(Certification.fromJson)
+            .toList(growable: false);
+        return MapEntry(key, items);
+      }
+      return MapEntry(key, const <Certification>[]);
+    });
+  }
+
+  Future<Map<String, List<Certification>>> fetchTvCertifications({
+    bool forceRefresh = false,
+  }) async {
+    final payload = await _getJson('/certification/tv/list');
     final results = payload['certifications'];
     if (results is! Map<String, dynamic>) {
       return const {};

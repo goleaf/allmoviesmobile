@@ -60,6 +60,7 @@ class AppStrings {
   static const apply = 'Apply';
   static const reset = 'Reset';
   static const save = 'Save';
+  static const savePreset = 'Save preset';
   static const delete = 'Delete';
   static const page = 'Page';
   static const of = 'of';

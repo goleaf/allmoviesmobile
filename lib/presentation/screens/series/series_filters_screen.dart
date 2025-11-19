@@ -1,10 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../core/constants/app_strings.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../data/models/tv_filter_preset.dart';
+import '../../../data/models/watch_provider_model.dart';
+import '../../../data/models/network_detailed_model.dart';
+import '../../../data/tmdb_repository.dart';
 import '../../../data/tv_filter_presets_repository.dart';
+import '../../../providers/watch_region_provider.dart';
 
 /// Arguments passed when navigating to [SeriesFiltersScreen].
 class SeriesFiltersScreenArguments {
@@ -42,7 +49,10 @@ class SeriesFiltersScreen extends StatefulWidget {
 }
 
 class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
+  // Filters
+  String sortBy = 'popularity.desc';
   final Set<int> networks = <int>{};
+  final Map<int, String> networkNames = {}; // To display names of selected networks
   String? status;
   String? type;
   DateTime? airFrom;
@@ -53,34 +63,43 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   bool includeNullFirstAirDates = false;
   bool screenedTheatrically = false;
   String timezone = '';
-  String watchProviders = '';
+  final Set<int> selectedProviderIds = <int>{};
   final Set<String> monetization = <String>{'flatrate', 'rent', 'buy'};
   double voteMin = 5.0;
   double voteMax = 9.5;
   int runtimeMin = 20;
   int runtimeMax = 90;
   int voteCountMin = 50;
+  String? certification;
 
   final TextEditingController _timezoneController = TextEditingController();
-  final TextEditingController _watchProvidersController =
-      TextEditingController();
+  final TextEditingController _networkSearchController = TextEditingController();
+  Timer? _debounce;
 
   bool _suspendTextNotifications = false;
   bool _didLoadInitialFilters = false;
   String? _currentPresetName;
+
+  // Data
+  List<WatchProvider> _availableProviders = [];
+  bool _isLoadingProviders = false;
+  List<NetworkDetailed> _networkSearchResults = [];
+  bool _isSearchingNetworks = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadInitialData();
+      _loadWatchProviders();
     });
   }
 
   @override
   void dispose() {
     _timezoneController.dispose();
-    _watchProvidersController.dispose();
+    _networkSearchController.dispose();
+    _debounce?.cancel();
     super.dispose();
   }
 
@@ -102,6 +121,66 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
     }
   }
 
+  Future<void> _loadWatchProviders() async {
+    if (!mounted) return;
+    setState(() => _isLoadingProviders = true);
+
+    try {
+      final region = context.read<WatchRegionProvider?>()?.region ?? 'US';
+      final repo = context.read<TmdbRepository>();
+      final providers = await repo.fetchAvailableWatchProviders(
+        mediaType: 'tv',
+        region: region,
+      );
+      
+      providers.sort((a, b) => (a.displayPriority ?? 999).compareTo(b.displayPriority ?? 999));
+
+      if (mounted) {
+        setState(() {
+          _availableProviders = providers;
+          _isLoadingProviders = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoadingProviders = false);
+      }
+    }
+  }
+
+  void _onNetworkSearchChanged(String query) {
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 500), () {
+      _searchNetworks(query);
+    });
+  }
+
+  Future<void> _searchNetworks(String query) async {
+    if (query.isEmpty) {
+      setState(() {
+        _networkSearchResults = [];
+        _isSearchingNetworks = false;
+      });
+      return;
+    }
+
+    setState(() => _isSearchingNetworks = true);
+    try {
+      final repo = context.read<TmdbRepository>();
+      final response = await repo.searchNetworks(query);
+      if (mounted) {
+        setState(() {
+          _networkSearchResults = response.results;
+          _isSearchingNetworks = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isSearchingNetworks = false);
+      }
+    }
+  }
+
   void _updateState(
     VoidCallback updates, {
     String? presetNameOverride,
@@ -120,7 +199,9 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
 
   void _reset() {
     _updateState(() {
+      sortBy = 'popularity.desc';
       networks.clear();
+      networkNames.clear();
       status = null;
       type = null;
       airFrom = null;
@@ -131,7 +212,7 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       includeNullFirstAirDates = false;
       screenedTheatrically = false;
       timezone = '';
-      watchProviders = '';
+      selectedProviderIds.clear();
       monetization
         ..clear()
         ..addAll({'flatrate', 'rent', 'buy'});
@@ -140,12 +221,15 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       runtimeMin = 20;
       runtimeMax = 90;
       voteCountMin = 50;
+      certification = null;
     });
-    _updateTextControllers('', '');
+    _updateTextControllers('');
   }
 
   Map<String, String> _buildFilters() {
+    final region = context.read<WatchRegionProvider?>()?.region;
     final filters = <String, String>{
+      'sort_by': sortBy,
       if (airFrom != null)
         'first_air_date.gte': _formatDate(airFrom!),
       if (airTo != null)
@@ -153,8 +237,9 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       if (includeNullFirstAirDates) 'include_null_first_air_dates': 'true',
       if (screenedTheatrically) 'screened_theatrically': 'true',
       if (timezone.isNotEmpty) 'timezone': timezone,
-      if (watchProviders.isNotEmpty)
-        'with_watch_providers': watchProviders.replaceAll(' ', ''),
+      if (selectedProviderIds.isNotEmpty)
+        'with_watch_providers': selectedProviderIds.join('|'),
+      if (region != null) 'watch_region': region,
       if (monetization.isNotEmpty)
         'with_watch_monetization_types':
             (monetization.toList()..sort()).join('|'),
@@ -171,6 +256,10 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
       'with_runtime.gte': '$runtimeMin',
       'with_runtime.lte': '$runtimeMax',
       'vote_count.gte': '$voteCountMin',
+      if (certification != null) ...{
+        'certification_country': region ?? 'US',
+        'certification': certification!,
+      },
     };
     return filters;
   }
@@ -190,10 +279,9 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
     );
   }
 
-  void _updateTextControllers(String timezoneValue, String providersValue) {
+  void _updateTextControllers(String timezoneValue) {
     _suspendTextNotifications = true;
     _timezoneController.text = timezoneValue;
-    _watchProvidersController.text = providersValue;
     _suspendTextNotifications = false;
   }
 
@@ -203,9 +291,13 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   }) {
     _updateState(
       () {
+        sortBy = filters['sort_by'] ?? 'popularity.desc';
         networks
           ..clear()
           ..addAll(_parseIntList(filters['with_networks']));
+        // Note: We can't easily restore network names from IDs without fetching them.
+        // For now, we just restore IDs.
+        
         status = filters['with_status'];
         type = filters['with_type'];
         airFrom = _tryParseDate(filters['first_air_date.gte']);
@@ -220,7 +312,11 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
         screenedTheatrically =
             _tryParseBool(filters['screened_theatrically']);
         timezone = filters['timezone'] ?? '';
-        watchProviders = filters['with_watch_providers'] ?? '';
+        
+        selectedProviderIds.clear();
+        final providerIds = _parseIntList(filters['with_watch_providers'], separator: '|');
+        selectedProviderIds.addAll(providerIds);
+
         monetization
           ..clear()
           ..addAll(
@@ -234,11 +330,12 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
         runtimeMin = _tryParseInt(filters['with_runtime.gte']) ?? 20;
         runtimeMax = _tryParseInt(filters['with_runtime.lte']) ?? 90;
         voteCountMin = _tryParseInt(filters['vote_count.gte']) ?? 50;
+        certification = filters['certification'];
       },
       presetNameOverride: presetName,
       resetPreset: false,
     );
-    _updateTextControllers(timezone, watchProviders);
+    _updateTextControllers(timezone);
   }
 
   Future<void> _savePreset() async {
@@ -464,6 +561,7 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final region = context.watch<WatchRegionProvider?>()?.region;
 
     return Scaffold(
       appBar: AppBar(
@@ -492,6 +590,9 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
                 AppLocalizations.of(context).t('tv.series'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
+              const Spacer(),
+              if (region != null)
+                Chip(label: Text('${l.t('settings.region')}: $region')),
             ],
           ),
           if (_currentPresetName != null) ...[
@@ -503,35 +604,127 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
             ),
           ],
           const SizedBox(height: 12),
+          Text(
+            l.t('discover.sortBy'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          DropdownButtonFormField<String>(
+            value: sortBy,
+            decoration: const InputDecoration(
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            items: [
+              DropdownMenuItem(
+                value: 'popularity.desc',
+                child: Text(l.t('discover.sort.popularityDesc')),
+              ),
+              DropdownMenuItem(
+                value: 'popularity.asc',
+                child: Text(l.t('discover.sort.popularityAsc')),
+              ),
+              DropdownMenuItem(
+                value: 'vote_average.desc',
+                child: Text(l.t('discover.sort.ratingDesc')),
+              ),
+              DropdownMenuItem(
+                value: 'vote_average.asc',
+                child: Text(l.t('discover.sort.ratingAsc')),
+              ),
+              DropdownMenuItem(
+                value: 'first_air_date.desc',
+                child: Text(l.t('discover.sort.releaseDateDesc')),
+              ),
+              DropdownMenuItem(
+                value: 'first_air_date.asc',
+                child: Text(l.t('discover.sort.releaseDateAsc')),
+              ),
+            ],
+            onChanged: (v) {
+              if (v != null) setState(() => sortBy = v);
+            },
+          ),
+          const SizedBox(height: 16),
           Text('Networks', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final entry in [
-                {'id': 213, 'name': 'Netflix'},
-                {'id': 49, 'name': 'HBO'},
-                {'id': 1024, 'name': 'Amazon'},
-                {'id': 2131, 'name': 'Disney+'},
-                {'id': 2552, 'name': 'Apple TV+'},
-              ])
-                FilterChip(
-                  label: Text(entry['name'] as String),
-                  selected: networks.contains(entry['id']),
-                  onSelected: (v) {
-                    _updateState(() {
-                      final id = entry['id'] as int;
-                      if (v) {
-                        networks.add(id);
-                      } else {
-                        networks.remove(id);
-                      }
-                    });
-                  },
-                ),
-            ],
+          TextField(
+            controller: _networkSearchController,
+            decoration: InputDecoration(
+              hintText: 'Search networks...',
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _isSearchingNetworks
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  : null,
+            ),
+            onChanged: _onNetworkSearchChanged,
           ),
+          if (_networkSearchResults.isNotEmpty)
+            Container(
+              height: 150,
+              margin: const EdgeInsets.only(top: 8),
+              decoration: BoxDecoration(
+                border: Border.all(color: Theme.of(context).dividerColor),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ListView.builder(
+                itemCount: _networkSearchResults.length,
+                itemBuilder: (context, index) {
+                  final network = _networkSearchResults[index];
+                  final isSelected = networks.contains(network.id);
+                  return ListTile(
+                    leading: network.logoPath != null
+                        ? CachedNetworkImage(
+                            imageUrl: 'https://image.tmdb.org/t/p/w92${network.logoPath}',
+                            width: 40,
+                            fit: BoxFit.contain,
+                            errorWidget: (_, __, ___) => const Icon(Icons.tv),
+                          )
+                        : const Icon(Icons.tv),
+                    title: Text(network.name),
+                    trailing: isSelected ? const Icon(Icons.check) : null,
+                    onTap: () {
+                      _updateState(() {
+                        if (isSelected) {
+                          networks.remove(network.id);
+                          networkNames.remove(network.id);
+                        } else {
+                          networks.add(network.id);
+                          networkNames[network.id] = network.name;
+                        }
+                        _networkSearchResults = [];
+                        _networkSearchController.clear();
+                      });
+                    },
+                  );
+                },
+              ),
+            ),
+          const SizedBox(height: 8),
+          if (networks.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final id in networks)
+                  InputChip(
+                    label: Text(networkNames[id] ?? 'Network $id'),
+                    onDeleted: () {
+                      _updateState(() {
+                        networks.remove(id);
+                        networkNames.remove(id);
+                      });
+                    },
+                  ),
+              ],
+            ),
           const SizedBox(height: 16),
           Text('Status', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
@@ -571,6 +764,25 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
                   selected: type == t,
                   onSelected: (v) =>
                       _updateState(() => type = v ? t : null),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Text(
+            l.t('discover.certification'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            children: [
+              for (final cert in ['TV-Y', 'TV-Y7', 'TV-G', 'TV-PG', 'TV-14', 'TV-MA'])
+                FilterChip(
+                  label: Text(cert),
+                  selected: certification == cert,
+                  onSelected: (v) {
+                    setState(() => certification = v ? cert : null);
+                  },
                 ),
             ],
           ),
@@ -725,20 +937,77 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
           ),
           const SizedBox(height: 16),
           Text(
-            'Watch Providers (IDs)',
+            l.t('discover.watchProvidersIds'),
             style: Theme.of(context).textTheme.titleMedium,
           ),
           const SizedBox(height: 8),
-          TextField(
-            controller: _watchProvidersController,
-            decoration: const InputDecoration(
-              hintText: 'Comma-separated provider IDs',
+          if (_isLoadingProviders)
+            const Center(child: CircularProgressIndicator())
+          else if (_availableProviders.isEmpty)
+            const Text('No providers found for this region.')
+          else
+            SizedBox(
+              height: 200,
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  childAspectRatio: 1,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
+                ),
+                itemCount: _availableProviders.length,
+                itemBuilder: (context, index) {
+                  final provider = _availableProviders[index];
+                  final isSelected = selectedProviderIds.contains(provider.providerId);
+                  return InkWell(
+                    onTap: () {
+                      setState(() {
+                        if (isSelected) {
+                          selectedProviderIds.remove(provider.providerId);
+                        } else {
+                          if (provider.providerId != null) {
+                            selectedProviderIds.add(provider.providerId!);
+                          }
+                        }
+                      });
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: isSelected ? Theme.of(context).primaryColor : Colors.transparent,
+                          width: 3,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (provider.logoPath != null)
+                            Expanded(
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: CachedNetworkImage(
+                                  imageUrl: 'https://image.tmdb.org/t/p/original${provider.logoPath}',
+                                  fit: BoxFit.contain,
+                                  errorWidget: (_, __, ___) => const Icon(Icons.tv),
+                                ),
+                              ),
+                            ),
+                          const SizedBox(height: 4),
+                          Text(
+                            provider.providerName ?? '',
+                            style: Theme.of(context).textTheme.bodySmall,
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
             ),
-            onChanged: (v) {
-              if (_suspendTextNotifications) return;
-              _updateState(() => watchProviders = v.replaceAll(' ', ''));
-            },
-          ),
           const SizedBox(height: 8),
           Text(
             'Monetization Types',
@@ -827,45 +1096,26 @@ class _SeriesFiltersScreenState extends State<SeriesFiltersScreen> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
-          SwitchListTile.adaptive(
-            contentPadding: EdgeInsets.zero,
-            title: const Text('Save these filters as my preset'),
-            subtitle: const Text('Reuse this configuration when discovering TV shows.'),
-            value: false,
-            onChanged: (value) {
-              setState(() {
-                // no-op
-              });
-            },
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: _apply,
+              icon: const Icon(Icons.check),
+              label: Text(l.t('common.apply')),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: _savePreset,
+              icon: const Icon(Icons.save),
+              label: const Text(AppStrings.savePreset),
+            ),
           ),
           const SizedBox(height: 24),
         ],
-      ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _savePreset,
-                  icon: const Icon(Icons.bookmark_add_outlined),
-                  label: const Text('Save preset'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: FilledButton.icon(
-                  key: const ValueKey('seriesApplyFilters'),
-                  onPressed: _apply,
-                  icon: const Icon(Icons.check),
-                  label: const Text(AppStrings.apply),
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
     );
   }

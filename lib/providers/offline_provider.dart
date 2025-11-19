@@ -19,7 +19,7 @@ class OfflineProvider extends ChangeNotifier {
   final OfflineService _offlineService;
   final Connectivity _connectivity;
 
-  StreamSubscription<ConnectivityResult>? _connectivitySub;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
   StreamSubscription<OfflineEvent>? _offlineEventsSub;
 
   bool _isOffline = false;
@@ -70,9 +70,9 @@ class OfflineProvider extends ChangeNotifier {
     _pendingTasks = await _offlineService.getPendingSyncTasks();
   }
 
-  Future<void> _handleConnectivity(ConnectivityResult result,
+  Future<void> _handleConnectivity(List<ConnectivityResult> result,
       {bool notify = true}) async {
-    final offline = result == ConnectivityResult.none;
+    final offline = result.isEmpty || result.contains(ConnectivityResult.none);
     _isOffline = offline;
     _offlineService.setOffline(offline);
     if (!offline) {

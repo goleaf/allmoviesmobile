@@ -8,6 +8,7 @@ import '../../../core/navigation/deep_link_handler.dart';
 import '../../../data/models/collection_detail_view.dart';
 import '../../../data/services/api_config.dart';
 import '../../../providers/collection_details_provider.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 import '../../widgets/loading_indicator.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
 import '../../../core/utils/media_image_helper.dart';
@@ -281,7 +282,6 @@ class _CollectionDetailViewState extends State<_CollectionDetailView> {
 
   Widget _buildAppBar(
     BuildContext context,
-    int collectionId,
     String? backdropPath,
     String title,
     int collectionId,

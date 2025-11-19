@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/media_image_helper.dart';
 import '../../../data/models/movie.dart';
 import '../../../providers/movies_provider.dart';
 import '../../../data/models/discover_filters_model.dart';
@@ -740,61 +741,6 @@ class _MoviesListState extends State<_MoviesList> {
         }
         final movie = widget.movies[index];
         return _MovieCard(movie: movie);
-      },
-    );
-  }
-}
-
-class _MoviesListSkeleton extends StatelessWidget {
-  const _MoviesListSkeleton({super.key});
-
-  static const _placeholderCount = 6;
-
-  @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, _) {
-        return GridView.builder(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 2,
-            mainAxisSpacing: 16,
-            crossAxisSpacing: 12,
-            childAspectRatio: 0.65,
-          ),
-          itemCount: _placeholderCount,
-          itemBuilder: (context, index) {
-            return LayoutBuilder(
-              builder: (context, itemConstraints) {
-                final width = itemConstraints.maxWidth;
-                final posterHeight = width * 1.5;
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ShimmerLoading(
-                      width: width,
-                      height: posterHeight,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    const SizedBox(height: 12),
-                    ShimmerLoading(
-                      width: width * 0.85,
-                      height: 16,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    const SizedBox(height: 8),
-                    ShimmerLoading(
-                      width: width * 0.6,
-                      height: 14,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ],
-                );
-              },
-            );
-          },
-        );
       },
     );
   }

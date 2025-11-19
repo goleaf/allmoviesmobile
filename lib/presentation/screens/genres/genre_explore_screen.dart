@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/media_image_helper.dart';
 import '../../../data/models/genre_model.dart';
 import '../../../data/models/genre_statistics.dart';
 import '../../../data/models/movie.dart';

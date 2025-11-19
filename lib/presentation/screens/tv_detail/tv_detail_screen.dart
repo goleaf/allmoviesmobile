@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/utils/media_image_helper.dart';
 
 import '../../../core/localization/app_localizations.dart';
@@ -19,13 +20,16 @@ import '../../../data/models/video_model.dart';
 import '../../../data/models/media_images.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/favorites_provider.dart';
+import '../../../providers/media_gallery_provider.dart';
 import '../../../providers/tv_detail_provider.dart';
 import '../../../providers/watch_region_provider.dart';
 import '../../../providers/watchlist_provider.dart';
 import '../../../providers/offline_provider.dart';
 import '../../widgets/error_widget.dart';
+import '../../widgets/image_gallery.dart';
 import '../../../data/models/watch_provider_model.dart';
 import '../../widgets/loading_indicator.dart';
+import '../../widgets/media_gallery_section.dart';
 import '../../widgets/movie_card.dart';
 import '../../widgets/rating_display.dart';
 import '../../widgets/media_image.dart';

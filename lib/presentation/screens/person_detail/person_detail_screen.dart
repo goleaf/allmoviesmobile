@@ -11,7 +11,11 @@ import '../../../data/models/person_model.dart';
 import '../../../data/tmdb_repository.dart';
 import '../../../providers/person_detail_provider.dart';
 import '../../../core/utils/media_image_helper.dart';
+import '../../widgets/deep_link_share_sheet.dart';
 import '../../widgets/fullscreen_modal_scaffold.dart';
+import '../../widgets/image_gallery.dart';
+import '../../widgets/media_image.dart';
+import '../../widgets/person_combined_timeline.dart';
 import '../../widgets/share_link_sheet.dart';
 import '../../../core/navigation/deep_link_parser.dart';
 
@@ -130,7 +134,6 @@ class _PersonDetailView extends StatelessWidget {
             department: department,
             popularity: popularity,
             profileUrl: profileUrl,
-            personId: provider.personId,
           ),
           const SliverFillRemaining(
             hasScrollBody: false,
@@ -155,7 +158,6 @@ class _PersonDetailView extends StatelessWidget {
           department: department,
           popularity: popularity,
           profileUrl: profileUrl,
-          personId: provider.personId,
         ),
         SliverToBoxAdapter(child: _PersonDetailBody(detail: detail)),
       ],

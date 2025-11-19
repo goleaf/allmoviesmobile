@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/media_image_helper.dart';
 import '../../../providers/statistics_provider.dart';
 import '../../widgets/empty_state.dart';
 

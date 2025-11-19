@@ -1053,18 +1053,71 @@ class TmdbRepository {
     );
   }
 
-  Future<PersonDetail> fetchPersonDetails(
+  Future<PersonDetailed> fetchPersonDetails(
     int personId, {
     bool forceRefresh = false,
-  }) async {
-    final payload = await _getJson(
-      '/person/$personId',
-      query: {
-        'append_to_response':
-            'combined_credits,external_ids,images,tagged_images',
+  }) {
+    final cacheKey = 'person_details::$personId';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/person/$personId',
+          query: {
+            'append_to_response':
+                'combined_credits,images,external_ids,translations',
+          },
+        );
+
+        final normalized = Map<String, dynamic>.from(payload);
+
+        // Process combined credits to separate cast and crew
+        final credits = payload['combined_credits'];
+        if (credits is Map<String, dynamic>) {
+          final cast = credits['cast'];
+          if (cast is List) {
+            normalized['cast_credits'] = cast
+                .whereType<Map<String, dynamic>>()
+                .map((item) {
+                  // Ensure media_type is present
+                  if (item['media_type'] == null) {
+                    // Try to infer from other fields or default to movie if ambiguous
+                    if (item['first_air_date'] != null ||
+                        item['episode_count'] != null) {
+                      item['media_type'] = 'tv';
+                    } else {
+                      item['media_type'] = 'movie';
+                    }
+                  }
+                  return item;
+                })
+                .toList(growable: false);
+          }
+
+          final crew = credits['crew'];
+          if (crew is List) {
+            normalized['crew_credits'] = crew
+                .whereType<Map<String, dynamic>>()
+                .map((item) {
+                  if (item['media_type'] == null) {
+                    if (item['first_air_date'] != null ||
+                        item['episode_count'] != null) {
+                      item['media_type'] = 'tv';
+                    } else {
+                      item['media_type'] = 'movie';
+                    }
+                  }
+                  return item;
+                })
+                .toList(growable: false);
+          }
+        }
+
+        return PersonDetailed.fromJson(normalized);
       },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL,
     );
-    return PersonDetail.fromJson(payload);
   }
 
   Future<PaginatedResponse<Person>> searchPeople(
@@ -1084,7 +1137,7 @@ class TmdbRepository {
       );
     }
 
-    final cacheKey = 'search_people::$normalized::$page';
+    final cacheKey = 'search_person::$normalized::$page';
     return _cached(
       cacheKey,
       () async {
@@ -1120,7 +1173,7 @@ class TmdbRepository {
       );
     }
 
-    final cacheKey = 'companies::$normalized::$page';
+    final cacheKey = 'search_company::$normalized::$page';
     return _cached(
       cacheKey,
       () async {
@@ -1129,6 +1182,96 @@ class TmdbRepository {
           query: {'query': normalized, 'page': '$page'},
         );
         return _mapPaginated<Company>(payload, Company.fromJson);
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.searchTTL,
+    );
+  }
+
+  /// Fetch available watch providers for a specific region and media type.
+  ///
+  /// [mediaType] should be 'movie' or 'tv'.
+  /// [region] is the ISO 3166-1 code (e.g. 'US', 'GB').
+  Future<List<WatchProvider>> fetchAvailableWatchProviders({
+    required String mediaType,
+    required String region,
+    bool forceRefresh = false,
+  }) {
+    final cacheKey = 'available_watch_providers::$mediaType::$region';
+    return _cached(
+      cacheKey,
+      () async {
+        final payload = await _getJson(
+          '/watch/providers/$mediaType',
+          query: {'watch_region': region},
+        );
+        final results = payload['results'];
+        if (results is List) {
+          return results
+              .whereType<Map<String, dynamic>>()
+              .map(WatchProvider.fromJson)
+              .toList(growable: false);
+        }
+        return const [];
+      },
+      forceRefresh: forceRefresh,
+      ttlSeconds: CacheService.defaultTTL, // Providers list changes rarely
+    );
+  }
+
+  /// Search for TV networks.
+  Future<PaginatedResponse<NetworkDetailed>> searchNetworks(
+    String query, {
+    int page = 1,
+    bool forceRefresh = false,
+  }) {
+    final normalized = query.trim();
+    if (normalized.isEmpty) {
+      return Future.value(
+        const PaginatedResponse<NetworkDetailed>(
+          page: 1,
+          totalPages: 1,
+          totalResults: 0,
+          results: <NetworkDetailed>[],
+        ),
+      );
+    }
+
+    final cacheKey = 'search_network::$normalized::$page';
+    return _cached(
+      cacheKey,
+      () async {
+        // Note: TMDB does not have a direct /search/network endpoint documented in some versions,
+        // but it is generally available as /search/company or similar.
+        // However, for networks specifically, we might need to rely on company search
+        // or if /search/company returns networks (which are companies).
+        // Let's assume /search/company covers networks, but we map to NetworkDetailed.
+        // Actually, let's use /search/company and map to a simplified Network model if needed,
+        // but NetworkDetailed requires more fields.
+        // Wait, TMDB DOES have /search/company. Networks are companies.
+        // Let's use /search/company and map to NetworkDetailed (subset).
+        // Or better, keep it as Company for search, but if we specifically need "Networks" for filters,
+        // we treat them as companies.
+        // For now, I will implement searchCompanies alias for networks or just use fetchCompanies.
+        // But to be safe and explicit as per plan:
+
+        final payload = await _getJson(
+          '/search/company',
+          query: {'query': normalized, 'page': '$page'},
+        );
+
+        // Map Company to NetworkDetailed (best effort)
+        return _mapPaginated<NetworkDetailed>(
+          payload,
+          (json) => NetworkDetailed(
+            id: json['id'] as int,
+            name: json['name'] as String,
+            logoPath: json['logo_path'] as String?,
+            originCountry: json['origin_country'] as String? ?? '',
+            headquarters: '',
+            homepage: '',
+          ),
+        );
       },
       forceRefresh: forceRefresh,
       ttlSeconds: CacheService.searchTTL,

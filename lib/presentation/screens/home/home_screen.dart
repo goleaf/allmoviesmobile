@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../../core/localization/app_localizations.dart';
+import '../../../core/utils/media_image_helper.dart';
 import '../../../data/models/movie.dart';
 import '../../../data/models/saved_media_item.dart';
 import '../../../providers/collections_provider.dart';

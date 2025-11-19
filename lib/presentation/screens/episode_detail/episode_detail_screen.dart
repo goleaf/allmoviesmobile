@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../../core/localization/app_localizations.dart';
 import '../../../core/navigation/deep_link_handler.dart';
 import '../../../core/navigation/deep_link_parser.dart';
+import '../../../core/utils/media_image_helper.dart';
 import '../../../data/models/episode_model.dart';
 import '../../../data/models/image_model.dart';
 import '../../../data/models/video_model.dart';
